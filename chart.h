@@ -2,42 +2,39 @@
 
 #include <QWidget>
 
-#include "rect.h"
+#include <core/coordinate.h>
+#include <core/buffer.h>
+
 #include "chartfigures.h"
-#include "chartfiguresrect.h"
-#include "chartwidgetrect.h"
-#include "chartbuffer.h"
 
-using ChartBufferPtr = std::shared_ptr<ChartBuffer>;
+using BufferPtr = std::shared_ptr<buffer>;
 
-class Chart : public QWidget
+class Chart final : public QWidget
 {
-    Q_OBJECT
 public:
-    QPen axisframepen;
-    QBrush background;
+    color axisframepen;
+    color background;
     QMarginsF margins;
-    ChartFigures figures;
+    chart_figures figures;
+    BufferPtr buffer;
 
 public:
     Chart(QWidget* parent = nullptr) noexcept;
 
     void clear() noexcept;
-    bool updateRects() noexcept;
-    bool isValidRects() const noexcept;
-
-protected:
-    void paintEvent(QPaintEvent*) noexcept override;
-    void mouseDoubleClickEvent(QMouseEvent*) noexcept override;
-    void wheelEvent(QWheelEvent*) noexcept override;
-    void mouseMoveEvent(QMouseEvent*) noexcept override;
-    void mousePressEvent(QMouseEvent*) noexcept override;
-    void mouseReleaseEvent(QMouseEvent*) noexcept override;
+    bool updateCooridinate() noexcept;
 
 private:
-    ChartWidgetRect widgetRect_;
-    ChartFiguresRect figuresRect_;
+    void paintEvent(QPaintEvent*) noexcept final;
+    void mouseDoubleClickEvent(QMouseEvent*) noexcept final;
+    void wheelEvent(QWheelEvent*) noexcept final;
+    void mouseMoveEvent(QMouseEvent*) noexcept final;
+    void mousePressEvent(QMouseEvent*) noexcept final;
+    void mouseReleaseEvent(QMouseEvent*) noexcept final;
+
+private:
+    coordiante_rect<coordiante_system::windows> windows;
+    coordiante_rect<coordiante_system::math> math;
     QPointF mousePos_;
-    ChartBufferPtr buffer_;
 };
 

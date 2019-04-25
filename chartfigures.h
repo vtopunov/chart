@@ -3,30 +3,42 @@
 #include <vector>
 #include <memory>
 
-#include <qpen.h>
-
-#include "rect.h"
-#include "transformation.h"
+#include <core/span.h>
+#include <core/rect.h>
+#include <core/color.h>
+#include <core/coordinate.h>
 
 class IChartFigure;
+class painter;
 
-class ChartFigures
+constexpr color default_figure_color = colors::blue;
+
+class chart_figures
 {
 public:
-    ChartFigures() noexcept = default;
+    chart_figures() noexcept = default;
 
-    ~ChartFigures() noexcept;
+    ~chart_figures() noexcept;
 
-    void add(std::vector<QPointF> points) noexcept;
+    void add(std::vector<point_t> points, color pen) noexcept;
 
-    void add(std::vector<QPointF> points, QPen pen) noexcept;
+    void add(span<const point_t> points, color pen) noexcept
+    {
+        add(std::vector<point_t>{ points.begin(), points.end() }, pen);
+    }
 
-    Rect calculateRect() const noexcept;
+    template<class Container, class = decltype( std::data(std::declval<Container>()) ), class = decltype( std::size(std::declval<Container>()) )>
+    void add(Container&& contaniner) noexcept
+    {
+        add(std::forward<Container>(contaniner), default_figure_color);
+    }
 
-    size_t bufferSize() const noexcept;
+    rect_t calculate_rect() const noexcept;
 
-    void draw(QPainter& context, span<QPointF> buffer, Transformation transform) const noexcept;
+    size_t buffer_size() const noexcept;
+
+    void draw(painter& context, span<point_t> buffer, coordinate_transformation toWindowsCoordinate) const noexcept;
 
 private:
-    std::vector<std::shared_ptr<IChartFigure>> figures_;
+    std::vector<std::shared_ptr<IChartFigure>> figures;
 };

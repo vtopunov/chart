@@ -3,8 +3,6 @@
 #include <iterator>
 #include <type_traits>
 
-#include "util.h"
-
 #pragma warning(push)
 #pragma warning(disable : 26481) // Don't use pointer arithmetic. Use span instead
 
@@ -24,33 +22,27 @@ public:
     using size_type              = size_t;
     using difference_type        = ptrdiff_t;
 
-    constexpr span() noexcept
-        : data_{ nullptr }
-        , size_{ 0_z }
-    {}
+    constexpr span() noexcept = default;
 
     constexpr span(pointer data, size_type size) noexcept
-        : data_{ data }
-        , size_{ size }
+        : span_data{ data }
+        , span_size{ size }
     {}
 
-    constexpr span(const span&) noexcept = default;
-    constexpr span& operator=(const span&) noexcept = default;
-
-    template<class Container, class = decltype(std::data(std::declval<Container>())), class = decltype(std::size(std::declval<Container>()))>
+    template<class Container, class = decltype( std::data(std::declval<Container>()) ), class = decltype( std::size(std::declval<Container>()) )>
     constexpr span(Container & c) noexcept
-        : data_{ std::data(c) }
-        , size_{ std::size(c) }
+        : span_data{ std::data(c) }
+        , span_size{ std::size(c) }
     {}
 
     constexpr iterator begin() const noexcept
     {
-        return data_;
+        return span_data;
     }
 
     constexpr iterator end() const noexcept
     {
-        return data_ + size_;
+        return span_data + span_size;
     }
 
     constexpr const_iterator cbegin() const noexcept
@@ -85,57 +77,57 @@ public:
 
     constexpr size_type size() const noexcept
     {
-        return size_;
+        return span_size;
     }
 
     constexpr size_type length() const noexcept
     {
-        return size_;
+        return span_size;
     }
 
     constexpr bool empty() const noexcept
     {
-        return !size_;
+        return !span_size;
     }
 
     constexpr pointer data() const noexcept
     {
-        return data_;
+        return span_data;
     }
 
     constexpr reference operator[](const size_type index) const noexcept
     {
-        return data_[index];
+        return span_data[index];
     }
 
     constexpr reference front() const noexcept
     {
-        return *data_;
+        return *span_data;
     }
 
     constexpr reference back() const noexcept
     {
-        return data_[size_ - 1_z];
+        return span_data[span_size - 1];
     }
 
     constexpr span left(size_t size) const noexcept
     {
-        return { data_, size };
+        return { span_data, size };
     }
 
     constexpr span right(size_t size) const noexcept
     {
-        return { data_ + size_ - size, size };
+        return { span_data + span_size - size, size };
     }
 
     constexpr span mid(size_t pos, size_t size) const
     {
-        return { data_ + pos, size };
+        return { span_data + pos, size };
     }
 
 private:
-    pointer data_;
-    size_type size_;
+    pointer span_data{};
+    size_type span_size{};
 };
 
 #pragma warning(pop)

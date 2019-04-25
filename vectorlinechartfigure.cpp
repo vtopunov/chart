@@ -1,27 +1,36 @@
 #include "vectorlinechartfigure.h"
-#include <qpainter.h>
 
-size_t VectorLineChartFigure::size() const noexcept
+#include <core/coordinate.h>
+
+
+size_t vector_line_chart_figure::size() const noexcept
 {
     return points_.size();
 }
 
-Rect VectorLineChartFigure::calculateRect(Rect rect) const noexcept
+rect_t vector_line_chart_figure::calculate_rect(rect_t rect) const noexcept
 {
-	return rect.include(points_);
+    for (const auto& point : points_)
+    {
+        rect = rect.with_inclusion(point);
+    }
+
+    return rect;
 }
 
-void VectorLineChartFigure::draw(QPainter& context, span<QPointF> buffer, Transformation transform) const noexcept
+void vector_line_chart_figure::draw(painter& context, span<point_t> buffer, coordinate_transformation to_windows_coordinate) const noexcept
 {
 	assert(points_.size() <= buffer.size());
 
+    buffer = buffer.left(points_.size());
+
 	size_t index = 0;
-	for (const auto& point : points_)
+	for (const auto point : points_)
 	{
-		buffer[index] = transform(point);
+		buffer[index] = to_windows_coordinate(point);
 		++index;
 	}
 
-	context.setPen(pen_);
-	context.drawPolyline(buffer.data(), narrow_cast<int>(index));
+    context.pen(pen_);
+    context.draw_polyline(buffer);
 }

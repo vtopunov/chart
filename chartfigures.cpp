@@ -1,51 +1,45 @@
 #include "chartfigures.h"
 #include "vectorlinechartfigure.h"
 
-ChartFigures::~ChartFigures() noexcept = default;
+#include <thread>
 
-void ChartFigures::add(std::vector<QPointF> points) noexcept
+chart_figures::~chart_figures() noexcept = default;
+
+void chart_figures::add(std::vector<point_t> points, color pen) noexcept
 {
-    add(std::move(points), QColor(0, 0, 255));
+    figures.push_back(std::make_shared<vector_line_chart_figure>(points, pen));
 }
 
-void ChartFigures::add(std::vector<QPointF> points, QPen pen) noexcept
+rect_t chart_figures::calculate_rect() const noexcept
 {
-    figures_.push_back(std::make_shared<VectorLineChartFigure>(points, pen));
-}
-
-Rect ChartFigures::calculateRect() const noexcept
-{
-    constexpr auto REAL_MAX = std::numeric_limits<qreal>::max();
-    constexpr auto REAL_MIN = std::numeric_limits<qreal>::min();
-
-    Rect rect
+    rect_t rect
     {
-        { REAL_MAX, REAL_MAX },
-        { REAL_MIN, REAL_MIN }
+        point_t::fill(max_v<real_t>),
+        point_t::fill(lowest_v<real_t>)
     };
 
-    for (const auto& figure : figures_)
+    for (const auto& figure : figures)
     {
-        rect = figure->calculateRect(rect);
+        rect = figure->calculate_rect(rect);
     }
 
     return rect;
 }
 
-size_t ChartFigures::bufferSize() const noexcept
+size_t chart_figures::buffer_size() const noexcept
 {
     size_t size = 0;
-    for (const auto& figure : figures_)
+    for (const auto& figure : figures)
     {
         size = std::max(size, figure->size());
     }
     return size;
 }
 
-void ChartFigures::draw(QPainter& context, span<QPointF> buffer, Transformation transform) const noexcept
+void chart_figures::draw(painter& context, span<point_t> buffer, coordinate_transformation to_windows_coordinate) const noexcept
 {
-    for (const auto& figure : figures_)
+    for (const auto& figure : figures)
     {
-        figure->draw(context, buffer, transform);
+        figure->draw(context, buffer, to_windows_coordinate);
     }
 }

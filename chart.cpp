@@ -1,35 +1,53 @@
-#include "chart.h"
-#include "transformation.h"
-
 #include <qpainter.h>
 #include <qevent.h>
 
+#include <platform/painter.h>
+#include <platform/platform_cast.h>
+
+#include "chart.h"
+
+namespace
+{
+    bool updateCoordinateRect(coordiante_rect<coordiante_system::windows>& rect, const QWidget& widget, QMarginsF margins) noexcept
+    {
+        return rect.set( platform_cast<rect_t>( QRectF{ widget.rect() } - margins ) );
+    }
+
+    bool updateCoordinateRect(coordiante_rect<coordiante_system::math>& rect, const chart_figures& figures) noexcept
+    {
+        if (!rect)
+        {
+            return rect.set(figures.calculate_rect());
+        }
+
+        return true;
+    }
+}
 
 Chart::Chart(QWidget* parent) noexcept
     : QWidget(parent)
-    , buffer_{ ChartBufferPtr(), &ChartBuffer::default() }
+    , buffer{ BufferPtr(), &buffer::default_instance() }
 {
     clear();
 }
 
 void Chart::paintEvent(QPaintEvent*) noexcept
 {
-    if (updateRects())
+    if (updateCooridinate())
     {
-        QPainter context{ this };
+        QPainter q_painter{ this };
+        painter context{ &q_painter };
 
-        context.setPen(axisframepen);
-        context.setBrush(background);
+        context.pen(axisframepen);
+        context.brush(background);
+        context.draw_rect(windows.rect().with_frame(1.0));
 
-        context.drawRect(widgetRect_.frame(axisframepen.widthF() + 1.0));
+        context.clip(windows.rect());
+        context.antialiasing(true);
 
-        context.setClipRect(widgetRect_.clipRect());
-        context.setClipping(true);
-        context.setRenderHint(QPainter::Antialiasing, true);
-
-        const auto transform = figuresRect_.to(widgetRect_);
-        const auto buffer = buffer_->getPoints(figures.bufferSize());
-        figures.draw(context, buffer, transform);
+        const auto to_windows_coordinate = math.to(windows);
+        const auto points = buffer->get<point_t>(figures.buffer_size());
+        figures.draw(context, points, to_windows_coordinate);
     }
 }
 
@@ -37,39 +55,39 @@ void Chart::paintEvent(QPaintEvent*) noexcept
 void Chart::clear() noexcept
 {
     figures = {};
-    axisframepen = QColor(0, 0, 0);
-    background = QColor(255, 255, 255, 255);
+    axisframepen = colors::black;
+    background = colors::white;
     mousePos_ = {};
-    figuresRect_ = {};
+    math = {};
     setMouseTracking(false);
 }
 
-bool Chart::updateRects() noexcept
+bool Chart::updateCooridinate() noexcept
 {
-    return widgetRect_.update(*this, margins) && figuresRect_.update(figures);
-}
-
-bool Chart::isValidRects() const noexcept
-{
-    return widgetRect_ && figuresRect_;
+    return updateCoordinateRect(windows, *this, margins) && updateCoordinateRect(math, figures);
 }
 
 void Chart::mouseDoubleClickEvent(QMouseEvent * e) noexcept
 {
-    assert(e != nullptr);
+    assert(e);
 
-    if (isValidRects() && widgetRect_.in(e->localPos()))
+    if (!math)
     {
-        figuresRect_ = {};
+        return;
+    }
+
+    if (windows.rect().includes(platform_cast<point_t>(e->localPos())))
+    {
+        math = {};
         repaint();
     }
 }
 
 void Chart::mouseMoveEvent(QMouseEvent * e) noexcept
 {
-    assert(e != nullptr);
+    assert(e);
 
-    if (!isValidRects())
+    if (!math)
     {
         return;
     }
@@ -80,18 +98,19 @@ void Chart::mouseMoveEvent(QMouseEvent * e) noexcept
         return;
     }
 
-    const auto& pos = e->localPos();
-    const auto mousePos = mousePos_;
-    mousePos_ = pos;
+    const auto& new_pos = e->localPos();
+    const auto old_pos = mousePos_;
+    mousePos_ = new_pos;
 
-    if (mousePos.isNull())
+    if (old_pos.isNull())
     {
         return;
     }
 
-    const auto transfom = widgetRect_.to(figuresRect_).withOffset({ 0.0, 0 });
-    const auto move = transfom(mousePos) - transfom(pos);
-    if (!figuresRect_.move(move))
+    const auto transfom = windows.to( math );
+    const auto math_pos0 = transfom( platform_cast<point_t>( new_pos ) ); 
+    const auto math_pos1 = transfom( platform_cast<point_t>( old_pos ) );
+    if (!math.move(math_pos1 - math_pos0))
     {
         return;
     }
@@ -101,7 +120,7 @@ void Chart::mouseMoveEvent(QMouseEvent * e) noexcept
 
 void Chart::mousePressEvent(QMouseEvent*) noexcept
 {
-    setMouseTracking(figuresRect_.isValid());
+     setMouseTracking(!!math);
 }
 
 void Chart::mouseReleaseEvent(QMouseEvent*) noexcept
@@ -111,19 +130,19 @@ void Chart::mouseReleaseEvent(QMouseEvent*) noexcept
 
 void Chart::wheelEvent(QWheelEvent * e) noexcept
 {
-    assert(e != nullptr);
+    assert(e);
 
-    if (!isValidRects())
+    if (!math)
     {
         return;
     }
 
     constexpr int min_zDelta = 120;
-    constexpr double zoomFactor = 1.1;
+    constexpr double zoom_factor = 1.1;
 
     const auto nzoom = static_cast<double>(e->delta()) / min_zDelta;
-    const auto zoom = pow(zoomFactor, nzoom);
-    if (!figuresRect_.zoom(equalAxisPoint(zoom)))
+    const auto zoom = pow(zoom_factor, nzoom);
+    if (!math.zoom(point_t::fill(zoom)))
     {
         return;
     }
