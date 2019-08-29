@@ -1,8 +1,10 @@
 #pragma once
 
+#pragma warning(push, 0)
 #include <qcolor.h>
 #include <qpoint.h>
 #include <qrect.h>
+#pragma warning(pop)
 
 #include <core/span.h>
 #include <core/rect.h>

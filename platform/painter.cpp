@@ -1,8 +1,10 @@
 #include "painter.h"
 #include "platform_cast.h"
 
+#pragma warning(push, 0)
 #include <qpainter.h>
 #include <qpaintengine.h>
+#pragma warning(pop)
 
 namespace
 {

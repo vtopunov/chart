@@ -1,8 +1,9 @@
 #pragma once
 
-#include <cassert>
 #include <type_traits>
 #include <limits>
+
+#include "assert.h"
 
 #pragma warning(push)
 #pragma warning(disable : 26472) //  Don't use a static_cast for arithmetic conversions. Use brace initialization, narrow_cast or narrow

@@ -252,7 +252,7 @@ constexpr rational<T> rational<T>::from_string( span<const char> string ) noexce
 
     for ( const auto c : string )
     {
-        if ( !isdigit( c ) )
+        if ( !is_digit( c ) )
         {
             if constexpr ( std::is_signed_v<T> )
             {
@@ -300,7 +300,7 @@ constexpr rational<T> rational<T>::from_string( span<const char> string ) noexce
 
     if constexpr ( std::is_signed_v<T> )
     {
-        if ( r.num_ && string.front() == '-' )
+        if ( r.num_ && string.size() && string.front() == '-' )
         {
             r.num_ = -r.num_;
         }

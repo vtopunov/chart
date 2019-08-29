@@ -13,42 +13,24 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\windows">
-      <UniqueIdentifier>{57f0d885-bd3f-485e-ba95-bc85fb5d8732}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="painter.h">
+    <ClInclude Include="framework.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="platform_cast.h">
+    <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="windows\config.h">
-      <Filter>Header Files\windows</Filter>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="windows\window.h">
-      <Filter>Header Files\windows</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\window_type.h">
-      <Filter>Header Files\windows</Filter>
-    </ClInclude>
-    <ClInclude Include="windows\event.h">
-      <Filter>Header Files\windows</Filter>
+    <ClInclude Include="win32app.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="painter.cpp">
+    <ClCompile Include="win32app.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\window.cpp">
-      <Filter>Header Files\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\window_type.cpp">
-      <Filter>Header Files\windows</Filter>
-    </ClCompile>
-    <ClCompile Include="windows\event.cpp">
-      <Filter>Header Files\windows</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

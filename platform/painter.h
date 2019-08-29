@@ -4,7 +4,6 @@
 #include <core/color.h>
 #include <core/span.h>
 
-
 class painter
 {
 public:

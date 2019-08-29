@@ -65,5 +65,14 @@
     <ClInclude Include="narrow_cast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="safe_handle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="assert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="static_map.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

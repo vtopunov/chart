@@ -5,7 +5,7 @@
 constexpr byte_t real_to_color_byte( urational_t real ) noexcept
 {
     assert( real <= 1_ur );
-    return narrow_cast<color_byte_t>( to_integer( real * max_v<color_byte_t> ) );
+    return narrow_cast<byte_t>( to_integer( real * max_v<byte_t> ) );
 }
 
 struct color

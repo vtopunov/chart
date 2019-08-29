@@ -64,6 +64,16 @@ struct rect
         return diagonal.length();
     }
 
+    constexpr value_type x() const noexcept
+    {
+        return diagonal.front().x();
+    }
+
+    constexpr value_type y() const noexcept
+    {
+        return diagonal.front().y();
+    }
+
     constexpr value_type width() const noexcept
     {
         return x_axis_range().length();
