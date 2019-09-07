@@ -3,12 +3,19 @@
 #include <functional>
 
 #include <core/point.h>
+#include <core/underlying_cast.h>
+#include <core/flags.h>
 
 #include <platform/windows/config.h>
 
 namespace os_windows
 {
-    using event_type = UINT;
+    enum class event_type : UINT
+    {
+        mouse_move = WM_MOUSEMOVE,
+        event_handler_registered = WM_USER,
+        user
+    };
 
     template<event_type special_type>
     class special_event;
@@ -65,7 +72,7 @@ namespace os_windows
     class special_event : public special_event_base<special_type>
     {};
 
-    enum class mouse_key
+    enum class mouse_key : WPARAM
     {
         control = MK_CONTROL,
         lbutton = MK_LBUTTON,
@@ -77,8 +84,9 @@ namespace os_windows
     };
 
     template<>
-    class special_event<WM_MOUSEMOVE> : public special_event_base<WM_MOUSEMOVE>
+    class special_event<event_type::mouse_move> : public special_event_base<event_type::mouse_move>
     {
+    public:
         constexpr int x() const noexcept
         {
             return GET_X_LPARAM( long_parameter() );
@@ -94,19 +102,17 @@ namespace os_windows
             return { x(), y() };
         }
 
-        constexpr mouse_key key() const noexcept
+        constexpr flags<mouse_key> key() const noexcept
         {
-            return narrow_cast<mouse_key>( word_parameter() );
+            return { underlying_cast<mouse_key>( word_parameter() ) };
         }
     };
+
+    using mouse_move_event = special_event<event_type::mouse_move>;
 
     template<event_type special_type>
     constexpr const special_event<special_type>& event::as() const noexcept
     {
         return static_cast<const special_event<special_type>&>( *this );
     }
-
-    using event_handler_type = std::function<LRESULT(event)>;
-
-    LRESULT default_event_handler( event e ) noexcept;
 }

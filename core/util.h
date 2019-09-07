@@ -10,7 +10,7 @@
 #include <utility>
 
 #include <core/narrow_cast.h>
-#include <core/not_null.h>
+#include <core/assert.h>
 
 #undef min
 #undef max
@@ -51,12 +51,6 @@ constexpr unsigned long long operator "" _Mb(unsigned long long n) noexcept
     return n * 1024_Kb;
 }
 
-template <class E>
-constexpr std::underlying_type_t<E> to_underlying(E e) noexcept
-{
-    return static_cast<std::underlying_type_t<E>>( e );
-}
-
 template<class T>
 constexpr std::make_unsigned_t<T> to_unsingned( T signed_value ) noexcept
 {
@@ -67,6 +61,18 @@ template<class T>
 constexpr std::make_signed_t<T> to_singned( T unsigned_value ) noexcept
 {
     return narrow_cast<std::make_signed_t<T>>( unsigned_value );
+}
+
+template<class T>
+constexpr bool to_bool( const T* value ) noexcept
+{
+    return value != nullptr;
+}
+
+template<class T>
+constexpr std::enable_if_t<std::is_integral_v<T>, bool> to_bool( T value ) noexcept
+{
+    return !!value ;
 }
 
 constexpr bool is_digit( char c ) noexcept

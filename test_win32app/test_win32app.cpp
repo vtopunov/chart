@@ -2,38 +2,45 @@
 //
 
 #include <platform/windows/window.h>
+#include <platform/windows/event_handler.h>
 
-constexpr WCHAR sz_name[] = L"sz_name";
+using namespace os_windows;
 
-LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
+namespace
 {
-    switch ( message )
+    void output_mouse_move( const mouse_move_event& e ) noexcept
     {
-        case WM_DESTROY:
-            PostQuitMessage( 0 );
-            break;
-        default:
-            return DefWindowProc( hWnd, message, wParam, lParam );
+        wchar_t outbuf[128];
+        if ( swprintf_s( outbuf, L"mouse move: %d %d\n", e.x(), e.y() ) > 0 )
+        {
+            OutputDebugStringW( outbuf );
+        }
     }
-    return 0;
+
+    int output_error_code() noexcept
+    {
+        const auto error_code = GetLastError();
+
+        {
+            wchar_t outbuf[128];
+            if ( swprintf_s( outbuf, L"error code: %lu", error_code ) > 0 )
+            {
+                OutputDebugStringW( outbuf );
+            }
+        }
+
+        return static_cast<int>( error_code );
+    }
+
+    void output_windows_class_name( const wchar_t* name ) noexcept
+    {
+        wchar_t outbuf[128];
+        if ( swprintf_s( outbuf, L"windows class name: %ls", name ) > 0 )
+        {
+            OutputDebugStringW( outbuf );
+        }
+    }
 }
-
-/*
-BOOL InitInstance( HINSTANCE hInstance, int nCmdShow )
-{
-    HWND hWnd = CreateWindowW( sz_name, sz_name, WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr );
-
-    if ( !hWnd )
-    {
-        return FALSE;
-    }
-
-    ShowWindow( hWnd, nCmdShow );
-    UpdateWindow( hWnd );
-
-    return TRUE;
-}*/
 
 int APIENTRY wWinMain( _In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
@@ -43,21 +50,51 @@ int APIENTRY wWinMain( _In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER( hPrevInstance );
     UNREFERENCED_PARAMETER( lpCmdLine );
 
-    auto window = os_windows::create_window( {} );
-    if ( window && window->show( nCmdShow ) && window->update() )
-    {
-        MSG msg{};
+    const auto window_type =
+        register_window_type(
+            window_type_info{}
+            .module_address( hInstance )  
+            .name( L"test_win32wnd" )
+        );
 
-        while ( GetMessageW( &msg, nullptr, 0, 0 ) )
+    if ( !window_type )
+    {
+        return output_error_code();
+    }
+
+    const auto window =
+        create_window(
+            window_info{}
+            .type( window_type )
+            .title( L"test_win32app" )
+        );
+
+    if ( !window )
+    {
+        return output_error_code();
+    }
+
+    window->show( nCmdShow );
+    window->update();
+
+    const auto handler_lock = register_event_handler( window, [] ( event e )
+    {
+        if ( const auto & mouse_move = e.as<event_type::mouse_move>() )
         {
-            TranslateMessage( &msg );
-            DispatchMessageW( &msg );
+            output_mouse_move( mouse_move );
         }
 
-        return static_cast<int>( msg.wParam );
+        return default_event_handler( e );
+    } );
+
+    MSG msg{};
+
+    while ( GetMessageW( &msg, nullptr, 0, 0 ) )
+    {
+        TranslateMessage( &msg );
+        DispatchMessageW( &msg );
     }
-    
-    const auto error_code = static_cast<int>( GetLastError() );
-    return error_code;
+
+    return static_cast<int>( msg.wParam );
 }
 

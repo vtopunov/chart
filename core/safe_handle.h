@@ -2,7 +2,7 @@
 
 #include <core/util.h>
 
-template<class handle_type>
+template<class handle_type >
 class safe_handle
 {
 public:
@@ -10,9 +10,7 @@ public:
         : handle_{ right }
         , prev_{ this }
         , next_{ this }
-    {
-        handle_.construct_weak( std::as_const( *this ) );
-    }
+    {}
 
     constexpr safe_handle( const safe_handle& right ) noexcept
         : handle_{ right.handle_ }
@@ -27,7 +25,7 @@ public:
     {
         if ( is_unique() )
         {
-            handle_.close( std::as_const( *this ) );
+            handle_.close();
         }
         else
         {
@@ -35,7 +33,6 @@ public:
             const auto next = next_;
             as_mutable_pointer( prev )->next_ = next;
             as_mutable_pointer( next )->prev_ = prev;
-            handle_.replace_weak( std::as_const( *this ), *prev );
         }
     }
 
@@ -45,7 +42,7 @@ public:
         {
             if ( is_unique() )
             {
-                handle_.close( std::as_const( *this ) );
+                handle_.close();
             }
             else
             {
@@ -100,18 +97,6 @@ public:
     {
         return handle_;
     }
-
-    struct enumerator_copies
-    {
-        const safe_handle* root;
-
-        constexpr enumerator_copies begin() const noexcept { return *this; }
-        constexpr enumerator_copies end() const noexcept { return *this; }
-        constexpr enumerator_copies cbegin() const noexcept { return begin(); }
-        constexpr enumerator_copies cend() const noexcept { return end(); }
-    };
-
-    constexpr enumerator_copies copies() const noexcept { return { this }; }
 
 private:
     handle_type handle_;

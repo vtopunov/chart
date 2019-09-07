@@ -2,8 +2,15 @@
 
 #include <core/util.h>
 
-#define NOMINMAX
+namespace os_windows
+{
+#ifndef NOMINMAX
+#define NOMINMAX 1
+#endif
+
+#ifndef WIN32_LEAN_AND_MEAN 
 #define WIN32_LEAN_AND_MEAN 1
+#endif
 
 #pragma warning(push, 0)
 #include <windows.h>
@@ -29,4 +36,9 @@
 #undef SendMessage
 #undef GetMessage
 
+#undef WIN32_LEAN_AND_MEAN
+#undef NOMINMAX
+}
+
+#include <core/assert.h>
 

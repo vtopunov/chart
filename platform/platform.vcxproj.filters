@@ -36,6 +36,9 @@
     <ClInclude Include="windows\event.h">
       <Filter>Header Files\windows</Filter>
     </ClInclude>
+    <ClInclude Include="windows\event_handler.h">
+      <Filter>Header Files\windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="painter.cpp">
@@ -48,6 +51,9 @@
       <Filter>Header Files\windows</Filter>
     </ClCompile>
     <ClCompile Include="windows\event.cpp">
+      <Filter>Header Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\event_handler.cpp">
       <Filter>Header Files\windows</Filter>
     </ClCompile>
   </ItemGroup>

@@ -22,14 +22,24 @@ namespace os_windows
             const auto size = ( result.ec == std::errc{} ) ? narrow_cast<size_t>( result.ptr - chars.data() ) : 0_z;
             return chars.left( size );
         }
+
+        ATOM register_class( const WNDCLASSEXW& data ) noexcept
+        {
+            return ( data.hInstance ) ? RegisterClassExW( &data ) : ATOM{ 0 };
+        }
+
+        constexpr LPCWSTR make_in_atom( ATOM atom ) noexcept
+        {
+            return ( LPCWSTR) ( ( ULONG_PTR) ( atom ) );
+        }
     }
 
     void window_type::close() noexcept
     {
         if ( is_valid() )
         {
-            const auto result = UnregisterClassW( release_name().as_string_id(), release_module_address() );
-            result; assert( result != FALSE );
+            const auto result = UnregisterClassW( release_name_id(), module_address_ );
+            result; assert( result );
         }
     }
 
@@ -50,10 +60,6 @@ namespace os_windows
         if ( !info.data_.hInstance )
         {
             info.data_.hInstance = GetModuleHandleW( nullptr );
-            if ( !info.data_.hInstance )
-            {
-                return {}
-            }
         }
 
         if ( !info.data_.lpfnWndProc )
@@ -61,16 +67,10 @@ namespace os_windows
             info.data_.lpfnWndProc = window_procedure;
         }
 
-        const auto class_name_atom = RegisterClassExW( &( info.data_ ) );
-        if ( !class_name_atom )
-        {
-            return {};
-        }
-
         return window_type
         {
-            not_null{ info.data_.hInstance },
-            atom{ class_name_atom }
+            info.data_.hInstance,
+            make_in_atom( register_class( info.data_ ) )
         };
     }
 }

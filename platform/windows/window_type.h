@@ -6,61 +6,16 @@
 
 namespace os_windows
 {
-    constexpr LPCWSTR make_in_atom( ATOM atom ) noexcept
-    {
-        return ( LPCWSTR) ( ( ULONG_PTR) ( atom ) );
-    }
-
-    constexpr ATOM invalid_atom{ INVALID_ATOM };
-    constexpr ATOM max_int_atom{ MAXINTATOM };
-
-    class atom
-    {
-    public:
-        constexpr atom() noexcept = default;
-
-        constexpr atom( ATOM atom ) noexcept
-            : atom_{ atom }
-        {
-            assert( is_valid() );
-        }
-
-        constexpr LPCWSTR as_string_id() const noexcept
-        {
-            assert( is_valid() );
-            return make_in_atom( atom_ );
-        }
-
-        std::wstring as_string() const noexcept
-        {
-            assert( is_valid() );
-            constexpr size_t max_size_atom_buffer = 256;
-            WCHAR buffer[max_size_atom_buffer];
-            const auto size = narrow_cast<size_t>( GetAtomNameW( atom_, buffer, narrow_cast<int>( std::size(buffer) ) ) );
-            assert( size );
-            return { as_const_pointer( buffer ), size };
-        }
-
-        constexpr bool is_valid() const noexcept
-        {
-            return atom_ >= max_int_atom;
-        }
-
-    private:
-        ATOM atom_{ invalid_atom };
-    };
-
     class window_type
     {
     public:
         constexpr window_type() noexcept = default;
 
-        constexpr window_type( HMODULE address, atom name ) noexcept
-            : module_address_{ address.get() }
-            , name_{ name }
+        constexpr window_type( HMODULE address, LPCWSTR name_id ) noexcept
+            : module_address_{ address }
+            , name_id_{ name_id }
         {
             assert( module_address_ );
-            assert( name_.is_valid() );
         }
 
         void close() noexcept;
@@ -71,35 +26,28 @@ namespace os_windows
             return module_address_;
         }
 
-        constexpr atom name() const noexcept
+        constexpr LPCWSTR name_id() const noexcept
         {
             assert( is_valid() );
-            return name_;
+            return name_id_;
         }
 
         constexpr bool is_valid() const noexcept
         {
-            return name_.is_valid();
+            return to_bool( name_id_ );
         }
 
     private:
-        constexpr atom release_name() noexcept
+        constexpr LPCWSTR release_name_id() noexcept
         {
-            const auto temp = name_;
-            name_ = {};
-            return temp;
-        }
-
-        constexpr HMODULE release_module_address() noexcept
-        {
-            const auto temp = module_address_;
-            module_address_ = {};
+            const auto temp = name_id_;
+            name_id_ = nullptr;
             return temp;
         }
 
     private:
         HMODULE module_address_{};
-        atom name_{};
+        LPCWSTR name_id_{};
     };
 
     using safe_window_type = safe_handle<window_type>;
@@ -119,10 +67,26 @@ namespace os_windows
             return *this;
         }
 
+        window_type_info& name( std::wstring name ) noexcept
+        {
+            assert( !name.empty() );
+            name_ = std::move( name );
+            data_.lpszClassName = name_.c_str();
+            return *this;
+        }
+
+        constexpr window_type_info& module_address( HMODULE module_address )
+        {
+            assert( module_address );
+            data_.hInstance = module_address;
+            return *this;
+        }
+
         friend safe_window_type register_window_type( window_type_info info ) noexcept;
 
     private:
         WNDCLASSEXW data_{};
+        std::wstring name_;
     };
 
     safe_window_type register_window_type( window_type_info info ) noexcept;

@@ -1,8 +1,12 @@
 #include <array>
+#include <set>
 #include <functional>
 #include <iostream>
+#include <compare>
 
 #include <core/util.h>
+#include <core/narrow_cast.h>
+#include <core/underlying_cast.h>
 #include <core/math_constants.h>
 #include <core/vec.h>
 #include <core/numerical_range.h>
@@ -54,15 +58,78 @@ constexpr auto sinc_tbl = [] ()
     return temp;
 }( );
 
+
+
 int main() noexcept
 {
     {
+        static_assert( !is_safe_integral_conversion_v<uint32_t, int32_t> );
+        static_assert( !is_safe_integral_conversion_v<int32_t, uint32_t> );
+        static_assert( is_safe_integral_conversion_v<int32_t, int32_t> );
+        static_assert( is_safe_integral_conversion_v<uint32_t, uint32_t> );
+
+        static_assert( !is_safe_integral_conversion_v<uint16_t, int32_t> );
+        static_assert( !is_safe_integral_conversion_v<uint16_t, uint32_t> );
+        static_assert( !is_safe_integral_conversion_v<int16_t, int32_t> );
+        static_assert( !is_safe_integral_conversion_v<int16_t, uint32_t> );
+
+        static_assert( !is_safe_integral_conversion_v<uint32_t, int16_t> );
+        static_assert( is_safe_integral_conversion_v<uint32_t, uint16_t> );
+        static_assert( is_safe_integral_conversion_v<int32_t, int16_t> );
+        static_assert( is_safe_integral_conversion_v<int32_t, uint16_t> );
+
         static_assert( !is_safe_narrowing_conversion<uint32_t>( -1L ) );
         static_assert( !is_safe_narrowing_conversion<int16_t>( -0x8001L ) );
         static_assert( !is_safe_narrowing_conversion<int16_t>( 0x8000L ) );
         static_assert( !is_safe_narrowing_conversion<uint16_t>( -1L ) );
         static_assert( !is_safe_narrowing_conversion<uint16_t>( 0x10000L ) );
         static_assert( !is_safe_narrowing_conversion<int32_t>( 0xffffffffUL ) );
+    }
+
+    {
+        enum class u16_enum : uint16_t
+        {};
+
+        enum class i16_enum : int16_t
+        {};
+
+        enum class u32_enum : uint32_t
+        {};
+
+        enum class i32_enum : int32_t
+        {};
+
+        static_assert( is_safe_underlying_conversion_v<uint16_t, u16_enum> );
+        static_assert( !is_safe_underlying_conversion_v<int16_t, u16_enum> );
+        static_assert( !is_safe_underlying_conversion_v<uint16_t, i16_enum> );
+        static_assert( is_safe_underlying_conversion_v<int16_t, i16_enum> );
+
+        static_assert( is_safe_underlying_conversion_v<uint32_t, u16_enum> );
+        static_assert( is_safe_underlying_conversion_v<int32_t, u16_enum> );
+        static_assert( !is_safe_underlying_conversion_v<uint32_t, i16_enum> );
+        static_assert( is_safe_underlying_conversion_v<int32_t, i16_enum> );
+
+        static_assert( !is_safe_underlying_conversion_v<uint16_t, u32_enum> );
+        static_assert( !is_safe_underlying_conversion_v<int16_t, u32_enum> );
+        static_assert( !is_safe_underlying_conversion_v<uint16_t, i32_enum> );
+        static_assert( !is_safe_underlying_conversion_v<int16_t, i32_enum> );
+
+        static_assert( is_safe_underlying_conversion_v<uint32_t, u32_enum> );
+        static_assert( !is_safe_underlying_conversion_v<int32_t, u32_enum> );
+        static_assert( !is_safe_underlying_conversion_v<uint32_t, i32_enum> );
+        static_assert( is_safe_underlying_conversion_v<int32_t, i32_enum> );
+
+        static_assert( is_safe_underlying_conversion_v<uint64_t, u32_enum> );
+        static_assert( is_safe_underlying_conversion_v<int64_t, u32_enum> );
+        static_assert( !is_safe_underlying_conversion_v<uint64_t, i32_enum> );
+        static_assert( is_safe_underlying_conversion_v<int64_t, i32_enum> );
+
+        constexpr auto u16_e = underlying_cast<u16_enum>( uint16_t{ 0 } );
+        constexpr auto u32_e = underlying_cast<u32_enum>( u16_e );
+        constexpr auto i64 = underlying_cast<int64_t>( u32_e );
+        constexpr auto i16 = narrow_cast<int16_t>( i64 );
+        constexpr auto i16_e = underlying_cast<i16_enum>( i16 );
+        static_assert( !underlying_cast<int16_t>( i16_e ) );
     }
 
     {
@@ -267,7 +334,7 @@ int main() noexcept
                 }
             }
 
-            void close( const void* ) noexcept
+            void close() noexcept
             {
                 assert( check_dtor || check_close );
                 assert( closed_value != value );
@@ -281,12 +348,8 @@ int main() noexcept
                 }
             }
 
-            void construct_weak( const void* ) noexcept {}
-
-            void replace_weak( const void*, const void* ) noexcept {}
-
-            constexpr bool is_valid() const noexcept 
-            { 
+            constexpr bool is_valid() const noexcept
+            {
                 return value && value != closed_value;
             }
 
@@ -326,7 +389,7 @@ int main() noexcept
             };
         } check;
 
-        constexpr auto unsafe = [] ( const safe_handle<test_handle>& handle ) -> test_handle&
+        constexpr auto unsafe = [] ( const safe_handle<test_handle>& handle ) noexcept -> test_handle &
         {
             return const_cast<test_handle&>( handle.get() );
         };
@@ -345,9 +408,9 @@ int main() noexcept
             bool h2_was_closed = false;
             {
                 safe_handle<test_handle> h2{ 2 };
-                unsafe( h2 ).check_dtor = [ &h2_was_closed ] ( int value, int closed_value )
+                unsafe( h2 ).check_dtor = [ &h2_was_closed ] ( int value, int closed_value ) noexcept
                 {
-                    h2_was_closed  = ( value == 2 && closed_value == value );
+                    h2_was_closed = ( value == 2 && closed_value == value );
                 };
             }
             assert( h2_was_closed );
@@ -362,7 +425,7 @@ int main() noexcept
         { // assignment initialization 
             bool h2_was_closed = false;
             safe_handle<test_handle> h2;
-            unsafe( h2 ).check_close = [ &h2_was_closed ] ( test_handle& closing_handle )
+            unsafe( h2 ).check_close = [ &h2_was_closed ] ( test_handle& closing_handle ) noexcept
             {
                 h2_was_closed = ( closing_handle.value == 0 );
             };
@@ -377,7 +440,7 @@ int main() noexcept
             safe_handle<test_handle> h2{ 2 };
 
             bool h1_was_closed = false;
-            unsafe( h1 ).check_close = [ &h1_was_closed ] ( test_handle& closing_handle )
+            unsafe( h1 ).check_close = [ &h1_was_closed ] ( test_handle& closing_handle ) noexcept
             {
                 h1_was_closed = ( closing_handle.value == 1 );
             };
@@ -389,7 +452,7 @@ int main() noexcept
         }
         check( h1, 2 );
         unsafe( h1 ).value = 1;
-        
+
         {   // cyclic assignment
             safe_handle<test_handle> h2{ h1 };
             check( h1, h2, 1 );
@@ -437,222 +500,543 @@ int main() noexcept
             check( h2, ch2, 2 );
             check( h1, ch1, 1 );
 
-            unsafe( h2 ).check_dtor = [] ( int value, int closed_value )
+            unsafe( h2 ).check_dtor = [] ( int value, int closed_value ) noexcept
             {
                 assert( value == 2 && closed_value == value );
             };
         }
 
         check( h1, 1 );
-        unsafe( h1 ).check_dtor = [] ( int value, int closed_value )
+        unsafe( h1 ).check_dtor = [] ( int value, int closed_value ) noexcept
         {
             assert( value == 1 && closed_value == value );
         };
     }
 
     {
-        static_map<int, int, 7> map;
+        using map_ii7 = static_map<int, int, 7>;
+        map_ii7 map;
 
-        auto check = [ &map ] ()
+        static_assert( std::is_trivial_v<typename map_ii7::value_type> );
+
+        auto check_contains = [&map = std::as_const( map )]( bool contains, int key, int value )
         {
-            return std::is_sorted( map.cbegin(), map.cend(), map.less ) && std::adjacent_find( map.cbegin(), map.cend(), map.eq ) == map.cend();
+            assert( std::is_sorted( map.cbegin(), map.cend(), map.less ) );
+            assert( std::adjacent_find( map.cbegin(), map.cend(), map.eq ) == map.cend() );
+
+            if ( map.is_static() )
+            {
+                assert( map.capacity() == map.static_size );
+            }
+            assert( map.size() <= map.capacity() );
+
+            const auto size = map.size();
+            assert( map.cbegin() == map.data() );
+            assert( map.cend() == map.data() + size );
+
+            assert( map.contains( key ) == contains );
+
+            const auto item = map.item( key );
+            assert( item.has_value == contains );
+            const auto position = item.position;
+
+            const auto find_it = map.find( key );
+            const auto items = map.items( key );
+            const auto count = map.count( key );
+
+            if ( contains )
+            {
+                assert( size > 0_z );
+                assert( position >= map.cbegin() && position < map.cend() );
+                assert( position->key == key && position->value == value );
+                assert( find_it == position );
+                assert( items.data() == position && items.size() == 1_z );
+                assert( count == 1_z );
+            }
+            else
+            {
+                assert( position >= map.cbegin() && position <= map.cend() );
+                assert( find_it == map.cend() );
+                assert( items.data() == position && items.size() == 0_z );
+                assert( count == 0_z );
+            }
+
+            return position;
         };
 
-        auto exist = [ &map ] ( int key, int value ) -> bool
+        auto check_insert = [&map, &check_contains]( int key, int value )
         {
+            const auto size = map.size();
+            const auto capacity = map.capacity();
+            const auto is_static = map.is_static();
+            const auto data = map.data();
+
+            check_contains( false, key, value );
+            const auto ins = map.insert( key, value );
+            assert( ins.second );
+            const auto pos = check_contains( true, key, value );
+            assert( ins.first == pos );
+            assert( map.size() == size + 1_z );
+
+            if ( is_static != map.is_static() )
             {
-                const auto it = std::as_const( map ).find( key );
-                if ( it == std::as_const( map ).end() || it->key != key || it->value != value )
+                assert( is_static );
+                assert( size == map.static_size );
+                assert( map.data() != data );
+                assert( map.capacity() > capacity );
+            }
+            else
+            {
+                if ( is_static )
                 {
-                    return false;
+                    assert( map.data() == data );
+                    assert( map.capacity() == capacity );
+                }
+                else
+                {
+                    if ( map.data() != data )
+                    {
+                        assert( map.capacity() > capacity );
+                    }
+                    else
+                    {
+                        assert( map.capacity() == capacity );
+                    }
                 }
             }
 
+            return pos;
+        };
+
+        auto check_stabile = [&map = std::as_const( map )]( std::function<map_ii7::const_iterator ( map_ii7& )> noise )
+        {
+            const auto size = map.size();
+            const auto is_static = map.is_static();
+            const auto data = map.data();
+            const std::vector< map_ii7::value_type > copy{ map.cbegin(), map.cend() };
+
+            const auto result = noise( const_cast<map_ii7&>( map ) );
+
+            assert( size == map.size() );
+            assert( is_static == map.is_static() );
+            assert( data == map.data() );
+            assert( std::equal( copy.cbegin(), copy.cend(), map.cbegin() ) );
+
+            return result;
+        };
+
+        auto check_insert_fail = [ &check_stabile, &check_contains ]( int key, int value, int true_value )
+        {
+            return check_stabile( [&check_contains, key, value, true_value] ( map_ii7& map )
             {
-                const auto it = std::as_const( map ).item( key );
-                if ( !it || it == std::as_const( map ).end() || it->key != key || it->value != value )
+                const auto pos = check_contains( true, key, true_value );
+                const auto ins = map.insert( key, value );
+                assert( !ins.second );
+                assert( ins.first == pos );
+                assert( ins.first->value == true_value );
+                assert( check_contains( true, key, true_value ) == pos );
+                return pos;
+            } );
+        };
+
+        auto check_erase_fail = [ &check_stabile, &check_contains ] ( int key )
+        {
+            return check_stabile( [&check_contains, key] ( map_ii7& map )
+            {
+                check_contains( false, key, 0 );
+                map.erase( key );
+                return map.cbegin();
+            } );
+        };
+
+        check_insert( 1, 1 );
+        check_insert( 4, 16 );
+        check_insert( 2, 4 );
+        check_insert_fail( 2, 5, 4 );
+        check_insert( 3, 9 );
+        check_insert( 5, 25 );
+        check_insert_fail( 5, 26, 25 );
+        check_insert_fail( 3, 8, 9 );
+        check_insert( 8, 64 );
+        check_insert( 7, 49 );
+
+        {
+            assert( map.is_static() && map.size() == map.static_size );
+            check_insert( 6, 36 );
+            assert( !map.is_static() && map.size() == map.static_size + 1_z );
+        }
+
+        auto check_erase_back = [&map, &check_contains]( int key, int value, int back_key, int back_value, int front_key, int front_value )
+        {
+            assert( map.size() >= 3 );
+            assert( key > back_key );
+            assert( back_key > front_key );
+
+            const auto size = map.size();
+            const auto is_static = map.is_static();
+            const auto data = map.data();
+
+            assert( check_contains( true, key, value ) == std::prev( map.cend() ) );
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend(), 2 ) );
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+
+            map.erase( key );
+
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+            check_contains( false, key, value );
+
+            assert( map.cend()->key == key && map.cend()->value == value );
+
+            assert( map.data() == data );
+            assert( map.is_static() == is_static );
+            assert( map.size() == size - 1_z );
+        };
+
+        auto check_erase_front = [&map, &check_contains]( int key, int value, int front_key, int front_value, int back_key, int back_value )
+        {
+            assert( map.size() >= 3 );
+            assert( key < front_key );
+            assert( front_key < back_key );
+
+            const auto size = map.size();
+            const auto is_static = map.is_static();
+            const auto data = map.data();
+
+            assert( check_contains( true, key, value ) == map.cbegin() );
+            assert( check_contains( true, front_key, front_value ) == std::next( map.cbegin() ) );
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+
+            map.erase( key );
+
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+            check_contains( false, key, value );
+
+            assert( map.cend()->key == back_key && map.cend()->value == back_value );
+
+            assert( map.data() == data );
+            assert( map.is_static() == is_static );
+            assert( map.size() == size - 1_z );
+        };
+
+        auto check_erase_preback = [&map, &check_contains]( int key, int value, int back_key, int back_value, int preback_key, int preback_value, int front_key, int front_value )
+        {
+            assert( map.size() >= 4 );
+            assert( back_key > key );
+            assert( key > preback_key );
+            assert( preback_key > front_key );
+
+            const auto size = map.size();
+            const auto is_static = map.is_static();
+            const auto data = map.data();
+
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+            assert( check_contains( true, key, value ) == std::prev( map.cend(), 2 ) );
+            assert( check_contains( true, preback_key, preback_value ) == std::prev( map.cend(), 3 ) );
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+
+            map.erase( key );
+
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+            assert( check_contains( true, preback_key, preback_value ) == std::prev( map.cend(), 2 ) );
+            check_contains( false, key, value );
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+
+            assert( map.cend()->key == back_key && map.cend()->value == back_value );
+
+            assert( map.data() == data );
+            assert( map.is_static() == is_static );
+            assert( map.size() == size - 1_z );
+        };
+
+        auto check_erase_prepreback = [&map, &check_contains](
+            int key, int value, 
+            int back_key, int back_value, 
+            int preback_key, int preback_value,
+            int prepreback_key, int prepreback_value, 
+            int front_key, int front_value )
+        {
+            assert( map.size() >= 5 );
+            assert( back_key > preback_key );
+            assert( preback_key > key );
+            assert( key > prepreback_key );
+            assert( prepreback_key > front_key );
+
+            const auto size = map.size();
+            const auto is_static = map.is_static();
+            const auto data = map.data();
+
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+            assert( check_contains( true, preback_key, preback_value ) == std::prev( map.cend(), 2 ) );
+            assert( check_contains( true, key, value ) == std::prev( map.cend(), 3 ) );
+            assert( check_contains( true, prepreback_key, prepreback_value ) == std::prev( map.cend(), 4 ) );
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+
+            map.erase( key );
+
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+            assert( check_contains( true, preback_key, preback_value ) == std::prev( map.cend(), 2 ) );
+            check_contains( false, key, value );
+            assert( check_contains( true, prepreback_key, prepreback_value ) == std::prev( map.cend(), 3 ) );
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+
+            assert( map.cend()->key == back_key && map.cend()->value == back_value );
+
+            assert( map.data() == data );
+            assert( map.is_static() == is_static );
+            assert( map.size() == size - 1_z );
+        };
+
+        auto check_shrink_to_static = [&map, &check_contains]( int back_key, int back_value, int front_key, int front_value )
+        {
+            assert( map.size() == map.static_size );
+            assert( map.capacity() > map.static_size );
+            assert( !map.is_static() );
+            assert( back_key > front_key );
+
+            const auto size = map.size();
+            const auto data = map.data();
+            const std::vector<map_ii7::value_type > copy( map.cbegin(), map.cend() );
+
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+
+            map.shrink_to_fit();
+
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+
+            assert( map.data() != data );
+            assert( map.is_static() );
+            assert( map.capacity() == map.static_size );
+            assert( map.size() == size );
+            assert( std::equal( copy.cbegin(), copy.cend(), map.cbegin() ) );
+        };
+
+        auto check_shrink_to_fit_dynamic = [ &map, &check_contains]( int back_key, int back_value, int front_key, int front_value )
+        {
+            assert( map.size() > map.static_size );
+            assert( map.capacity() > map.size() );
+            assert( !map.is_static() );
+            assert( back_key > front_key );
+
+            const auto size = map.size();
+            const auto is_static = map.is_static();
+
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+
+            map.shrink_to_fit();
+
+            assert( check_contains( true, back_key, back_value ) == std::prev( map.cend() ) );
+            assert( check_contains( true, front_key, front_value ) == map.cbegin() );
+
+            assert( map.is_static() == is_static );
+            assert( map.capacity() == map.size() );
+            assert( map.size() == size );
+        };
+
+        {
+            assert( !map.is_static() && map.size() == map.static_size + 1_z );
+            check_erase_back( 8, 64, 7, 49, 1, 1 );
+            check_shrink_to_static( 7, 49, 1, 1 );
+            check_insert( 8, 64 );
+        }
+
+        {
+            assert( !map.is_static() && map.size() == map.static_size + 1_z );
+            check_erase_preback( 7, 49, 8, 64, 6, 36, 1, 1 );
+            check_shrink_to_static( 8, 64, 1, 1 );
+            check_insert( 7, 49 );
+        }
+
+        {
+            assert( !map.is_static() && map.size() == map.static_size + 1_z );
+            check_erase_front( 1, 1, 2, 4, 8, 64 );
+            check_shrink_to_static( 8, 64, 2, 4 );
+            check_insert( 1, 1 );
+        }
+
+        {
+            assert( !map.is_static() && map.size() == map.static_size + 1_z );
+            check_insert( 9, 81 );
+            check_erase_prepreback( 7, 49, 9, 81, 8, 64, 6, 36, 1, 1 );
+            check_shrink_to_fit_dynamic( 9, 81, 1, 1 );
+        }
+
+        {
+            assert( !map.is_static() && map.size() == map.static_size + 1_z );
+            check_erase_fail( -1 );
+            check_erase_fail( 10 );
+            check_erase_fail( 7 );
+        }
+
+        {
+            assert( !map.is_static() && map.size() == map.static_size + 1_z );
+            check_erase_prepreback( 6, 36, 9, 81, 8, 64, 5, 25, 1, 1 );
+            check_shrink_to_static( 9, 81, 1, 1 );
+            check_erase_prepreback( 5, 25, 9, 81, 8, 64, 4, 16, 1, 1 );
+            check_erase_front( 1, 1, 2, 4, 9, 81 );
+            check_erase_back( 9, 81, 8, 64, 2, 4 );
+            check_erase_fail( 1 );
+            check_erase_fail( 9 );
+            check_erase_fail( 5 );
+            assert( map.is_static() );
+        }
+
+        {
+            assert( map.count( 4 ) == 1_z );
+            map.force_insert( 4, 17 );
+            map.force_insert( 4, 18 );
+            map.force_insert( 4, 19 );
+            const auto items = map.items( 4 );
+            constexpr map_ii7::value_type check[]
+            {
+                { 4, 16 },
+                { 4, 17 },
+                { 4, 18 },
+                { 4, 19 }
+            };
+            assert( items.size() == std::size( check ) );
+            assert( std::equal( items.begin(), items.end(), check ) );
+            assert( map.erase( 4 ) == std::size( check ) );
+            check_contains( false, 4, 16 );
+        }
+
+        {
+            struct checker
+            {
+                static std::set<int>& for_destroy() noexcept
                 {
-                    return false;
+                    static std::set<int> for_destroy_;
+                    return for_destroy_;
                 }
-            }
 
-            return true;
-        };
+                static int unique_id() noexcept
+                {
+                    static int id = 0;
+                    return ++id;
+                }
 
-        assert( map.insert( 1, 1 ).second && check() );
-        assert( map.insert( 4, 16 ).second && check() );
-        assert( map.insert( 2, 4 ).second && check() );
-        assert( !map.insert( 2, 5 ).second && check() );
-        assert( map.insert( 3, 9 ).second && check() );
-        assert( map.insert( 5, 25 ).second && check() );
+                int i{ 0 };
+                mutable int id = 0;
 
-        assert( map.is_static() && map.size() == 5 && check() );
-        assert( exist( 1, 1 ) && check() );
-        assert( exist( 2, 4 ) && check() );
-        assert( exist( 3, 9 ) && check() );
-        assert( exist( 4, 16 ) && check() );
-        assert( exist( 5, 25 ) && check() );
-        assert( !map.insert( 5, 25 ).second && check() );
-        assert( !map.insert( 3, 9 ).second && check() );
-        
-        {
-            assert( map.find( 3 )->value == 9 && check() );
-            const auto result = as_const_pointer( map.insert_or_assign( 3, 8 ) );
-            assert( result->key == 3 && result->value == 8 && exist( 3, 8 ) && map.is_static() && check() );
-        }
+                checker() = default;
 
-        assert( map.insert( 8, 64 ).second && check() );
-        assert( map.insert( 7, 49 ).second && check() );
-        assert( map.is_static() && check() );
-        assert( map.insert( 6, 36 ).second && check() );
-        assert( !map.is_static() && check() );
+                checker( int i ) noexcept
+                    : i{ i }
+                {}
 
-        assert( exist( 6, 36 ) && check() );
-        assert( exist( 7, 49 ) && check() );
-        assert( exist( 8, 64 ) && check() );
+                ~checker()
+                {
+                    if ( id )
+                    {
+                        assert( for_destroy().erase( id ) == 1_z );
+                    }
+                }
 
-        {
-            assert( exist( 3, 8 ) && check() );
-            const auto result = as_const_pointer( map.insert_or_assign( 3, 9 ) );
-            assert( result->key == 3 && result->value == 9 && exist( 3, 9 ) && !map.is_static()  && check() );
-        }
+                checker( const checker& right ) noexcept
+                    : i{ right.i }
+                {
+                    assert( true );
+                }
 
-        assert( !map.is_static() && map.item( 8 ) && check() );
-        map.erase( 8 );
-        assert( map.is_static() && !map.item( 8 ) && check() );
-        map.insert( 8, 64 );
+                checker& operator = ( const checker& ) noexcept
+                {
+                    assert( true );
+                    return *this;
+                }
 
-        assert( !map.is_static() && map.item( 7 ) && check() );
-        map.erase( 7 );
-        assert( map.is_static() && !map.item( 7 ) && check() );
-        map.insert( 7, 49 );
+                checker( checker&& right ) noexcept
+                    : i{ right.release_i() }
+                    , id{ right.release_id() }
+                {}
 
-        assert( !map.is_static() && map.item( 1 ) && check() );
-        map.erase( 1 );
-        assert( map.is_static() && !map.item( 1 ) && check() );
-        map.insert( 1, 1 );
+                checker& operator = ( checker&& right ) noexcept
+                {
+                    std::swap( i, right.i );
+                    std::swap( id, right.id );
+                    return *this;
+                }
 
-        assert( !map.is_static() && check() );
-        map.insert( 9, 81 );
-        map.erase( 7 );
-        assert( !map.is_static() && !map.item( 7 ) && check() );
+                bool operator < ( const checker& right ) const noexcept
+                {
+                    return i < right.i;
+                }
 
-        {
-            assert( !map.is_static() && check() );
+                bool operator == ( const checker& right ) const noexcept
+                {
+                    return i == right.i;
+                }
 
-            const auto size = map.size();
-            map.erase( -1 );
-            assert( size == map.size() && check() );
+                int release_i() noexcept
+                {
+                    int temp = i;
+                    i = 0;
+                    return temp;
+                }
 
-            map.erase( 10 );
-            assert( size == map.size() && check() );
+                int release_id() noexcept
+                {
+                    int temp = id;
+                    id = 0;
+                    return temp;
+                }
 
-            map.erase( 7 );
-            assert( size == map.size() && check() );
-        }
+                void enable_check_destroy() const
+                {
+                    assert( !id );
+                    id = unique_id();
+                    assert( for_destroy().insert( id ).second );
+                }
 
+                int check_enable_check_destroy() const
+                {
+                    assert( id );
+                    assert( for_destroy().contains( id ) );
+                    return id;
+                }
+            };
 
-        assert( !map.is_static() && map.item( 3 ) && check() );
-        map.erase( 3 );
-        assert( map.is_static() && !map.item( 3 ) && check() );
-
-        assert( map.is_static() && map.item( 5 ) && check() );
-        map.erase( 5 );
-        assert( map.is_static() && !map.item( 5 ) && check() );
-
-        assert( map.is_static() && map.item( 1 ) && check() );
-        map.erase( 1 );
-        assert( map.is_static() && !map.item( 1 ) && check() );
-
-        assert( map.is_static() && map.item( 9 ) && check() );
-        map.erase( 9 );
-        assert( map.is_static() && !map.item( 9 ) && check() );
-
-
-        {
-            assert( map.is_static() && !map.item( 1 ) && !map.item( 9 ) && !map.item( 5 ) && check() );
-
-            const auto size = map.size();
-
-            map.erase( 1 );
-            assert( size == map.size() && check() );
-
-            map.erase( 9 );
-            assert( size == map.size() && check() );
-
-            map.erase( 5 );
-            assert( size == map.size() && check() );
-        }
-
-        struct move_check
-        {
-            int i{ 0 };
-            
-            move_check() = default;
-
-            move_check( int i ) noexcept 
-                : i{ i } 
-            {}
-
-            move_check( const move_check& right ) noexcept
-                : i{ right.i }
-            { 
-                assert( true ); 
-            }
-
-            move_check& operator = ( const move_check& right ) noexcept
+            static_map<checker, checker, 4> checker_map;
+            auto insert = [ &checker_map ] ( int key, int value )
             {
-                i = right.i;
-                assert( true );
-                return *this;
-            }
+                const auto ins = checker_map.insert( key, value );
+                assert( ins.second );
+                ins.first->key.enable_check_destroy();
+                ins.first->value.enable_check_destroy();
+            };
 
-            move_check( move_check&& right ) noexcept 
-                : i{ right.release() } 
-            {}
-
-            move_check& operator = ( move_check&& right ) noexcept 
-            { 
-                std::swap( i, right.i ); 
-                return *this;
-            }
-
-            bool operator < ( const move_check& right ) const noexcept
+            auto erase = [ &checker_map ] ( int key )
             {
-                return i < right.i;
-            }
+                const auto items = checker_map.items( key );
+                assert( items.size() == 1_z );
+                const auto size = checker::for_destroy().size();
+                const auto key_id = items.front().key.check_enable_check_destroy();
+                const auto value_id = items.front().value.check_enable_check_destroy();
+                checker_map.erase( key );
+                assert( checker::for_destroy().size() == size - 2_z );
+                assert( !checker::for_destroy().contains( key_id ) );
+                assert( !checker::for_destroy().contains( value_id ) );
+            };
 
-            bool operator == ( const move_check& right ) const noexcept
-            {
-                return i == right.i;
-            }
-
-            int release() noexcept
-            {
-                int temp = i;
-                i = 0;
-                return temp;
-            }
-        };
-
-        static_map<move_check, move_check, 4> move;
-        assert( move.insert( 1, 1 ).second );
-        assert( move.insert( 4, 16 ).second );
-        assert( move.insert( 2, 4 ).second );
-        assert( !move.insert( 2, 5 ).second );
-        assert( move.insert( 6, 36 ).second );
-        assert( move.insert( 5, 25 ).second );
-        assert( move.insert( 10, 100 ).second );
-        assert( move.insert( 7, 49 ).second );
-        assert( move.insert_or_assign( 7, 49 )->value.i == 49 );
-        move.erase( 7 );
-        move.erase( 6 );
-        move.erase( 5 );
-        move.erase( 4 );
-        move.erase( 3 );
-        move.erase( 2 );
-        move.erase( 1 );
-        move.erase( 10 );
+            insert( 1, 1 );
+            insert( 4, 16 );
+            insert( 2, 4 );
+            assert( !checker_map.insert( 2, 5 ).second );
+            insert( 6, 36 );
+            insert( 10, 100 );
+            insert( 7, 49 );
+            erase( 7 );
+            erase( 6 );
+            checker_map.erase( 5 );
+            erase( 4 );
+            checker_map.erase( 3 );
+            erase( 2 );
+            erase( 1 );
+            erase( 10 );
+        }
     }
 
     {
