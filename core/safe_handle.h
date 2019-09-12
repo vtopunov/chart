@@ -1,6 +1,23 @@
 #pragma once
 
 #include <core/util.h>
+#include <core/intrusive_list.h>
+#include <core/member_detector.h>
+
+namespace safe_handle_private_detail
+{
+    template<class T>
+    using has_replace_owwer_t = decltype( std::declval<T>().replace_owwer( nullptr ), 0 );
+
+    template<class T>
+    using has_is_valid_t = decltype( std::declval<T>().is_valid() );
+
+    template<class T>
+    constexpr bool has_replace_owwer_v = is_detected_v<has_replace_owwer_t, T>;
+
+    template<class T>
+    constexpr bool has_is_valid_v = is_detected_v<has_is_valid_t, T>;
+}
 
 template<class handle_type >
 class safe_handle
@@ -8,31 +25,30 @@ class safe_handle
 public:
     constexpr safe_handle( handle_type right = {} ) noexcept
         : handle_{ right }
-        , prev_{ this }
-        , next_{ this }
+        , copies_{ this, this }
     {}
 
     constexpr safe_handle( const safe_handle& right ) noexcept
         : handle_{ right.handle_ }
-        , prev_{ &right }
-        , next_{ right.next() }
-    {
-        as_mutable_pointer( next_ )->prev_ = this;
-        as_mutable_pointer( prev_ )->next_ = this;
-    }
+        , copies_{ copies_impl_.push( this, const_cast<safe_handle*>( &right ) ) }
+    {}
 
     ~safe_handle() noexcept
     {
+        using safe_handle_private_detail::has_replace_owwer_v;
+
         if ( is_unique() )
         {
             handle_.close();
         }
         else
         {
-            const auto prev = prev_;
-            const auto next = next_;
-            as_mutable_pointer( prev )->next_ = next;
-            as_mutable_pointer( next )->prev_ = prev;
+            copies_impl_.pop( this );
+
+            if constexpr ( has_replace_owwer_v<handle_type> )
+            {
+                handle_.replace_owwer( copies_.prev );
+            }
         }
     }
 
@@ -46,17 +62,11 @@ public:
             }
             else
             {
-                const auto prev = prev_;
-                const auto next = next_;
-                as_mutable_pointer( prev )->next_ = next;
-                as_mutable_pointer( next )->prev_ = prev;
+                copies_impl_.pop( this );
             }
 
             handle_ = right.handle_;
-            prev_ = &right;
-            next_ = right.next();
-            as_mutable_pointer( next_ )->prev_ = this;
-            as_mutable_pointer( prev_ )->next_ = this;
+            copies_ = copies_impl_.push( this, const_cast<safe_handle*>( &right ) );
         }
 
         return *this;
@@ -75,22 +85,21 @@ public:
 
     constexpr bool is_valid() const noexcept
     {
-        return handle_.is_valid();
+        using safe_handle_private_detail::has_is_valid_v;
+
+        if constexpr ( has_is_valid_v<handle_type> )
+        {
+            return handle_.is_valid();
+        }
+        else
+        {
+            return true;
+        }
     }
 
     constexpr bool is_unique() const noexcept
     {
-        return next_ == this;
-    }
-
-    constexpr const safe_handle* previous() const noexcept
-    {
-        return prev_;
-    }
-
-    constexpr const safe_handle* next() const noexcept
-    {
-        return next_;
+        return copies_impl_.is_unique( this );
     }
 
     constexpr const handle_type& get() const noexcept
@@ -98,8 +107,16 @@ public:
         return handle_;
     }
 
+    constexpr intrusive_node<safe_handle> copies() const noexcept
+    {
+        return copies_;
+    }
+
 private:
     handle_type handle_;
-    const safe_handle* prev_;
-    const safe_handle* next_;
+    intrusive_node<safe_handle> copies_;
+
+    static constexpr intrusive_list_impl<safe_handle> copies_impl_{ &safe_handle::copies_ };
 };
+
+

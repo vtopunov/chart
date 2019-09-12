@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-enum class axis_type
+enum class axis_type : size_t
 {
     X,
     Y

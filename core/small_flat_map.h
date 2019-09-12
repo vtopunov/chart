@@ -36,7 +36,7 @@ struct optional_iterator
 };
 
 template<class K, class T, size_t N>
-class static_map
+class small_flat_map
 {
 public:
     static constexpr size_t static_size = N;
@@ -73,7 +73,7 @@ public:
         return left == right;
     };
 
-    constexpr static_map() noexcept {}
+    constexpr small_flat_map() noexcept {}
 
     const_iterator find( key_view key ) const noexcept
     {
@@ -229,7 +229,7 @@ public:
         return cbegin() == std::cbegin( static_ );
     }
 
-    ~static_map() noexcept
+    ~small_flat_map() noexcept
     {
         if ( is_static() )
         {
@@ -244,7 +244,7 @@ public:
 private:
     using dynarray_type = std::vector<value_type>;
 
-    constexpr static_map* mutable_this() const noexcept
+    constexpr small_flat_map* mutable_this() const noexcept
     {
         return as_mutable_pointer( this );
     }

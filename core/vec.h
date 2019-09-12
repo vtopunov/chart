@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include "util.h"
+#include <core/util.h>
 
 template<class T>
 struct vec;
@@ -12,7 +12,7 @@ constexpr vec<T> min( vec<T> a, vec<T> b ) noexcept;
 template<class T>
 constexpr vec<T> max( vec<T> a, vec<T> b ) noexcept;
 
-namespace private_vec
+namespace vec_private_detail
 {
     template<class T>
     constexpr T private_max( T a, T b ) noexcept
@@ -44,12 +44,12 @@ struct vec
         , _1{ elem1 }
     {}
 
-    constexpr T get( std::index_sequence<0> ) const noexcept
+    constexpr T get( std::index_sequence<0_z> ) const noexcept
     {
         return _0;
     }
 
-    constexpr T get( std::index_sequence<1> ) const noexcept
+    constexpr T get( std::index_sequence<1_z> ) const noexcept
     {
         return _1;
     }
@@ -62,12 +62,12 @@ struct vec
 
     constexpr T min() const noexcept
     {
-        return private_vec::private_min( _0, _1 );
+        return vec_private_detail::private_min( _0, _1 );
     }
 
     constexpr T max() const noexcept
     {
-        return private_vec::private_max( _0, _1 );
+        return vec_private_detail::private_max( _0, _1 );
     }
 
     constexpr T sum() const noexcept

@@ -32,11 +32,11 @@ struct rect
     {}
 
     constexpr rect(x_axis_type, axis_range_type first, axis_range_type second) noexcept
-        : rect(first, second)
+        : rect{ first, second }
     {}
 
     constexpr rect(y_axis_type, axis_range_type first, axis_range_type second) noexcept
-        : rect(second, first)
+        : rect{ second, first }
     {}
 
     template<axis_type axis>

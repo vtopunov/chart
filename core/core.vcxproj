@@ -25,10 +25,11 @@
     <ClInclude Include="assert.h" />
     <ClInclude Include="axis_type.h" />
     <ClInclude Include="buffer.h" />
-    <ClInclude Include="circular_list.h" />
+    <ClInclude Include="intrusive_list.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="coordinate.h" />
     <ClInclude Include="flags.h" />
+    <ClInclude Include="member_detector.h" />
     <ClInclude Include="lerp.h" />
     <ClInclude Include="math_constants.h" />
     <ClInclude Include="narrow_cast.h" />
@@ -40,7 +41,7 @@
     <ClInclude Include="rect.h" />
     <ClInclude Include="span.h" />
     <ClInclude Include="safe_handle.h" />
-    <ClInclude Include="static_map.h" />
+    <ClInclude Include="small_flat_map.h" />
     <ClInclude Include="underlying_cast.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="vec.h" />

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "vec.h"
-#include "axis_type.h"
+#include <core/vec.h>
+#include <core/axis_type.h>
+#include <core/underlying_cast.h>
 
 template<class T>
 struct point
@@ -31,7 +32,7 @@ struct point
     template<axis_type axis>
     constexpr T get() const noexcept
     {
-        return position.get<static_cast<size_t>( axis )>();
+        return position.get<underlying_cast<size_t>( axis )>();
     }
 
     static constexpr point fill( T value ) noexcept

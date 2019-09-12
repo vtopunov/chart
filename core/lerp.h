@@ -1,9 +1,9 @@
 #pragma once
 
-#include "vec.h"
-#include "numerical_range.h"
-#include "point.h"
-#include "polynom.h"
+#include <core/vec.h>
+#include <core/numerical_range.h>
+#include <core/point.h>
+#include <core/polynom.h>
 
 template< class To, class From>
 constexpr auto lerp( vec<From> from, vec<To> to ) noexcept

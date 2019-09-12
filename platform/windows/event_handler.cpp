@@ -1,6 +1,6 @@
 #include "event_handler.h"
 
-#include <core/static_map.h>
+#include <core/small_flat_map.h>
 #include <core/underlying_cast.h>
 
 namespace os_windows
@@ -18,7 +18,7 @@ namespace os_windows
             }
         };
 
-        using procedures_map_t = static_map<HWND, procedure_type, 4>;
+        using procedures_map_t = small_flat_map<HWND, procedure_type, 4>;
 
         procedures_map_t& procedures_map() noexcept
         {

@@ -157,7 +157,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="test_core.cpp" />
+    <ClCompile Include="test_buffer.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="test_handle.cpp" />
+    <ClCompile Include="test_lerp.cpp" />
+    <ClCompile Include="test_lerp_color.cpp" />
+    <ClCompile Include="test_narrow_cast.cpp" />
+    <ClCompile Include="test_numerical_range.cpp" />
+    <ClCompile Include="test_point.cpp" />
+    <ClCompile Include="test_rational.cpp" />
+    <ClCompile Include="test_rect.cpp" />
+    <ClCompile Include="test_small_flat_map.cpp" />
+    <ClCompile Include="test_underlying_cast.cpp" />
+    <ClCompile Include="test_vec.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\core\core.vcxproj">
