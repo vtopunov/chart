@@ -1,7 +1,9 @@
 #pragma once
 
-#include "util.h"
-#include "span.h"
+#include <compare>
+
+#include <core/util.h>
+#include <core/span.h>
 
 template<class T>
 class rational

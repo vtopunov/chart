@@ -36,9 +36,9 @@ namespace os_windows
 
     void window_type::close() noexcept
     {
-        if ( is_valid() )
+        if (const auto name_id = release_name_id(); name_id)
         {
-            const auto result = UnregisterClassW( release_name_id(), module_address_ );
+            const auto result = UnregisterClassW( name_id, module_address_ );
             result; assert( result );
         }
     }

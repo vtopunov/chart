@@ -33,7 +33,7 @@
     <ClInclude Include="lerp.h" />
     <ClInclude Include="math_constants.h" />
     <ClInclude Include="narrow_cast.h" />
-    <ClInclude Include="numerical_range.h" />
+    <ClInclude Include="num_range.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="polynom.h" />
@@ -45,6 +45,9 @@
     <ClInclude Include="underlying_cast.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="vec.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\glab.ruleset" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -100,7 +103,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <CodeAnalysisRuleSet>..\chart.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\glab.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -124,6 +128,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/Zc:char8_t %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

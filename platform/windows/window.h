@@ -3,7 +3,7 @@
 #include <string>
 
 #include <platform/windows/window_type.h>
-#include <platform/windows/event.h>
+#include <platform/windows/window_view.h>
 
 namespace os_windows
 {
@@ -19,7 +19,7 @@ namespace os_windows
 
         constexpr bool is_valid() const noexcept
         {
-            return to_bool( handle_ );
+            return handle_ != nullptr;
         }
 
         bool show( int cmd = SW_SHOW ) const noexcept;
@@ -28,7 +28,7 @@ namespace os_windows
 
         void close() noexcept;
 
-        constexpr HWND native_handle() const noexcept
+        constexpr window_view view() const noexcept
         {
             return handle_;
         }
@@ -43,7 +43,7 @@ namespace os_windows
 
     private:
         safe_window_type type_;
-        HWND handle_ = nullptr;
+        HWND handle_{ nullptr };
     };
 
     using safe_window = safe_handle<window>;
@@ -51,7 +51,7 @@ namespace os_windows
     class window_info
     {
     public:
-        constexpr window_info() noexcept = default;
+        window_info() noexcept = default;
 
         window_info& type( safe_window_type type ) noexcept
         {
@@ -78,22 +78,4 @@ namespace os_windows
     };
 
     safe_window create_window( window_info info ) noexcept;
-
-    struct window_view
-    {
-        HWND handle;
-
-        constexpr window_view( const safe_window& safe ) noexcept
-            : handle{ safe->native_handle() }
-        {}
-
-        constexpr window_view( HWND handle ) noexcept
-            : handle{ handle }
-        {}
-
-        explicit constexpr operator bool() const noexcept
-        {
-            return to_bool( handle );
-        }
-    };
 }

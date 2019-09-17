@@ -34,15 +34,8 @@ namespace vec_private_detail
 template<class T>
 struct vec
 {
-    T _0{};
-    T _1{};
-
-    constexpr vec() noexcept = default;
-
-    constexpr vec( T elem0, T elem1 ) noexcept
-        : _0{ elem0 }
-        , _1{ elem1 }
-    {}
+    T _0;
+    T _1;
 
     constexpr T get( std::index_sequence<0_z> ) const noexcept
     {
@@ -84,17 +77,25 @@ struct vec
     {
         return sum() / 2;
     }
-
-    constexpr vec with_reverse() const noexcept
-    {
-        return { _1, _0 };
-    }
-
-    static constexpr vec<T> fill( T value ) noexcept
-    {
-        return { value, value };
-    }
 };
+
+template<class T>
+constexpr vec<T> make_vec( T first, T second ) noexcept
+{
+    return { first, second };
+}
+
+template<class T>
+constexpr vec<T> fill_vec( T value ) noexcept
+{
+    return { value, value };
+}
+
+template<class T>
+constexpr vec<T> reverse( vec<T> v ) noexcept
+{
+    return make_vec( v._1, v._0 );
+}
 
 template<class T>
 constexpr vec<T> operator - ( vec<T> rigth ) noexcept

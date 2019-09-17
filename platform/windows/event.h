@@ -12,10 +12,15 @@ namespace os_windows
 {
     enum class event_type : UINT
     {
+        null = WM_NULL,
+        close = WM_CLOSE,
+        timer = WM_TIMER,
         mouse_move = WM_MOUSEMOVE,
-        event_handler_registered = WM_USER,
-        user
+        out_of_os
     };
+
+    template <event_type type>
+    using event_type_constant = std::integral_constant<event_type, type>;
 
     template<event_type special_type>
     class special_event;
@@ -30,17 +35,27 @@ namespace os_windows
             , type_{ type }
         {}
 
-        template<event_type special_type>
-        constexpr const special_event<special_type>& as() const noexcept;
+        friend LRESULT default_event_handler( const event& e ) noexcept;
 
-        friend LRESULT default_event_handler( event e ) noexcept;
-
-    protected:
         constexpr event_type type() const noexcept
         {
             return type_;
         }
 
+        constexpr HWND window_handle() const noexcept
+        {
+            return window_handle_;
+        }
+
+        constexpr bool is( event_type checked_type ) const noexcept
+        {
+            return checked_type == type_;
+        }
+
+        template<event_type special_type>
+        constexpr const special_event<special_type>& as() const noexcept;
+
+    protected:
         constexpr WPARAM word_parameter() const noexcept
         {
             return word_parameter_;
@@ -58,19 +73,17 @@ namespace os_windows
         event_type type_;
     };
 
-    template<event_type special_type>
-    class special_event_base : public event
-    {
-    public:
-        explicit constexpr operator bool() const noexcept
-        {
-            return special_type == type();
-        }
-    };
 
     template<event_type special_type>
-    class special_event : public special_event_base<special_type>
+    class special_event : public event
     {};
+
+    template<event_type special_type>
+    constexpr const special_event<special_type>& event::as() const noexcept
+    {
+        assert( is( special_type ) );
+        return static_cast<const special_event<special_type>&>( *this );
+    }
 
     enum class mouse_key : WPARAM
     {
@@ -84,7 +97,7 @@ namespace os_windows
     };
 
     template<>
-    class special_event<event_type::mouse_move> : public special_event_base<event_type::mouse_move>
+    class special_event<event_type::mouse_move> : public event
     {
     public:
         constexpr int x() const noexcept
@@ -108,11 +121,7 @@ namespace os_windows
         }
     };
 
+    using timer_event = special_event<event_type::timer>;
     using mouse_move_event = special_event<event_type::mouse_move>;
-
-    template<event_type special_type>
-    constexpr const special_event<special_type>& event::as() const noexcept
-    {
-        return static_cast<const special_event<special_type>&>( *this );
-    }
+    using close_event = special_event<event_type::close>;
 }

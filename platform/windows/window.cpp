@@ -18,20 +18,20 @@ namespace os_windows
     bool window::show( int cmd ) const noexcept
     {
         assert( is_valid() );
-        return to_bool( ShowWindow( handle_, cmd ) );
+        return ShowWindow( handle_, cmd ) != FALSE;
     }
 
     bool window::update() const noexcept
     {
         assert( is_valid() );
-        return to_bool( UpdateWindow( handle_ ) );
+        return UpdateWindow( handle_ ) ;
     }
 
     void window::close() noexcept
     {
-        if ( is_valid() )
+        if ( const auto handle = release_window_handle(); handle)
         {
-            destroy_window( release_window_handle() );
+            destroy_window( handle );
         }
     }
 
@@ -66,17 +66,5 @@ namespace os_windows
                 window_handle
             }
         };
-
-        /*{
-            assert( !event_handlers_map().contains( window_handle ) );
-
-            if ( window_handle && info.event_handler_ )
-            {
-                const auto item = event_handlers_map().force_insert( window_handle, std::move( info.event_handler_ ) );
-                item->value( event{ window_handle, event_type::event_handler_registered, 0, 0 } );
-            }
-        }
-
-        return created_window;*/
     }
 }

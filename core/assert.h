@@ -21,9 +21,10 @@
 #define DEBUG 1
 #endif
 
-#define assert(expression) (void)( \
-            (!!(expression)) ||    \
-            (__debugbreak(), 0)    \
-        )
+#define assert(expression) ((void)(  \
+            (!!(expression)) ||      \
+            (__debugbreak(), false)  \
+        ))
+
 
 #endif

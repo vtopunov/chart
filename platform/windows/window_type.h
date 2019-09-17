@@ -34,7 +34,7 @@ namespace os_windows
 
         constexpr bool is_valid() const noexcept
         {
-            return to_bool( name_id_ );
+            return name_id_ != nullptr;
         }
 
     private:

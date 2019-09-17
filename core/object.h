@@ -60,7 +60,7 @@ private:
                 parent_->childrens_ = this;
             }
 
-            siblings_ = siblings_impl_.push( parent_->childrens_, new_owner );
+            siblings_ = siblings_impl_.push( parent_->childrens_, this );
         }
 
         if ( childrens_ )
@@ -75,7 +75,7 @@ private:
 
                 item = siblings_impl_.next( item );
             }
-            while ( item != childrens );
+            while ( item != childrens_ );
         }
     }
 

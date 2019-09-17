@@ -30,8 +30,8 @@ namespace
 
         const size_t size = result.size();
         const auto abscissa_max = 5 * pi_v<real_t>;
-        const numerical_range<real_t> abscissa_range{ -abscissa_max, abscissa_max };
-        const numerical_range<size_t> index_range{ 0_z, size - 1_z };
+        const num_range<real_t> abscissa_range{ -abscissa_max, abscissa_max };
+        const num_range<size_t> index_range{ 0_z, size - 1_z };
         const auto abscissa = lerp( index_range, abscissa_range );
 
         for ( size_t i = index_range.front(); i <= index_range.back(); ++i )

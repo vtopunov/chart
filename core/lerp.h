@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/vec.h>
-#include <core/numerical_range.h>
+#include <core/num_range.h>
 #include <core/point.h>
 #include <core/polynom.h>
 
@@ -17,7 +17,7 @@ constexpr auto lerp( vec<From> from, vec<To> to ) noexcept
 }
 
 template< class To, class From>
-constexpr auto lerp( numerical_range<From> from, numerical_range<To> to ) noexcept
+constexpr auto lerp( num_range<From> from, num_range<To> to ) noexcept
 {
     return lerp(from.bounds, to.bounds);
 }
@@ -25,5 +25,5 @@ constexpr auto lerp( numerical_range<From> from, numerical_range<To> to ) noexce
 template<class T>
 constexpr polynom<T> lerp( point<T> p0, point<T> p1 ) noexcept
 {
-    return lerp( vec<T>{ p0.x(), p1.x() }, vec<T>{ p0.y(), p1.y() } );
+    return lerp( make_vec( p0.x(), p1.x() ), make_vec( p0.y(), p1.y() ) );
 }

@@ -3,6 +3,8 @@
 #include <core/small_flat_map.h>
 #include <core/underlying_cast.h>
 
+#include <platform/windows/event.h>
+
 namespace os_windows
 {
     namespace
@@ -10,104 +12,100 @@ namespace os_windows
         struct procedure_type
         {
             event_handler_type callback;
-            size_t id;
-
-            LRESULT operator () ( event e ) const noexcept
-            {
-                return callback( e );
-            }
+            procedure_id_t id;
         };
 
-        using procedures_map_t = small_flat_map<HWND, procedure_type, 4>;
+        using map_procedures_t = small_flat_map<HWND, procedure_type, 4>;
 
-        procedures_map_t& procedures_map() noexcept
+        map_procedures_t& map_procedures() noexcept
         {
-            static procedures_map_t map;
+            static map_procedures_t map;
             return map;
         }
 
-        span<const procedures_map_t::value_type> other_procedures( const HWND window_handle, procedures_map_t::const_iterator current, const procedures_map_t& map ) noexcept
+        procedure_id_t generate_procedure_id() noexcept
         {
-            const auto next = std::next( current );
-            return { next, map.count( next, window_handle ) };
+            static procedure_id_t id = 0;
+            return id++;
         }
 
-        constexpr size_t generate_id( span<const procedures_map_t::value_type> other_procedures ) noexcept
+        procedure_id_t register_procedure(HWND window_handle, event_handler_type event_handler) noexcept
         {
-            size_t id = 0;
-            for ( const auto& item : other_procedures )
+            const auto procedure_id = generate_procedure_id();
+            map_procedures().force_insert(window_handle, procedure_type{ std::move(event_handler), procedure_id });
+            return procedure_id;
+        }
+
+        void unregister_procedure(HWND window_handle, procedure_id_t id) noexcept
+        {
+            auto& map = map_procedures();
+            for (auto& item : map.items(window_handle))
             {
-                id = std::max( id, item.value.id + 1_z );
-            }
-            return id;
-        }
-
-        size_t register_procedure( HWND window_handle, event_handler_type event_handler ) noexcept
-        {
-            auto& map = procedures_map();
-            const auto position = map.force_insert( window_handle, procedure_type{ std::move( event_handler ), invaid_procedure_id } );
-            const auto id = generate_id( other_procedures( window_handle, position, map ) );
-            position->value.id = id;
-            return id;
-        }
-
-        void unregister_procedure( HWND window_handle, size_t id ) noexcept
-        {
-            auto& map = procedures_map();
-            for ( auto& item : map.items( window_handle ) )
-            {
-                if ( item.value.id == id )
+                if (item.value.id == id)
                 {
-                    map.erase( &item );
+                    map.erase(&item);
+                    break;
                 }
             }
         }
     }
 
-    LRESULT CALLBACK window_procedure( HWND window_handle, UINT message, WPARAM word_parameter, LPARAM long_parameter ) noexcept
+    LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
     {
-        const event e { window_handle, underlying_cast<event_type>( message ), word_parameter, long_parameter };
+        const event e { window_handle, underlying_cast<event_type>(message), word_parameter, long_parameter };
 
-        for ( const auto& item : std::as_const( procedures_map() ).items( window_handle ) )
+        if (const auto procedures = std::as_const(map_procedures()).items(window_handle); !procedures.empty())
         {
-            return item.value( e );
+            LRESULT result = 0;
+
+            for (const auto& procedure : procedures)
+            {
+                if (const auto ret_code = procedure.value.callback(e))
+                {
+                    result = ret_code;
+                    if (ret_code < 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return result;
         }
 
-        return default_event_handler( e );
+        return default_event_handler(e);
     }
 
-    LRESULT default_event_handler( event e ) noexcept
+    LRESULT default_event_handler(const event& e) noexcept
     {
-        return DefWindowProcW( e.window_handle_, to_underlying( e.type_ ), e.word_parameter_, e.long_parameter_ );
+        return DefWindowProcW(e.window_handle_, to_underlying(e.type_), e.word_parameter_, e.long_parameter_);
     }
 
-    void event_handler_handle::close() noexcept
+    void event_dispatcher::close() noexcept
     {
-        if ( is_valid() )
+        if (const auto id = release_procedure_id(); is_valid_procedure_id(id))
         {
-            unregister_procedure( window_handle_, release_procedure_id() );
+            unregister_procedure(window_handle_, id);
         }
     }
 
-    safe_event_handler_handle register_event_handler( window_view window, event_handler_type event_handler ) noexcept
+    safe_event_dispatcher register_event_handler(window_view window, event_handler_type event_handler) noexcept
     {
-        assert( window );
-        assert( event_handler );
-
-        const auto id = register_procedure( window.handle, procedure_type{ std::move( event_handler ), invaid_procedure_id } );
+        assert(window.handle_);
+        assert(event_handler);
 
         return
         {
-            event_handler_handle
+            event_dispatcher
             {
-                window.handle,
-                id
+                window.handle_,
+                register_procedure(window.handle_, std::move(event_handler))
             }
         };
     }
 
-    void unregister_all_procedures( HWND window_handle ) noexcept
+    void unregister_all_procedures(HWND window_handle) noexcept
     {
-        procedures_map().erase( window_handle );
+        map_procedures().erase(window_handle);
     }
 }

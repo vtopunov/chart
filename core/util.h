@@ -63,18 +63,6 @@ constexpr std::make_signed_t<T> to_singned( T unsigned_value ) noexcept
     return narrow_cast<std::make_signed_t<T>>( unsigned_value );
 }
 
-template<class T>
-constexpr bool to_bool( const T* value ) noexcept
-{
-    return value != nullptr;
-}
-
-template<class T>
-constexpr std::enable_if_t<std::is_integral_v<T>, bool> to_bool( T value ) noexcept
-{
-    return !!value ;
-}
-
 constexpr bool is_digit( char c ) noexcept
 {
     return c >= '0' && c <= '9';

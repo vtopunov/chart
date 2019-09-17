@@ -5,10 +5,10 @@
 
 void test_lerp() noexcept
 {
-    constexpr polynom line_function{ 1, 2 };
-    constexpr point p0{ 0, 1 };
-    constexpr point p1{ 1, 3 };
-    constexpr point p2{ 2, 5 };
+    constexpr polynom<int> line_function{ 1, 2 };
+    constexpr auto p0 = make_point( 0, 1 );
+    constexpr auto p1 = make_point( 1, 3 );
+    constexpr auto p2 = make_point( 2, 5 );
 
     constexpr auto line_function_01 = lerp( p0, p1 );
     constexpr auto line_function_12 = lerp( p1, p2 );

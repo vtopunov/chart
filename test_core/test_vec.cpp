@@ -3,13 +3,13 @@
 
 void test_vec() noexcept
 {
-    constexpr vec v0{ 1, 1 };
-    constexpr vec v1{ 1, 2 };
-    constexpr vec v2{ 2, 1 };
-    constexpr vec v3{ 2, 2 };
-    constexpr vec v4{ 1, 0 };
-    constexpr vec v5{ 3, 1 };
-
+    constexpr auto v0 = make_vec( 1, 1 );
+    constexpr auto v1 = make_vec( 1, 2 );
+    constexpr auto v2 = make_vec( 2, 1 );
+    constexpr auto v3 = make_vec( 2, 2 );
+    constexpr auto v4 = make_vec( 1, 0 );
+    constexpr auto v5 = make_vec( 3, 1 );
+              
     static_assert( v0 != v1 );
     static_assert( !( v0 < v1 ) );
     static_assert( !( v0 <= v1 ) );
@@ -32,8 +32,8 @@ void test_vec() noexcept
     static_assert( v2 > v4 );
     static_assert( v2 >= v4 );
 
-    static_assert( v1.with_reverse() == v2 );
-    static_assert( v2.with_reverse() == v1 );
+    static_assert( reverse(v1) == v2 );
+    static_assert( reverse(v2) == v1 );
     static_assert( 2 * v0 == v0 * 2 );
     static_assert( 2 * v0 == v3 );
     static_assert( v3 / 2 == v0 );

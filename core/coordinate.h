@@ -110,7 +110,7 @@ private:
     {};
 
     constexpr coordiante_rect(rect_t rect, UnsafeConstructor) noexcept
-        : rect_(rect)
+        : rect_{ rect }
     {}
 
 public:

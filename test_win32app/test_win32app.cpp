@@ -3,33 +3,23 @@
 
 #include <platform/windows/window.h>
 #include <platform/windows/event_handler.h>
+#include <platform/windows/event_matching.h>
 
 using namespace os_windows;
 
 namespace
 {
-    void output_mouse_move( const mouse_move_event& e ) noexcept
-    {
-        wchar_t outbuf[128];
-        if ( swprintf_s( outbuf, L"mouse move: %d %d\n", e.x(), e.y() ) > 0 )
-        {
-            OutputDebugStringW( outbuf );
-        }
-    }
-
     int output_error_code() noexcept
     {
         const auto error_code = GetLastError();
 
         {
             wchar_t outbuf[128];
-            if ( swprintf_s( outbuf, L"error code: %lu", error_code ) > 0 )
-            {
-                OutputDebugStringW( outbuf );
-            }
+            swprintf_s( outbuf, L"error code: %lu", error_code );
+            OutputDebugStringW( outbuf );
         }
 
-        return static_cast<int>( error_code );
+        return ( error_code ) ? static_cast<int>( error_code ) : -1;
     }
 
     void output_windows_class_name( const wchar_t* name ) noexcept
@@ -40,6 +30,19 @@ namespace
             OutputDebugStringW( outbuf );
         }
     }
+
+    constexpr struct
+    {
+        LRESULT operator () ( const mouse_move_event& e ) const noexcept
+        {
+            wchar_t outbuf[128];
+            if ( swprintf_s( outbuf, L"mouse move: %d %d\n", e.x(), e.y() ) > 0 )
+            {
+                OutputDebugStringW( outbuf );
+            }
+            return 0;
+        }
+    } event_handlers;
 }
 
 int APIENTRY wWinMain( _In_ HINSTANCE hInstance,
@@ -77,15 +80,9 @@ int APIENTRY wWinMain( _In_ HINSTANCE hInstance,
     window->show( nCmdShow );
     window->update();
 
-    const auto handler_lock = register_event_handler( window, [] ( event e )
-    {
-        if ( const auto & mouse_move = e.as<event_type::mouse_move>() )
-        {
-            output_mouse_move( mouse_move );
-        }
+    const auto event_dispatcher = register_event_handler( window, event_match(event_handlers));
 
-        return default_event_handler( e );
-    } );
+    //SetTimer( window->native_handle(), 0, 5000, [] ( HWND, UINT, UINT_PTR, DWORD ) { PostQuitMessage( 0 ) } );
 
     MSG msg{};
 

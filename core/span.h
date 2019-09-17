@@ -160,13 +160,13 @@ public:
         return mid( pos, size );
     }
 
-    constexpr span without_prefix( size_type size ) const noexcept
+    constexpr span remove_prefix( size_type size ) const noexcept
     {
         assert( size <= size_ );
         return { data_ + size, size_ - size };
     }
 
-    constexpr span without_suffix( size_type size ) const noexcept
+    constexpr span remove_suffix( size_type size ) const noexcept
     {
         assert( size <= size_ );
         return { data_, size_ - size };
@@ -177,7 +177,7 @@ public:
         return span.cbegin() >= cbegin() && span.cend() <= cend();
     }
 
-    constexpr ptrdiff_t index( const_iterator position ) const noexcept
+    constexpr difference_type index( const_iterator position ) const noexcept
     {
         assert( position >= cbegin() && position <= cend() );
         return position - cbegin();

@@ -24,9 +24,6 @@
     <ClCompile Include="test_vec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test_numerical_range.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="test_point.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -52,6 +49,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test_num_range.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="test_color.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

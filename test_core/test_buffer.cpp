@@ -1,8 +1,8 @@
 #include <array>
-
+/*
 #include <core/span.h>
 #include <core/lerp.h>
-#include <core/numerical_range.h>
+#include <core/num_range.h>
 #include <core/point.h>
 #include <core/math_constants.h>
 #include <core/buffer.h>
@@ -24,10 +24,10 @@ constexpr span<point_t> fn_generate( span<point_t> points, double ( *fn ) ( doub
     assert( fn );
 
     const size_t size = points.size();
-    const auto abscissa_max = 5 * pi_v<real_t>;
-    const numerical_range<real_t> abscissa_range{ -abscissa_max, abscissa_max };
-    const numerical_range<size_t> index_range{ 0_z, size - 1_z };
-    const auto abscissa = lerp( index_range, abscissa_range );
+    constexpr auto abscissa_max = 5 * pi_v<real_t>;
+    constexpr auto abscissa_range = make_num_range( -abscissa_max, abscissa_max );
+    constexpr auto index_range = make_num_range( 0_z, size - 1_z );
+    constexpr auto abscissa = lerp( index_range, abscissa_range );
 
     for ( size_t i = index_range.front(); i <= index_range.back(); ++i )
     {
@@ -43,11 +43,11 @@ constexpr auto sinc_tbl = [] ()
     std::array<point_t, 100_z> temp{};
     fn_generate( temp, sinc );
     return temp;
-}();
+}();*/
 
 void test_buffer() noexcept
 {
-    const auto points = buffer::default_instance().get<point_t>( sinc_tbl.size() );
+   /* const auto points = buffer::default_instance().get<point_t>( sinc_tbl.size() );
 
     assert( points.size() == sinc_tbl.size() );
     for ( size_t i = 0; i < sinc_tbl.size(); ++i )
@@ -55,5 +55,5 @@ void test_buffer() noexcept
         points[i] = sinc_tbl[i];
     }
 
-    assert( !memcmp( points.data(), sinc_tbl.data(), sinc_tbl.size() ) );
+    assert( !memcmp( points.data(), sinc_tbl.data(), sinc_tbl.size() ) );*/
 }

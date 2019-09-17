@@ -5,14 +5,14 @@
 
 class qt_test : public QWidget
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    qt_test(QWidget *parent = Q_NULLPTR);
+	qt_test(QWidget *parent = Q_NULLPTR);
 
 protected:
-    void paintEvent(QPaintEvent*) noexcept final;
+	void paintEvent(QPaintEvent*) noexcept final;
 
 private:
-    Ui::qt_testClass ui;
+	Ui::qt_testClass ui;
 };

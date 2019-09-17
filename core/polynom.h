@@ -9,15 +9,9 @@ struct polynom
     using result_type = ResultType;
     using argument_type = ArgumentType;
 
-    vec<CoefficientsType> coefficients{};
+    vec<CoefficientsType> coefficients;
 
-    constexpr polynom() noexcept = default;
-
-    constexpr polynom( CoefficientsType coefficient0, CoefficientsType coefficient1 ) noexcept
-        : coefficients{ coefficient0, coefficient1 }
-    {}
-
-    constexpr result_type operator () (argument_type argument) const noexcept
+    constexpr result_type operator () (argument_type argument) const noexcept // refactoring
     {
         return narrow_cast<result_type>( coefficients._1 * argument + coefficients._0 );
     }
