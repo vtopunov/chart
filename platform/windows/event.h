@@ -47,13 +47,49 @@ namespace os_windows
             return window_handle_;
         }
 
-        constexpr bool is( event_type checked_type ) const noexcept
+        template<event_type type>
+        class pointer_wrapper
         {
-            return checked_type == type_;
-        }
+        public:
+            using special_event_t = special_event<type>;
+            using special_pointer_t = const special_event_t*;
+            using special_reference_t = const special_event_t&;
+
+            constexpr pointer_wrapper(const event* pointer) noexcept
+                : pointer_{ pointer }
+            {}
+
+            explicit constexpr operator bool() const noexcept
+            {
+                return type_is_correct();
+            }
+
+            constexpr special_pointer_t operator ->() const noexcept
+            {
+                assert(type_is_correct());
+                return static_cast<special_pointer_t>(pointer_);
+            }
+
+            constexpr special_reference_t operator *() const noexcept
+            {
+                assert(type_is_correct());
+                return static_cast<special_reference_t>(*pointer_);
+            }
+
+            constexpr bool type_is_correct() const noexcept
+            {
+                return pointer_->type() == type;
+            }
+
+        private:
+            const event* pointer_;
+        };
 
         template<event_type special_type>
-        constexpr const special_event<special_type>& as() const noexcept;
+        constexpr pointer_wrapper<special_type> as() const noexcept
+        {
+            return this;
+        }
 
     protected:
         constexpr WPARAM word_parameter() const noexcept
@@ -73,17 +109,9 @@ namespace os_windows
         event_type type_;
     };
 
-
     template<event_type special_type>
     class special_event : public event
     {};
-
-    template<event_type special_type>
-    constexpr const special_event<special_type>& event::as() const noexcept
-    {
-        assert( is( special_type ) );
-        return static_cast<const special_event<special_type>&>( *this );
-    }
 
     enum class mouse_key : WPARAM
     {
@@ -118,6 +146,16 @@ namespace os_windows
         constexpr flags<mouse_key> key() const noexcept
         {
             return { underlying_cast<mouse_key>( word_parameter() ) };
+        }
+    };
+
+    template<>
+    class special_event<event_type::timer> : public event
+    {
+    public:
+        constexpr LONG_PTR timer_id() const noexcept
+        {
+            return narrow_cast<LONG_PTR>( word_parameter() );
         }
     };
 

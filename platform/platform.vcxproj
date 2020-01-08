@@ -19,12 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="event_handler_fwd.h" />
     <ClInclude Include="painter.h" />
     <ClInclude Include="platform_cast.h" />
     <ClInclude Include="windows\config.h" />
     <ClInclude Include="windows\event.h" />
     <ClInclude Include="windows\event_handler.h" />
+    <ClInclude Include="windows\event_handler_fwd.h" />
     <ClInclude Include="windows\event_matching.h" />
     <ClInclude Include="windows\event_timer.h" />
     <ClInclude Include="windows\window.h" />
@@ -37,6 +37,7 @@
     </ClCompile>
     <ClCompile Include="windows\event.cpp" />
     <ClCompile Include="windows\event_handler.cpp" />
+    <ClCompile Include="windows\event_timer.cpp" />
     <ClCompile Include="windows\window.cpp" />
     <ClCompile Include="windows\window_type.cpp" />
   </ItemGroup>

@@ -30,16 +30,10 @@ namespace os_windows
 
         constexpr window_view view() const noexcept
         {
-            return handle_;
+            return { handle_ };
         }
 
     private:
-        constexpr HWND release_window_handle() noexcept
-        {
-            const auto temp_window_handle = handle_;
-            handle_ = nullptr;
-            return temp_window_handle;
-        }
 
     private:
         safe_window_type type_;

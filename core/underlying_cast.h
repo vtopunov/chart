@@ -20,7 +20,6 @@ struct underlying_type_if<true, T>
     using type = std::underlying_type_t<T>;
 };
 
-
 template <bool condition, class T>
 using underlying_type_if_t = typename underlying_type_if<condition, T>::type;
 

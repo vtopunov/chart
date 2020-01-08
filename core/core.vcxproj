@@ -43,6 +43,7 @@
     <ClInclude Include="safe_handle.h" />
     <ClInclude Include="small_flat_map.h" />
     <ClInclude Include="underlying_cast.h" />
+    <ClInclude Include="unique_call.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="vec.h" />
   </ItemGroup>

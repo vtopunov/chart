@@ -48,7 +48,7 @@
     <ClInclude Include="windows\event_timer.h">
       <Filter>Header Files\windows</Filter>
     </ClInclude>
-    <ClInclude Include="event_handler_fwd.h">
+    <ClInclude Include="windows\event_handler_fwd.h">
       <Filter>Header Files\windows</Filter>
     </ClInclude>
   </ItemGroup>
@@ -66,6 +66,9 @@
       <Filter>Header Files\windows</Filter>
     </ClCompile>
     <ClCompile Include="windows\event_handler.cpp">
+      <Filter>Header Files\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\event_timer.cpp">
       <Filter>Header Files\windows</Filter>
     </ClCompile>
   </ItemGroup>

@@ -26,9 +26,8 @@ namespace os_windows
     struct event_matching
     {
     public:
-        template<class Fn>
-        explicit event_matching(Fn&& function) noexcept
-            : function_{ std::forward<Fn>(function) }
+        event_matching(function_type function) noexcept
+            : function_{ std::move(function) }
         {}
 
         LRESULT operator () (const event& e) noexcept
@@ -73,7 +72,7 @@ namespace os_windows
         template<event_type special_type>
         LRESULT on_special_event( const event& e ) noexcept
         {
-            return match( e.as<special_type>() );
+            return match( *e.as<special_type>() );
         }
 
         template<class special_event>

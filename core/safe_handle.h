@@ -135,14 +135,6 @@ public:
         return copies_impl_.is_unique( this );
     }
 
-    constexpr handle_type release(handle_type new_value = {}) const noexcept
-    {
-        assert( is_unique() );
-        auto temp = std::move( handle_ );
-        handle_ = std::move( new_value );
-        return temp;
-    }
-
     constexpr intrusive_node<safe_handle> copies() const noexcept
     {
         return copies_;

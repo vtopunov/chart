@@ -38,14 +38,6 @@ namespace os_windows
         }
 
     private:
-        constexpr LPCWSTR release_name_id() noexcept
-        {
-            const auto temp = name_id_;
-            name_id_ = nullptr;
-            return temp;
-        }
-
-    private:
         HMODULE module_address_{};
         LPCWSTR name_id_{};
     };

@@ -123,7 +123,7 @@ public:
     constexpr size_t count(const_iterator position) const noexcept
     {
         assert(_is_position(position));
-        return count(std::next(position), position->key) + 1_z;
+        return (position != cend()) ? (count(std::next(position), position->key) + 1_z) : 0_z;
     }
 
     size_t count(key_view key) const noexcept
@@ -152,7 +152,7 @@ public:
 
     std::pair<iterator, bool> insert(key_type key, mapped_type value) noexcept
     {
-        return insert(value_type{std::move(key), std::move(value)});
+        return insert(value_type{ std::move(key), std::move(value) });
     }
 
     iterator force_insert(value_type new_item) noexcept
@@ -163,7 +163,7 @@ public:
 
     iterator force_insert(key_type key, mapped_type value) noexcept
     {
-        return force_insert(value_type{std::move(key), std::move(value)});
+        return force_insert(value_type{ std::move(key), std::move(value) });
     }
 
     size_t erase(key_view key) noexcept
@@ -180,7 +180,9 @@ public:
 
     void erase(iterator begin, iterator end) noexcept
     {
-        assert(end >= begin && begin >= data_.cbegin() && end <= data_.cend());
+        assert(end >= begin);
+        assert(begin >= data_.cbegin());
+        assert(end <= data_.cend());
 
         if (is_static())
         {
@@ -191,8 +193,8 @@ public:
         }
 
         dynamic_.erase(
-            std::next(dynamic_.cbegin(), data_.index(begin)),
-            std::next(dynamic_.cbegin(), data_.index(end))
+            _dynamic_position(_position_index(begin)),
+            _dynamic_position(_position_index(end))
         );
 
         data_ = dynamic_;
@@ -200,9 +202,7 @@ public:
 
     iterator force_insert_hint(iterator position, value_type item)
     {
-        assert(_is_position(position));
-
-        const auto index = data_.index(position);
+        const auto position_index = _position_index(position);
 
         if (is_static())
         {
@@ -210,14 +210,14 @@ public:
             {
                 std::move_backward(position, data_.end(), std::uninitialized_default_construct_n(data_.end(), 1_z));
                 *position = std::move(item);
-                data_ = { data_.data(), data_.size() + 1_z };
+                data_ = data_.extend_suffix(1_z);
                 return position;
             }
 
             _switch_to_dynamic();
         }
 
-        const auto result = dynamic_.insert(std::next(dynamic_.cbegin(), index), std::move(item));
+        const auto result = dynamic_.insert(_dynamic_position(position_index), std::move(item));
         data_ = dynamic_;
         return &(*result);
     }
@@ -275,6 +275,7 @@ public:
 
 private:
     using dynarray_type = std::vector<value_type>;
+    using const_iterator_dynarray = typename dynarray_type::const_iterator;
 
     constexpr small_flat_map* mutable_this() const noexcept
     {
@@ -322,6 +323,18 @@ private:
     constexpr bool _is_position(const_iterator position) const noexcept
     {
         return position >= cbegin() && position <= cend();
+    }
+
+    constexpr size_t _position_index(const_iterator position) const noexcept
+    {
+        assert(_is_position(position));
+        return narrow_cast<size_t>(position - cbegin());
+    }
+
+    const_iterator_dynarray _dynamic_position(size_t position) const noexcept
+    {
+        assert(!is_static() && position <= dynamic_.size());
+        return dynamic_.cbegin() + position;
     }
 
 private:

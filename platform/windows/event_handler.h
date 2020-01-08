@@ -23,25 +23,17 @@ namespace os_windows
 
         constexpr bool is_valid() const noexcept
         {
-            return is_valid_procedure_id( procedure_id_ );
-        }
-
-    private:
-        constexpr procedure_id_t release_procedure_id() noexcept
-        {
-            const auto temp = procedure_id_;
-            procedure_id_ = invaid_procedure_id;
-            return temp;
+            return procedure_id_ != 0_z;
         }
 
     private:
         HWND window_handle_{ nullptr };
-        procedure_id_t procedure_id_{ invaid_procedure_id };
+        procedure_id_t procedure_id_{ 0_z };
     };
 
     using safe_event_dispatcher = safe_handle<event_dispatcher>;
 
-    using event_handler_type = std::function<LRESULT(const event&)>;
+    using event_handler_t = std::function<LRESULT(const event&)>;
 
-    safe_event_dispatcher register_event_handler( window_view window, event_handler_type event_handler ) noexcept;
+    safe_event_dispatcher register_event_handler(window_view window, event_handler_t event_handler) noexcept;
 }

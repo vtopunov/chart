@@ -4,8 +4,10 @@
 #include <platform/windows/window.h>
 #include <platform/windows/event_handler.h>
 #include <platform/windows/event_matching.h>
+#include <platform/windows/event_timer.h>
 
 using namespace os_windows;
+using namespace std::chrono_literals;
 
 namespace
 {
@@ -15,8 +17,10 @@ namespace
 
         {
             wchar_t outbuf[128];
-            swprintf_s( outbuf, L"error code: %lu", error_code );
-            OutputDebugStringW( outbuf );
+            if( swprintf_s( outbuf, L"error code: %lu", error_code ) > 0 )
+            {
+                 OutputDebugStringW( outbuf );
+            }
         }
 
         return ( error_code ) ? static_cast<int>( error_code ) : -1;
@@ -80,9 +84,18 @@ int APIENTRY wWinMain( _In_ HINSTANCE hInstance,
     window->show( nCmdShow );
     window->update();
 
-    const auto event_dispatcher = register_event_handler( window, event_match(event_handlers));
+    const auto event_dispatcher = 
+        register_event_handler( 
+            window, 
+            event_match(event_handlers)
+        );
 
-    //SetTimer( window->native_handle(), 0, 5000, [] ( HWND, UINT, UINT_PTR, DWORD ) { PostQuitMessage( 0 ) } );
+    const auto timer_handle = 
+        register_event_timer(
+            window, 
+            10s, 
+            []() { PostQuitMessage(0); }
+        );
 
     MSG msg{};
 

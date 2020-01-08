@@ -24,12 +24,12 @@ namespace os_windows
     bool window::update() const noexcept
     {
         assert( is_valid() );
-        return UpdateWindow( handle_ ) ;
+        return UpdateWindow( handle_ ) != FALSE;
     }
 
     void window::close() noexcept
     {
-        if ( const auto handle = release_window_handle(); handle)
+        if ( const auto handle = std::exchange(handle_, nullptr); handle)
         {
             destroy_window( handle );
         }

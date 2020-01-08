@@ -172,15 +172,21 @@ public:
         return { data_, size_ - size };
     }
 
+    constexpr span extend_prefix(size_type size) const noexcept
+    {
+        assert(size <= max_size() - size_);
+        return { data_ - size, size_ + size };
+    }
+
+    constexpr span extend_suffix(size_type size) const noexcept
+    {
+        assert(size <= max_size() - size_);
+        return { data_, size_ + size };
+    }
+
     constexpr bool in( span span ) const noexcept
     {
         return span.cbegin() >= cbegin() && span.cend() <= cend();
-    }
-
-    constexpr difference_type index( const_iterator position ) const noexcept
-    {
-        assert( position >= cbegin() && position <= cend() );
-        return position - cbegin();
     }
 
     constexpr span<std::add_const_t<value_type>> cspan() const noexcept

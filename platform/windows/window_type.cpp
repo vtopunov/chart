@@ -12,7 +12,7 @@ namespace os_windows
     {
         uint32_t id_generate() noexcept
         {
-            static uint32_t id = 0;
+            static uint32_t id{ 0u };
             return ++id;
         }
 
@@ -36,10 +36,10 @@ namespace os_windows
 
     void window_type::close() noexcept
     {
-        if (const auto name_id = release_name_id(); name_id)
+        if (const auto name_id = std::exchange(name_id_, nullptr); name_id)
         {
             const auto result = UnregisterClassW( name_id, module_address_ );
-            result; assert( result );
+            result; assert( result != FALSE );
         }
     }
 
