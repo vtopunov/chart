@@ -45,5 +45,5 @@ void test_vec() noexcept
     static_assert( -( -( -v5 ) ) == -v5 );
     static_assert( -( v4 + ( -v5 ) ) == v2 );
 
-    assert( !errno );
+    D_ASSERT( !errno );
 }

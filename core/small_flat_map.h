@@ -1,39 +1,59 @@
 #pragma once
 
 #include <vector>
-#include <iterator>
+#include <algorithm>
+#include <ranges>
 
-#include <core/util.h>
+#include <core/defs.h>
 #include <core/span.h>
 
-template<class iterator>
-struct optional_iterator
+template<class Key, class Value>
+struct key_value
 {
-    iterator position;
-    bool has_value;
+    using key_type = Key;
+    using value_type = Value;
+    using key_view = key_type;
 
-    constexpr iterator position_or(iterator other) const noexcept
-    {
-        return (has_value) ? position : other;
-    }
+    key_type key;
+    value_type value;
+};
 
-    explicit constexpr operator bool() const noexcept
-    {
-        return has_value;
-    }
+template<class Iterator>
+struct iterator_range
+{
+    Iterator first;
+    Iterator last;
+};
 
-    constexpr iterator operator -> () const noexcept
+template<class Key, class Value>
+struct less_by_key_function
+{
+    template<class KeyView>
+    constexpr bool operator () (const key_value<Key, Value>& key_value, KeyView key) noexcept
     {
-        assert(has_value);
-        return position;
-    }
-
-    constexpr decltype(auto) operator * () const noexcept
-    {
-        assert(has_value);
-        return *position;
+        return key_value.key < key;
     }
 };
+
+template<class Key, class Value>
+using const_key_value_range_t = iterator_range<const key_value<Key, Value>*>;
+
+template<class Key, class Value, class KeyView>
+constexpr bool starts_with_key(const const_key_value_range_t<Key, Value>& range, KeyView key) noexcept
+{
+    return range.first != range.last && range.first->key == key;
+}
+
+template<class Key, class Value, class KeyView>
+constexpr const_key_value_range_t<Key, Value> left_by_key(const_key_value_range_t<Key, Value> range, KeyView key) noexcept
+{
+    auto it = range.first;
+
+    for (; it != range.last && it->key == key; ++it)
+    {}
+
+    return { range.first, it };
+}
 
 template<class K, class T, size_t N>
 class small_flat_map
@@ -42,182 +62,156 @@ public:
     static constexpr size_t static_size = N;
 
     using key_type = K;
-    using key_view = key_type;
     using mapped_type = T;
-
-    struct value_type
-    {
-        key_type key;
-        mapped_type value;
-
-        constexpr operator key_view () const noexcept
-        {
-            return key;
-        }
-    };
-
+    using value_type = key_value<key_type, mapped_type>;
+    using key_view = typename value_type::key_view;
     using pointer = value_type*;
     using const_pointer = const value_type*;
+    using reference = value_type&;
+    using const_reference = const value_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using optional_item = optional_iterator<iterator>;
-    using const_optional_item = optional_iterator<const_iterator>;
 
-    static constexpr auto less = [](key_view left, key_view right) noexcept
+    constexpr small_flat_map() noexcept
+        : data_{ std::data(static_), 0u }
+    {}
+
+    constexpr size_t position_to_index(const_iterator position) const noexcept
     {
-        return left < right;
-    };
+        D_ASSERT(_is_position(position));
+        return narrow_cast<size_t>(position - cbegin());
+    }
 
-    static constexpr auto eq = [](key_view left, key_view right) noexcept
+    static constexpr less_by_key_function<key_type, mapped_type> less_by_key{};
+
+    iterator_range<const_iterator> lower_bound(key_view key) const noexcept // c++20 constexpr
     {
-        return left == right;
-    };
+        const auto const_end = cend();
+        return { std::lower_bound(cbegin(), const_end, key, less_by_key), const_end };
+    }
 
-    constexpr small_flat_map() noexcept {}
+    iterator_range<const_iterator> upper_bound(key_view key) const noexcept // c++20 constexpr
+    {
+        const auto const_end = cend();
+        return { std::upper_bound(cbegin(), const_end, key, less_by_key), const_end };
+    }
 
     const_iterator find(key_view key) const noexcept
     {
-        return mutable_this()->find(key);
-    }
-
-    const_optional_item item(key_view key) const noexcept
-    {
-        const auto result = mutable_this()->item(key);
-        return { as_const_pointer(result.position), result.has_value };
-    }
-
-    iterator find(key_view key) noexcept
-    {
-        return item(key).position_or(end());
-    }
-
-    optional_item item(key_view key) noexcept
-    {
-        const auto position = _lower_bound(key);
-        return { position, position < cend() && eq(*position, key) };
-    }
-
-    span<value_type> items(key_view key) noexcept
-    {
-        const auto postion = _lower_bound(key);
-        return { postion, count(postion, key) };
-    }
-
-    span<const value_type> items(key_view key) const noexcept
-    {
-        return mutable_this()->items(key).cspan();
-    }
-
-    constexpr size_t count(const_iterator position, key_view key) const noexcept
-    {
-        assert(_is_position(position));
-
-        const auto position0 = position;
-        for (const auto end = cend(); position != end && eq(position->key, key); ++position) // c++20 constexpr count_if
-        {
-        }
-
-        return narrow_cast<size_t>(position - position0);
-    }
-
-    constexpr size_t count(const_iterator position) const noexcept
-    {
-        assert(_is_position(position));
-        return (position != cend()) ? (count(std::next(position), position->key) + 1_z) : 0_z;
+        const auto range = lower_bound(key);
+        return starts_with_key(range, key) ? range.first : range.last;
     }
 
     size_t count(key_view key) const noexcept
     {
-        return items(key).size();
+        const auto range = left_by_key(lower_bound(key), key);
+        return narrow_cast<size_t>(range.last - range.first);
     }
 
     bool contains(key_view key) const noexcept
     {
-        return item(key).has_value;
+        return starts_with_key(lower_bound(key), key);
     }
 
-    std::pair<iterator, bool> insert(value_type value) noexcept
+    std::pair<const_iterator, bool> insert(value_type value) noexcept
     {
-        const auto position = item(value.key);
-        if (position)
+        const auto lb = lower_bound(value.key);
+        const auto already_contained = starts_with_key(lb, value.key);
+        return
         {
-            return { position.position, false };
-        }
-
-        const auto result =
-            force_insert_hint(position.position, std::move(value));
-
-        return { result, true };
+            (
+                already_contained
+                ? lb.first
+                : unsafe_force_insert_hint(lb.first, std::move(value))
+            ),
+            !already_contained
+        };
     }
 
-    std::pair<iterator, bool> insert(key_type key, mapped_type value) noexcept
+    std::pair<const_iterator, bool> insert(key_type key, mapped_type value) noexcept
     {
         return insert(value_type{ std::move(key), std::move(value) });
     }
 
-    iterator force_insert(value_type new_item) noexcept
+    const_iterator force_insert(value_type value) noexcept
     {
-        const auto position = _upper_bound(new_item);
-        return force_insert_hint(position, std::move(new_item));
+        const auto position = upper_bound(value.key).first;
+        return unsafe_force_insert_hint(position, std::move(value));
     }
 
-    iterator force_insert(key_type key, mapped_type value) noexcept
+    const_iterator force_insert(key_type key, mapped_type value) noexcept
     {
         return force_insert(value_type{ std::move(key), std::move(value) });
     }
 
-    size_t erase(key_view key) noexcept
+    size_t erase(const_iterator first, const_iterator last) noexcept
     {
-        const auto values = items(key);
-        erase(values.begin(), values.end());
-        return values.size();
+        D_ASSERT(last >= first);
+        D_ASSERT(first >= data_.cbegin());
+        D_ASSERT(last <= data_.cend());
+
+        const auto new_first = std::move(const_cast<iterator>(last), data_.end(), const_cast<iterator>(first));
+        const auto new_last = data_.end();
+        const auto count_of_erased = narrow_cast<size_t>(last - first);
+        const auto new_size = data_.size() - count_of_erased;
+        data_ = data_.left(new_size);
+
+        if (is_static())
+        {
+            std::destroy(new_first, new_last);
+        }
+        else
+        {
+            dynamic_.resize(new_size);
+            D_ASSERT(data_.data() == dynamic_.data());
+            D_ASSERT(data_.size() == dynamic_.size());
+        }
+
+        return count_of_erased;
     }
 
-    void erase(iterator position) noexcept
+    size_t erase(iterator_range<const_iterator> range) noexcept
+    {
+        return erase(range.first, range.last);
+    }
+
+    size_t erase(key_view key) noexcept
+    {
+        const auto range = left_by_key(std::as_const(*this).lower_bound(key), key);
+        return erase(range.first, range.last);
+    }
+
+    void erase(const_iterator position) noexcept
     {
         erase(position, std::next(position));
     }
 
-    void erase(iterator begin, iterator end) noexcept
+    void clear() noexcept
     {
-        assert(end >= begin);
-        assert(begin >= data_.cbegin());
-        assert(end <= data_.cend());
-
-        if (is_static())
-        {
-            std::destroy(begin, end);
-            std::uninitialized_move(end, data_.end(), begin);
-            data_ = data_.remove_suffix(narrow_cast<size_t>(std::distance(begin, end)));
-            return;
-        }
-
-        dynamic_.erase(
-            _dynamic_position(_position_index(begin)),
-            _dynamic_position(_position_index(end))
-        );
-
-        data_ = dynamic_;
+        erase(cbegin(), cend());
     }
 
-    iterator force_insert_hint(iterator position, value_type item)
+    const_iterator unsafe_force_insert_hint(const_iterator position, value_type item)
     {
-        const auto position_index = _position_index(position);
+        const auto index = position_to_index(position);
 
         if (is_static())
         {
             if (size() < static_size)
             {
-                std::move_backward(position, data_.end(), std::uninitialized_default_construct_n(data_.end(), 1_z));
-                *position = std::move(item);
-                data_ = data_.extend_suffix(1_z);
+                {
+                    const auto mutable_postion = const_cast<iterator>(position);
+                    std::move_backward(mutable_postion, data_.end(), std::uninitialized_default_construct_n(data_.end(), 1));
+                    *mutable_postion = std::move(item);
+                }
+                data_ = data_.extend_suffix(1u);
                 return position;
             }
 
             _switch_to_dynamic();
         }
 
-        const auto result = dynamic_.insert(_dynamic_position(position_index), std::move(item));
+        const auto result = dynamic_.insert(_dynamic_position(index), std::move(item));
         data_ = dynamic_;
         return &(*result);
     }
@@ -238,23 +232,55 @@ public:
         }
     }
 
-    constexpr size_t size() const noexcept { return data_.size(); }
+    constexpr bool empty() const noexcept
+    {
+        return data_.empty();
+    }
 
-    constexpr size_t capacity() const noexcept { return (is_static()) ? static_size : dynamic_.capacity(); }
+    constexpr size_t size() const noexcept
+    {
+        return data_.size();
+    }
 
-    constexpr const_iterator data() const noexcept { return data_.data(); }
+    constexpr size_t capacity() const noexcept
+    {
+        return (is_static()) ? static_size : dynamic_.capacity();
+    }
 
-    constexpr iterator begin() noexcept { return data_.begin(); }
+    constexpr const_iterator data() const noexcept
+    {
+        return data_.data();
+    }
 
-    constexpr iterator end() noexcept { return data_.end(); }
+    constexpr iterator begin() noexcept
+    {
+        return data_.begin();
+    }
 
-    constexpr const_iterator begin() const noexcept { return data_.cbegin(); }
+    constexpr iterator end() noexcept
+    {
+        return data_.end();
+    }
 
-    constexpr const_iterator end() const noexcept { return data_.cend(); }
+    constexpr const_iterator begin() const noexcept
+    {
+        return data_.cbegin();
+    }
 
-    constexpr const_iterator cbegin() const noexcept { return begin(); }
+    constexpr const_iterator end() const noexcept
+    {
+        return data_.cend();
+    }
 
-    constexpr const_iterator cend() const noexcept { return end(); }
+    constexpr const_iterator cbegin() const noexcept
+    {
+        return begin();
+    }
+
+    constexpr const_iterator cend() const noexcept
+    {
+        return end();
+    }
 
     constexpr bool is_static() const noexcept
     {
@@ -277,47 +303,37 @@ private:
     using dynarray_type = std::vector<value_type>;
     using const_iterator_dynarray = typename dynarray_type::const_iterator;
 
-    constexpr small_flat_map* mutable_this() const noexcept
-    {
-        return as_mutable_pointer(this);
-    }
-
     void _destroy_static() noexcept
     {
-        std::destroy(begin(), end());
+        const auto data = data_;
+        data_ = { std::data(static_), 0u };
+        std::destroy(data.begin(), data.end());
     }
 
     void _destroy_dynamic() noexcept
     {
+        data_ = { std::data(static_), 0u };
         std::destroy_at(&(dynamic_));
     }
 
     void _switch_to_static() noexcept
     {
+        D_ASSERT(!is_static() && dynamic_.size() <= static_size);
         dynarray_type dynamic{ std::move(dynamic_) };
         _destroy_dynamic();
         data_ = { std::data(static_), dynamic.size() };
-        std::uninitialized_move(dynamic.begin(), dynamic.end(), begin());
+        std::uninitialized_move(dynamic.begin(), dynamic.end(), static_);
     }
 
     void _switch_to_dynamic() noexcept
     {
+        D_ASSERT(is_static());
         dynarray_type dynamic;
-        dynamic.reserve(2 * size());
+        dynamic.reserve(3u * static_size);
         dynamic.assign(std::make_move_iterator(begin()), std::make_move_iterator(end()));
         _destroy_static();
-        new (&dynamic_) dynarray_type(std::move(dynamic));
+        new (&dynamic_) dynarray_type{ std::move(dynamic) };
         data_ = dynamic_;
-    }
-
-    iterator _lower_bound(key_view key) noexcept
-    {
-        return std::lower_bound(begin(), end(), key, less);
-    }
-
-    iterator _upper_bound(key_view key) noexcept
-    {
-        return std::upper_bound(begin(), end(), key, less);
     }
 
     constexpr bool _is_position(const_iterator position) const noexcept
@@ -325,15 +341,9 @@ private:
         return position >= cbegin() && position <= cend();
     }
 
-    constexpr size_t _position_index(const_iterator position) const noexcept
-    {
-        assert(_is_position(position));
-        return narrow_cast<size_t>(position - cbegin());
-    }
-
     const_iterator_dynarray _dynamic_position(size_t position) const noexcept
     {
-        assert(!is_static() && position <= dynamic_.size());
+        D_ASSERT(!is_static() && position <= dynamic_.size());
         return dynamic_.cbegin() + position;
     }
 
@@ -343,5 +353,5 @@ private:
         value_type static_[static_size];
         dynarray_type dynamic_;
     };
-    span<value_type> data_{ std::data(static_), 0_z };
+    span<value_type> data_;
 };

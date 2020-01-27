@@ -14,12 +14,12 @@ class span
 {
 public:
     using value_type             = T;
-    using pointer                = T *;
+    using pointer                = T*;
     using const_pointer          = const T*;
-    using reference              = T &;
-    using const_reference        = const T &;
-    using const_iterator         = const_pointer;
+    using reference              = T&;
+    using const_reference        = const T&;
     using iterator               = pointer;
+    using const_iterator         = const_pointer;
     using reverse_iterator       = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using size_type              = size_t;
@@ -31,8 +31,8 @@ public:
         : data_{ data }
         , size_{ size }
     {
-        assert( data || !size );
-        assert( size <= max_size() );
+        D_ASSERT( data || !size );
+        D_ASSERT( size <= max_size() );
     }
 
     template<class Container, class = decltype( std::data( std::declval<Container>() ) ), class = decltype( std::size( std::declval<Container>() ) )>
@@ -107,7 +107,7 @@ public:
 
     constexpr reference value( size_type index ) const noexcept
     {
-        assert( index < size_ );
+        D_ASSERT( index < size_ );
         return data_[index];
     }
 
@@ -118,30 +118,30 @@ public:
 
     constexpr reference front() const noexcept
     {
-        return value( 0_z );
+        return value( 0u );
     }
 
     constexpr reference back() const noexcept
     {
-        return value( size_ - 1_z );
+        return value( size_ - 1u );
     }
 
     constexpr span left( size_type size ) const noexcept
     {
-        assert( size <= size_ );
+        D_ASSERT( size <= size_ );
         return { data_, size };
     }
 
     constexpr span right( size_type size ) const noexcept
     {
-        assert( size <= size_ );
+        D_ASSERT( size <= size_ );
         return { data_ + size_ - size, size };
     }
 
     constexpr span mid( size_type pos, size_type size ) const noexcept
     {
-        assert( pos <= size_ );
-        assert( size <= ( size_ - pos ) );
+        D_ASSERT( pos <= size_ );
+        D_ASSERT( size <= ( size_ - pos ) );
         return { data_ + pos, size };
     }
 
@@ -162,31 +162,26 @@ public:
 
     constexpr span remove_prefix( size_type size ) const noexcept
     {
-        assert( size <= size_ );
+        D_ASSERT( size <= size_ );
         return { data_ + size, size_ - size };
     }
 
     constexpr span remove_suffix( size_type size ) const noexcept
     {
-        assert( size <= size_ );
+        D_ASSERT( size <= size_ );
         return { data_, size_ - size };
     }
 
     constexpr span extend_prefix(size_type size) const noexcept
     {
-        assert(size <= max_size() - size_);
+        D_ASSERT(size <= max_size() - size_);
         return { data_ - size, size_ + size };
     }
 
     constexpr span extend_suffix(size_type size) const noexcept
     {
-        assert(size <= max_size() - size_);
+        D_ASSERT(size <= max_size() - size_);
         return { data_, size_ + size };
-    }
-
-    constexpr bool in( span span ) const noexcept
-    {
-        return span.cbegin() >= cbegin() && span.cend() <= cend();
     }
 
     constexpr span<std::add_const_t<value_type>> cspan() const noexcept

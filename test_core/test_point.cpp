@@ -23,5 +23,5 @@ void test_point() noexcept
     static_assert( 2 * p1 == p1 + p1 );
     static_assert( ( p0 + p1 + p2 ) / 2 == p0 );
 
-    assert( !errno );
+    D_ASSERT( !errno );
 }

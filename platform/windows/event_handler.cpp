@@ -1,109 +1,127 @@
 #include "event_handler.h"
 
-#include <core/small_flat_map.h>
-#include <core/underlying_cast.h>
-
-#include <platform/windows/event.h>
+#include <platform/windows/event_handler_container.h>
 
 namespace os_windows
 {
     namespace
     {
-        struct procedure_type
+        using iterator_range = event_handler_container::const_key_value_iterator_range;
+        using iterator = event_handler_container::const_key_value_iterator;
+
+        struct position_for_write
         {
-            event_handler_t callback;
-            procedure_id_t id;
+            iterator position;
+            bool can_rewrite;
         };
 
-        using map_procedures_t = small_flat_map<HWND, procedure_type, 4>;
-
-        map_procedures_t& map_procedures() noexcept
+        constexpr position_for_write find_position_for_write
+        (
+            iterator_range items,
+            const_window_handle_t window_handle
+        ) noexcept
         {
-            static map_procedures_t map;
-            return map;
-        }
-
-        void unregister_procedure(HWND window_handle, procedure_id_t id) noexcept
-        {
-            auto& map = map_procedures();
-            for (auto& item : map.items(window_handle))
+            for (; starts_with_key(items, window_handle); ++items.first)
             {
-                if (item.value.id == id)
+                if (items.first->value.callback_state() == event_callback_state::ignored)
                 {
-                    map.erase(&item);
-                    break;
+                    return { items.first, true };
                 }
             }
+
+            return { items.first, false };
+        }
+
+        size_t reuse_or_generate_id(const position_for_write& reuse_position) noexcept
+        {
+            return reuse_position.can_rewrite
+                ? reuse_position.position->value.id()
+                : generate_event_handler_id();
+        }
+
+        void write_to_event_handler_container
+        (
+            event_handler_container& map,
+            position_for_write position,
+            const_window_handle_t window_handle,
+            event_handler_item item
+        ) noexcept
+        {
+            if (position.can_rewrite)
+            {
+                const_cast<event_handler_item&>(position.position->value)
+                    = std::move(item);
+                return;
+            }
+
+            map.insert
+            (
+                position.position,
+                window_handle,
+                std::move(item)
+            );
         }
     }
 
-    LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
+    bool event_handler::close() noexcept
     {
-        const event e { window_handle, underlying_cast<event_type>(message), word_parameter, long_parameter };
+        const auto self = std::exchange(*this, {});
+        return unregister_event_handler(self.view());
+    }
 
-        if (const auto procedures = std::as_const(map_procedures()).items(window_handle); !procedures.empty())
+    bool event_handler::is_valid() const noexcept
+    {
+        const auto position = const_event_handler_container_global().find(view_);
+        return position.first != position.last;
+    }
+
+    safe_event_handler register_event_handler_factory(window_view window, event_callback_factory callback_factory) noexcept
+    {
+        auto& map = event_handler_container_global();
+        if (const auto items = map.find(window); items.first != items.last)
         {
-            LRESULT result{ 0 };
+            const auto position_for_write
+                = find_position_for_write(items, window.handle);
 
-            for (const auto& procedure : procedures)
+            const auto id = reuse_or_generate_id(position_for_write);
+
+            auto result = make_unique_handle<event_handler>(window, id);
+
+            auto callback = callback_factory(result->view());
+
+            if (callback)
             {
-                if (const auto ret_code = procedure.value.callback(e))
-                {
-                    result = ret_code;
-                    if (ret_code < 0)
+                write_to_event_handler_container
+                (
+                    map,
+                    position_for_write,
+                    window.handle,
+                    event_handler_item
                     {
-                        break;
+                        id,
+                        std::move(callback),
+                        event_callback_state::ready
                     }
-                }
+                );
+
+                return result;
             }
-
-            return result;
         }
 
-        return default_event_handler(e);
+        return {};
     }
 
-    LRESULT default_event_handler(const event& e) noexcept
+    safe_event_handler register_event_handler(window_view window, event_callback_function callback) noexcept
     {
-        return DefWindowProcW(e.window_handle_, underlying_cast<UINT>(e.type_), e.word_parameter_, e.long_parameter_);
+        return register_event_handler_factory
+        (
+            window,
+            [&callback] (event_handler_view) noexcept { return std::move(callback); }
+        );
     }
 
-    void event_dispatcher::close() noexcept
+    bool unregister_event_handler(event_handler_view view) noexcept
     {
-        if (const auto id = std::exchange(procedure_id_, 0_z); id)
-        {
-            unregister_procedure(window_handle_, id);
-        }
-    }
-
-    procedure_id_t generate_procedure_id() noexcept
-    {
-        static procedure_id_t id{ 0_z };
-        return ++id;
-    }
-
-    event_dispatcher unsafe_register_event_handler(window_view window, procedure_id_t procedure_id, event_handler_t event_handler) noexcept
-    {
-        assert(window.handle_);
-        assert(event_handler);
-        assert(procedure_id);
-
-        map_procedures().force_insert(window.handle_, procedure_type{ std::move(event_handler), procedure_id });
-
-        return
-        {
-            window.handle_,
-            procedure_id
-        };
-    }
-
-    safe_event_dispatcher register_event_handler(window_view window, event_handler_t event_handler) noexcept
-    {
-        return unsafe_register_event_handler(window, generate_procedure_id(), std::move(event_handler));
-    }
-
-    void unregister_all_procedures(HWND window_handle) noexcept
-    {
-        map_procedures().erase(window_handle);
+        return event_handler_container_global().erase(view);
     }
 }

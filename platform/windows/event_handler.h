@@ -1,39 +1,38 @@
 #pragma once
 
-#include <functional>
+#include <core/shared_handle.h>
 
-#include <core/safe_handle.h>
-
-#include <platform/windows/window_view.h>
-#include <platform/windows/event_handler_fwd.h>
+#include <platform/windows/defs.h>
 
 namespace os_windows
 {
-    class event_dispatcher
+    class event_handler
     {
     public:
-        constexpr event_dispatcher() noexcept = default;
+        constexpr event_handler() noexcept = default;
 
-        constexpr event_dispatcher( HWND window_handle, procedure_id_t procedure_id ) noexcept
-            : window_handle_{ window_handle }
-            , procedure_id_{ procedure_id }
+        constexpr event_handler(window_view window, size_t id) noexcept
+            : view_{ window, id }
         {}
 
-        void close() noexcept;
+        bool close() noexcept;
 
-        constexpr bool is_valid() const noexcept
+        bool is_valid() const noexcept;
+
+        constexpr event_handler_view view() const noexcept
         {
-            return procedure_id_ != 0_z;
+            return view_;
         }
 
     private:
-        HWND window_handle_{ nullptr };
-        procedure_id_t procedure_id_{ 0_z };
+        event_handler_view view_{ null_event_handler_view };
     };
 
-    using safe_event_dispatcher = safe_handle<event_dispatcher>;
+    using safe_event_handler = shared_handle<event_handler>;
 
-    using event_handler_t = std::function<LRESULT(const event&)>;
+    safe_event_handler register_event_handler_factory(window_view window, event_callback_factory callback_factory) noexcept;
 
-    safe_event_dispatcher register_event_handler(window_view window, event_handler_t event_handler) noexcept;
+    safe_event_handler register_event_handler(window_view window, event_callback_function callback) noexcept;
+
+    bool unregister_event_handler(event_handler_view view) noexcept;
 }

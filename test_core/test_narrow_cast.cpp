@@ -28,5 +28,5 @@ void test_narrow_cast() noexcept
     static_assert( !is_safe_narrowing_conversion<uint16_t>( 0x10000L ) );
     static_assert( !is_safe_narrowing_conversion<int32_t>( 0xffffffffUL ) );
 
-    assert( !errno );
+    D_ASSERT( !errno );
 }

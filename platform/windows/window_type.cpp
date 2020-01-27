@@ -1,6 +1,8 @@
 #include "window_type.h"
 
 #include <charconv>
+#include <algorithm>
+#include <array>
 
 #include <core/span.h>
 
@@ -10,37 +12,42 @@ namespace os_windows
 
     namespace
     {
-        uint32_t id_generate() noexcept
+        uint32_t generate_unique_ui32() noexcept
         {
             static uint32_t id{ 0u };
             return ++id;
         }
 
-        span<char> to_chars( span<char> chars, uint32_t value, int base = 10 ) noexcept
+        span<const char> to_chars( span<char> chars, uint32_t value, int base = 10 ) noexcept
         {
             const auto result = std::to_chars( chars.begin(), chars.end(), value, base );
-            const auto size = ( result.ec == std::errc{} ) ? narrow_cast<size_t>( result.ptr - chars.data() ) : 0_z;
-            return chars.left( size );
-        }
-
-        ATOM register_class( const WNDCLASSEXW& data ) noexcept
-        {
-            return ( data.hInstance ) ? RegisterClassExW( &data ) : ATOM{ 0 };
+            if (result.ec == std::errc{})
+                return {};
+            return chars.cspan().left(narrow_cast<size_t>(result.ptr - chars.cdata()));
         }
 
         constexpr LPCWSTR make_in_atom( ATOM atom ) noexcept
         {
             return ( LPCWSTR) ( ( ULONG_PTR) ( atom ) );
         }
+
+        bool unregister_class(const window_type type) noexcept
+        {
+            if (type.is_valid())
+            {
+                const auto ok 
+                    = UnregisterClassW(type.name_id(), type.module_address()) != FALSE;
+                D_ASSERT(ok);
+                return ok;
+            }
+
+            return false;
+        }
     }
 
-    void window_type::close() noexcept
+    bool window_type::close() noexcept
     {
-        if (const auto name_id = std::exchange(name_id_, nullptr); name_id)
-        {
-            const auto result = UnregisterClassW( name_id, module_address_ );
-            result; assert( result != FALSE );
-        }
+        return unregister_class(std::exchange(*this, {}));
     }
 
     safe_window_type register_window_type( window_type_info info ) noexcept
@@ -49,9 +56,9 @@ namespace os_windows
         if ( !info.data_.lpszClassName )
         {
             {
-                std::array<char, name.size() - 1> hexname{};
-                const auto id_string = to_chars( hexname, id_generate(), 16 );
-                assert( !id_string.empty() && id_string.data() && id_string.front() != '\0' );
+                std::array<char, name.size() - 1u> hexname{};
+                const auto id_string = to_chars( hexname, generate_unique_ui32(), 16 );
+                D_ASSERT( !id_string.empty() && id_string.data() && id_string.front() != '\0' );
                 std::copy( id_string.cbegin(), id_string.cend(), name.begin() );
             }
             info.data_.lpszClassName = name.data();
@@ -67,10 +74,9 @@ namespace os_windows
             info.data_.lpfnWndProc = window_procedure;
         }
 
-        return window_type
-        {
+        return make_shared_handle<window_type>(
             info.data_.hInstance,
-            make_in_atom( register_class( info.data_ ) )
-        };
+            make_in_atom((info.data_.hInstance) ? RegisterClassExW(&info.data_) : ATOM{ 0 })
+        );
     }
 }

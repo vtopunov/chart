@@ -4,7 +4,7 @@
 
 void test_lerp_color() noexcept
 {
-    constexpr auto animation_index = make_num_range( 0_z, 8_z );
+    constexpr auto animation_index = make_num_range( 0ull, 8ull );
     constexpr auto colors_from_cyan_to_red = make_num_range( colors::cyan, colors::red );
     constexpr auto animation_color_cyan_to_red = lerp( animation_index, colors_from_cyan_to_red );
 
@@ -22,5 +22,5 @@ void test_lerp_color() noexcept
     static_assert( c6 == color::from_rgb( 191, 63, 63 ) );
     static_assert( c8 == colors::red );
 
-    assert( !errno );
+    D_ASSERT( !errno );
 }

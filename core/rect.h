@@ -155,5 +155,3 @@ constexpr bool operator != ( rect<T> left, rect<T> right ) noexcept
 {
     return !( left == right );
 }
-
-using rect_t = rect<real_t>;

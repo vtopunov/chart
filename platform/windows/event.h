@@ -1,92 +1,94 @@
 #pragma once
 
-#include <functional>
-
 #include <core/point.h>
 #include <core/underlying_cast.h>
 #include <core/flags.h>
 
-#include <platform/windows/config.h>
+#include <platform/windows/defs.h>
 
 namespace os_windows
 {
-    enum class event_type : UINT
+    enum class event_style : UINT 
     {
         null = WM_NULL,
         close = WM_CLOSE,
         timer = WM_TIMER,
         mouse_move = WM_MOUSEMOVE,
-        out_of_os
-    };
+        user = WM_USER
+    }; 
 
-    template <event_type type>
-    using event_type_constant = std::integral_constant<event_type, type>;
-
-    template<event_type special_type>
-    class special_event;
+    template<event_style>
+    class specialized_event;
 
     class event
     {
     public:
-        constexpr event( HWND window_handle, event_type type, WPARAM word_parameter, LPARAM long_parameter ) noexcept
-            : window_handle_{ window_handle }
-            , long_parameter_{ long_parameter }
+        constexpr event( window_view window, WPARAM word_parameter, LPARAM long_parameter, event_style style ) noexcept
+            : window_{ window }
             , word_parameter_{ word_parameter }
-            , type_{ type }
+            , long_parameter_{ long_parameter }
+            , style_{ style }
         {}
 
-        friend LRESULT default_event_handler( const event& e ) noexcept;
-
-        constexpr event_type type() const noexcept
+        constexpr event_style style() const noexcept
         {
-            return type_;
+            return style_;
         }
 
-        constexpr HWND window_handle() const noexcept
+        constexpr window_view window() const noexcept
         {
-            return window_handle_;
+            return window_;
         }
 
-        template<event_type type>
-        class pointer_wrapper
+        template<event_style style>
+        class specialized_event_pointer_wrapper
         {
         public:
-            using special_event_t = special_event<type>;
-            using special_pointer_t = const special_event_t*;
-            using special_reference_t = const special_event_t&;
+            using const_pointer_base = const event*;
+            using value_type = specialized_event<style>;
+            using const_pointer = const value_type*;
+            using const_reference = const value_type&;
 
-            constexpr pointer_wrapper(const event* pointer) noexcept
+            constexpr specialized_event_pointer_wrapper(const_pointer_base pointer) noexcept
                 : pointer_{ pointer }
             {}
 
             explicit constexpr operator bool() const noexcept
             {
-                return type_is_correct();
+                return specialization_is_correct();
             }
 
-            constexpr special_pointer_t operator ->() const noexcept
+            constexpr const_pointer operator ->() const noexcept
             {
-                assert(type_is_correct());
-                return static_cast<special_pointer_t>(pointer_);
+                return get();
             }
 
-            constexpr special_reference_t operator *() const noexcept
+            constexpr const_reference operator *() const noexcept
             {
-                assert(type_is_correct());
-                return static_cast<special_reference_t>(*pointer_);
+                return *get();
             }
 
-            constexpr bool type_is_correct() const noexcept
+            constexpr bool specialization_is_correct() const noexcept
             {
-                return pointer_->type() == type;
+                return pointer_->style() == style;
+            }
+
+            constexpr const_pointer get() const noexcept
+            {
+                D_ASSERT(specialization_is_correct());
+
+#pragma warning(push)
+#pragma warning(disable : 26491) // Don't use static_cast downcasts
+                return static_cast<const_pointer>(pointer_);
+#pragma warning(pop)
             }
 
         private:
-            const event* pointer_;
+            const_pointer_base pointer_;
         };
 
-        template<event_type special_type>
-        constexpr pointer_wrapper<special_type> as() const noexcept
+        template<event_style style>
+        constexpr specialized_event_pointer_wrapper<style> as() const noexcept
         {
             return this;
         }
@@ -103,14 +105,14 @@ namespace os_windows
         }
 
     private:
-        HWND window_handle_;
-        LPARAM long_parameter_;
+        window_view window_;
         WPARAM word_parameter_;
-        event_type type_;
+        LPARAM long_parameter_;
+        event_style style_;
     };
 
-    template<event_type special_type>
-    class special_event : public event
+    template<event_style>
+    class specialized_event : public event 
     {};
 
     enum class mouse_key : WPARAM
@@ -125,7 +127,7 @@ namespace os_windows
     };
 
     template<>
-    class special_event<event_type::mouse_move> : public event
+    class specialized_event<event_style::mouse_move> : public event
     {
     public:
         constexpr int x() const noexcept
@@ -150,16 +152,24 @@ namespace os_windows
     };
 
     template<>
-    class special_event<event_type::timer> : public event
+    class specialized_event<event_style::timer> : public event
     {
     public:
-        constexpr LONG_PTR timer_id() const noexcept
+        constexpr UINT_PTR id() const noexcept
         {
-            return narrow_cast<LONG_PTR>( word_parameter() );
+#pragma warning(push)
+#pragma warning(disable : 26472) // Don't use a static_cast for arithmetic conversions
+            return static_cast<UINT_PTR>( word_parameter() ); // WPARAM may be less than zero
+#pragma warning(pop)
+        }
+
+        constexpr event_handler_view handler() const noexcept
+        {
+            return { window(), narrow_cast<size_t>(id()) };
         }
     };
 
-    using timer_event = special_event<event_type::timer>;
-    using mouse_move_event = special_event<event_type::mouse_move>;
-    using close_event = special_event<event_type::close>;
+    using timer_event = specialized_event<event_style::timer>;
+    using mouse_move_event = specialized_event<event_style::mouse_move>;
+    using close_event = specialized_event<event_style::close>;
 }

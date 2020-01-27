@@ -24,21 +24,22 @@
     <ClInclude Include="windows\config.h" />
     <ClInclude Include="windows\event.h" />
     <ClInclude Include="windows\event_handler.h" />
-    <ClInclude Include="windows\event_handler_fwd.h" />
+    <ClInclude Include="windows\defs.h" />
     <ClInclude Include="windows\event_matching.h" />
     <ClInclude Include="windows\event_timer.h" />
+    <ClInclude Include="windows\event_handler_container.h" />
     <ClInclude Include="windows\window.h" />
     <ClInclude Include="windows\window_type.h" />
-    <ClInclude Include="windows\window_view.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="painter.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="windows\event.cpp" />
     <ClCompile Include="windows\event_handler.cpp" />
     <ClCompile Include="windows\event_timer.cpp" />
+    <ClCompile Include="windows\event_handler_container.cpp" />
     <ClCompile Include="windows\window.cpp" />
+    <ClCompile Include="windows\window_procedure_impl.cpp" />
     <ClCompile Include="windows\window_type.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -100,12 +101,15 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <CodeAnalysisRuleSet>..\glab.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>..\glab.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>..\glab.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

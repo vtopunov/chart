@@ -1,7 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include <core/util.h>
+
+#include <core/defs.h>
 
 template<class T>
 struct vec;
@@ -37,12 +38,12 @@ struct vec
     T _0;
     T _1;
 
-    constexpr T get( std::index_sequence<0_z> ) const noexcept
+    constexpr T get( std::index_sequence<0u> ) const noexcept
     {
         return _0;
     }
 
-    constexpr T get( std::index_sequence<1_z> ) const noexcept
+    constexpr T get( std::index_sequence<1u> ) const noexcept
     {
         return _1;
     }
@@ -189,5 +190,3 @@ constexpr vec<T> max( vec<T> a, vec<T> b ) noexcept
         vec<T>{ a._1, b._1 }.max()
     };
 }
-
-using vec_t = vec<real_t>;

@@ -26,7 +26,7 @@ namespace
 
     constexpr span<point_t> fn_generate( span<point_t> result, real_fn_t fn )
     {
-        assert( fn );
+        D_ASSERT( fn );
 
         const size_t size = result.size();
         const auto abscissa_max = 5 * pi_v<real_t>;

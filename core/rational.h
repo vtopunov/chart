@@ -2,7 +2,7 @@
 
 #include <compare>
 
-#include <core/util.h>
+#include <core/defs.h>
 #include <core/span.h>
 
 template<class T>
@@ -21,7 +21,7 @@ public:
         : num_{ num_part }
         , den_{ den_part }
     {
-        assert( den_ );
+        D_ASSERT( den_ );
     }
 
     constexpr T num() const noexcept
@@ -240,13 +240,15 @@ constexpr bool operator >= ( rational<T> left, rational<T> right ) noexcept
     return left == right || left > right;
 }
 
-using rational_t = rational<int_t>;
-using urational_t = rational<size_t>;
-
 template<class T>
 constexpr rational<T> rational<T>::from_string( span<const char> string ) noexcept
 {
     constexpr T max = std::numeric_limits<T>::max();
+
+    constexpr auto is_digit = [](char c) noexcept
+    {
+        return c >= '0' && c <= '9';
+    };
 
     rational<T> r;
     bool isdot = false;
@@ -270,7 +272,7 @@ constexpr rational<T> rational<T>::from_string( span<const char> string ) noexce
                 continue;
             }
 
-            assert( !"invalid char" );
+            D_ASSERT( !"invalid char" );
             return r;
         }
 
@@ -278,7 +280,7 @@ constexpr rational<T> rational<T>::from_string( span<const char> string ) noexce
 
         if ( ( r.num() > ( max - digit ) / 10 ) || ( r.den() > max / 10 ) )
         {
-            assert( !"integer overflow" );
+            D_ASSERT( !"integer overflow" );
             if ( isdot )
             {
                 break;
@@ -312,15 +314,15 @@ constexpr rational<T> rational<T>::from_string( span<const char> string ) noexce
 }
 
 template<char ... String>
-constexpr rational_t operator"" _r() noexcept
+constexpr rational<ptrdiff_t> operator"" _r() noexcept
 {
     constexpr char string[] = { String... };
-    return rational_t::from_string( string );
+    return rational<ptrdiff_t>::from_string( string );
 }
 
 template<char ... String>
-constexpr urational_t operator"" _ur() noexcept
+constexpr rational<size_t> operator"" _ur() noexcept
 {
     constexpr char string[] = { String... };
-    return urational_t::from_string( string );
+    return rational<size_t>::from_string( string );
 }

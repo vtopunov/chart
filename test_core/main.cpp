@@ -1,5 +1,4 @@
 
-
 extern void test_narrow_cast() noexcept;
 extern void test_underlying_cast() noexcept;
 extern void test_vec() noexcept;

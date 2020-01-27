@@ -20,5 +20,5 @@ void test_lerp() noexcept
     static_assert( line_function_12( p0.x() ) == p0.y() );
     static_assert( line_function_02( p1.x() ) == p1.y() );
 
-    assert( !errno );
+    D_ASSERT( !errno );
 }

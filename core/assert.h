@@ -2,29 +2,17 @@
 
 #include <cassert>
 
-#undef assert
+#define D_CHECK(expression) ((void)( \
+            (!!(expression)) ||       \
+            (__debugbreak(), false)   \
+        ))
 
 #ifdef NDEBUG
 
-#undef _DEBUG
-#undef DEBUG
-
-#define assert(expression) ((void)0)
+#define D_ASSERT(expression) ((void)0)
 
 #else
 
-#ifndef _DEBUG
-#define _DEBUG 1
-#endif
-
-#ifndef DEBUG
-#define DEBUG 1
-#endif
-
-#define assert(expression) ((void)(  \
-            (!!(expression)) ||      \
-            (__debugbreak(), false)  \
-        ))
-
+#define D_ASSERT(expression) D_CHECK(expression)
 
 #endif

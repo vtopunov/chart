@@ -4,5 +4,6 @@ using namespace os_windows;
 
 void test_event_handler() noexcept
 {
-    assert(!errno);
+    D_ASSERT( !"not implemented" );
+    D_ASSERT(!errno);
 }

@@ -70,13 +70,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    switch (message)
+    /*if (message == WM_SYSCOMMAND)
     {
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
+        if (wParam == SC_CLOSE )
+        {
+            return 0;
+        }
+    }*/
+
+    return DefWindowProcW(hWnd, message, wParam, lParam);
 }

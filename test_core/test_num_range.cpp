@@ -35,5 +35,5 @@ void test_num_range() noexcept
         static_assert( !range_moving_1.includes( 1 ) );
     }
 
-    assert( !errno );
+    D_ASSERT( !errno );
 }

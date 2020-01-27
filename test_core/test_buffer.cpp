@@ -21,7 +21,7 @@ constexpr double sinc( double x ) noexcept
 
 constexpr span<point_t> fn_generate( span<point_t> points, double ( *fn ) ( double ) ) noexcept
 {
-    assert( fn );
+    D_ASSERT( fn );
 
     const size_t size = points.size();
     constexpr auto abscissa_max = 5 * pi_v<real_t>;
@@ -49,11 +49,11 @@ void test_buffer() noexcept
 {
    /* const auto points = buffer::default_instance().get<point_t>( sinc_tbl.size() );
 
-    assert( points.size() == sinc_tbl.size() );
+    D_ASSERT( points.size() == sinc_tbl.size() );
     for ( size_t i = 0; i < sinc_tbl.size(); ++i )
     {
         points[i] = sinc_tbl[i];
     }
 
-    assert( !memcmp( points.data(), sinc_tbl.data(), sinc_tbl.size() ) );*/
+    D_ASSERT( !memcmp( points.data(), sinc_tbl.data(), sinc_tbl.size() ) );*/
 }

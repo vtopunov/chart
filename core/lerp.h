@@ -8,7 +8,7 @@
 template< class To, class From>
 constexpr auto lerp( vec<From> from, vec<To> to ) noexcept
 {
-    assert( from._0 != from._1 );
+    D_ASSERT( from._0 != from._1 );
 
     const auto scaling = ( to._1 - to._0 ) / ( from._1 - from._0 );
     const auto offset = ( to._0 * from._1 - to._1 * from._0 ) / ( from._1 - from._0 );

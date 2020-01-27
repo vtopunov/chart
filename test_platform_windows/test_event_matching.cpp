@@ -4,53 +4,53 @@ using namespace os_windows;
 
 struct event_visitor
 {
-    event_type type{ event_type::null };
+    event_style style{ event_style::null };
 
     LRESULT operator () (const event& e) noexcept
     {
-        assert(type == event_type::null);
-        type = event_type::out_of_os;
+        D_ASSERT(style == event_style::null);
+        style = event_style::user;
         return 0;
     }
 
     LRESULT operator () (const timer_event& e) noexcept
     {
-        return set_event<event_type::timer>(e);
+        return set_event<event_style::timer>(e);
     }
 
     LRESULT operator () (const mouse_move_event& e) noexcept
     {
-        return set_event<event_type::mouse_move>(e);
+        return set_event<event_style::mouse_move>(e);
     }
 
-    template<event_type special_type>
-    LRESULT set_event(const special_event<special_type>& e) noexcept
+    template<event_style specialization_style>
+    LRESULT set_event(const specialized_event<specialization_style>& e) noexcept
     {
-        assert(type == event_type::null && e.type() == special_type);
-        type = special_type;
+        D_ASSERT(style == event_style::null && e.style() == specialization_style);
+        style = specialization_style;
         return 0;
     }
 };
 
 struct event_visitor_without_on_event
 {
-    event_type type{ event_type::null };
+    event_style style{ event_style::null };
 
     LRESULT operator () (const timer_event& e) noexcept
     {
-        return set_event<event_type::timer>(e);
+        return set_event<event_style::timer>(e);
     }
 
     LRESULT operator () (const mouse_move_event& e) noexcept
     {
-        return set_event<event_type::mouse_move>(e);
+        return set_event<event_style::mouse_move>(e);
     }
 
-    template<event_type special_type>
-    LRESULT set_event(const special_event<special_type>& e) noexcept
+    template<event_style specialization_style>
+    LRESULT set_event(const specialized_event<specialization_style>& e) noexcept
     {
-        assert(type == event_type::null && e.type() == special_type);
-        type = special_type;
+        D_ASSERT(style == event_style::null && e.style() == specialization_style);
+        style = specialization_style;
         return 0;
     }
 };
@@ -61,47 +61,47 @@ void test_event_matching() noexcept
         event_visitor visitor;
         auto matching = event_match(std::ref(visitor));
 
-        auto check_matching = [&matching, &visitor](event_type type)
+        auto check_matching = [&matching, &visitor](event_style style)
         {
-            visitor.type = event_type::null;
-            matching(event{ 0, type, 0, 0 });
-            assert(visitor.type == type);
+            visitor.style = event_style::null;
+            matching(event{ 0, style, 0, 0 });
+            D_ASSERT(visitor.style == style);
         };
 
-        auto check_matching_not_found = [&matching, &visitor](event_type type)
+        auto check_matching_not_found = [&matching, &visitor](event_style style)
         {
-            visitor.type = event_type::null;
-            matching(event{ 0, type, 0, 0 });
-            assert(visitor.type == event_type::out_of_os);
+            visitor.style = event_style::null;
+            matching(event{ 0, style, 0, 0 });
+            D_ASSERT(visitor.style == event_style::user);
         };
 
-        check_matching(event_type::out_of_os);
-        check_matching(event_type::timer);
-        check_matching(event_type::mouse_move);
-        check_matching_not_found(event_type::close);
+        check_matching(event_style::user);
+        check_matching(event_style::timer);
+        check_matching(event_style::mouse_move);
+        check_matching_not_found(event_style::close);
     }
 
     {
         event_visitor_without_on_event visitor;
         auto matching = event_match(std::ref(visitor));
 
-        auto check_matching = [&matching, &visitor](event_type type)
+        auto check_matching = [&matching, &visitor](event_style style)
         {
-            visitor.type = event_type::null;
-            matching(event{ 0, type, 0, 0 });
-            assert(visitor.type == type);
+            visitor.style = event_style::null;
+            matching(event{ 0, style, 0, 0 });
+            D_ASSERT(visitor.style == style);
         };
 
-        auto check_matching_not_found = [&matching, &visitor](event_type type)
+        auto check_matching_not_found = [&matching, &visitor](event_style style)
         {
-            visitor.type = event_type::null;
-            matching(event{ 0, type, 0, 0 });
-            assert(visitor.type == event_type::null);
+            visitor.style = event_style::null;
+            matching(event{ 0, style, 0, 0 });
+            D_ASSERT(visitor.style == event_style::null);
         };
 
-        check_matching_not_found(event_type::out_of_os);
-        check_matching(event_type::timer);
-        check_matching(event_type::mouse_move);
-        check_matching_not_found(event_type::close);
+        check_matching_not_found(event_style::user);
+        check_matching(event_style::timer);
+        check_matching(event_style::mouse_move);
+        check_matching_not_found(event_style::close);
     }
 }

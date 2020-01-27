@@ -2,8 +2,8 @@
 
 #include <string>
 
+#include <platform/windows/defs.h>
 #include <platform/windows/window_type.h>
-#include <platform/windows/window_view.h>
 
 namespace os_windows
 {
@@ -12,35 +12,30 @@ namespace os_windows
     public:
         constexpr window() noexcept = default;
 
-        window( safe_window_type type, HWND window_handle ) noexcept
+        window( safe_window_type type, window_view window ) noexcept
             : type_{ std::move( type ) }
-            , handle_{ window_handle }
+            , window_{ window }
         {}
 
-        constexpr bool is_valid() const noexcept
-        {
-            return handle_ != nullptr;
-        }
+        bool is_valid() const noexcept;
 
         bool show( int cmd = SW_SHOW ) const noexcept;
 
         bool update() const noexcept;
 
-        void close() noexcept;
+        bool close() noexcept;
 
         constexpr window_view view() const noexcept
         {
-            return { handle_ };
+            return window_;
         }
 
     private:
-
-    private:
         safe_window_type type_;
-        HWND handle_{ nullptr };
+        window_view window_{ null_window_view };
     };
 
-    using safe_window = safe_handle<window>;
+    using safe_window = shared_handle<window>;
 
     class window_info
     {

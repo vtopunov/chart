@@ -1,7 +1,8 @@
 #pragma once
 
-#include <core/safe_handle.h>
+#include <string>
 
+#include <core/shared_handle.h>
 #include <platform/windows/config.h>
 
 namespace os_windows
@@ -15,20 +16,18 @@ namespace os_windows
             : module_address_{ address }
             , name_id_{ name_id }
         {
-            assert( module_address_ );
+            D_ASSERT( module_address_ );
         }
 
-        void close() noexcept;
+        bool close() noexcept;
 
         constexpr HMODULE module_address() const noexcept
         {
-            assert( is_valid() );
             return module_address_;
         }
 
         constexpr LPCWSTR name_id() const noexcept
         {
-            assert( is_valid() );
             return name_id_;
         }
 
@@ -38,11 +37,11 @@ namespace os_windows
         }
 
     private:
-        HMODULE module_address_{};
-        LPCWSTR name_id_{};
+        HMODULE module_address_{nullptr};
+        LPCWSTR name_id_{nullptr};
     };
 
-    using safe_window_type = safe_handle<window_type>;
+    using safe_window_type = shared_handle<window_type>;
 
     class window_type_info
     {
@@ -61,7 +60,7 @@ namespace os_windows
 
         window_type_info& name( std::wstring name ) noexcept
         {
-            assert( !name.empty() );
+            D_ASSERT( !name.empty() );
             name_ = std::move( name );
             data_.lpszClassName = name_.c_str();
             return *this;
@@ -69,7 +68,7 @@ namespace os_windows
 
         constexpr window_type_info& module_address( HMODULE module_address )
         {
-            assert( module_address );
+            D_ASSERT( module_address );
             data_.hInstance = module_address;
             return *this;
         }

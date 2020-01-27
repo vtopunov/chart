@@ -115,5 +115,3 @@ constexpr point<T> max(point<T> a, point<T> b) noexcept
 {
     return { max( a.position, b.position ) };
 }
-
-using point_t = point<real_t>;

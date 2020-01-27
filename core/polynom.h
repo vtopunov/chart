@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vec.h"
+#include <core/vec.h>
 
 template<class CoefficientsType, class ResultType = CoefficientsType, class ArgumentType = CoefficientsType>
 struct polynom

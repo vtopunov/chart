@@ -57,8 +57,20 @@ constexpr std::enable_if_t<is_safe_integral_conversion_v<Target, Source>, bool> 
 template<class Target, class Source>
 constexpr Target narrow_cast( Source v ) noexcept
 {
-    assert( is_safe_narrowing_conversion<Target>( v ) );
+    D_ASSERT( is_safe_narrowing_conversion<Target>( v ) );
     return static_cast<Target>( v );
+}
+
+template<class T>
+constexpr std::make_unsigned_t<T> to_unsingned(T signed_value) noexcept
+{
+    return narrow_cast<std::make_unsigned_t<T>>(signed_value);
+}
+
+template<class T>
+constexpr std::make_signed_t<T> to_singned(T unsigned_value) noexcept
+{
+    return narrow_cast<std::make_signed_t<T>>(unsigned_value);
 }
 
 #pragma warning(pop)

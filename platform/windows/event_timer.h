@@ -6,58 +6,25 @@
 
 namespace os_windows
 {
-    using event_timer_callback_t = std::function<void()>;
+    struct timer_controller;
 
-    class timer
+    using event_timer_callback_t = std::function<void(timer_controller&)>;
+
+#pragma warning(push)
+#pragma warning(disable : 26436) // non-virtual destructor 
+    struct timer_controller
     {
-    public:
-        constexpr timer() noexcept = default;
+        virtual bool restart(std::chrono::milliseconds timeout) noexcept = 0;
 
-        constexpr timer(window_view window, ULONG_PTR timer_id) noexcept
-            : window_{ window }
-            , timer_id_{ timer_id }
-        {}
+        virtual std::chrono::milliseconds interval() const noexcept = 0;
 
-        constexpr bool is_valid() const noexcept
-        {
-            return timer_id_ != 0u;
-        }
+        virtual window_view window() const noexcept = 0;
 
-        constexpr LONG_PTR timer_id() const noexcept
-        {
-            return timer_id_;
-        }
+        virtual void replace_callback(event_timer_callback_t callback) noexcept = 0;
 
-        constexpr HWND window_handle() const noexcept
-        {
-            return window_.handle_;
-        }
-
-        void close() noexcept
-        {
-            if (const auto timer_id = std::exchange(timer_id_, 0u); timer_id)
-            {
-                const auto is_success = KillTimer(window_.handle_, timer_id);
-                is_success; assert(is_success != FALSE);
-            }
-        }
-
-    private:
-        window_view window_{ nullptr };
-        ULONG_PTR timer_id_{ 0u };
+        virtual bool close() noexcept = 0;
     };
+#pragma warning(pop)
 
-    using safe_timer = safe_handle<timer>;
-
-    safe_timer create_timer(window_view window, ULONG_PTR timer_id, std::chrono::milliseconds timeount) noexcept;
-
-    struct timer_event_handler
-    {
-        safe_timer timer;
-        event_timer_callback_t callback;
-
-        LRESULT operator () (const event& processed_event) noexcept;
-    };
-
-    safe_event_dispatcher register_event_timer(window_view window, std::chrono::milliseconds timeount, event_timer_callback_t callback) noexcept;
+    safe_event_handler register_timer(window_view window, std::chrono::milliseconds interval, event_timer_callback_t callback) noexcept;
 }

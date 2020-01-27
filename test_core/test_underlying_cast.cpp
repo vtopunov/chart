@@ -1,8 +1,6 @@
 #include <cstdio>
 #include <cstdint>
 
-#include <core/util.h>
-
 #include <core/underlying_cast.h>
 #include <core/axis_type.h>
 
@@ -47,11 +45,11 @@ void test_underlying_cast() noexcept
     static_assert( !is_safe_underlying_conversion_v<uint64_t, i32_enum> );
     static_assert( is_safe_underlying_conversion_v<int64_t, i32_enum> );
 
-    static_assert( underlying_cast<size_t>( axis_type::X ) == 0_z );
-    static_assert( underlying_cast<size_t>( axis_type::Y ) == 1_z );
+    static_assert(underlying_cast<size_t>(axis_type::X) == size_t{ 0u });
+    static_assert(underlying_cast<size_t>(axis_type::Y) == size_t{ 1u });
 
-    static_assert( underlying_cast<axis_type>( 0_z ) == axis_type::X );
-    static_assert( underlying_cast<axis_type>( 1_z ) == axis_type::Y );
+    static_assert(underlying_cast<axis_type>(size_t{ 0u }) == axis_type::X);
+    static_assert(underlying_cast<axis_type>(size_t{ 1u }) == axis_type::Y);
 
     constexpr auto u16_e = underlying_cast<u16_enum>( uint16_t{ 0 } );
     constexpr auto u32_e = underlying_cast<u32_enum>( u16_e );
@@ -60,5 +58,5 @@ void test_underlying_cast() noexcept
     constexpr auto i16_e = underlying_cast<i16_enum>( i16 );
     static_assert( !underlying_cast<int16_t>( i16_e ) );
 
-    assert( !errno );
+    D_ASSERT( !errno );
 }

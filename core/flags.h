@@ -9,7 +9,7 @@ struct flags
 
     explicit constexpr operator bool() const noexcept
     {
-        return value != enum_type{};
+        return !!to_underlying(value);
     }
 };
 

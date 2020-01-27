@@ -69,7 +69,7 @@ bool Chart::updateCooridinate() noexcept
 
 void Chart::mouseDoubleClickEvent(QMouseEvent * e) noexcept
 {
-    assert(e);
+    D_ASSERT(e);
 
     if (!math)
     {
@@ -85,7 +85,7 @@ void Chart::mouseDoubleClickEvent(QMouseEvent * e) noexcept
 
 void Chart::mouseMoveEvent(QMouseEvent * e) noexcept
 {
-    assert(e);
+    D_ASSERT(e);
 
     if (!math)
     {
@@ -130,7 +130,7 @@ void Chart::mouseReleaseEvent(QMouseEvent*) noexcept
 
 void Chart::wheelEvent(QWheelEvent * e) noexcept
 {
-    assert(e);
+    D_ASSERT(e);
 
     if (!math)
     {

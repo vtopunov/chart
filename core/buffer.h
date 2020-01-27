@@ -18,7 +18,7 @@ public:
     {
         using pointer = typename span<T>::pointer;
         const auto bytes = size * sizeof(T);
-        assert(size == bytes / sizeof(T));
+        D_ASSERT(size == bytes / sizeof(T));
         return { static_cast<pointer>(alloc(bytes)), size };
     }
 

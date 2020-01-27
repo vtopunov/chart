@@ -1,7 +1,30 @@
 #include <functional>
 
-#include <core/safe_handle.h>
+#include <core/shared_handle.h>
 #include <core/assert.h>
+
+template<class handle_type>
+struct unsafe_handle
+{
+    handle_type* operator -> () noexcept
+    {
+        return h;
+    }
+
+    handle_type h;
+    intrusive_node<shared_handle<handle_type>> c;
+};
+
+#pragma warning( push )
+#pragma warning( disable : 26418 ) 
+template<class T>
+unsafe_handle<T>& unsafe(const shared_handle<T>& safe) noexcept
+{
+    static_assert(sizeof(unsafe_handle<T>) == sizeof(shared_handle<T>));
+    static_assert(alignof(unsafe_handle<T>) == alignof(shared_handle<T>));
+    return (unsafe_handle<T>&)safe;
+}
+#pragma warning(pop)
 
 void test_handle() noexcept
 {
@@ -13,7 +36,7 @@ void test_handle() noexcept
         test_handle( int right ) noexcept
             : value{ right }
         {
-            assert( value != closed_value );
+            D_ASSERT( value != closed_value );
         }
 
         ~test_handle() noexcept
@@ -26,8 +49,8 @@ void test_handle() noexcept
 
         void close() noexcept
         {
-            assert( check_dtor || check_close );
-            assert( closed_value != value );
+            D_ASSERT( check_dtor || check_close );
+            D_ASSERT( closed_value != value );
             closed_value = value;
 
             if ( check_close )
@@ -54,35 +77,30 @@ void test_handle() noexcept
 #pragma warning( disable : 26418 )
     constexpr struct
     {
-        constexpr bool operator () ( const safe_handle<test_handle>& h1, int value ) const noexcept
+        constexpr bool operator () ( const shared_handle<test_handle>& h1, int value ) const noexcept
         {
-            assert( h1.is_unique() && h1.copies().next == &h1 && h1.copies().prev == &h1 );
-            assert( h1->value == value );
+            D_ASSERT( h1.is_unique() && unsafe(h1).c.next == &h1 && unsafe(h1).c.prev == &h1 );
+            D_ASSERT( h1->value == value );
             return true;
         }
 
-        constexpr bool operator () ( const safe_handle<test_handle>& h1, const safe_handle<test_handle>& h2, int value ) const noexcept
+        constexpr bool operator () ( const shared_handle<test_handle>& h1, const shared_handle<test_handle>& h2, int value ) const noexcept
         {
-            assert( !h1.is_unique() && h1.copies().next == &h2 && h1.copies().prev == &h2 );
-            assert( !h2.is_unique() && h2.copies().next == &h1 && h2.copies().prev == &h1 );
-            assert( h1->value == value && h2->value == value );
+            D_ASSERT( !h1.is_unique() && unsafe(h1).c.next == &h2 && unsafe(h1).c.prev == &h2 );
+            D_ASSERT( !h2.is_unique() && unsafe(h2).c.next == &h1 && unsafe(h2).c.prev == &h1 );
+            D_ASSERT( h1->value == value && h2->value == value );
             return true;
         }
 
-        constexpr bool operator () ( const safe_handle<test_handle>& h1, const safe_handle<test_handle>& h2, const safe_handle<test_handle>& h3, int value ) const noexcept
+        constexpr bool operator () ( const shared_handle<test_handle>& h1, const shared_handle<test_handle>& h2, const shared_handle<test_handle>& h3, int value ) const noexcept
         {
-            assert( !h1.is_unique() && h1.copies().next == &h2 && h1.copies().prev == &h3 );
-            assert( !h2.is_unique() && h2.copies().next == &h3 && h2.copies().prev == &h1  );
-            assert( !h3.is_unique() && h3.copies().next == &h1 && h3.copies().prev == &h2  );
-            assert( h1->value == value && h2->value == value && h3->value == value );
+            D_ASSERT( !h1.is_unique() && unsafe(h1).c.next == &h2 && unsafe(h1).c.prev == &h3 );
+            D_ASSERT( !h2.is_unique() && unsafe(h2).c.next == &h3 && unsafe(h2).c.prev == &h1  );
+            D_ASSERT( !h3.is_unique() && unsafe(h3).c.next == &h1 && unsafe(h3).c.prev == &h2  );
+            D_ASSERT( h1->value == value && h2->value == value && h3->value == value );
             return true;
         };
     } check;
-
-    constexpr auto unsafe = [] ( const safe_handle<test_handle>& handle ) noexcept -> test_handle &
-    {
-        return const_cast<test_handle&>( handle.get() );
-    };
 #pragma warning(pop)
 
     {
@@ -103,14 +121,14 @@ void test_handle() noexcept
             }
         };
         
-        safe_handle<handle_without_is_valid> safe_without_is_valid;
-        safe_handle<handle_with_is_valid> safe_with_is_valid;
+        shared_handle<handle_without_is_valid> safe_without_is_valid;
+        shared_handle<handle_with_is_valid> safe_with_is_valid;
 
-        assert( safe_without_is_valid );
-        assert( !safe_with_is_valid );
+        D_ASSERT( safe_without_is_valid );
+        D_ASSERT( !safe_with_is_valid );
     }
 
-    safe_handle<test_handle> h1{ 1 };
+    shared_handle<test_handle> h1{ 1 };
     check( h1, 1 );
 
     { // self assignment
@@ -121,54 +139,54 @@ void test_handle() noexcept
     {   // smart handle closure
         bool h2_was_closed = false;
         {
-            safe_handle<test_handle> h2{ 2 };
-            unsafe( h2 ).check_dtor = [ &h2_was_closed ] ( int value, int closed_value ) noexcept
+            shared_handle<test_handle> h2{ 2 };
+            unsafe( h2 ).h.check_dtor = [ &h2_was_closed ] ( int value, int closed_value ) noexcept
             {
                 h2_was_closed = ( value == 2 && closed_value == value );
             };
         }
-        assert( h2_was_closed );
+        D_ASSERT( h2_was_closed );
     }
 
     { // copy constructor
-        safe_handle<test_handle> h2{ h1 };
+        shared_handle<test_handle> h2{ h1 };
         check( h1, h2, 1 );
     }
     check( h1, 1 );
 
     { // assignment initialization 
         bool h2_was_closed = false;
-        safe_handle<test_handle> h2;
-        unsafe( h2 ).check_close = [ &h2_was_closed ] ( test_handle& closing_handle ) noexcept
+        shared_handle<test_handle> h2;
+        unsafe( h2 ).h.check_close = [ &h2_was_closed ] ( test_handle& closing_handle ) noexcept
         {
             h2_was_closed = ( closing_handle.value == 0 );
         };
         h2 = h1;
         check( h1, h2, 1 );
-        assert( h2_was_closed );
-        assert( !( h2->check_dtor ) );
+        D_ASSERT( h2_was_closed );
+        D_ASSERT( !( h2->check_dtor ) );
     }
     check( h1, 1 );
 
     {   // assignment
-        safe_handle<test_handle> h2{ 2 };
+        shared_handle<test_handle> h2{ 2 };
 
         bool h1_was_closed = false;
-        unsafe( h1 ).check_close = [ &h1_was_closed ] ( test_handle& closing_handle ) noexcept
+        unsafe( h1 ).h.check_close = [ &h1_was_closed ] ( test_handle& closing_handle ) noexcept
         {
             h1_was_closed = ( closing_handle.value == 1 );
         };
 
         h1 = h2;
         check( h1, h2, 2 );
-        assert( h1_was_closed );
-        assert( !( h1->check_dtor ) );
+        D_ASSERT( h1_was_closed );
+        D_ASSERT( !( h1->check_dtor ) );
     }
     check( h1, 2 );
-    unsafe( h1 ).value = 1;
+    unsafe( h1 ).h.value = 1;
 
     {   // cyclic assignment
-        safe_handle<test_handle> h2{ h1 };
+        shared_handle<test_handle> h2{ h1 };
         check( h1, h2, 1 );
         h1 = h2;
         check( h1, h2, 1 );
@@ -178,8 +196,8 @@ void test_handle() noexcept
     check( h1, 1 );
 
     {   // cyclic assignment (ref count > 2)
-        safe_handle<test_handle> h2{ h1 };
-        safe_handle<test_handle> h3{ h2 };
+        shared_handle<test_handle> h2{ h1 };
+        shared_handle<test_handle> h3{ h2 };
         check( h1, h2, h3, 1 );
         h2 = h3;
         check( h3, h2, h1, 1 );
@@ -191,11 +209,11 @@ void test_handle() noexcept
     check( h1, 1 );
 
     {   // assignment (ref count >= 2)
-        safe_handle<test_handle> ch1{ h1 };
+        shared_handle<test_handle> ch1{ h1 };
         check( h1, ch1, 1 );
 
-        safe_handle<test_handle> h2{ 2 };
-        safe_handle<test_handle> ch2{ h2 };
+        shared_handle<test_handle> h2{ 2 };
+        shared_handle<test_handle> ch2{ h2 };
         check( h2, ch2, 2 );
 
         h2 = h1;
@@ -214,15 +232,15 @@ void test_handle() noexcept
         check( h2, ch2, 2 );
         check( h1, ch1, 1 );
 
-        unsafe( h2 ).check_dtor = [] ( int value, int closed_value ) noexcept
+        unsafe( h2 ).h.check_dtor = [] ( int value, int closed_value ) noexcept
         {
-            assert( value == 2 && closed_value == value );
+            D_ASSERT( value == 2 && closed_value == value );
         };
     }
 
     check( h1, 1 );
-    unsafe( h1 ).check_dtor = [] ( int value, int closed_value ) noexcept
+    unsafe( h1 ).h.check_dtor = [] ( int value, int closed_value ) noexcept
     {
-        assert( value == 1 && closed_value == value );
+        D_ASSERT( value == 1 && closed_value == value );
     };
 }

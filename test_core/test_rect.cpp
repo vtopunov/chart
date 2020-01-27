@@ -28,5 +28,5 @@ void test_rect() noexcept
     static_assert( inverse_axis<axis_type::X>(rc).x_axis_range() == inverse(r0) );
     static_assert( inverse_axis<axis_type::Y>(rc).y_axis_range() == inverse(r1) );
 
-    assert( !errno );
+    D_ASSERT( !errno );
 }

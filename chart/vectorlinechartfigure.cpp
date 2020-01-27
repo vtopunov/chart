@@ -20,7 +20,7 @@ rect_t vector_line_chart_figure::calculate_rect(rect_t rect) const noexcept
 
 void vector_line_chart_figure::draw(painter& context, span<point_t> buffer, coordinate_transformation to_windows_coordinate) const noexcept
 {
-	assert(points_.size() <= buffer.size());
+	D_ASSERT(points_.size() <= buffer.size());
 
     buffer = buffer.left(points_.size());
 

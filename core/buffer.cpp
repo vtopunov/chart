@@ -1,11 +1,17 @@
 #include "buffer.h"
 
-#include <string>
-
-#include "util.h"
-
 namespace
 {
+    constexpr unsigned long long operator "" _Kb(unsigned long long n) noexcept
+    {
+        return n * 1024ULL;
+    }
+
+    constexpr unsigned long long operator "" _Mb(unsigned long long n) noexcept
+    {
+        return n * 1024_Kb;
+    }
+
     constexpr size_t max_size_for_realocate = 512_Mb;
     constexpr size_t min_size_for_realocate = 256_Mb;
 }
