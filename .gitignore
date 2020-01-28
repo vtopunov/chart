@@ -341,3 +341,6 @@ healthchecksdb
 /GeneratedFiles
 GeneratedFiles
 /3rdparty/build/
+/Debug_x64/lib/*.lib
+/Debug_x64/*.dll
+/Debug_x64/lib/*.exp
