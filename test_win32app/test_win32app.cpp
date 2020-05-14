@@ -1,157 +1,266 @@
-// test_win32app.cpp : Defines the entry point for the application.
-//
+#include <core/zstring_view.h>
 
+#include <platform/windows/debug.h>
 #include <platform/windows/window.h>
-#include <platform/windows/event.h>
-#include <platform/windows/event_handler.h>
 #include <platform/windows/event_matching.h>
 #include <platform/windows/event_timer.h>
+#include <platform/windows/event_loop.h>
 
 using namespace os_windows;
 using namespace std::chrono_literals;
 
 namespace
 {
-    int output_error_code() noexcept
+    namespace debug
     {
-        const auto error_code = GetLastError();
-        output_debug_string("error code: %lu", error_code);
-        D_CHECK(!"win32 error");
-        return (error_code) ? static_cast<int>(error_code) : -1;
-    }
-
-    struct dtor_debug
-    {
-        using string_literal = const char*;
-
-        dtor_debug(string_literal debug_message) noexcept
-            : handle_{ { debug_message } }
-        {}
-
-        struct handle
+        namespace strings
         {
-            string_literal debug_message{ nullptr };
+            constexpr zstring_view alert{ "alert" };
+            constexpr zstring_view destroy{ "destroy" };
+            constexpr zstring_view timer1_callback1{ "timer1_callback1" };
+            constexpr zstring_view timer1_callback2{ "timer1_callback2" };
+            constexpr zstring_view timer2_callback1{ "timer2_callback1" };
+            constexpr zstring_view timer3_callback1{ "timer3_callback1" };
+            constexpr zstring_view manual_exit{ "manual_exit" };
+        }
 
-            void close() noexcept
+        void log(zstring_view message) noexcept
+        {
+            class logger
             {
-                if (const auto self = std::exchange(*this, {}); self.debug_message)
+            public:
+                void output(zstring_view message)
                 {
-                    output_debug_string(self.debug_message);
+                    messages_.emplace_back(message);
+                    output_debug_string(message.c_str());
                 }
+
+                ~logger() noexcept
+                {
+                    constexpr auto test_log = [] (span<std::string> log) noexcept
+                    {
+                        using namespace strings;
+
+                        for ( const auto& message : log )
+                        {
+                            if ( message == manual_exit )
+                            {
+                                return;
+                            }
+                        }
+
+                        constexpr std::string_view test_messages[] =
+                        {
+                            alert, timer1_callback1,
+                            destroy, timer1_callback1,
+                            alert, timer1_callback2,
+                            alert, timer2_callback1,
+                            destroy, timer2_callback1,
+                            alert, timer3_callback1,
+                            destroy, timer1_callback2,
+                            destroy, timer3_callback1
+                        };
+
+                        constexpr auto test_size = std::size(test_messages);
+
+                        D_ASSERT(std::size(log) == test_size);
+
+                        for ( size_t i = 0; i < test_size; ++i )
+                        {
+                            D_ASSERT(log[i] == test_messages[i]);
+                        }
+                    };
+
+                    test_log(messages_);
+                }
+
+            private:
+                std::vector<std::string> messages_;
+            };
+
+            static logger instance;
+            instance.output(message);
+        }
+
+        struct dtor_view
+        {
+            zstring_view debug_message;
+
+            void notify(zstring_view string) const noexcept
+            {
+                log(string);
+                output_debug_string(" ");
+                log(debug_message);
+                output_debug_string("\n");
             }
         };
 
-        shared_handle<handle> handle_;
-    };
+        void close(dtor_view dtor) noexcept
+        {
+            dtor.notify(strings::destroy);
+        }
+
+        class dtor
+        {
+        public:
+            explicit dtor(zstring_view message) noexcept
+                : handle_{ make_shared_handle<dtor_view>(message) }
+            {}
+
+            void alert() const noexcept
+            {
+                handle_->notify(strings::alert);
+            }
+
+        private:
+            shared_handle<dtor_view> handle_;
+        };
+    }
 
     void quit() noexcept
     {
         PostQuitMessage(0);
     }
 
+    constexpr rect_t make_subwindow_rect(rect_size_t window_size) noexcept
+    {
+        const auto point = window_size.to_point();
+        return make_rect(point / 4, ( 3 * point ) / 4);
+    }
+
     constexpr struct
     {
-        event_result operator () (const close_event& e) const noexcept
+        event_result_t operator () (const close_event& e) const noexcept
         {
-            if (MessageBoxW(e.window().handle, L"Вы хотите выйти из приложения?", L"Выход", MB_YESNO) == IDYES)
+            if ( MessageBoxW(e.window().handle, L"Вы хотите выйти из приложения?", L"Выход", MB_YESNO) == IDYES )
             {
+                debug::log(debug::strings::manual_exit);
                 quit();
             }
 
-            return accept_event_result;
+            return 0L;
         }
 
-        event_result operator () (const mouse_move_event& e) const noexcept
+        event_result_t operator () (const size_event& e) const noexcept
         {
-            output_debug_string("mouse move: %d %d\n", e.x(), e.y());
-            return accept_event_result;
-        }
-    } event_handlers;
+            const auto rect = make_subwindow_rect(e.size());
 
+            for ( const auto children : childrens(e.window()) )
+            {
+                SetWindowPos
+                (
+                    children.handle, nullptr,
+                    rect.x0(), rect.y0(),
+                    rect.width(), rect.height(),
+                    SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_SHOWWINDOW
+                );
+            }
+
+            return 0L;
+        }
+
+        event_result_t operator () (const mouse_move_event& e) const noexcept
+        {
+            output_debug_string("mouse move: {} {}\n", e.x(), e.y());
+            return 0L;
+        }
+    } event_processor;
 }
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR, int nCmdShow)
 {
-    const auto window = create_window
-    (
-        window_info{}
+    const auto main_window =
+        window_factory{}
         .title(L"test_win32app")
         .type
         (
-            register_window_type
-            (
-                window_type_info{}
-                .module_address(hInstance)
-                .name(L"test_win32wnd")
-            )
+             window_type_factory{}
+            .module_address(hInstance)
+            .name(L"test_win32wnd")
+            .background(stock_brush::dark_gray)
+            .create()
         )
-    );
+        .create();
 
-    if (!window)
+    if ( !main_window )
     {
-        return output_error_code();
+        output_debug_string("create window error {}", GetLastError());
+        return -1;
     }
 
-    window->show(nCmdShow);
-    window->update();
+    show(main_window, nCmdShow);
 
-    const auto event_handler 
-        = register_event_handler(window, event_match(event_handlers));
+    const auto subwindow =
+        window_factory{}
+        .parent(main_window)
+        .type
+        (
+            window_type_factory{}
+            .module_address(hInstance)
+            .name(L"test_win32subwnd")
+            .background(stock_brush::light_gray)
+            .create()
+        )
+        .rect(make_subwindow_rect(client_rect(main_window).size()))
+        .create();
 
-    const auto timer = register_timer(window, 5s, 
-        [
-            dtor11 = dtor_debug{ "destroy timer callback1\n" }
-        ](timer_controller& timer_manip) noexcept
+    if ( !subwindow )
     {
-        output_debug_string("timer callback1\n");
-        D_CHECK(timer_manip.restart(3s));
+        output_debug_string("create subwindow error {}", GetLastError());
+        return -1;
+    }
 
-        timer_manip.replace_callback(
+    const auto process_owner = attach_event_processor(main_window, event_match(event_processor));
+
+    const auto timer = event_timer::create_timer(main_window, 5s,
+        [
+            dtor11 = debug::dtor{ debug::strings::timer1_callback1 }
+        ]( event_timer_controller& timer1_manip1 ) noexcept
+    {
+        dtor11.alert();
+        timer1_manip1.restart(3s);
+
+        timer1_manip1.replace_callback(
             [
-                timer2 = safe_event_handler{}, 
-                timer3 = safe_event_handler{}, 
-                dtor12 = dtor_debug{ "destroy timer callback2\n" }
-            ](timer_controller& timer_manip2) mutable noexcept
+                timer2 = safe_event_processor{},
+                timer3 = safe_event_processor{},
+                dtor12 = debug::dtor{ debug::strings::timer1_callback2 }
+            ]( event_timer_controller& timer1_manip2 ) mutable noexcept
         {
-            output_debug_string("timer callback2\n");
-
-            if (timer2 || timer3)
+            if ( timer2 || timer3 )
             {
-                D_CHECK(!"timeout");
-                quit();
                 return;
             }
-            D_CHECK(timer_manip2.restart(7s));
 
-            timer2 = register_timer(timer_manip2.window(), 2s, 
+            dtor12.alert();
+
+            timer2 = event_timer::create_timer(timer1_manip2.window(), 2s,
                 [
                     &timer3,
-                    dtor21 = dtor_debug{ "destroy timer2 callback1\n" }
-                ] (timer_controller& timer2_manip) noexcept
+                    dtor21 = debug::dtor{ debug::strings::timer2_callback1 }
+                ] ( event_timer_controller& timer2_manip ) noexcept
             {
-                output_debug_string("timer2 callback1\n");
+                dtor21.alert();
+
                 const auto window = timer2_manip.window();
                 timer2_manip.close();
-                timer3 = register_timer(window, 1s, 
+
+                timer3 = event_timer::create_timer(window, 1s,
                     [
-                        dtor31 = dtor_debug{ "destroy timer3 callback1\n" }
-                    ](timer_controller&) noexcept
+                        first_call = true,
+                        dtor31 = debug::dtor{ debug::strings::timer3_callback1 }
+                    ]( event_timer_controller& timer3_manip ) mutable noexcept
                 {
-                    output_debug_string("timer3 callback1\n");
+                    if ( std::exchange(first_call, false) )
+                    {
+                        dtor31.alert();
+                    }
                     quit();
                 });
             });
         });
     });
 
-    MSG msg{};
-
-    while (GetMessageW(&msg, nullptr, 0, 0))
-    {
-        TranslateMessage(&msg);
-        DispatchMessageW(&msg);
-    }
-
-    return static_cast<int>(msg.wParam);
+    return run_event_loop();
 }
 

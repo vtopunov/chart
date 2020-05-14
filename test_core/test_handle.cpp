@@ -12,7 +12,7 @@ struct unsafe_handle
     }
 
     handle_type h;
-    intrusive_node<shared_handle<handle_type>> c;
+    intrusive_list_node<shared_handle<handle_type>> c;
 };
 
 #pragma warning( push )

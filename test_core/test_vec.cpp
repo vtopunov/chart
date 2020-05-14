@@ -11,27 +11,8 @@ void test_vec() noexcept
     constexpr auto v5 = make_vec( 3, 1 );
               
     static_assert( v0 != v1 );
-    static_assert( !( v0 < v1 ) );
-    static_assert( !( v0 <= v1 ) );
-    static_assert( !( v1 < v0 ) );
-    static_assert( !( v1 <= v0 ) );
-    static_assert( !( v0 > v1 ) );
-    static_assert( !( v0 >= v1 ) );
-    static_assert( !( v1 > v0 ) );
-    static_assert( !( v1 >= v0 ) );
-
     static_assert( max( v1, v2 ) == v3 );
-    static_assert( v3 > v0 );
-    static_assert( v3 >= v0 );
-    static_assert( v0 < v3 );
-    static_assert( v0 <= v3 );
-
     static_assert( min( v4, v2 ) == v4 );
-    static_assert( v4 < v2 );
-    static_assert( v4 <= v2 );
-    static_assert( v2 > v4 );
-    static_assert( v2 >= v4 );
-
     static_assert( reverse(v1) == v2 );
     static_assert( reverse(v2) == v1 );
     static_assert( 2 * v0 == v0 * 2 );

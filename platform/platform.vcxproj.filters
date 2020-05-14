@@ -4,6 +4,12 @@
     <Filter Include="windows">
       <UniqueIdentifier>{57f0d885-bd3f-485e-ba95-bc85fb5d8732}</UniqueIdentifier>
     </Filter>
+    <Filter Include="gl">
+      <UniqueIdentifier>{36d97f45-fe1d-47e8-b85b-78dc0cee7fac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="egl">
+      <UniqueIdentifier>{29d17a87-89c3-4057-b440-e4b67e1e6db5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="windows\config.h">
@@ -18,9 +24,6 @@
     <ClInclude Include="windows\event.h">
       <Filter>windows</Filter>
     </ClInclude>
-    <ClInclude Include="windows\event_handler.h">
-      <Filter>windows</Filter>
-    </ClInclude>
     <ClInclude Include="windows\event_matching.h">
       <Filter>windows</Filter>
     </ClInclude>
@@ -32,7 +35,37 @@
     <ClInclude Include="windows\defs.h">
       <Filter>windows</Filter>
     </ClInclude>
-    <ClInclude Include="windows\event_handler_container.h">
+    <ClInclude Include="gl\config.h">
+      <Filter>gl</Filter>
+    </ClInclude>
+    <ClInclude Include="gl\shader.h">
+      <Filter>gl</Filter>
+    </ClInclude>
+    <ClInclude Include="gl\shader_fwd.h">
+      <Filter>gl</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\event_loop.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="egl\config.h">
+      <Filter>egl</Filter>
+    </ClInclude>
+    <ClInclude Include="egl\egl_window.h">
+      <Filter>egl</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\debug.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="gl\shaders_program.h">
+      <Filter>gl</Filter>
+    </ClInclude>
+    <ClInclude Include="gl\shaders_program_fwd.h">
+      <Filter>gl</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\event_processor.h">
+      <Filter>windows</Filter>
+    </ClInclude>
+    <ClInclude Include="windows\event_processors_container.h">
       <Filter>windows</Filter>
     </ClInclude>
   </ItemGroup>
@@ -43,9 +76,6 @@
     <ClCompile Include="windows\window_type.cpp">
       <Filter>windows</Filter>
     </ClCompile>
-    <ClCompile Include="windows\event_handler.cpp">
-      <Filter>windows</Filter>
-    </ClCompile>
     <ClCompile Include="windows\event_timer.cpp">
       <Filter>windows</Filter>
     </ClCompile>
@@ -53,7 +83,13 @@
       <Filter>windows</Filter>
     </ClCompile>
     <ClCompile Include="painter.cpp" />
-    <ClCompile Include="windows\event_handler_container.cpp">
+    <ClCompile Include="egl\egl_window.cpp">
+      <Filter>egl</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\event_processor.cpp">
+      <Filter>windows</Filter>
+    </ClCompile>
+    <ClCompile Include="windows\event_processors_container.cpp">
       <Filter>windows</Filter>
     </ClCompile>
   </ItemGroup>

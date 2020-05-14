@@ -1,207 +1,259 @@
 #include "event_timer.h"
 
+#include <core/handle.h>
+
 #include <platform/windows/event.h>
 #include <platform/windows/event_matching.h>
+#include <platform/windows/event_processors_container.h>
+
+using namespace std::chrono_literals;
 
 namespace os_windows
 {
-
-    namespace
+    namespace event_timer
     {
-        class event_timer;
-
-        bool kill_timer(const event_timer& timer) noexcept;
-
-        class event_timer
+        namespace
         {
-        public:
-            constexpr event_timer() noexcept = default;
-
-            constexpr event_timer(HWND window_handle, UINT_PTR id) noexcept
-                : window_handle_{ window_handle }
-                , id_{ id }
-            {}
-
-            constexpr bool is_valid() const noexcept
+            struct timer_view
             {
-                return id_ != 0u;
+                window_handle_t window_handle;
+                timer_id_t id;
+                timer_duration_t interval;
+            };
+
+            constexpr auto zero_timer_duration = timer_duration_t::zero();
+
+            constexpr bool valid(timer_view timer) noexcept
+            {
+                return timer.interval > zero_timer_duration;
             }
 
-            constexpr UINT_PTR id() const noexcept
+            bool close(timer_view timer) noexcept
             {
-                return id_;
-            }
-
-            constexpr HWND window_handle() const noexcept
-            {
-                return window_handle_;
-            }
-
-            bool close() noexcept
-            {
-                if (const auto self = std::exchange(*this, {}); self.id())
+                if ( valid(timer) )
                 {
-                    const auto ok = kill_timer(self);
+                    const auto ok = !!KillTimer(timer.window_handle, timer.id);
                     D_ASSERT(ok);
                     return ok;
                 }
                 return false;
             }
 
-        private:
-            HWND window_handle_{ nullptr };
-            UINT_PTR id_{ 0u };
-        };
+            using safe_timer = unique_handle<timer_view>;
 
-        bool kill_timer(const event_timer& timer) noexcept
-        {
-            return KillTimer(timer.window_handle(), timer.id()) != FALSE;
-        }
-
-        using safe_event_timer = shared_handle<event_timer>;
-
-        safe_event_timer create_timer(HWND window_handle, size_t id, std::chrono::milliseconds interval) noexcept
-        {
-            return event_timer
+            safe_timer create_timer(timer_view timer) noexcept
             {
-                window_handle,
-                SetTimer
-                (
-                    window_handle,
-                    narrow_cast<UINT_PTR>(id),
-                    narrow_cast<UINT>(interval.count()),
-                    nullptr
-                )
-            };
-        }
+                using elapse_t = UINT;
+                static_assert( std::is_unsigned_v<elapse_t> );
 
-#pragma warning(push)
-#pragma warning(disable : 26436) // non-virtual destructor 
-        class timer_controller_impl final : public timer_controller
-        {
-        public:
-            timer_controller_impl
-            (
-                safe_event_timer timer,
-                event_timer_callback_t callback,
-                event_handler_view handler,
-                std::chrono::milliseconds recent_interval
-            ) noexcept
-                : timer_{std::move(timer)}
-                , callback_{std::move(callback)}
-                , new_callback_{nullptr}
-                , handler_{handler}
-                , recent_interval_{recent_interval}
-            {}
+                const auto interval = std::exchange(timer.interval, zero_timer_duration);
+                const auto elapse = interval.count();
+                const auto arguments_is_valid
+                    = timer.window_handle
+                    && timer.id
+                    && is_safe_narrowing_conversion<elapse_t>(elapse);
 
-            event_result operator () (const timer_event& timer_event) noexcept
-            {
-                D_ASSERT(timer_event.window().handle == timer_->window_handle());
-
-                if (timer_event.id() == timer_->id())
+                if ( arguments_is_valid )
                 {
-                    const struct collector
+                    const auto id = SetTimer
+                    (
+                        timer.window_handle,
+                        timer.id,
+                        narrow_cast<elapse_t>( elapse ),
+                        nullptr
+                    );
+
+                    if ( id )
                     {
-                        timer_controller_impl& self;
-                        ~collector() noexcept
-                        {
-                            if (self.timer_)
-                            {
-                                if (self.new_callback_)
-                                {
-                                    self.callback_ = std::exchange(self.new_callback_, nullptr);
-                                }
-                            }
-                            else
-                            {
-                                self.new_callback_ = nullptr;
-                                self.callback_ = nullptr;
-                                self.close();
-                            }
-                        }
-                    } collect{ *this };
-
-                    callback_(*this);
-
-                    return accept_event_result;
+                        timer.id = id;
+                        timer.interval = interval;
+                    }
                 }
 
-                return ignore_event_result;
+                return
+                {
+                    handle_construct,
+                    timer
+                };
             }
 
-        private:
-            bool restart(std::chrono::milliseconds interval) noexcept final
+            safe_timer apply_interval(safe_timer timer, timer_duration_t interval) noexcept
             {
-                const auto saved_recent_interval = std::exchange(recent_interval_, std::chrono::milliseconds{ 0 });
-                timer_.force_close_all_copies();
-                timer_ = create_timer(handler_.window.handle, handler_.id, interval);
-                const auto ok = timer_->is_valid();
-                recent_interval_ = (ok) ? interval : saved_recent_interval;
-                return ok;
+                auto timer_view = to_view(timer);
+
+                if ( interval > zero_timer_duration && timer_view.interval != interval )
+                {
+                    timer.reset();
+                    timer_view.interval = interval;
+                    return create_timer(timer_view);
+                }
+
+                return timer;
             }
 
-            std::chrono::milliseconds interval() const noexcept final
+            struct timer_processor
             {
-                return recent_interval_;
-            }
+                safe_timer timer;
+                timer_callback_t callback{ nullptr };
+                timer_duration_t interval{ zero_timer_duration };
+                size_t processor_id{ 0u };
 
-            window_view window() const noexcept final
+                std::optional<event_result_t> operator () (const timer_event& e) noexcept;
+
+                void remove_event_processor_for(window_view window) noexcept
+                {
+                    if ( const auto id = std::exchange(processor_id, 0u) )
+                    {
+                        close(event_processor_view{ window, id });
+                    }
+                }
+            };
+
+#pragma warning(push)
+#pragma warning(disable : 26436) // non-virtual destructor
+            class timer_controller_impl final : public timer_controller
             {
-                return handler_.window;
-            }
+            public:
+                timer_controller_impl(timer_processor& processor, const timer_event& e) noexcept
+                    : processor_{ processor }
+                    , interval_{ processor.interval }
+                    , window_{ e.window() }
+                {}
 
-            bool close() noexcept final
-            {
-                recent_interval_ = std::chrono::milliseconds{ 0 };
-                timer_.force_close_all_copies();
-                new_callback_ = nullptr;
-                return unregister_event_handler(std::exchange(handler_, null_event_handler_view));
-            }
+                ~timer_controller_impl() noexcept
+                {
+                    if ( finised_ )
+                    {
+                        if ( auto callback = std::exchange(callback_, nullptr) )
+                        {
+                            processor_.callback = std::move(callback);
+                        }
 
-            void replace_callback(event_timer_callback_t new_callback) noexcept final
-            {
-                new_callback_ = std::move(new_callback);
-            }
+                        processor_.timer = apply_interval(std::move(processor_.timer), interval_);
+                    }
+                    else
+                    {
+                        callback_ = nullptr;
+                        processor_.timer = nullptr;
+                    }
 
-        private:
-            safe_event_timer timer_;
-            event_timer_callback_t callback_;
-            event_timer_callback_t new_callback_;
-            event_handler_view handler_;
-            std::chrono::milliseconds recent_interval_;
-        };
+                    if ( !processor_.timer )
+                    {
+                        processor_.callback = nullptr;
+                        processor_.remove_event_processor_for(window_);
+                    }
+                }
+
+                void finish() noexcept
+                {
+                    finised_ = true;
+                }
+
+            private:
+                void restart(timer_duration_t interval) noexcept final
+                {
+                    if ( interval.count() > 0 )
+                    {
+                        interval_ = interval;
+                    }
+                }
+
+                timer_duration_t interval() const noexcept final
+                {
+                    return interval_;
+                }
+
+                window_view window() const noexcept final
+                {
+                    return window_;
+                }
+
+                void close() noexcept final
+                {
+                    callback_ = nullptr;
+                    processor_.timer = nullptr;
+                    processor_.remove_event_processor_for(window_);
+                }
+
+                void replace_callback(timer_callback_t new_callback) noexcept final
+                {
+                    callback_ = std::move(new_callback);
+                }
+
+                timer_processor& processor_;
+                timer_duration_t interval_{ zero_timer_duration };
+                timer_callback_t callback_{ nullptr };
+                window_view window_{ null_window };
+                bool finised_{ false };
+            };
 #pragma warning(pop)
 
-        struct timer_factory
-        {
-            event_timer_callback_t callback;
-            std::chrono::milliseconds interval;
-
-            event_callback_function operator () (event_handler_view handler) noexcept
+            std::optional<event_result_t> timer_processor::operator()(const timer_event& e) noexcept
             {
-                auto timer = create_timer(handler.window.handle, handler.id, interval);
+                D_ASSERT(e.window().handle == timer->window_handle);
 
-                if (timer && narrow_cast<size_t>(timer->id()) == handler.id)
+                if ( e.id() == timer->id )
                 {
-                    return event_match
+                    timer_controller_impl control{ *this, e };
+
+                    callback(control);
+
+                    control.finish();
+
+                    return 0L;
+                }
+
+                return std::nullopt;
+            }
+
+
+            struct timer_callback_factory
+            {
+                timer_callback_t callback;
+                timer_duration_t interval;
+
+                event_callback_t operator () (event_processor_view processor) noexcept
+                {
+                    auto timer = create_timer
                     (
-                        timer_controller_impl
                         {
-                            std::move(timer),
-                            std::move(callback),
-                            handler,
+                            processor.window.handle,
+                            processor.id,
                             interval
                         }
                     );
+
+                    if ( timer )
+                    {
+                        return event_match
+                        (
+                            timer_processor
+                            {
+                                std::move(timer),
+                                std::move(callback),
+                                interval,
+                                processor.id
+                            }
+                        );
+                    }
+
+                    return nullptr;
                 }
+            };
+        }
 
-                return nullptr;
-            }
-        };
-    }
-
-    safe_event_handler register_timer(window_view window, std::chrono::milliseconds interval, event_timer_callback_t callback) noexcept
-    {
-        return register_event_handler_factory(window, timer_factory{ std::move(callback), interval });
+        safe_event_processor create_timer(window_view window, timer_duration_t interval, timer_callback_t callback) noexcept
+        {
+            return
+            {
+                handle_construct,
+                window,
+                event_processors_container_global().insert(window, timer_callback_factory
+                {
+                    std::move(callback),
+                    interval
+                })
+            };
+        }
     }
 }

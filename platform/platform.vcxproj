@@ -19,25 +19,35 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="egl\config.h" />
+    <ClInclude Include="egl\egl_window.h" />
+    <ClInclude Include="gl\config.h" />
+    <ClInclude Include="gl\shaders_program.h" />
+    <ClInclude Include="gl\shaders_program_fwd.h" />
+    <ClInclude Include="gl\shader.h" />
+    <ClInclude Include="gl\shader_fwd.h" />
     <ClInclude Include="painter.h" />
     <ClInclude Include="platform_cast.h" />
     <ClInclude Include="windows\config.h" />
+    <ClInclude Include="windows\debug.h" />
     <ClInclude Include="windows\event.h" />
-    <ClInclude Include="windows\event_handler.h" />
+    <ClInclude Include="windows\event_processor.h" />
     <ClInclude Include="windows\defs.h" />
+    <ClInclude Include="windows\event_loop.h" />
     <ClInclude Include="windows\event_matching.h" />
     <ClInclude Include="windows\event_timer.h" />
-    <ClInclude Include="windows\event_handler_container.h" />
+    <ClInclude Include="windows\event_processors_container.h" />
     <ClInclude Include="windows\window.h" />
     <ClInclude Include="windows\window_type.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="egl\egl_window.cpp" />
     <ClCompile Include="painter.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="windows\event_handler.cpp" />
+    <ClCompile Include="windows\event_processor.cpp" />
     <ClCompile Include="windows\event_timer.cpp" />
-    <ClCompile Include="windows\event_handler_container.cpp" />
+    <ClCompile Include="windows\event_processors_container.cpp" />
     <ClCompile Include="windows\window.cpp" />
     <ClCompile Include="windows\window_procedure_impl.cpp" />
     <ClCompile Include="windows\window_type.cpp" />
@@ -117,13 +127,13 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_HAS_EXCEPTIONS=0;_ITERATOR_DEBUG_LEVEL=0;_DEBUG;_LIB;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <PreprocessorDefinitions>ANGLE_STANDALONE_BUILD;GL_GLEXT_PROTOTYPES;EGL_EGLEXT_PROTOTYPES;ANGLE_X64_CPU;_HAS_EXCEPTIONS=0;_ITERATOR_DEBUG_LEVEL=0;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;..\3rdparty\angle\include;..\3rdparty\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:char8_t %(AdditionalOptions)</AdditionalOptions>
       <EnablePREfast>true</EnablePREfast>
     </ClCompile>
@@ -146,6 +156,9 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>..;..\3rdparty\angle\include;..\3rdparty\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -164,6 +177,9 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>..;..\3rdparty\angle\include;..\3rdparty\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -183,7 +199,7 @@
       <PreprocessorDefinitions>_LIB;%(PreprocessorDefinitions);NDEBUG;</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..;..\3rdparty\angle\include;..\3rdparty\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>

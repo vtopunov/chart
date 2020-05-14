@@ -21,8 +21,7 @@ class HelloTriangleSample : public SampleApplication
   public:
     HelloTriangleSample()
         : SampleApplication("HelloTriangle", 1280, 720)
-    {
-    }
+    {}
 
     virtual bool initialize()
     {
@@ -46,7 +45,7 @@ class HelloTriangleSample : public SampleApplication
             return false;
         }
 
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
         return true;
     }
@@ -82,7 +81,7 @@ class HelloTriangleSample : public SampleApplication
     }
 
   private:
-    GLuint mProgram;
+    GLuint mProgram{ 0 };
 };
 
 int main(int argc, char **argv)

@@ -2,83 +2,75 @@
 
 #include <string>
 
-#include <core/shared_handle.h>
-#include <platform/windows/config.h>
+#include <core/handle.h>
+
+#include <platform/windows/defs.h>
 
 namespace os_windows
 {
-    class window_type
+    enum class stock_brush : int
     {
-    public:
-        constexpr window_type() noexcept = default;
-
-        constexpr window_type( HMODULE address, LPCWSTR name_id ) noexcept
-            : module_address_{ address }
-            , name_id_{ name_id }
-        {
-            D_ASSERT( module_address_ );
-        }
-
-        bool close() noexcept;
-
-        constexpr HMODULE module_address() const noexcept
-        {
-            return module_address_;
-        }
-
-        constexpr LPCWSTR name_id() const noexcept
-        {
-            return name_id_;
-        }
-
-        constexpr bool is_valid() const noexcept
-        {
-            return name_id_ != nullptr;
-        }
-
-    private:
-        HMODULE module_address_{nullptr};
-        LPCWSTR name_id_{nullptr};
+        white = WHITE_BRUSH,
+        light_gray = LTGRAY_BRUSH,
+        gray = GRAY_BRUSH,
+        dark_gray = DKGRAY_BRUSH,
+        black = BLACK_BRUSH,
+        null = NULL_BRUSH,
+        hollow = HOLLOW_BRUSH
     };
 
-    using safe_window_type = shared_handle<window_type>;
+    struct window_type_view
+    {
+        HMODULE module_address;
+        LPCWSTR name_id;
+    };
 
-    class window_type_info
+    constexpr bool valid(window_type_view type) noexcept
+    {
+        return !!type.name_id;
+    }
+
+    bool close(private_handle_t, window_type_view type) noexcept;
+
+    using safe_window_type = shared_handle<window_type_view>;
+
+    class window_type_factory
     {
     public:
-        constexpr window_type_info() noexcept
-        {
-            data_.cbSize = sizeof( data_ );
-            data_.style = CS_HREDRAW | CS_VREDRAW;
-        }
+        window_type_factory() noexcept = default;
 
-        constexpr window_type_info& style( UINT style ) noexcept
+        constexpr window_type_factory& style(UINT style) noexcept
         {
             data_.style = style;
             return *this;
         }
 
-        window_type_info& name( std::wstring name ) noexcept
+        window_type_factory& name(std::wstring name) noexcept
         {
-            D_ASSERT( !name.empty() );
-            name_ = std::move( name );
+            name_ = std::move(name);
             data_.lpszClassName = name_.c_str();
             return *this;
         }
 
-        constexpr window_type_info& module_address( HMODULE module_address )
+        constexpr window_type_factory& module_address(HMODULE module_address)
         {
-            D_ASSERT( module_address );
+            D_ASSERT(module_address);
             data_.hInstance = module_address;
             return *this;
         }
 
-        friend safe_window_type register_window_type( window_type_info info ) noexcept;
+        constexpr window_type_factory& background(HBRUSH brush) noexcept
+        {
+            data_.hbrBackground = brush;
+            return *this;
+        }
+
+        window_type_factory& background(stock_brush brush) noexcept;
+
+        safe_window_type create() const noexcept;
 
     private:
         WNDCLASSEXW data_{};
         std::wstring name_;
     };
-
-    safe_window_type register_window_type( window_type_info info ) noexcept;
 }

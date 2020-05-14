@@ -32,21 +32,20 @@
     <ClInclude Include="flags.h" />
     <ClInclude Include="member_detector.h" />
     <ClInclude Include="lerp.h" />
-    <ClInclude Include="math_constants.h" />
     <ClInclude Include="narrow_cast.h" />
     <ClInclude Include="num_range.h" />
-    <ClInclude Include="object.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="polynom.h" />
-    <ClInclude Include="private\handle_private.h" />
     <ClInclude Include="rational.h" />
     <ClInclude Include="rect.h" />
+    <ClInclude Include="small_vector.h" />
     <ClInclude Include="span.h" />
-    <ClInclude Include="shared_handle.h" />
     <ClInclude Include="small_flat_map.h" />
     <ClInclude Include="underlying_cast.h" />
-    <ClInclude Include="unique_handle.h" />
+    <ClInclude Include="unique_function.h" />
+    <ClInclude Include="handle.h" />
     <ClInclude Include="vec.h" />
+    <ClInclude Include="zstring_view.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -147,6 +146,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -165,6 +166,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -184,6 +187,8 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <ExceptionHandling>false</ExceptionHandling>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

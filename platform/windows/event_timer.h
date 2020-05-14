@@ -2,29 +2,36 @@
 
 #include <chrono>
 
-#include <platform/windows/event_handler.h>
+#include <platform/windows/event_processor.h>
 
 namespace os_windows
 {
-    struct timer_controller;
+    namespace event_timer
+    {
+        struct timer_controller;
 
-    using event_timer_callback_t = std::function<void(timer_controller&)>;
+        using timer_callback_t = std::function<void(timer_controller&)>;
+
+        using timer_duration_t = std::chrono::milliseconds;
 
 #pragma warning(push)
 #pragma warning(disable : 26436) // non-virtual destructor 
-    struct timer_controller
-    {
-        virtual bool restart(std::chrono::milliseconds timeout) noexcept = 0;
+        struct timer_controller
+        {
+            virtual void restart(timer_duration_t interval) noexcept = 0;
 
-        virtual std::chrono::milliseconds interval() const noexcept = 0;
+            virtual timer_duration_t interval() const noexcept = 0;
 
-        virtual window_view window() const noexcept = 0;
+            virtual window_view window() const noexcept = 0;
 
-        virtual void replace_callback(event_timer_callback_t callback) noexcept = 0;
+            virtual void replace_callback(timer_callback_t callback) noexcept = 0;
 
-        virtual bool close() noexcept = 0;
-    };
+            virtual void close() noexcept = 0;
+        };
 #pragma warning(pop)
 
-    safe_event_handler register_timer(window_view window, std::chrono::milliseconds interval, event_timer_callback_t callback) noexcept;
+        safe_event_processor create_timer(window_view window, timer_duration_t interval, timer_callback_t callback) noexcept;
+    }
+
+    using event_timer_controller = event_timer::timer_controller;
 }

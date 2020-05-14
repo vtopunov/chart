@@ -1,6 +1,7 @@
 #pragma once
 
-#include "vec.h"
+#include <core/assert.h>
+#include <core/vec.h>
 
 template<class T>
 struct num_range
@@ -11,16 +12,6 @@ struct num_range
     constexpr T get() const noexcept
     {
         return bounds.get<index>();
-    }
-
-    constexpr bool includes(T value) const noexcept
-    {
-        return value >= min() && value <= max();
-    }
-
-    constexpr bool includes(num_range range) const noexcept
-    {
-        return range.min() >= min() && range.max() <= max();
     }
 
     constexpr T front() const noexcept
@@ -35,59 +26,65 @@ struct num_range
 
     constexpr T length() const noexcept
     {
-        return bounds.difference();
+        return difference(bounds);
     }
 
     constexpr T center() const noexcept
     {
-        return bounds.mean();
+        return mean(bounds);
     }
 
-    constexpr T max() const noexcept
+    constexpr bool includes(const T& value) const noexcept
     {
-        return bounds.max();
+        if constexpr ( !std::is_arithmetic_v<T> )
+        {
+            D_ASSERT(!"invalid type");
+            return false;
+        }
+
+        return value >= min(*this) && value <= max(*this);
     }
 
-    constexpr T min() const noexcept
-    {
-        return bounds.min();
-    }
-
-    constexpr num_range with_inclusion(T value) const noexcept
+    constexpr num_range with_inclusion(const T& value) const noexcept
     {
         return 
         { 
-            num_range{ { bounds._0, value } }.min(),
-            num_range{ { value, bounds._1 } }.max()
+            min(make_vec(bounds._0, value)),
+            max(make_vec(value, bounds._1))
         };
     }
 
-    constexpr num_range with_moving(T move) const noexcept
+    constexpr num_range with_moving(const T& move) const noexcept
     {
         return num_range{ bounds + fill_vec( move ) };
     }
+
+    constexpr bool operator == (const num_range&) const noexcept = default;
+
+    constexpr bool operator != (const num_range&) const noexcept = default;
 };
 
 template<class T>
-constexpr num_range<T> make_num_range( T front, T back ) noexcept
+constexpr T min(const num_range<T>& range) noexcept
+{
+    return min(range.bounds);
+}
+
+template<class T>
+constexpr T max(const num_range<T>& range) noexcept
+{
+    return max(range.bounds);
+}
+
+
+template<class T>
+constexpr num_range<T> make_num_range( const T& front, const T& back ) noexcept
 {
     return { { front, back } };
 }
 
 template<class T>
-constexpr num_range<T> inverse( num_range<T> range ) noexcept
+constexpr num_range<T> inverse( const num_range<T>& range ) noexcept
 {
     return { reverse( range.bounds ) };
-}
-
-template<class T>
-constexpr bool operator == ( num_range<T> left, num_range<T> right ) noexcept
-{
-    return left.bounds == right.bounds;
-}
-
-template<class T>
-constexpr bool operator != ( num_range<T> left, num_range<T> right ) noexcept
-{
-    return !( left == right );
 }

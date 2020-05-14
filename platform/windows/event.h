@@ -8,14 +8,16 @@
 
 namespace os_windows
 {
-    enum class event_style : UINT 
+    enum class event_style : UINT
     {
         null = WM_NULL,
+        size = WM_SIZE,
+        paint = WM_PAINT,
         close = WM_CLOSE,
         timer = WM_TIMER,
         mouse_move = WM_MOUSEMOVE,
         user = WM_USER
-    }; 
+    };
 
     template<event_style>
     class specialized_event;
@@ -23,7 +25,7 @@ namespace os_windows
     class event
     {
     public:
-        constexpr event( window_view window, WPARAM word_parameter, LPARAM long_parameter, event_style style ) noexcept
+        constexpr event(window_view window, WPARAM word_parameter, LPARAM long_parameter, event_style style) noexcept
             : window_{ window }
             , word_parameter_{ word_parameter }
             , long_parameter_{ long_parameter }
@@ -93,6 +95,10 @@ namespace os_windows
             return this;
         }
 
+        event_result_t do_default_process() const noexcept;
+
+        constexpr auto operator<=>(const event&) const noexcept = default;
+
     protected:
         constexpr WPARAM word_parameter() const noexcept
         {
@@ -112,7 +118,7 @@ namespace os_windows
     };
 
     template<event_style>
-    class specialized_event : public event 
+    class specialized_event : public event
     {};
 
     enum class mouse_key : WPARAM
@@ -130,46 +136,65 @@ namespace os_windows
     class specialized_event<event_style::mouse_move> : public event
     {
     public:
-        constexpr int x() const noexcept
+        constexpr pixel_t x() const noexcept
         {
-            return GET_X_LPARAM( long_parameter() );
+            return GET_X_LPARAM(long_parameter());
         }
 
-        constexpr int y() const noexcept
+        constexpr pixel_t y() const noexcept
         {
-            return GET_Y_LPARAM( long_parameter() );
+            return GET_Y_LPARAM(long_parameter());
         }
 
-        constexpr point<int> position() const noexcept
+        constexpr point_t position() const noexcept
         {
             return { x(), y() };
         }
 
         constexpr flags<mouse_key> key() const noexcept
         {
-            return { underlying_cast<mouse_key>( word_parameter() ) };
+            return { underlying_cast<mouse_key>(word_parameter()) };
         }
     };
+
+    using timer_id_t = UINT_PTR;
 
     template<>
     class specialized_event<event_style::timer> : public event
     {
     public:
-        constexpr UINT_PTR id() const noexcept
+        constexpr timer_id_t id() const noexcept
         {
 #pragma warning(push)
 #pragma warning(disable : 26472) // Don't use a static_cast for arithmetic conversions
-            return static_cast<UINT_PTR>( word_parameter() ); // WPARAM may be less than zero
+            return static_cast<timer_id_t>(word_parameter()); // WPARAM may be less than zero
 #pragma warning(pop)
-        }
-
-        constexpr event_handler_view handler() const noexcept
-        {
-            return { window(), narrow_cast<size_t>(id()) };
         }
     };
 
+    template<>
+    class specialized_event<event_style::size> : public event
+    {
+    public:
+        constexpr pixel_t width() const noexcept
+        {
+            return { LOWORD(long_parameter()) };
+        }
+        
+        constexpr pixel_t height() const noexcept
+        {
+            return { HIWORD(long_parameter()) };
+        }
+
+        constexpr rect_size_t size() const noexcept
+        {
+            return make_rect_size(width(), height());
+        }
+    };
+
+    using size_event = specialized_event<event_style::size>;
+    using paint_event = specialized_event<event_style::paint>;
+    using close_event = specialized_event<event_style::close>;
     using timer_event = specialized_event<event_style::timer>;
     using mouse_move_event = specialized_event<event_style::mouse_move>;
-    using close_event = specialized_event<event_style::close>;
 }

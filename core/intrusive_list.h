@@ -1,72 +1,51 @@
 #pragma once
 
 template<class T>
-struct intrusive_node
+struct intrusive_list_node
 {
     T* prev;
     T* next;
 };
 
 template<class T>
-struct intrusive_list_impl
+using intrusive_list_member_ptr = intrusive_list_node<T> T::*;
+
+template<class T>
+constexpr T* next(intrusive_list_member_ptr<T> list, const T* item) noexcept
 {
-    intrusive_node<T> T::*const plist;
+    return (item->*list).next;
+}
 
-    constexpr const intrusive_node<T> list( const T* item ) const noexcept
-    {
-        return ( item->*plist );
-    }
+template<class T>
+constexpr T* prev(intrusive_list_member_ptr<T> list, const T* item) noexcept
+{
+    return (item->*list).prev;
+}
 
-    constexpr intrusive_node<T>& list_ref( T* item ) const noexcept
-    {
-        return ( item->*plist );
-    }
+template<class T>
+constexpr void set_next(intrusive_list_member_ptr<T> list, T* item, T* next) noexcept
+{
+    (item->*list).next = next;
+}
 
-    constexpr T*const next( const T* item ) const noexcept
-    {
-        return list( item ).next;
-    }
+template<class T>
+constexpr void set_prev(intrusive_list_member_ptr<T> list, T* item, T* prev) noexcept
+{
+    (item->*list).prev = prev;
+}
 
-    constexpr T*const prev( const T* item ) const noexcept
-    {
-        return list( item ).prev;
-    }
+template<class T>
+constexpr void pop(intrusive_list_member_ptr<T> list, intrusive_list_node<T> item) noexcept
+{
+    set_next(list, item.prev, item.next);
+    set_prev(list, item.next, item.prev);
+}
 
-    constexpr void set_next( T* item, T* next ) const noexcept
-    {
-        list_ref( item ).next = next;
-    }
-
-    constexpr void set_prev( T* item, T* prev ) const noexcept
-    {
-        list_ref( item ).prev = prev;
-    }
-
-    constexpr void pop( intrusive_node<T> item ) const noexcept
-    {
-        set_next( item.prev, item.next );
-        set_prev( item.next, item.prev );
-    }
-
-    constexpr void pop( const T* item ) const noexcept
-    {
-        pop( list( item ) );
-    }
-
-    constexpr intrusive_node<T> push( T* current, T* item ) const noexcept
-    {
-        const intrusive_node<T> root{ item, next( item ) };
-        set_next( root.prev, current );
-        set_prev( root.next, current );
-        return root;
-    }
-
-    template<class T>
-    constexpr bool is_unique( const T* item ) const noexcept
-    {
-        return item == next( item );
-    }
-};
-
-
-
+template<class T>
+constexpr intrusive_list_node<T> push(intrusive_list_member_ptr<T> list, T* current, T* item) noexcept
+{
+    const intrusive_list_node<T> root{ item, next(list, item) };
+    set_next(list, root.prev, current);
+    set_prev(list, root.next, current);
+    return root;
+}

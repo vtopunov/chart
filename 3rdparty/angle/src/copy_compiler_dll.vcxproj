@@ -217,12 +217,6 @@ if %errorlevel% neq 0 exit /b %errorlevel%</Command>
       <Outputs>$(OutDir)\d3dcompiler_47.dll</Outputs>
     </CustomBuild>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="copy_scripts.vcxproj">
-      <Project>{3A46013C-B640-778D-0A72-AD5B5DA3DDDD}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   <ImportGroup Label="ExtensionTargets" />

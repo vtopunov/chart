@@ -5,45 +5,19 @@
 #include <core/defs.h>
 
 template<class T>
-struct vec;
-
-template<class T>
-constexpr vec<T> min( vec<T> a, vec<T> b ) noexcept;
-
-template<class T>
-constexpr vec<T> max( vec<T> a, vec<T> b ) noexcept;
-
-namespace vec_private_detail
-{
-    template<class T>
-    constexpr T private_max( T a, T b ) noexcept
-    {
-        using std::max;
-        using ::max;
-        return max( a, b );
-    }
-
-    template<class T>
-    constexpr T private_min( T a, T b ) noexcept
-    {
-        using std::min;
-        using ::min;
-        return min( a, b );
-    }
-}
-
-template<class T>
 struct vec
 {
+    using value_type = T;
+
     T _0;
     T _1;
 
-    constexpr T get( std::index_sequence<0u> ) const noexcept
+    constexpr T get(std::index_sequence<0u>) const noexcept
     {
         return _0;
     }
 
-    constexpr T get( std::index_sequence<1u> ) const noexcept
+    constexpr T get(std::index_sequence<1u>) const noexcept
     {
         return _1;
     }
@@ -51,142 +25,124 @@ struct vec
     template<size_t index>
     constexpr T get() const noexcept
     {
-        return get( std::index_sequence<index>() );
+        return get(std::index_sequence<index>());
     }
 
-    constexpr T min() const noexcept
-    {
-        return vec_private_detail::private_min( _0, _1 );
-    }
+    constexpr bool operator == (const vec&) const noexcept = default;
 
-    constexpr T max() const noexcept
-    {
-        return vec_private_detail::private_max( _0, _1 );
-    }
-
-    constexpr T sum() const noexcept
-    {
-        return _0 + _1;
-    }
-
-    constexpr T difference() const noexcept
-    {
-        return _1 - _0;
-    }
-
-    constexpr T mean() const noexcept
-    {
-        return sum() / 2;
-    }
+    constexpr bool operator != (const vec&) const noexcept = default;
 };
 
 template<class T>
-constexpr vec<T> make_vec( T first, T second ) noexcept
+constexpr vec<T> make_vec(const T& first, const T& second) noexcept
 {
     return { first, second };
 }
 
 template<class T>
-constexpr vec<T> fill_vec( T value ) noexcept
+constexpr vec<T> fill_vec(const T& value) noexcept
 {
     return { value, value };
 }
 
 template<class T>
-constexpr vec<T> reverse( vec<T> v ) noexcept
+constexpr vec<T> reverse(const vec<T>& v) noexcept
 {
-    return make_vec( v._1, v._0 );
+    return make_vec(v._1, v._0);
 }
 
 template<class T>
-constexpr vec<T> operator - ( vec<T> rigth ) noexcept
+constexpr T sum(const vec<T>& v) noexcept
+{
+    return v._1 + v._0;
+}
+
+template<class T>
+constexpr T difference(const vec<T>& v) noexcept
+{
+    return v._1 - v._0;
+}
+
+template<class T>
+constexpr T mean(const vec<T>& v) noexcept
+{
+    return sum(v) / 2;
+}
+
+template<class T>
+constexpr vec<T> operator - (const vec<T>& rigth) noexcept
 {
     return { -rigth._0, -rigth._1 };
 }
 
 template<class T>
-constexpr vec<T> operator - ( vec<T> left, vec<T> right ) noexcept
+constexpr vec<T> operator - (const vec<T>& left, const vec<T>& right) noexcept
 {
     return { left._0 - right._0, left._1 - right._1 };
 }
 
 template<class T>
-constexpr vec<T> operator + ( vec<T> left, vec<T> right ) noexcept
+constexpr vec<T> operator + (const vec<T>& left, const vec<T>& right) noexcept
 {
     return { left._0 + right._0, left._1 + right._1 };
 }
 
 template<class T>
-constexpr vec<T> operator * ( vec<T> left, T right ) noexcept
+constexpr vec<T> operator * (const vec<T>& left, const T& right) noexcept
 {
     return { left._0 * right, left._1 * right };
 }
 
 template<class T>
-constexpr vec<T> operator * ( T left, vec<T> right ) noexcept
+constexpr vec<T> operator * (const T left, const vec<T>& right) noexcept
 {
     return right * left;
 }
 
 template<class T, class U>
-constexpr std::enable_if_t<std::is_arithmetic_v<U>, vec<T>>  operator / ( vec<T> left, U right ) noexcept
+constexpr std::enable_if_t<std::is_arithmetic_v<U>, vec<T>>  operator / (const vec<T>& left, const U& right) noexcept
 {
     return { left._0 / right, left._1 / right };
 }
 
+template<class T>
+constexpr vec<T> min(const vec<T>& a, const vec<T>& b) noexcept;
 
 template<class T>
-constexpr bool operator == ( vec<T> left, vec<T> right ) noexcept
+constexpr vec<T> max(const vec<T>& a, const vec<T>& b) noexcept;
+
+template<class T>
+constexpr T min(const vec<T>& v) noexcept
 {
-    return left._0 == right._0 && left._1 == right._1;
+    using std::min;
+    using ::min;
+    return min(v._0, v._1);
 }
 
 template<class T>
-constexpr bool operator != ( vec<T> left, vec<T> right ) noexcept
+constexpr T max(const vec<T>& v) noexcept
 {
-    return !( left == right );
+    using std::max;
+    using ::max;
+    return max(v._0, v._1);
 }
 
 template<class T>
-constexpr bool operator < ( vec<T> left, vec<T> right ) noexcept
-{
-    return left._0 < right._0 && left._1 < right._1;
-}
-
-template<class T>
-constexpr bool operator <= ( vec<T> left, vec<T> right ) noexcept
-{
-    return left < right || left == right;
-}
-
-template<class T>
-constexpr bool operator > ( vec<T> left, vec<T> right ) noexcept
-{
-    return left._0 > right._0 && left._1 > right._1;
-}
-
-template<class T>
-constexpr bool operator >= ( vec<T> left, vec<T> right ) noexcept
-{
-    return left > right || left == right;
-}
-
-template<class T>
-constexpr vec<T> min( vec<T> a, vec<T> b ) noexcept
+constexpr vec<T> min(const vec<T>& a, const vec<T>& b) noexcept
 {
     return
     {
-        vec<T>{ a._0, b._0 }.min(),
-        vec<T>{ a._1, b._1 }.min()
+        min(make_vec(a._0, b._0)),
+        min(make_vec(a._1, b._1))
     };
 }
 
 template<class T>
-constexpr vec<T> max( vec<T> a, vec<T> b ) noexcept
+constexpr vec<T> max(const vec<T>& a, const vec<T>& b) noexcept
 {
     return
     {
-        vec<T>{ a._0, b._0 }.max(),
-        vec<T>{ a._1, b._1 }.max()
+        max(make_vec(a._0, b._0)),
+        max(make_vec(a._1, b._1))
     };
 }

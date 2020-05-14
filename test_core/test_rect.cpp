@@ -9,7 +9,7 @@ void test_rect() noexcept
     constexpr auto max = make_point( 3, 5 );
     constexpr auto size = max - min;
     constexpr auto rc = make_rect( min, max );
-    constexpr auto rc_range = make_rect( r0, r1 );
+    constexpr auto rc_range = make_range_rect( r0, r1 );
     static_assert( rc == rc_range );
 
     static_assert( rc.diagonal.front() == min );
@@ -22,7 +22,7 @@ void test_rect() noexcept
     static_assert( rc.axis_range<axis_type::Y>() == r1 );
     static_assert( rc.x_axis_range() == r0 );
     static_assert( rc.y_axis_range() == r1 );
-    static_assert( rc.size() == size );
+    static_assert( rc.size().measures == size );
     static_assert( rc.width() == size.x() );
     static_assert( rc.height() == size.y() );
     static_assert( inverse_axis<axis_type::X>(rc).x_axis_range() == inverse(r0) );

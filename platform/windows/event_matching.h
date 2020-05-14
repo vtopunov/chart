@@ -4,6 +4,7 @@
 
 #include <platform/windows/defs.h>
 #include <platform/windows/event.h>
+#include <platform/windows/event_processor.h>
 
 namespace os_windows
 {
@@ -12,25 +13,27 @@ namespace os_windows
     {
         function_type function_;
 
-        constexpr event_result operator () (const event& e) noexcept
+        constexpr std::optional<event_result_t> operator () (const event& e) noexcept
         {
             switch (e.style())
             {
-                case event_style::close: return on_specialized_event<event_style::close>(e);
-                case event_style::timer: return on_specialized_event<event_style::timer>(e);
-                case event_style::mouse_move: return on_specialized_event<event_style::mouse_move>(e);
+                case event_style::size:             return on_specialized_event<event_style::size>(e);
+                case event_style::paint:            return on_specialized_event<event_style::paint>(e);
+                case event_style::close:            return on_specialized_event<event_style::close>(e);
+                case event_style::timer:            return on_specialized_event<event_style::timer>(e);
+                case event_style::mouse_move:       return on_specialized_event<event_style::mouse_move>(e);
             }
 
             return on_event(e);
         }
 
-        constexpr event_result on_event( const event& e ) noexcept
+        constexpr std::optional<event_result_t> on_event( const event& e ) noexcept
         {
             return match( e );
         }
 
         template<event_style style>
-        constexpr event_result on_specialized_event( const event& e ) noexcept
+        constexpr std::optional<event_result_t> on_specialized_event( const event& e ) noexcept
         {
             return match( *e.as<style>() );
         }
@@ -47,9 +50,9 @@ namespace os_windows
             {}
         };
 
-        constexpr event_result match(ignore) const noexcept
+        constexpr std::nullopt_t match(ignore) const noexcept
         {
-            return ignore_event_result;
+            return std::nullopt;
         }
     };
 

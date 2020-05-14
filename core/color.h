@@ -6,7 +6,7 @@ using color_byte_t = uint8_t;
 
 
 template<class T>
-constexpr color_byte_t real_to_color_byte(rational<T> real) noexcept
+constexpr color_byte_t real_to_color_byte(const rational<T>& real) noexcept
 {
     D_ASSERT(real <= 1_ur);
     return narrow_cast<color_byte_t>(to_integer(real * max_v<color_byte_t>));
@@ -78,13 +78,13 @@ struct color
     }
 
     template<class T>
-    constexpr color with_opacity(rational<T> opacity) const noexcept
+    constexpr color with_opacity(const rational<T>& opacity) const noexcept
     {
         return with_opacity(real_to_color_byte(opacity));
     }
 
     template<class T>
-    constexpr color with_transparency(rational<T> transparency) const noexcept
+    constexpr color with_transparency(const rational<T>& transparency) const noexcept
     {
         return with_transparency(real_to_color_byte(transparency));
     }
@@ -110,23 +110,23 @@ constexpr color operator "" _argb(unsigned long long argb) noexcept
     return color::from_argb(narrow_cast<argb_t>(argb));
 }
 
-struct byte_overflowcolor
+using color_byte_overflow_t = rational<ptrdiff_t>;
+
+struct byte_overflow_color
 {
-    using byte_overflow_type = rational<ptrdiff_t>;
+    color_byte_overflow_t blue{ 0 };
+    color_byte_overflow_t green{ 0 };
+    color_byte_overflow_t red{ 0 };
+    color_byte_overflow_t alpha{ 255 };
 
-    byte_overflow_type blue{ 0 };
-    byte_overflow_type green{ 0 };
-    byte_overflow_type red{ 0 };
-    byte_overflow_type alpha{ 255 };
+    constexpr byte_overflow_color() noexcept = default;
 
-    constexpr byte_overflowcolor() noexcept = default;
-
-    constexpr byte_overflowcolor
+    constexpr byte_overflow_color
     (
-        byte_overflow_type red_overflow, 
-        byte_overflow_type green_overflow, 
-        byte_overflow_type blue_overflow, 
-        byte_overflow_type alpha_overflow
+        color_byte_overflow_t red_overflow, 
+        color_byte_overflow_t green_overflow, 
+        color_byte_overflow_t blue_overflow, 
+        color_byte_overflow_t alpha_overflow
     ) noexcept
         : blue{ blue_overflow }
         , green{ green_overflow }
@@ -134,7 +134,7 @@ struct byte_overflowcolor
         , alpha{ alpha_overflow }
     {}
 
-    constexpr byte_overflowcolor(color color) noexcept
+    constexpr byte_overflow_color(color color) noexcept
         : blue{ color.blue }
         , green{ color.green }
         , red{ color.red }
@@ -143,7 +143,8 @@ struct byte_overflowcolor
 
     explicit constexpr operator color() const noexcept
     {
-        return color::from_argb(
+        return color::from_argb
+        (
             narrow_cast<color_byte_t>(alpha.to_integer()),
             narrow_cast<color_byte_t>(red.to_integer()),
             narrow_cast<color_byte_t>(green.to_integer()),
@@ -152,7 +153,7 @@ struct byte_overflowcolor
     }
 };
 
-constexpr byte_overflowcolor operator + (byte_overflowcolor left, byte_overflowcolor right) noexcept
+constexpr byte_overflow_color operator + (const byte_overflow_color& left, const byte_overflow_color& right) noexcept
 {
     return
     {
@@ -163,7 +164,7 @@ constexpr byte_overflowcolor operator + (byte_overflowcolor left, byte_overflowc
     };
 }
 
-constexpr byte_overflowcolor operator - (byte_overflowcolor left, byte_overflowcolor right) noexcept
+constexpr byte_overflow_color operator - (const byte_overflow_color& left, const byte_overflow_color& right) noexcept
 {
     return
     {
@@ -174,7 +175,7 @@ constexpr byte_overflowcolor operator - (byte_overflowcolor left, byte_overflowc
     };
 }
 
-constexpr byte_overflowcolor operator * (byte_overflowcolor left, rational_t right) noexcept
+constexpr byte_overflow_color operator * (const byte_overflow_color& left, const color_byte_overflow_t& right) noexcept
 {
     return
     {
@@ -185,12 +186,12 @@ constexpr byte_overflowcolor operator * (byte_overflowcolor left, rational_t rig
     };
 }
 
-constexpr byte_overflowcolor operator * (rational_t left, byte_overflowcolor right) noexcept
+constexpr byte_overflow_color operator * (const color_byte_overflow_t& left, const byte_overflow_color& right) noexcept
 {
     return right * left;
 }
 
-constexpr byte_overflowcolor operator / (byte_overflowcolor left, rational_t right) noexcept
+constexpr byte_overflow_color operator / (const byte_overflow_color& left, const color_byte_overflow_t& right) noexcept
 {
     return
     {

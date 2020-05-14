@@ -1,94 +1,225 @@
 #include "window.h"
 
-#include <core/unique_handle.h>
-#include <platform/windows/event_handler_container.h>
+#include <platform/windows/event_processors_container.h>
 
 namespace os_windows
 {
-    namespace
+    namespace native_window_system
     {
-        bool destroy_window(event_handler_container& handlers, const window_view window) noexcept
+        namespace
         {
-            if (handlers.erase(window))
+            class children_container
             {
-                const auto ok
-                    = DestroyWindow(window.handle) != FALSE;
-                D_ASSERT(ok);
-                return ok;
+            public:
+                using container_type = small_flat_map<const_window_handle_t, window_view, 6>;
+
+                void reset() noexcept
+                {
+                    map_.clear();
+                    map_.shrink_to_fit();
+                }
+
+                childrens_enumerator childrens(const_window_handle_t parent) const noexcept
+                {
+                    return
+                    {
+                        map_.lower_bound(parent),
+                        parent
+                    };
+                }
+
+                void close_childrens(const_window_handle_t parent) noexcept
+                {
+                    for ( ;;)
+                    {
+                        const auto childrens = map_.lower_bound(parent);
+
+                        if ( !starts_with_key(childrens, parent) )
+                        {
+                            break;
+                        }
+
+                        const auto children = childrens.first->value;
+                        map_.erase(childrens.first);
+                        close(children);
+                    }
+                }
+
+                void add(const_window_handle_t parent, window_view window) noexcept
+                {
+                    map_.force_insert(parent, window);
+                }
+
+            private:
+                container_type map_;
+            };
+
+            children_container& children_container_global() noexcept
+            {
+                static children_container map;
+                return map;
             }
 
-            return false;
+            rect_t make_rect(const RECT& rect) noexcept
+            {
+                return make_rect
+                (
+                    make_point
+                    (
+                        narrow_cast<pixel_t>( rect.left ),
+                        narrow_cast<pixel_t>( rect.top )
+                    ),
+                    make_point
+                    (
+                        narrow_cast<pixel_t>( rect.right ),
+                        narrow_cast<pixel_t>( rect.bottom )
+                    )
+                );
+            }
+
+            bool close(window_handle_t handle) noexcept
+            {
+                close_childrens(handle);
+                event_processors_container_global().erase(handle);
+                return !!DestroyWindow(handle);
+            }
+        }
+
+        void close_childrens(const_window_handle_t parent) noexcept
+        {
+            children_container_global().close_childrens(parent);
+        }
+
+        childrens_enumerator childrens(const_window_handle_t parent) noexcept
+        {
+            return children_container_global().childrens(parent);
+        }
+
+        rect_t client_rect(window_handle_t handle) noexcept
+        {
+            RECT rect{ 0, 0, 0, 0 };
+            GetClientRect(handle, &rect);
+            return make_rect(rect);
+        }
+
+        rect_t full_rect(window_handle_t handle) noexcept
+        {
+            RECT rect{ 0, 0, 0, 0 };
+            GetWindowRect(handle, &rect);
+            return make_rect(rect);
         }
     }
 
-    bool window::is_valid() const noexcept
+    void clear_global_state() noexcept
     {
-        const auto items = const_event_handler_container_global().find(window_);
+        native_window_system::children_container_global().reset();
+        event_processors_container_global().reset();
+    }
+
+    bool exist(window_view window) noexcept
+    {
+        const auto items = const_event_processors_container_global().find(window);
         return items.first != items.last;
     }
 
-    bool window::show(int cmd) const noexcept
+    bool show(window_view window, int cmd) noexcept
     {
-        D_ASSERT(is_valid());
-        return ShowWindow(window_.handle, cmd) != FALSE;
+        D_ASSERT(exist(window));
+        return !!ShowWindow(window.handle, cmd);
     }
 
-    bool window::update() const noexcept
+    bool update(window_view window) noexcept
     {
-        D_ASSERT(is_valid());
-        return UpdateWindow(window_.handle) != FALSE;
+        D_ASSERT(exist(window));
+        return !!UpdateWindow(window.handle);
     }
 
-    bool window::close() noexcept
+    bool close( window_view window) noexcept
     {
-        const auto self = std::exchange(*this, {});
-        return destroy_window(event_handler_container_global(), self.view());
-    }
-
-    safe_window create_window(window_info info) noexcept
-    {
-        safe_window result;
-
-        if (!info.type_)
+        if ( exist(window) )
         {
-            info.type_ = register_window_type({});
+            const bool ok = native_window_system::close(window.handle);
+            D_ASSERT(ok);
+            return ok;
         }
 
-        if (info.type_)
+        return false;
+    }
+
+    rect_t full_rect(window_view window) noexcept
+    {
+        D_ASSERT(exist(window));
+        return native_window_system::full_rect(window.handle);
+    }
+
+    rect_t client_rect(window_view window) noexcept
+    {
+        D_ASSERT(exist(window));
+        return native_window_system::client_rect(window.handle);
+    }
+
+    childrens_window_enumerator childrens(window_view window) noexcept
+    {
+        D_ASSERT(exist(window));
+        return native_window_system::childrens(window.handle);
+    }
+
+    safe_window window_factory::create() const noexcept
+    {
+        const auto has_parent = ( parent_.handle != nullptr );
+        D_ASSERT(!has_parent || exist(parent_));
+
+        safe_window result;
+
+        safe_window_type type{ type_ };
+
+        const auto style = ( style_.has_value() )
+            ? *style_
+            : static_cast<DWORD>( has_parent ? WS_VISIBLE | WS_CHILD : WS_OVERLAPPEDWINDOW );
+
+        if ( !type )
         {
-            const auto window_handle =
-                CreateWindowExW
-                (
-                    0,
-                    info.type_->name_id(),
-                    info.title_.c_str(),
-                    info.style_,
-                    info.x_,
-                    info.y_,
-                    info.width_,
-                    info.height_,
-                    nullptr,
-                    nullptr,
-                    info.type_->module_address(),
-                    nullptr
-                );
+            type = window_type_factory{}.create();
 
-            if (window_handle)
+            if ( !type )
             {
-                const auto root_event_hanlder_id = generate_event_handler_id();
+                return result;
+            }
+        }
 
-                result = make_shared_handle<window>(std::move(info.type_), window_view{ window_handle, root_event_hanlder_id });
+        const auto window_handle = CreateWindowExW
+        (
+            0,
+            type->name_id,
+            title_.c_str(),
+            style,
+            position_.x(),
+            position_.y(),
+            size_.width(),
+            size_.height(),
+            parent_.handle,
+            nullptr,
+            type->module_address,
+            nullptr
+        );
 
-                event_handler_container_global().replace
-                (
+        if ( window_handle )
+        {
+            native_window_system::close_childrens(window_handle);
+            event_processors_container_global().erase(window_handle);
+
+            result = make_shared_handle<native_window_system::window_data>(
+                window_view
+                {
                     window_handle,
-                    event_handler_item
-                    { 
-                        root_event_hanlder_id, 
-                        ignore_event_callback, 
-                        event_callback_state::ignored
-                    }
-                );
+                    event_processors_container_global().insert_root(window_handle)
+                },
+                std::move(type)
+            );
+
+            if ( has_parent )
+            {
+                native_window_system::children_container_global().add(parent_.handle, result);
             }
         }
 

@@ -254,10 +254,6 @@
     <ClCompile Include="windows\WindowsTimer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="angle_util_config.vcxproj">
-      <Project>{1FC2C7FC-A4BE-9A96-5DD8-2E4E5BAF73DA}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\src\angle_common.vcxproj">
       <Project>{7AB4B0C9-D974-3A65-ED87-61816B6917CB}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -268,10 +264,6 @@
     </ProjectReference>
     <ProjectReference Include="..\src\libGLESv2.vcxproj">
       <Project>{D5D676ED-C189-2A6B-8DE3-F4CA6175550F}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\src\copy_scripts.vcxproj">
-      <Project>{3A46013C-B640-778D-0A72-AD5B5DA3DDDD}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

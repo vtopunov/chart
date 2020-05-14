@@ -525,7 +525,7 @@ bool Win32Window::initialize(const std::string &name, size_t width, size_t heigh
     parentWindowClass.hInstance     = GetModuleHandle(nullptr);
     parentWindowClass.hIcon         = nullptr;
     parentWindowClass.hCursor       = LoadCursorA(nullptr, idcArrow);
-    parentWindowClass.hbrBackground = 0;
+    parentWindowClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
     parentWindowClass.lpszMenuName  = nullptr;
     parentWindowClass.lpszClassName = mParentClassName.c_str();
     if (!RegisterClassExA(&parentWindowClass))
@@ -542,7 +542,7 @@ bool Win32Window::initialize(const std::string &name, size_t width, size_t heigh
     childWindowClass.hInstance     = GetModuleHandle(nullptr);
     childWindowClass.hIcon         = nullptr;
     childWindowClass.hCursor       = LoadCursorA(nullptr, idcArrow);
-    childWindowClass.hbrBackground = 0;
+    childWindowClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
     childWindowClass.lpszMenuName  = nullptr;
     childWindowClass.lpszClassName = mChildClassName.c_str();
     if (!RegisterClassExA(&childWindowClass))
@@ -816,15 +816,6 @@ void Win32Window::setVisible(bool isVisible)
 void Win32Window::pushEvent(Event event)
 {
     OSWindow::pushEvent(event);
-
-    switch (event.Type)
-    {
-        case Event::EVENT_RESIZED:
-            MoveWindow(mNativeWindow, 0, 0, mWidth, mHeight, FALSE);
-            break;
-        default:
-            break;
-    }
 }
 
 void Win32Window::signalTestEvent()

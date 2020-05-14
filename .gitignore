@@ -344,3 +344,4 @@ GeneratedFiles
 /Debug_x64/lib/*.lib
 /Debug_x64/*.dll
 /Debug_x64/lib/*.exp
+/Debug_x64

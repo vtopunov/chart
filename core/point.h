@@ -24,94 +24,68 @@ struct point
     {
         return position.get<underlying_cast<size_t>( axis )>();
     }
+
+    constexpr bool operator == (const point&) const noexcept = default;
+
+    constexpr bool operator != (const point&) const noexcept = default;
 };
 
 template<class T>
-constexpr point<T> make_point( T x, T y ) noexcept
+constexpr point<T> make_point(vec<T> v) noexcept
 {
-    return { { x, y } };
+    return { v };
 }
 
 template<class T>
-constexpr point<T> operator - (point<T> v) noexcept
+constexpr point<T> make_point(const T& x, const T& y) noexcept
+{
+    return make_point(make_vec(x, y));
+}
+
+template<class T>
+constexpr point<T> operator - (const point<T>& v) noexcept
 {
     return { -v.position };
 }
 
 template<class T>
-constexpr point<T> operator - (point<T> left, point<T> right) noexcept
+constexpr point<T> operator - (const point<T>& left, const point<T>& right) noexcept
 {
     return { left.position - right.position };
 }
 
 template<class T>
-constexpr point<T> operator + ( point<T> left, point<T> right ) noexcept
+constexpr point<T> operator + (const point<T>& left, const point<T>& right ) noexcept
 {
     return { left.position + right.position };
 }
 
 template<class T>
-constexpr point<T> operator * (point<T> left, T right) noexcept
+constexpr point<T> operator * (const point<T>& left, const T& right) noexcept
 {
     return { left.position * right };
 }
 
 template<class T>
-constexpr point<T> operator * (T left, point<T> right) noexcept
+constexpr point<T> operator * (const T& left, const point<T>& right) noexcept
 {
     return right * left;
 }
 
 template<class T, class U>
-constexpr std::enable_if_t<std::is_arithmetic_v<U>, point<T>> operator / (point<T> left, U right) noexcept
+constexpr std::enable_if_t<std::is_arithmetic_v<U>, point<T>> operator / (const point<T>& left, const U& right) noexcept
 {
     return { left.position / right };
 }
 
 template<class T>
-constexpr bool operator == (point<T> left, point<T> right) noexcept
-{
-    return left.position == right.position;
-}
-
-template<class T>
-constexpr bool operator != (point<T> left, point<T> right) noexcept
-{
-    return !( left == right );
-}
-
-template<class T>
-constexpr bool operator < (point<T> left, point<T> right) noexcept
-{
-    return left.position < right.position;
-}
-
-template<class T>
-constexpr bool operator <= (point<T> left, point<T> right) noexcept
-{
-    return left.position <= right.position;
-}
-
-template<class T>
-constexpr bool operator > (point<T> left, point<T> right) noexcept
-{
-    return left.position > right.position;
-}
-
-template<class T>
-constexpr bool operator >= (point<T> left, point<T> right) noexcept
-{
-    return left.position >= right.position;
-}
-
-template<class T>
-constexpr point<T> min(point<T> a, point<T> b) noexcept
+constexpr point<T> min(const point<T>& a, const point<T>& b) noexcept
 {
     return { min( a.position, b.position ) };
 }
 
 template<class T>
-constexpr point<T> max(point<T> a, point<T> b) noexcept
+constexpr point<T> max(const point<T>& a, const point<T>& b) noexcept
 {
     return { max( a.position, b.position ) };
 }

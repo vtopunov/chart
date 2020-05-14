@@ -6,29 +6,29 @@ struct event_visitor
 {
     event_style style{ event_style::null };
 
-    LRESULT operator () (const event& e) noexcept
+    event_result_t operator () (const event& e) noexcept
     {
         D_ASSERT(style == event_style::null);
         style = event_style::user;
         return 0;
     }
 
-    LRESULT operator () (const timer_event& e) noexcept
+    event_result_t operator () (const timer_event& e) noexcept
     {
         return set_event<event_style::timer>(e);
     }
 
-    LRESULT operator () (const mouse_move_event& e) noexcept
+    event_result_t operator () (const mouse_move_event& e) noexcept
     {
         return set_event<event_style::mouse_move>(e);
     }
 
     template<event_style specialization_style>
-    LRESULT set_event(const specialized_event<specialization_style>& e) noexcept
+    event_result_t set_event(const specialized_event<specialization_style>& e) noexcept
     {
         D_ASSERT(style == event_style::null && e.style() == specialization_style);
         style = specialization_style;
-        return 0;
+        return 0L;
     }
 };
 
@@ -36,24 +36,29 @@ struct event_visitor_without_on_event
 {
     event_style style{ event_style::null };
 
-    LRESULT operator () (const timer_event& e) noexcept
+    event_result_t operator () (const timer_event& e) noexcept
     {
         return set_event<event_style::timer>(e);
     }
 
-    LRESULT operator () (const mouse_move_event& e) noexcept
+    event_result_t operator () (const mouse_move_event& e) noexcept
     {
         return set_event<event_style::mouse_move>(e);
     }
 
     template<event_style specialization_style>
-    LRESULT set_event(const specialized_event<specialization_style>& e) noexcept
+    event_result_t set_event(const specialized_event<specialization_style>& e) noexcept
     {
         D_ASSERT(style == event_style::null && e.style() == specialization_style);
         style = specialization_style;
-        return 0;
+        return 0L;
     }
 };
+
+constexpr event make_dummy_event(event_style style) noexcept
+{
+    return { null_window, 0u, 0L, style };
+}
 
 void test_event_matching() noexcept
 {
@@ -64,14 +69,14 @@ void test_event_matching() noexcept
         auto check_matching = [&matching, &visitor](event_style style)
         {
             visitor.style = event_style::null;
-            matching(event{ 0, style, 0, 0 });
+            matching(make_dummy_event(style));
             D_ASSERT(visitor.style == style);
         };
 
         auto check_matching_not_found = [&matching, &visitor](event_style style)
         {
             visitor.style = event_style::null;
-            matching(event{ 0, style, 0, 0 });
+            matching(make_dummy_event(style));
             D_ASSERT(visitor.style == event_style::user);
         };
 
@@ -88,14 +93,14 @@ void test_event_matching() noexcept
         auto check_matching = [&matching, &visitor](event_style style)
         {
             visitor.style = event_style::null;
-            matching(event{ 0, style, 0, 0 });
+            matching(make_dummy_event(style));
             D_ASSERT(visitor.style == style);
         };
 
         auto check_matching_not_found = [&matching, &visitor](event_style style)
         {
             visitor.style = event_style::null;
-            matching(event{ 0, style, 0, 0 });
+            matching(make_dummy_event(style));
             D_ASSERT(visitor.style == event_style::null);
         };
 

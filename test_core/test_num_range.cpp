@@ -4,8 +4,8 @@
 void test_num_range() noexcept
 {
     constexpr auto range = make_num_range( 1, 3 );
-    static_assert( range.min() == 1 );
-    static_assert( range.max() == 3 );
+    static_assert( min(range) == 1 );
+    static_assert( max(range) == 3 );
     static_assert( range.front() == 1 );
     static_assert( range.back() == 3 );
     static_assert( !range.includes( 0 ) );
@@ -16,8 +16,8 @@ void test_num_range() noexcept
 
     {
         constexpr auto inverse_range = inverse(range);
-        static_assert( inverse_range.min() == 1 );
-        static_assert( inverse_range.max() == 3 );
+        static_assert( min(inverse_range) == 1 );
+        static_assert( max(inverse_range) == 3 );
         static_assert( inverse_range.front() == 3 );
         static_assert( inverse_range.back() == 1 );
     }

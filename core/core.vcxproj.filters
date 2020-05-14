@@ -11,10 +11,8 @@
     <ClInclude Include="intrusive_list.h" />
     <ClInclude Include="lerp.h" />
     <ClInclude Include="member_detector.h" />
-    <ClInclude Include="math_constants.h" />
     <ClInclude Include="narrow_cast.h" />
     <ClInclude Include="num_range.h" />
-    <ClInclude Include="object.h" />
     <ClInclude Include="point.h" />
     <ClInclude Include="polynom.h" />
     <ClInclude Include="rational.h" />
@@ -23,18 +21,12 @@
     <ClInclude Include="span.h" />
     <ClInclude Include="underlying_cast.h" />
     <ClInclude Include="vec.h" />
-    <ClInclude Include="private\handle_private.h">
-      <Filter>private</Filter>
-    </ClInclude>
-    <ClInclude Include="unique_handle.h" />
-    <ClInclude Include="shared_handle.h" />
+    <ClInclude Include="zstring_view.h" />
+    <ClInclude Include="small_vector.h" />
+    <ClInclude Include="unique_function.h" />
+    <ClInclude Include="handle.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="buffer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="private">
-      <UniqueIdentifier>{c192de11-5b47-4267-abc0-5ad2743e7b8b}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
 </Project>

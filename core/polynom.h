@@ -11,7 +11,7 @@ struct polynom
 
     vec<CoefficientsType> coefficients;
 
-    constexpr result_type operator () (argument_type argument) const noexcept // refactoring
+    constexpr result_type operator () (argument_type argument) const noexcept
     {
         return narrow_cast<result_type>( coefficients._1 * argument + coefficients._0 );
     }

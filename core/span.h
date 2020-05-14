@@ -13,31 +13,34 @@ template <class T>
 class span
 {
 public:
-    using value_type             = T;
-    using pointer                = T*;
-    using const_pointer          = const T*;
-    using reference              = T&;
-    using const_reference        = const T&;
-    using iterator               = pointer;
-    using const_iterator         = const_pointer;
-    using reverse_iterator       = std::reverse_iterator<iterator>;
+    using value_type = T;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using reference = T&;
+    using const_reference = const T&;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+    using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    using size_type              = size_t;
-    using difference_type        = ptrdiff_t;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
 
-    constexpr span() noexcept = default;
+    constexpr span() noexcept
+        : data_{ nullptr }
+        , size_{ 0u }
+    {}
 
-    constexpr span( pointer data, size_type size ) noexcept
+    constexpr span(pointer data, size_type size) noexcept
         : data_{ data }
         , size_{ size }
     {
-        D_ASSERT( data || !size );
-        D_ASSERT( size <= max_size() );
+        D_ASSERT(data || !size);
+        D_ASSERT(size <= max_size());
     }
 
-    template<class Container, class = decltype( std::data( std::declval<Container>() ) ), class = decltype( std::size( std::declval<Container>() ) )>
-    constexpr span( Container& c ) noexcept
-        : span{ std::data( c ), narrow_cast<size_type>( std::size( c ) ) }
+    template<class Container, class = decltype(std::data(std::declval<Container>())), class = decltype(std::size(std::declval<Container>()))>
+    constexpr span(Container& c) noexcept
+        : span{ std::data(c), narrow_cast<size_type>(std::size(c)) }
     {}
 
     constexpr iterator begin() const noexcept
@@ -85,16 +88,6 @@ public:
         return size_;
     }
 
-    constexpr size_type length() const noexcept
-    {
-        return size_;
-    }
-
-    constexpr bool empty() const noexcept
-    {
-        return !size_;
-    }
-
     constexpr pointer data() const noexcept
     {
         return data_;
@@ -102,86 +95,42 @@ public:
 
     constexpr const_pointer cdata() const noexcept
     {
-        return data();
+        return data_;
     }
 
-    constexpr reference value( size_type index ) const noexcept
+    constexpr reference value(size_type index) const noexcept
     {
-        D_ASSERT( index < size_ );
         return data_[index];
     }
 
-    constexpr reference operator[]( size_type index ) const noexcept
+    constexpr reference operator[](size_type index) const noexcept
     {
-        return value( index );
+        return value(index);
     }
 
     constexpr reference front() const noexcept
     {
-        return value( 0u );
+        return value(0u);
     }
 
     constexpr reference back() const noexcept
     {
-        return value( size_ - 1u );
+        return value(size_ - 1u);
     }
 
-    constexpr span left( size_type size ) const noexcept
+    constexpr span prefix(size_type size) const noexcept
     {
-        D_ASSERT( size <= size_ );
         return { data_, size };
     }
 
-    constexpr span right( size_type size ) const noexcept
+    constexpr span sub(size_type pos, size_type size) const noexcept
     {
-        D_ASSERT( size <= size_ );
-        return { data_ + size_ - size, size };
-    }
-
-    constexpr span mid( size_type pos, size_type size ) const noexcept
-    {
-        D_ASSERT( pos <= size_ );
-        D_ASSERT( size <= ( size_ - pos ) );
         return { data_ + pos, size };
     }
 
-    constexpr span suffix( size_type size ) const noexcept
+    constexpr span suffix(size_type size) const noexcept
     {
-        return right( size );
-    }
-
-    constexpr span prefix( size_type size ) const noexcept
-    {
-        return left( size );
-    }
-
-    constexpr span sub( size_type pos, size_type size ) const noexcept
-    {
-        return mid( pos, size );
-    }
-
-    constexpr span remove_prefix( size_type size ) const noexcept
-    {
-        D_ASSERT( size <= size_ );
-        return { data_ + size, size_ - size };
-    }
-
-    constexpr span remove_suffix( size_type size ) const noexcept
-    {
-        D_ASSERT( size <= size_ );
-        return { data_, size_ - size };
-    }
-
-    constexpr span extend_prefix(size_type size) const noexcept
-    {
-        D_ASSERT(size <= max_size() - size_);
-        return { data_ - size, size_ + size };
-    }
-
-    constexpr span extend_suffix(size_type size) const noexcept
-    {
-        D_ASSERT(size <= max_size() - size_);
-        return { data_, size_ + size };
+        return { data_ + size_ - size, size };
     }
 
     constexpr span<std::add_const_t<value_type>> cspan() const noexcept
@@ -190,13 +139,13 @@ public:
     }
 
     static constexpr size_type max_size() noexcept
-    { 
-        return narrow_cast<size_type>( (std::numeric_limits<difference_type>::max)() );
+    {
+        return narrow_cast<size_type>((std::numeric_limits<difference_type>::max)());
     }
 
 private:
-    pointer data_{};
-    size_type size_{};
+    pointer data_;
+    size_type size_;
 };
 
 #pragma warning(pop)

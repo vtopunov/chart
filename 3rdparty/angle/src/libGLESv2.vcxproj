@@ -269,10 +269,6 @@
       <Project>{7642CFD5-F187-3E3F-F8FF-859949B9F13E}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="copy_scripts.vcxproj">
-      <Project>{3A46013C-B640-778D-0A72-AD5B5DA3DDDD}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="angle_image_util.vcxproj">
       <Project>{2C440506-61D0-D32C-EB09-EE8639551197}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

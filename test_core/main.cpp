@@ -10,6 +10,7 @@ extern void test_rational() noexcept;
 extern void test_color() noexcept;
 extern void test_lerp_color() noexcept;
 extern void test_handle() noexcept;
+extern void test_small_vector() noexcept;
 extern void test_small_flat_map() noexcept;
 extern void test_buffer() noexcept;
 
@@ -26,6 +27,7 @@ int main() noexcept
     test_color();
     test_lerp_color();
     test_handle();
+    test_small_vector();
     test_small_flat_map();
     test_buffer();
 }

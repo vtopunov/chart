@@ -1,7 +1,5 @@
 #pragma once
 
-#include <compare>
-
 #include <core/defs.h>
 #include <core/span.h>
 
@@ -9,19 +7,17 @@ template<class T>
 class rational
 {
 public:
-    using Unsigned = std::make_unsigned_t<T>;
-
     constexpr rational() noexcept = default;
 
-    constexpr rational( T integer ) noexcept
-        : num_{ integer }
+    constexpr rational(T integer) noexcept
+        : num_{ std::move(integer) }
     {}
 
-    constexpr rational( T num_part, Unsigned den_part ) noexcept
-        : num_{ num_part }
-        , den_{ den_part }
+    constexpr rational(T num_part, T den_part) noexcept
+        : num_{ std::move(num_part) }
+        , den_{ std::move(den_part) }
     {
-        D_ASSERT( den_ );
+        D_ASSERT(den_);
     }
 
     constexpr T num() const noexcept
@@ -29,7 +25,7 @@ public:
         return num_;
     }
 
-    constexpr Unsigned den() const noexcept
+    constexpr T den() const noexcept
     {
         return den_;
     }
@@ -39,23 +35,26 @@ public:
         return num_ / den_;
     }
 
-    static constexpr rational<T> from_string( span<const char> string ) noexcept;
+    static constexpr rational<T> from_string(span<const char> string) noexcept;
+
+    constexpr bool operator == (const rational&) const noexcept = default;
+    constexpr bool operator != (const rational&) const noexcept = default;
 
 private:
     T num_{};
-    Unsigned den_{ 1u };
+    T den_{ 1u };
 };
 
 template<class T>
-constexpr std::enable_if_t< std::is_signed_v<T>, rational<T> > operator - ( rational<T> left ) noexcept
+constexpr std::enable_if_t<std::is_signed_v<T>, rational<T>> operator - (const rational<T>& left) noexcept
 {
     return { -left.num(), left.den() };
 }
 
 template<class T>
-constexpr rational<T> operator + ( rational<T> left, rational<T> right ) noexcept
+constexpr rational<T> operator + (const rational<T>& left, const rational<T>& right) noexcept
 {
-    const auto gcd = std::gcd( left.den(), right.den() );
+    const auto gcd = std::gcd(left.den(), right.den());
     const auto mul_left = right.den() / gcd;
     const auto mul_right = left.den() / gcd;
 
@@ -67,7 +66,12 @@ constexpr rational<T> operator + ( rational<T> left, rational<T> right ) noexcep
 }
 
 template<class T, class U>
-constexpr std::enable_if_t < std::is_integral_v<U>, rational< std::common_type_t<T, U> > > operator + ( rational<T> left, U right ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_integral_v<U>,
+    rational<std::common_type_t<T, U>>
+>
+operator + (const rational<T>& left, const U& right) noexcept
 {
     return
     {
@@ -77,34 +81,54 @@ constexpr std::enable_if_t < std::is_integral_v<U>, rational< std::common_type_t
 }
 
 template<class T, class U>
-constexpr std::enable_if_t < std::is_integral_v<U>, rational< std::common_type_t<T, U> > > operator + ( U left, rational<T> right ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_integral_v<U>,
+    rational<std::common_type_t<T, U>>
+>
+operator + (const U& left, const rational<T>& right) noexcept
 {
     return right + left;
 }
 
 template<class T, class U>
-constexpr std::enable_if_t < std::is_integral_v<U> && std::is_signed_v<U> && std::is_signed_v<T>, rational< std::common_type_t<T, U> > > operator - ( rational<T> left, U right ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_integral_v<U> && std::is_signed_v<U> && std::is_signed_v<T>,
+    rational<std::common_type_t<T, U>>
+>
+operator - (const rational<T>& left, const U& right) noexcept
 {
     return left + ( -right );
 }
 
 template<class T, class U>
-constexpr std::enable_if_t < std::is_integral_v<U> && std::is_signed_v<U> && std::is_signed_v<T>, rational< std::common_type_t<T, U> > > operator - ( U left, rational<T> right ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_integral_v<U> && std::is_signed_v<U> && std::is_signed_v<T>,
+    rational<std::common_type_t<T, U>>
+>
+operator - (const U& left, const rational<T>& right) noexcept
 {
     return left + ( -right );
 }
 
 template<class T>
-constexpr std::enable_if_t < std::is_signed_v<T>, rational<T> > operator - ( rational<T> left, rational<T> right ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_signed_v<T>,
+    rational<T>
+>
+operator - (const rational<T>& left, const rational<T>& right) noexcept
 {
     return left + ( -right );
 }
 
 template<class T>
-constexpr rational<T> operator * ( rational<T> left, rational<T> right ) noexcept
+constexpr rational<T> operator * (const rational<T>& left, const rational<T>& right) noexcept
 {
-    const auto gcd_left = std::gcd( left.num(), right.den() );
-    const auto gcd_right = std::gcd( right.num(), left.den() );
+    const auto gcd_left = std::gcd(left.num(), right.den());
+    const auto gcd_right = std::gcd(right.num(), left.den());
 
     return
     {
@@ -114,7 +138,12 @@ constexpr rational<T> operator * ( rational<T> left, rational<T> right ) noexcep
 }
 
 template<class T, class U>
-constexpr std::enable_if_t< std::is_integral_v<U>, rational<std::common_type_t<T, U>> > operator * ( rational<T> left, U right ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_integral_v<U>,
+    rational<std::common_type_t<T, U>>
+>
+operator * (const rational<T>& left, const U& right) noexcept
 {
     return
     {
@@ -124,24 +153,39 @@ constexpr std::enable_if_t< std::is_integral_v<U>, rational<std::common_type_t<T
 }
 
 template<class T, class U>
-constexpr std::enable_if_t < std::is_integral_v<U>, rational<std::common_type_t<T, U>> > operator * ( U left, rational<T> right ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_integral_v<U>,
+    rational<std::common_type_t<T, U>>
+>
+operator * (const U& left, const rational<T>& right) noexcept
 {
     return right * left;
 }
 
 template<class T, class U>
-constexpr std::enable_if_t<std::is_integral_v<U> && std::is_signed_v<T> && std::is_signed_v<U>, rational<std::common_type_t<T, U>> > operator / ( rational<T> left, U right ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_integral_v<U> && std::is_signed_v<T> && std::is_signed_v<U>,
+    rational<std::common_type_t<T, U>>
+>
+operator / (const rational<T>& left, const U& right) noexcept
 {
     const auto is_sign = right < 0;
     return
     {
-        (is_sign) ? -left.num() : left.num(),
-        left.den() * to_unsingned( (is_sign) ? -right : right )
+        ( is_sign ) ? -left.num() : left.num(),
+        left.den() * ( ( is_sign ) ? -right : right )
     };
 }
 
 template<class T, class U>
-constexpr std::enable_if_t<std::is_integral_v<U> && std::is_unsigned_v<T> && std::is_unsigned_v<U>, rational<std::common_type_t<T, U>> > operator / ( rational<T> left, U right ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_integral_v<U> && std::is_unsigned_v<T> && std::is_unsigned_v<U>, 
+    rational<std::common_type_t<T, U>> 
+> 
+operator / (const rational<T>& left, const U& right) noexcept
 {
     return
     {
@@ -152,41 +196,55 @@ constexpr std::enable_if_t<std::is_integral_v<U> && std::is_unsigned_v<T> && std
 
 
 template<class T>
-constexpr std::enable_if_t< std::is_signed_v<T>, rational<T> > inverse( rational<T> value ) noexcept
+constexpr std::enable_if_t
+< 
+    std::is_signed_v<T>, 
+    rational<T> 
+> 
+inverse(const rational<T>& value) noexcept
 {
-    const auto signed_den = to_singned( value.den() );
     const auto with_negative = value.num() < 0;
 
     return
     {
-        with_negative ? -signed_den : signed_den,
-        to_unsingned( with_negative ? -value.num() : value.num() )
+        with_negative ? -value.den() : value.den(),
+        with_negative ? -value.num() : value.num()
     };
 }
 
 template<class T>
-constexpr std::enable_if_t<std::is_unsigned_v<T>, rational<T>> inverse( rational<T> value ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_unsigned_v<T>, 
+    rational<T>
+> 
+inverse(const rational<T>& value) noexcept
 {
     return { value.den(), value.num() };
 }
 
 
 template<class T>
-constexpr rational<T> operator / ( rational<T> left, rational<T> right ) noexcept
+constexpr rational<T> operator / (const rational<T>& left, const rational<T>& right) noexcept
 {
-    return left * inverse( right );
+    return left * inverse(right);
 }
 
 template<class T, class U>
-constexpr std::enable_if_t<std::is_integral_v<U>, rational<std::common_type_t<T, U>> > operator / ( U left, rational<T> right ) noexcept
+constexpr std::enable_if_t
+<
+    std::is_integral_v<U>, 
+    rational<std::common_type_t<T, U>> 
+> 
+operator / (const U& left, const rational<T>& right) noexcept
 {
-    return left * inverse( right );
+    return left * inverse(right);
 }
 
 template<class T>
-constexpr rational<T> simplify( rational<T> value ) noexcept
+constexpr rational<T> simplify(const rational<T>& value) noexcept
 {
-    const auto gcd = std::gcd( value.num(), value.den() );
+    const auto gcd = std::gcd(value.num(), value.den());
     return
     {
         value.num() / narrow_cast<T>( gcd ),
@@ -195,27 +253,15 @@ constexpr rational<T> simplify( rational<T> value ) noexcept
 }
 
 template<class T>
-constexpr T to_integer( rational<T> value ) noexcept
+constexpr T to_integer(const rational<T>& value) noexcept
 {
     return value.to_integer();
 }
 
 template<class T>
-constexpr bool operator == ( rational<T> left, rational<T> right ) noexcept
+constexpr bool operator < (const rational<T>& left, const rational<T>& right) noexcept
 {
-    return left.num() == right.num() && left.den() == right.den();
-}
-
-template<class T>
-constexpr bool operator != ( rational<T> left, rational<T> right ) noexcept
-{
-    return !( left == right );
-}
-
-template<class T>
-constexpr bool operator < ( rational<T> left, rational<T> right ) noexcept
-{
-    const auto gcd = std::gcd( left.den(), right.den() );
+    const auto gcd = std::gcd(left.den(), right.den());
     const auto mul_left = right.den() / gcd;
     const auto mul_right = left.den() / gcd;
 
@@ -223,29 +269,29 @@ constexpr bool operator < ( rational<T> left, rational<T> right ) noexcept
 }
 
 template<class T>
-constexpr bool operator <= ( rational<T> left, rational<T> right ) noexcept
+constexpr bool operator <= (const rational<T>& left, const rational<T>& right) noexcept
 {
     return left == right || left < right;
 }
 
 template<class T>
-constexpr bool operator > ( rational<T> left, rational<T> right ) noexcept
+constexpr bool operator > (const rational<T>& left, const rational<T>& right) noexcept
 {
     return right < left;
 }
 
 template<class T>
-constexpr bool operator >= ( rational<T> left, rational<T> right ) noexcept
+constexpr bool operator >= (const rational<T>& left, const rational<T>& right) noexcept
 {
     return left == right || left > right;
 }
 
 template<class T>
-constexpr rational<T> rational<T>::from_string( span<const char> string ) noexcept
+constexpr rational<T> rational<T>::from_string(span<const char> string) noexcept
 {
     constexpr T max = std::numeric_limits<T>::max();
 
-    constexpr auto is_digit = [](char c) noexcept
+    constexpr auto is_digit = [] (char c) noexcept
     {
         return c >= '0' && c <= '9';
     };
@@ -256,7 +302,7 @@ constexpr rational<T> rational<T>::from_string( span<const char> string ) noexce
 
     for ( const auto c : string )
     {
-        if ( !is_digit( c ) )
+        if ( !is_digit(c) )
         {
             if constexpr ( std::is_signed_v<T> )
             {
@@ -272,7 +318,7 @@ constexpr rational<T> rational<T>::from_string( span<const char> string ) noexce
                 continue;
             }
 
-            D_ASSERT( !"invalid char" );
+            D_ASSERT(!"invalid char");
             return r;
         }
 
@@ -280,7 +326,7 @@ constexpr rational<T> rational<T>::from_string( span<const char> string ) noexce
 
         if ( ( r.num() > ( max - digit ) / 10 ) || ( r.den() > max / 10 ) )
         {
-            D_ASSERT( !"integer overflow" );
+            D_ASSERT(!"integer overflow");
             if ( isdot )
             {
                 break;
@@ -310,19 +356,19 @@ constexpr rational<T> rational<T>::from_string( span<const char> string ) noexce
         }
     }
 
-    return simplify( r );
+    return simplify(r);
 }
 
 template<char ... String>
 constexpr rational<ptrdiff_t> operator"" _r() noexcept
 {
     constexpr char string[] = { String... };
-    return rational<ptrdiff_t>::from_string( string );
+    return rational<ptrdiff_t>::from_string(string);
 }
 
 template<char ... String>
 constexpr rational<size_t> operator"" _ur() noexcept
 {
     constexpr char string[] = { String... };
-    return rational<size_t>::from_string( string );
+    return rational<size_t>::from_string(string);
 }

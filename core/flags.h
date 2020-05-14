@@ -34,6 +34,5 @@ constexpr flags<enum_type> operator | ( flags<enum_type> left, enum_type right )
 template<class enum_type>
 constexpr flags<enum_type> operator | ( enum_type left, flags<enum_type> right ) noexcept
 {
-    return { underlying_cast<enum_type>( to_underlying( left ) | to_underlying( right.value ) ) };
+    return right | left;
 }
-

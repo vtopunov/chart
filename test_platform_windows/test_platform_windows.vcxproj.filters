@@ -21,7 +21,7 @@
     <ClCompile Include="test_event_matching.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test_event_handler.cpp">
+    <ClCompile Include="test_event_processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
