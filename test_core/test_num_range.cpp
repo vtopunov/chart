@@ -3,7 +3,10 @@
 
 void test_num_range() noexcept
 {
-    constexpr auto range = make_num_range( 1, 3 );
+    static_assert( std::is_trivial_v<num_range<int>> && std::is_standard_layout_v<num_range<int>> );
+
+    constexpr num_range range{1, 3};
+
     static_assert( min(range) == 1 );
     static_assert( max(range) == 3 );
     static_assert( range.front() == 1 );

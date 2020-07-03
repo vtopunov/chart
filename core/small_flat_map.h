@@ -104,7 +104,7 @@ public:
         return left_by_key(lower_bound(key), key);
     }
 
-    const_iterator find(key_view key) const noexcept
+    constexpr const_iterator find(key_view key) const noexcept
     {
         const auto range = lower_bound(key);
         return starts_with_key(range, key) ? range.first : range.last;

@@ -60,21 +60,21 @@ namespace os_windows
                 return map;
             }
 
-            rect_t make_rect(const RECT& rect) noexcept
+            rect_t make_rect_from_gdi(const RECT& rect) noexcept
             {
-                return make_rect
-                (
-                    make_point
-                    (
+                return
+                {
+                    point_t
+                    {
                         narrow_cast<pixel_t>( rect.left ),
                         narrow_cast<pixel_t>( rect.top )
-                    ),
-                    make_point
-                    (
+                    },
+                    point_t
+                    {
                         narrow_cast<pixel_t>( rect.right ),
                         narrow_cast<pixel_t>( rect.bottom )
-                    )
-                );
+                    }
+                };
             }
 
             bool close(window_handle_t handle) noexcept
@@ -99,14 +99,14 @@ namespace os_windows
         {
             RECT rect{ 0, 0, 0, 0 };
             GetClientRect(handle, &rect);
-            return make_rect(rect);
+            return make_rect_from_gdi(rect);
         }
 
         rect_t full_rect(window_handle_t handle) noexcept
         {
             RECT rect{ 0, 0, 0, 0 };
             GetWindowRect(handle, &rect);
-            return make_rect(rect);
+            return make_rect_from_gdi(rect);
         }
     }
 

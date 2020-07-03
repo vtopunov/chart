@@ -277,18 +277,6 @@
       <Project>{FA592B99-A032-6FBC-4F31-3E45774A1EDA}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="libANGLE_d3d11_config.vcxproj">
-      <Project>{57490695-C394-29E7-0E4F-90A06C9B8B9A}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="libANGLE_renderer_config.vcxproj">
-      <Project>{D1888003-E946-0409-A84B-2643C9A46B76}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="copy_compiler_dll.vcxproj">
-      <Project>{47A3E249-4072-CEAC-C824-93730F91967A}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />

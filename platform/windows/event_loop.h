@@ -1,6 +1,10 @@
 #pragma once
 
-#include <platform/windows/config.h>
+#include <chrono>
+
+#include <core/vec.h>
+
+#include <platform/windows/defs.h>
 
 namespace os_windows
 {
@@ -32,7 +36,7 @@ namespace os_windows
         {
 #pragma warning(push)
 #pragma warning(disable : 26472) // Don't use static_cast for arithmetic conversions
-            return static_cast<int>(msg.wParam);
+            return static_cast<int>( msg.wParam );
 #pragma warning(pop)
         }
 
@@ -40,37 +44,41 @@ namespace os_windows
         MSG msg{};
     };
 
-    inline int run_event_loop() noexcept
-    {
-        native_event msg;
+    struct peek_event
+    {};
 
-        while (msg.receive())
+    struct idle_event
+    {};
+
+    struct default_event_loop_processor
+    {
+        constexpr bool operator () (const peek_event&) const noexcept
         {
-            msg.translate_and_dispatch();
+            return false;
         }
 
-        return msg.exit_status();
-    }
+        constexpr void operator () (const idle_event&) const noexcept
+        {
+        }
+    };
 
     template<class Function>
-    int run_event_loop(Function&& on_idle) noexcept
+    int run_event_loop(Function&& processor) noexcept
     {
-        native_event msg;
-        bool is_idle = true;
-
-        for (;;)
+        for (native_event msg;;)
         {
-            if (is_idle)
+            if (processor(peek_event{}))
             {
-                if (msg.try_receive())
+                while(msg.try_receive())
                 {
                     msg.translate_and_dispatch();
-
                     if (msg.is_quit())
                     {
-                        break;
+                        return msg.exit_status();
                     }
                 }
+                
+                processor(idle_event{});
             }
             else
             {
@@ -83,11 +91,13 @@ namespace os_windows
                     break;
                 }
             }
-
-            
-            is_idle = on_idle();
         }
 
-        return msg.exit_status();
+        return 0;
+    }
+
+    inline int run_event_loop() noexcept
+    {
+        return run_event_loop(default_event_loop_processor{});
     }
 }

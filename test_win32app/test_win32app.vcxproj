@@ -105,7 +105,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>core.lib;platform.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>platform.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -173,16 +173,13 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>core.lib;platform.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>platform.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="test_win32app.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\core\core.vcxproj">
-      <Project>{7eb300c8-1650-4460-a843-ac9057c45978}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\platform\platform.vcxproj">
       <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>
     </ProjectReference>

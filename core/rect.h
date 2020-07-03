@@ -28,22 +28,13 @@ struct rect_size
 };
 
 template<class T>
-constexpr rect_size<T> make_rect_size(point<T> area) noexcept
-{
-    return { area };
-}
+rect_size(T, T)->rect_size<T>;
 
 template<class T>
-constexpr rect_size<T> make_rect_size(vec<T> area) noexcept
-{
-    return make_rect_size(make_point(area));
-}
+rect_size(point<T>)->rect_size<T>;
 
 template<class T>
-constexpr rect_size<T> make_rect_size(T width, T height) noexcept
-{
-    return make_rect_size(make_point(width, height));
-}
+rect_size(vec<T>)->rect_size<T>;
 
 template<class T>
 struct rect
@@ -52,6 +43,7 @@ struct rect
     using point_type = point<value_type>;
     using point_range_type = num_range<point_type>;
     using axis_range_type = num_range<value_type>;
+    using rect_size_type = rect_size<value_type>;
 
     point_range_type diagonal;
 
@@ -95,9 +87,12 @@ struct rect
         return diagonal.back();
     }
 
-    constexpr rect_size<T> size() const noexcept
+    constexpr rect_size_type size() const noexcept
     {
-        return make_rect_size(diagonal.length());
+        return
+        {
+            diagonal.length()
+        };
     }
 
     constexpr value_type x0() const noexcept
@@ -136,8 +131,8 @@ struct rect
 
         const point_type radius
         {
-            ( zoom.x() * width() ) / 2,
-            ( zoom.y() * height() ) / 2
+            (zoom.x() * width()) / 2,
+            (zoom.y() * height()) / 2
         };
 
         return { center - radius, center + radius };
@@ -155,19 +150,19 @@ struct rect
 
     constexpr rect with_frame(value_type frame_width, value_type frame_height) const noexcept
     {
-        const auto point = make_point(frame_width, frame_height);
-        return rect{ diagonal.front() - point, diagonal.back() + point };
+        const point frame{ frame_width, frame_height };
+        return rect{ diagonal.front() - frame, diagonal.back() + frame };
     }
 
     constexpr bool includes(const point_type& point) const noexcept
     {
-        return x_axis_range().includes(point.x()) 
+        return x_axis_range().includes(point.x())
             && y_axis_range().includes(point.y());
     }
 
     constexpr bool includes(const rect& rect) const noexcept
     {
-        return includes(rect.diagonal.front()) 
+        return includes(rect.diagonal.front())
             && includes(rect.diagonal.back());
     }
 
@@ -177,19 +172,16 @@ struct rect
 };
 
 template<class T>
-constexpr rect<T> make_rect(const point<T>& beginning_of_diagonal, const point<T>& end_of_diagonal) noexcept
-{
-    return { make_num_range(beginning_of_diagonal, end_of_diagonal) };
-}
+rect(point<T>, point<T>)->rect<T>;
 
 template<class T>
 constexpr rect<T> make_range_rect(const num_range<T>& x, const num_range<T>& y) noexcept
 {
-    return make_rect
-    (
-        make_point(x.bounds._0, y.bounds._0),
-        make_point(x.bounds._1, y.bounds._1)
-    );
+    return
+    {
+        point{ x.bounds._0, y.bounds._0 },
+        point{ x.bounds._1, y.bounds._1 }
+    };
 }
 
 template<class T>

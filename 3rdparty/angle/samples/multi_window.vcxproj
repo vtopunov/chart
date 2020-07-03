@@ -97,7 +97,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(OutDir)obj\global_intermediate\angle;sample_util;..\include;..\src;..\src\common\third_party\base;..\util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/MP /d2guard4 /Wv:18 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MP /Wv:18 %(AdditionalOptions)</AdditionalOptions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -109,7 +109,6 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_HAS_EXCEPTIONS=0;NOMINMAX;ANGLE_STANDALONE_BUILD;GL_GLEXT_PROTOTYPES;EGL_EGLEXT_PROTOTYPES;ANGLE_X64_CPU;_DEBUG;ANGLE_ENABLE_DEBUG_ANNOTATIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level4</WarningLevel>
     </ClCompile>
@@ -231,10 +230,6 @@
     </ProjectReference>
     <ProjectReference Include="..\src\angle_common.vcxproj">
       <Project>{7AB4B0C9-D974-3A65-ED87-61816B6917CB}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="..\src\commit_id.vcxproj">
-      <Project>{6CCCC557-DFA3-68D4-31FA-1EFB0C5F37B2}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\src\copy_scripts.vcxproj">

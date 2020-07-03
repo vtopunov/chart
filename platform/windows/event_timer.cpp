@@ -3,6 +3,7 @@
 #include <core/handle.h>
 
 #include <platform/windows/event.h>
+#include <platform/windows/window.h>
 #include <platform/windows/event_matching.h>
 #include <platform/windows/event_processors_container.h>
 
@@ -12,99 +13,96 @@ namespace os_windows
 {
     namespace event_timer
     {
-        namespace
+        bool close(timer_view timer) noexcept
         {
-            struct timer_view
+            if (valid(timer))
             {
-                window_handle_t window_handle;
-                timer_id_t id;
-                timer_duration_t interval;
+                const auto ok = !!KillTimer(timer.window_handle, timer.id);
+                D_ASSERT(ok);
+                return ok;
+            }
+
+            return false;
+        }
+
+        safe_timer create_timer(window_handle_t window_handle, size_t id, timer_duration_t interval) noexcept
+        {
+            using elapse_t = UINT;
+            static_assert( std::is_unsigned_v<elapse_t> );
+
+            const auto elapse = interval.count();
+
+            const auto arguments_is_valid = is_safe_narrowing_conversion<elapse_t>(elapse);
+
+            const auto timer_id = ( arguments_is_valid ) ? SetTimer
+            (
+                window_handle,
+                id,
+                narrow_cast<elapse_t>( elapse ),
+                nullptr
+            ) : id;
+
+            const auto result_is_valid = arguments_is_valid && timer_id;
+
+            const auto result_interval = ( result_is_valid ) ? interval : invalid_timer_duration;
+
+            return
+            {
+                handle_construct,
+                window_handle,
+                timer_id,
+                result_interval
             };
+        }
 
-            constexpr auto zero_timer_duration = timer_duration_t::zero();
+        safe_timer create_timer(window_view window, timer_duration_t interval) noexcept
+        {
+            D_ASSERT(exist(window));
+            return create_timer(window.handle, window.id, interval);
+        }
 
-            constexpr bool valid(timer_view timer) noexcept
+        safe_timer set_timer_interval(safe_timer timer, timer_duration_t interval) noexcept
+        {
+            bool sucessed = false;
+
+            if (interval > invalid_timer_duration && timer && timer->interval != interval)
             {
-                return timer.interval > zero_timer_duration;
-            }
-
-            bool close(timer_view timer) noexcept
-            {
-                if ( valid(timer) )
+                if (auto new_timer = create_timer(timer->window_handle, timer->id, interval))
                 {
-                    const auto ok = !!KillTimer(timer.window_handle, timer.id);
-                    D_ASSERT(ok);
-                    return ok;
-                }
-                return false;
-            }
-
-            using safe_timer = unique_handle<timer_view>;
-
-            safe_timer create_timer(timer_view timer) noexcept
-            {
-                using elapse_t = UINT;
-                static_assert( std::is_unsigned_v<elapse_t> );
-
-                const auto interval = std::exchange(timer.interval, zero_timer_duration);
-                const auto elapse = interval.count();
-                const auto arguments_is_valid
-                    = timer.window_handle
-                    && timer.id
-                    && is_safe_narrowing_conversion<elapse_t>(elapse);
-
-                if ( arguments_is_valid )
-                {
-                    const auto id = SetTimer
-                    (
-                        timer.window_handle,
-                        timer.id,
-                        narrow_cast<elapse_t>( elapse ),
-                        nullptr
-                    );
-
-                    if ( id )
+                    if (new_timer->id == timer->id)
                     {
-                        timer.id = id;
-                        timer.interval = interval;
+                        timer->interval = std::exchange(new_timer->interval, invalid_timer_duration);
+                        sucessed = true;
                     }
                 }
-
-                return
-                {
-                    handle_construct,
-                    timer
-                };
             }
 
-            safe_timer apply_interval(safe_timer timer, timer_duration_t interval) noexcept
+            if (!sucessed)
             {
-                auto timer_view = to_view(timer);
-
-                if ( interval > zero_timer_duration && timer_view.interval != interval )
-                {
-                    timer.reset();
-                    timer_view.interval = interval;
-                    return create_timer(timer_view);
-                }
-
-                return timer;
+                const auto timer_view = to_view(timer);
+                timer->interval = invalid_timer_duration;
+                close(timer_view);
             }
 
+            return timer;
+        }
+
+        namespace
+        {
             struct timer_processor
             {
                 safe_timer timer;
-                timer_callback_t callback{ nullptr };
-                timer_duration_t interval{ zero_timer_duration };
-                size_t processor_id{ 0u };
+                timer_callback_t callback{nullptr};
+                timer_duration_t interval{invalid_timer_duration};
+                size_t processor_id{0u};
 
                 std::optional<event_result_t> operator () (const timer_event& e) noexcept;
 
                 void remove_event_processor_for(window_view window) noexcept
                 {
-                    if ( const auto id = std::exchange(processor_id, 0u) )
+                    if (const auto id = std::exchange(processor_id, 0u))
                     {
-                        close(event_processor_view{ window, id });
+                        close(event_processor_view{window, id});
                     }
                 }
             };
@@ -115,21 +113,21 @@ namespace os_windows
             {
             public:
                 timer_controller_impl(timer_processor& processor, const timer_event& e) noexcept
-                    : processor_{ processor }
-                    , interval_{ processor.interval }
-                    , window_{ e.window() }
+                    : processor_{processor}
+                    , interval_{processor.interval}
+                    , window_{e.window()}
                 {}
 
                 ~timer_controller_impl() noexcept
                 {
-                    if ( finised_ )
+                    if (finised_)
                     {
-                        if ( auto callback = std::exchange(callback_, nullptr) )
+                        if (auto callback = std::exchange(callback_, nullptr))
                         {
                             processor_.callback = std::move(callback);
                         }
 
-                        processor_.timer = apply_interval(std::move(processor_.timer), interval_);
+                        processor_.timer = set_timer_interval(std::move(processor_.timer), interval_);
                     }
                     else
                     {
@@ -137,7 +135,7 @@ namespace os_windows
                         processor_.timer = nullptr;
                     }
 
-                    if ( !processor_.timer )
+                    if (!processor_.timer)
                     {
                         processor_.callback = nullptr;
                         processor_.remove_event_processor_for(window_);
@@ -152,7 +150,7 @@ namespace os_windows
             private:
                 void restart(timer_duration_t interval) noexcept final
                 {
-                    if ( interval.count() > 0 )
+                    if (interval.count() > 0)
                     {
                         interval_ = interval;
                     }
@@ -181,10 +179,10 @@ namespace os_windows
                 }
 
                 timer_processor& processor_;
-                timer_duration_t interval_{ zero_timer_duration };
-                timer_callback_t callback_{ nullptr };
-                window_view window_{ null_window };
-                bool finised_{ false };
+                timer_duration_t interval_{invalid_timer_duration};
+                timer_callback_t callback_{nullptr};
+                window_view window_{null_window};
+                bool finised_{false};
             };
 #pragma warning(pop)
 
@@ -192,9 +190,9 @@ namespace os_windows
             {
                 D_ASSERT(e.window().handle == timer->window_handle);
 
-                if ( e.id() == timer->id )
+                if (e.id() == timer->id)
                 {
-                    timer_controller_impl control{ *this, e };
+                    timer_controller_impl control{*this, e};
 
                     callback(control);
 
@@ -214,16 +212,9 @@ namespace os_windows
 
                 event_callback_t operator () (event_processor_view processor) noexcept
                 {
-                    auto timer = create_timer
-                    (
-                        {
-                            processor.window.handle,
-                            processor.id,
-                            interval
-                        }
-                    );
+                    auto timer = create_timer(processor.window.handle, processor.id, interval);
 
-                    if ( timer )
+                    if (timer)
                     {
                         return event_match
                         (
@@ -244,7 +235,7 @@ namespace os_windows
 
         safe_event_processor create_timer(window_view window, timer_duration_t interval, timer_callback_t callback) noexcept
         {
-            return
+            return 
             {
                 handle_construct,
                 window,

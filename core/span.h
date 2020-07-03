@@ -1,10 +1,34 @@
 #pragma once
 
 #include <iterator>
-#include <type_traits>
-#include <numeric>
 
 #include <core/narrow_cast.h>
+
+template <class, class = void>
+struct is_container : std::false_type
+{};
+
+template <class T>
+struct is_container<T, std::void_t<decltype(std::data(std::declval<T&>())), decltype(std::size(std::declval<T&>()))>>
+    : std::true_type
+{};
+
+template<class T>
+inline constexpr bool is_container_v = is_container<T>::value;
+
+template <class T>
+class span;
+
+template <class T>
+struct is_span : public std::false_type
+{};
+
+template <class T>
+struct is_span<span<T>> : public std::true_type
+{};
+
+template<class T>
+inline constexpr bool is_span_v = is_span<T>::value;
 
 #pragma warning(push)
 #pragma warning(disable : 26481) // Don't use pointer arithmetic. Use span instead
@@ -24,24 +48,29 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using size_type = size_t;
     using difference_type = ptrdiff_t;
+    using const_value_type = std::add_const_t<value_type>;
 
-    constexpr span() noexcept
-        : data_{ nullptr }
-        , size_{ 0u }
-    {}
+    constexpr span() noexcept = default;
 
     constexpr span(pointer data, size_type size) noexcept
         : data_{ data }
         , size_{ size }
-    {
-        D_ASSERT(data || !size);
-        D_ASSERT(size <= max_size());
-    }
-
-    template<class Container, class = decltype(std::data(std::declval<Container>())), class = decltype(std::size(std::declval<Container>()))>
-    constexpr span(Container& c) noexcept
-        : span{ std::data(c), narrow_cast<size_type>(std::size(c)) }
     {}
+
+    template<class C, class = std::enable_if_t<is_container_v<C> && !is_span_v<C>>>
+    constexpr span(C& c) noexcept
+        : data_{ std::data(c) }
+        , size_{ narrow_cast<size_type>(std::size(c)) }
+    {}
+
+    template<
+        bool enable_bool = true,
+        class = std::enable_if_t<(!std::is_same_v<value_type, const_value_type>&& enable_bool)>
+    >
+        constexpr operator span<const_value_type>() const noexcept
+    {
+        return { data_, size_ };
+    }
 
     constexpr iterator begin() const noexcept
     {
@@ -93,11 +122,6 @@ public:
         return data_;
     }
 
-    constexpr const_pointer cdata() const noexcept
-    {
-        return data_;
-    }
-
     constexpr reference value(size_type index) const noexcept
     {
         return data_[index];
@@ -118,34 +142,24 @@ public:
         return value(size_ - 1u);
     }
 
-    constexpr span prefix(size_type size) const noexcept
+    constexpr span first(size_type size) const noexcept
     {
         return { data_, size };
     }
 
-    constexpr span sub(size_type pos, size_type size) const noexcept
+    constexpr span subspan(size_type pos, size_type size) const noexcept
     {
         return { data_ + pos, size };
     }
 
-    constexpr span suffix(size_type size) const noexcept
+    constexpr span last(size_type size) const noexcept
     {
         return { data_ + size_ - size, size };
     }
 
-    constexpr span<std::add_const_t<value_type>> cspan() const noexcept
-    {
-        return { data_, size_ };
-    }
-
-    static constexpr size_type max_size() noexcept
-    {
-        return narrow_cast<size_type>((std::numeric_limits<difference_type>::max)());
-    }
-
 private:
-    pointer data_;
-    size_type size_;
+    pointer data_{ nullptr };
+    size_type size_{ 0u };
 };
 
 #pragma warning(pop)

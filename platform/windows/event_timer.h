@@ -14,6 +14,30 @@ namespace os_windows
 
         using timer_duration_t = std::chrono::milliseconds;
 
+        struct timer_view
+        {
+            window_handle_t window_handle;
+            size_t id;
+            timer_duration_t interval;
+        };
+
+        constexpr auto invalid_timer_duration = timer_duration_t::zero();
+
+        constexpr bool valid(timer_view timer) noexcept
+        {
+            return timer.id && timer.interval > invalid_timer_duration;
+        }
+
+        bool close(timer_view timer) noexcept;
+
+        using safe_timer = unique_handle<timer_view>;
+
+        safe_timer create_timer(window_handle_t window_handle, size_t id, timer_duration_t interval) noexcept;
+
+        safe_timer create_timer(window_view window, timer_duration_t interval) noexcept;
+
+        safe_timer set_timer_interval(safe_timer timer, timer_duration_t interval) noexcept;
+
 #pragma warning(push)
 #pragma warning(disable : 26436) // non-virtual destructor 
         struct timer_controller
@@ -34,4 +58,5 @@ namespace os_windows
     }
 
     using event_timer_controller = event_timer::timer_controller;
+    using safe_event_timer = event_timer::safe_timer;
 }

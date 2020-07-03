@@ -88,8 +88,8 @@ struct coordiante_inverse_axis<coordiante_system::math>
 
 struct coordinate_transformation
 {
-    polynom<real_t> x;
-    polynom<real_t> y;
+    polynomial<real_t> x;
+    polynomial<real_t> y;
 
     constexpr coordinate_transformation(rect_t from, rect_t to) noexcept
         : x{ lerp(from.x_axis_range(), to.x_axis_range()) }

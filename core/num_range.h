@@ -16,12 +16,12 @@ struct num_range
 
     constexpr T front() const noexcept
     {
-        return bounds._0;
+        return bounds.front();
     }
 
     constexpr T back() const noexcept
     {
-        return bounds._1;
+        return bounds.back();
     }
 
     constexpr T length() const noexcept
@@ -36,7 +36,7 @@ struct num_range
 
     constexpr bool includes(const T& value) const noexcept
     {
-        if constexpr ( !std::is_arithmetic_v<T> )
+        if constexpr (!std::is_arithmetic_v<T>)
         {
             D_ASSERT(!"invalid type");
             return false;
@@ -47,22 +47,25 @@ struct num_range
 
     constexpr num_range with_inclusion(const T& value) const noexcept
     {
-        return 
-        { 
-            min(make_vec(bounds._0, value)),
-            max(make_vec(value, bounds._1))
+        return
+        {
+            min(vec{ bounds._0, value }),
+            max(vec{ value, bounds._1 })
         };
     }
 
     constexpr num_range with_moving(const T& move) const noexcept
     {
-        return num_range{ bounds + fill_vec( move ) };
+        return num_range{ bounds + fill_vec(move) };
     }
 
     constexpr bool operator == (const num_range&) const noexcept = default;
 
     constexpr bool operator != (const num_range&) const noexcept = default;
 };
+
+template<class T>
+num_range(T, T)->num_range<T>;
 
 template<class T>
 constexpr T min(const num_range<T>& range) noexcept
@@ -76,15 +79,8 @@ constexpr T max(const num_range<T>& range) noexcept
     return max(range.bounds);
 }
 
-
 template<class T>
-constexpr num_range<T> make_num_range( const T& front, const T& back ) noexcept
+constexpr num_range<T> inverse(const num_range<T>& range) noexcept
 {
-    return { { front, back } };
-}
-
-template<class T>
-constexpr num_range<T> inverse( const num_range<T>& range ) noexcept
-{
-    return { reverse( range.bounds ) };
+    return { reverse(range.bounds) };
 }

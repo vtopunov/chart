@@ -21,7 +21,7 @@ namespace
             constexpr zstring_view timer1_callback2{ "timer1_callback2" };
             constexpr zstring_view timer2_callback1{ "timer2_callback1" };
             constexpr zstring_view timer3_callback1{ "timer3_callback1" };
-            constexpr zstring_view manual_exit{ "manual_exit" };
+            constexpr zstring_view manual_exit{ "manual_exit\n" };
         }
 
         void log(zstring_view message) noexcept
@@ -57,10 +57,10 @@ namespace
                             alert, timer2_callback1,
                             destroy, timer2_callback1,
                             alert, timer3_callback1,
-                            destroy, timer1_callback2,
-                            destroy, timer3_callback1
+                            destroy, timer3_callback1,
+                            destroy, timer1_callback2
                         };
-
+  
                         constexpr auto test_size = std::size(test_messages);
 
                         D_ASSERT(std::size(log) == test_size);
@@ -125,7 +125,11 @@ namespace
     constexpr rect_t make_subwindow_rect(rect_size_t window_size) noexcept
     {
         const auto point = window_size.to_point();
-        return make_rect(point / 4, ( 3 * point ) / 4);
+        return 
+        {
+            point / 4,
+            ( 3 * point ) / 4
+        };
     }
 
     constexpr struct
@@ -143,7 +147,7 @@ namespace
 
         event_result_t operator () (const size_event& e) const noexcept
         {
-            const auto rect = make_subwindow_rect(e.size());
+            const auto rect = make_subwindow_rect(rect_size_t{e.width(), e.height()});
 
             for ( const auto children : childrens(e.window()) )
             {

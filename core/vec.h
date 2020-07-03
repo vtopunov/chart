@@ -1,8 +1,10 @@
 #pragma once
 
+#include <type_traits>
 #include <algorithm>
 
-#include <core/defs.h>
+#undef min
+#undef max
 
 template<class T>
 struct vec
@@ -11,6 +13,16 @@ struct vec
 
     T _0;
     T _1;
+
+    constexpr T front() const noexcept
+    {
+        return _0;
+    }
+
+    constexpr T back() const noexcept
+    {
+        return _1;
+    }
 
     constexpr T get(std::index_sequence<0u>) const noexcept
     {
@@ -34,21 +46,47 @@ struct vec
 };
 
 template<class T>
-constexpr vec<T> make_vec(const T& first, const T& second) noexcept
-{
-    return { first, second };
-}
+vec(T, T)->vec<T>;
 
 template<class T>
 constexpr vec<T> fill_vec(const T& value) noexcept
 {
-    return { value, value };
+    return
+    {
+        value,
+        value
+    };
 }
+
+template<class T>
+constexpr vec<T> shift_push_back(const vec<T>& vec, const T& value) noexcept
+{
+    return
+    {
+        vec._1,
+        value
+    };
+}
+
+template<class T>
+constexpr vec<T> shift_push_front(const vec<T>& vec, const T& value) noexcept
+{
+    return
+    {
+        value,
+        vec._0
+    };
+}
+
 
 template<class T>
 constexpr vec<T> reverse(const vec<T>& v) noexcept
 {
-    return make_vec(v._1, v._0);
+    return
+    {
+        v._1,
+        v._0
+    };
 }
 
 template<class T>
@@ -70,27 +108,43 @@ constexpr T mean(const vec<T>& v) noexcept
 }
 
 template<class T>
-constexpr vec<T> operator - (const vec<T>& rigth) noexcept
+constexpr vec<T> operator - (const vec<T>& right) noexcept
 {
-    return { -rigth._0, -rigth._1 };
+    return
+    {
+        -right._0,
+        -right._1
+    };
 }
 
 template<class T>
 constexpr vec<T> operator - (const vec<T>& left, const vec<T>& right) noexcept
 {
-    return { left._0 - right._0, left._1 - right._1 };
+    return
+    {
+        left._0 - right._0,
+        left._1 - right._1
+    };
 }
 
 template<class T>
 constexpr vec<T> operator + (const vec<T>& left, const vec<T>& right) noexcept
 {
-    return { left._0 + right._0, left._1 + right._1 };
+    return
+    {
+        left._0 + right._0,
+        left._1 + right._1
+    };
 }
 
 template<class T>
 constexpr vec<T> operator * (const vec<T>& left, const T& right) noexcept
 {
-    return { left._0 * right, left._1 * right };
+    return
+    {
+        left._0 * right,
+        left._1 * right
+    };
 }
 
 template<class T>
@@ -102,7 +156,11 @@ constexpr vec<T> operator * (const T left, const vec<T>& right) noexcept
 template<class T, class U>
 constexpr std::enable_if_t<std::is_arithmetic_v<U>, vec<T>>  operator / (const vec<T>& left, const U& right) noexcept
 {
-    return { left._0 / right, left._1 / right };
+    return
+    {
+        left._0 / right,
+        left._1 / right
+    };
 }
 
 template<class T>
@@ -132,8 +190,8 @@ constexpr vec<T> min(const vec<T>& a, const vec<T>& b) noexcept
 {
     return
     {
-        min(make_vec(a._0, b._0)),
-        min(make_vec(a._1, b._1))
+        min(vec{ a._0, b._0 }),
+        min(vec{ a._1, b._1 })
     };
 }
 
@@ -142,7 +200,7 @@ constexpr vec<T> max(const vec<T>& a, const vec<T>& b) noexcept
 {
     return
     {
-        max(make_vec(a._0, b._0)),
-        max(make_vec(a._1, b._1))
+        max(vec{ a._0, b._0 }),
+        max(vec{ a._1, b._1 })
     };
 }

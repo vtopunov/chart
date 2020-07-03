@@ -2,15 +2,14 @@
 
 #include <cassert>
 
+#define D_UNUSED(expression) ((void)(expression))
+
 #ifdef NDEBUG
 
-#define D_ASSERT(expression) ((void)0)
+#define D_ASSERT(expression) D_UNUSED(false)
 
 #else
 
-#define D_ASSERT(expression) ((void)(\
-            (!!(expression)) ||      \
-            (__debugbreak(), false)  \
-        ))
+#define D_ASSERT(expression) D_UNUSED((!!(expression)) || ((__debugbreak()), false))
 
 #endif

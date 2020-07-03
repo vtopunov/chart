@@ -7,17 +7,6 @@
 
 namespace egl
 {
-    inline bool has_error() noexcept
-    {
-        return eglGetError() != EGL_SUCCESS;
-    }
-
-    template<class T>
-    inline bool has_error(T result) noexcept
-    {
-        return !result || has_error();
-    }
-
     namespace window_context
     {
         struct window_context_view

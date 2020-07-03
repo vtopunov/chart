@@ -18,13 +18,13 @@ constexpr view_t<T> to_view(const T& value) noexcept
 }
 
 template<class T>
-using has_bool_op_t = decltype( !!std::declval<T>() );
+using has_bool_op_t = decltype(!!std::declval<T>());
 
 template<class T>
-using has_bool_op_view_t = decltype( !!to_view(std::declval<T>()) );
+using has_bool_op_view_t = decltype(!!to_view(std::declval<T>()));
 
 template<class T>
-using has_exist_t = decltype( exist(to_view(std::declval<T>())) );
+using has_exist_t = decltype(exist(to_view(std::declval<T>())));
 
 template<class T>
 constexpr bool has_bool_op_v = is_detected_v<has_bool_op_t, T>;
@@ -38,15 +38,15 @@ constexpr bool has_exist_v = is_detected_v<has_exist_t, T>;
 template<class T>
 constexpr bool to_bool(const T& value) noexcept
 {
-    if constexpr ( has_bool_op_v<T> )
+    if constexpr (has_bool_op_v<T>)
     {
         return !!value;
     }
-    else if constexpr ( has_bool_op_view_v<T> )
+    else if constexpr (has_bool_op_view_v<T>)
     {
         return !!to_view(value);
     }
-    else if constexpr ( has_exist_v<T> )
+    else if constexpr (has_exist_v<T>)
     {
         return exist(to_view(value));
     }
@@ -57,7 +57,7 @@ constexpr bool to_bool(const T& value) noexcept
 }
 
 template<class T>
-using has_close_t = decltype( close(to_view(std::declval<T>())) );
+using has_close_t = decltype(close(to_view(std::declval<T>())));
 
 template<class T>
 constexpr bool has_close_v = is_detected_v<has_close_t, T>;
@@ -71,13 +71,13 @@ struct private_handle_t
     friend class shared_handle;
 
 private:
-     constexpr private_handle_t() = default;
+    constexpr private_handle_t() = default;
 };
 
 template<class T>
 void close_handle(private_handle_t tag, const T& handle) noexcept
 {
-    if constexpr ( has_close_v<T> )
+    if constexpr (has_close_v<T>)
     {
         close(to_view(handle));
     }
@@ -87,7 +87,8 @@ void close_handle(private_handle_t tag, const T& handle) noexcept
     }
 }
 
-struct handle_construct_t {}; 
+struct handle_construct_t
+{};
 
 inline constexpr handle_construct_t handle_construct{};
 
@@ -99,7 +100,7 @@ public:
     using view_type = view_t<handle_type>;
 
     constexpr unique_handle() noexcept
-        : handle_{ handle_type{} } 
+        : handle_{ handle_type{} }
     {}
 
     constexpr unique_handle(nullptr_t) noexcept
@@ -141,12 +142,12 @@ public:
         std::swap(handle_, right.handle_);
     }
 
-    constexpr const handle_type* operator ->() const noexcept
+    constexpr decltype(auto)  operator ->() const noexcept
     {
         return &handle_;
     }
 
-    constexpr handle_type* operator ->() noexcept
+    constexpr decltype(auto) operator ->() noexcept
     {
         return &handle_;
     }
@@ -177,10 +178,10 @@ private:
 template <class T, class... Types>
 constexpr unique_handle<T> make_unique_handle(Types&&... args) noexcept
 {
-    return 
+    return
     {
         handle_construct,
-        std::forward<Types>(args)... 
+        std::forward<Types>(args)...
     };
 }
 
@@ -210,7 +211,7 @@ public:
 
     constexpr shared_handle(const shared_handle& right) noexcept
         : handle_{ right.handle_ }
-        , copies_{ push(&self::copies_, this, const_cast<shared_handle*>( &right )) }
+        , copies_{ push_copies(this, right) }
     {}
 
     constexpr shared_handle(unique_handle<handle_type>&& right) noexcept
@@ -224,11 +225,11 @@ public:
 
     shared_handle& operator = (const shared_handle& right) noexcept
     {
-        if ( this != &right )
+        if (this != &right)
         {
             deattach_or_close();
             handle_ = right.handle_;
-            copies_ = push(&self::copies_, this, const_cast<shared_handle*>( &right ));
+            copies_ = push_copies(this, right);
         }
 
         return *this;
@@ -240,7 +241,7 @@ public:
         return *this;
     }
 
-    constexpr const handle_type* operator ->() const noexcept
+    constexpr decltype(auto) operator ->() const noexcept
     {
         return &handle_;
     }
@@ -262,9 +263,11 @@ public:
     }
 
 private:
+    using copies_list = intrusive_list_node<shared_handle>;
+
     void deattach_or_close() const noexcept
     {
-        if ( copies_.next != this )
+        if (copies_.next != this)
         {
             pop(&self::copies_, copies_);
         }
@@ -274,15 +277,20 @@ private:
         }
     }
 
+    static constexpr copies_list push_copies(shared_handle* current, const shared_handle& item) noexcept
+    {
+        return push(&self::copies_, current, const_cast<shared_handle*>(&item));
+    }
+
 private:
     handle_type handle_;
-    intrusive_list_node<shared_handle> copies_;
+    copies_list copies_;
 };
 
 template <class T, class... Args>
 constexpr shared_handle<T> make_shared_handle(Args&&... args) noexcept
 {
-    return 
+    return
     {
         handle_construct,
         std::forward<Args>(args)...

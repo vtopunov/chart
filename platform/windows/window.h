@@ -12,6 +12,9 @@ namespace os_windows
 {
     namespace native_window_system
     {
+        struct nullenumerator_t
+        {};
+         
         struct childrens_enumerator
         {
             const_key_value_range_t<const_window_handle_t, window_view> range;
@@ -27,7 +30,7 @@ namespace os_windows
                 return *this;
             }
 
-            constexpr empty end() const noexcept
+            constexpr nullenumerator_t end() const noexcept
             {
                 return {};
             }
@@ -37,12 +40,12 @@ namespace os_windows
                 return starts_with_key(range, key);
             }
 
-            constexpr bool operator == (empty) const noexcept
+            constexpr bool operator == (nullenumerator_t) const noexcept
             {
                 return !is_valid();
             }
 
-            constexpr bool operator != (empty) const noexcept
+            constexpr bool operator != (nullenumerator_t) const noexcept
             {
                 return is_valid();
             }
@@ -150,7 +153,7 @@ namespace os_windows
 
         constexpr window_factory& position(pixel_t x, pixel_t y) noexcept
         {
-            return position(make_point(x, y));
+            return position(point_t{x, y});
         }
 
         constexpr window_factory& rect(const rect_t& rc)
@@ -166,7 +169,7 @@ namespace os_windows
 
         constexpr window_factory& size(pixel_t width, pixel_t height)  noexcept
         {
-            return size(make_rect_size(width, height));
+            return size(rect_size_t{width, height});
         }
 
         safe_window create() const noexcept;

@@ -5,11 +5,11 @@
 struct nonesuch
 {
     ~nonesuch() = delete;
-    nonesuch( nonesuch const& ) = delete;
-    void operator=( nonesuch const& ) = delete;
+    nonesuch(nonesuch const&) = delete;
+    void operator=(nonesuch const&) = delete;
 };
 
-namespace member_detector_private_detail
+namespace private_detail_member_detector
 {
     template <class Default, class AlwaysVoid,
         template<class...> class Op, class... Args>
@@ -28,13 +28,13 @@ namespace member_detector_private_detail
 }
 
 template <template<class...> class Op, class... Args>
-using is_detected = typename member_detector_private_detail::detector<nonesuch, void, Op, Args...>::value_t;
+using is_detected = typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::value_t;
 
 template <template<class...> class Op, class... Args>
-using detected_t = typename member_detector_private_detail::detector<nonesuch, void, Op, Args...>::type;
+using detected_t = typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::type;
 
 template <class Default, template<class...> class Op, class... Args>
-using detected_or = member_detector_private_detail::detector<Default, void, Op, Args...>;
+using detected_or = private_detail_member_detector::detector<Default, void, Op, Args...>;
 
 template< template<class...> class Op, class... Args >
 constexpr bool is_detected_v = is_detected<Op, Args...>::value;

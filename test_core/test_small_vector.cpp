@@ -22,6 +22,21 @@ struct vector_test
         test_state();
     }
 
+    void test_push_back_loop(T from, T to) noexcept
+    {
+        for (; from <= to; ++from)
+        {
+            test_push_back(from);
+        }
+    }
+
+    void test_clear() noexcept
+    {
+        small_v_.clear();
+        test_.clear();
+        test_state();
+    }
+
     void test_pop_back() noexcept
     {
         small_v_.pop_back();
@@ -43,10 +58,10 @@ struct vector_test
 
 #pragma warning(push)
 #pragma warning(disable : 26800) // use of a moved from object
-        std::destroy_at(std::addressof(small_v_));
+        std::destroy_at(&small_v_);
 #pragma warning(pop)
 
-        new ( std::addressof(small_v_) ) small_vector_type{ std::move(small_v) };
+        new ( &small_v_ ) small_vector_type{ std::move(small_v) };
 
         test_state();
     }
@@ -321,9 +336,10 @@ void test_small_vector() noexcept
         test4.test_state();
         test4.test_copy_move();
 
-        test4.test_push_back(1);
-        test4.test_push_back(2);
-        test4.test_push_back(3);
+        test4.test_push_back_loop(1, 3);
+        test4.test_clear();
+        test4.test_copy_move();
+        test4.test_push_back_loop(1, 3);
         test4.test_is_small(true);
         test4.test_copy_move();
 
@@ -332,6 +348,11 @@ void test_small_vector() noexcept
         test4.test_push_back(5);
         test4.test_is_small(false);
         test4.test_copy_move();
+        test4.test_clear();
+        test4.test_copy_move();
+        test4.test_push_back_loop(1, 5);
+        test4.test_copy_move();
+        test4.test_is_small(false);
 
         test4.test_is_small(false);
         test4.test_shrink_to_fit();
@@ -366,7 +387,7 @@ void test_small_vector() noexcept
         test9.test_insert(0, 3);
         test9.test_insert(1, 4);
         test9.test_insert(2, 5);
-        test9.test_insert(3, 6);
+        test9.test_insert(1/*3*/, 6);
         test9.test_insert(test9.size() - 2, 7);
         test9.test_insert(test9.size() - 1, 8);
         test9.test_insert(test9.size(), 9);

@@ -182,17 +182,17 @@
     <ClCompile Include="test_narrow_cast.cpp" />
     <ClCompile Include="test_num_range.cpp" />
     <ClCompile Include="test_point.cpp" />
-    <ClCompile Include="test_rational.cpp" />
+    <ClCompile Include="test_rational.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="test_rect.cpp" />
-    <ClCompile Include="test_small_flat_map.cpp" />
+    <ClCompile Include="test_small_flat_map.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="test_small_vector.cpp" />
+    <ClCompile Include="test_span.cpp" />
     <ClCompile Include="test_underlying_cast.cpp" />
     <ClCompile Include="test_vec.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\core\core.vcxproj">
-      <Project>{7eb300c8-1650-4460-a843-ac9057c45978}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

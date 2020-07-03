@@ -22,7 +22,7 @@ struct point
     template<axis_type axis>
     constexpr T get() const noexcept
     {
-        return position.get<underlying_cast<size_t>( axis )>();
+        return position.get<underlying_cast<size_t>(axis)>();
     }
 
     constexpr bool operator == (const point&) const noexcept = default;
@@ -31,16 +31,10 @@ struct point
 };
 
 template<class T>
-constexpr point<T> make_point(vec<T> v) noexcept
-{
-    return { v };
-}
+point(vec<T>)->point<T>;
 
 template<class T>
-constexpr point<T> make_point(const T& x, const T& y) noexcept
-{
-    return make_point(make_vec(x, y));
-}
+point(T, T)->point<T>;
 
 template<class T>
 constexpr point<T> operator - (const point<T>& v) noexcept
@@ -55,7 +49,7 @@ constexpr point<T> operator - (const point<T>& left, const point<T>& right) noex
 }
 
 template<class T>
-constexpr point<T> operator + (const point<T>& left, const point<T>& right ) noexcept
+constexpr point<T> operator + (const point<T>& left, const point<T>& right) noexcept
 {
     return { left.position + right.position };
 }
@@ -81,11 +75,11 @@ constexpr std::enable_if_t<std::is_arithmetic_v<U>, point<T>> operator / (const 
 template<class T>
 constexpr point<T> min(const point<T>& a, const point<T>& b) noexcept
 {
-    return { min( a.position, b.position ) };
+    return { min(a.position, b.position) };
 }
 
 template<class T>
 constexpr point<T> max(const point<T>& a, const point<T>& b) noexcept
 {
-    return { max( a.position, b.position ) };
+    return { max(a.position, b.position) };
 }

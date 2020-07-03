@@ -73,7 +73,7 @@ private:
         wrapper& operator=(wrapper&&) noexcept = default;
 
         wrapper(const wrapper& rhs) noexcept
-            : fn_(const_cast<Fn&&>( rhs.fn_ ))
+            : fn_(const_cast<Fn&&>(rhs.fn_))
         {
             D_ASSERT(!"dummy copy constructor");
         }

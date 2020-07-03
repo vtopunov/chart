@@ -110,6 +110,16 @@ namespace os_windows
             return long_parameter_;
         }
 
+        constexpr pixel_t x_long_parameter() const noexcept
+        {
+            return narrow_cast<pixel_t>(GET_X_LPARAM(long_parameter()));
+        }
+
+        constexpr pixel_t y_long_parameter() const noexcept
+        {
+            return narrow_cast<pixel_t>(GET_Y_LPARAM(long_parameter()));
+        }
+
     private:
         window_view window_;
         WPARAM word_parameter_;
@@ -138,12 +148,12 @@ namespace os_windows
     public:
         constexpr pixel_t x() const noexcept
         {
-            return GET_X_LPARAM(long_parameter());
+            return x_long_parameter();
         }
 
         constexpr pixel_t y() const noexcept
         {
-            return GET_Y_LPARAM(long_parameter());
+            return y_long_parameter();
         }
 
         constexpr point_t position() const noexcept
@@ -157,17 +167,15 @@ namespace os_windows
         }
     };
 
-    using timer_id_t = UINT_PTR;
-
     template<>
     class specialized_event<event_style::timer> : public event
     {
     public:
-        constexpr timer_id_t id() const noexcept
+        constexpr size_t id() const noexcept
         {
 #pragma warning(push)
 #pragma warning(disable : 26472) // Don't use a static_cast for arithmetic conversions
-            return static_cast<timer_id_t>(word_parameter()); // WPARAM may be less than zero
+            return static_cast<size_t>(word_parameter()); // WPARAM may be less than zero
 #pragma warning(pop)
         }
     };
@@ -178,17 +186,17 @@ namespace os_windows
     public:
         constexpr pixel_t width() const noexcept
         {
-            return { LOWORD(long_parameter()) };
+            return x_long_parameter();
         }
-        
+
         constexpr pixel_t height() const noexcept
         {
-            return { HIWORD(long_parameter()) };
+            return y_long_parameter();
         }
 
         constexpr rect_size_t size() const noexcept
         {
-            return make_rect_size(width(), height());
+            return { width(), height() };
         }
     };
 

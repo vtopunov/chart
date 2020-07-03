@@ -1,6 +1,7 @@
 
 extern void test_narrow_cast() noexcept;
 extern void test_underlying_cast() noexcept;
+extern void test_span() noexcept;
 extern void test_vec() noexcept;
 extern void test_num_range() noexcept;
 extern void test_point() noexcept;
@@ -18,6 +19,7 @@ int main() noexcept
 {
     test_narrow_cast();
     test_underlying_cast();
+    test_span();
     test_vec();
     test_num_range();
     test_point();

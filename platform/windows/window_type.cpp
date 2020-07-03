@@ -24,7 +24,7 @@ namespace os_windows
             const auto result = std::to_chars(chars.begin(), chars.end(), value, base);
             if ( to_underlying(result.ec) )
                 return {};
-            return chars.cspan().prefix(narrow_cast<size_t>( result.ptr - chars.cdata() ));
+            return chars.first(narrow_cast<size_t>( result.ptr - chars.data() ));
         }
 
         constexpr LPCWSTR make_in_atom(ATOM atom) noexcept
@@ -37,7 +37,7 @@ namespace os_windows
             data.cbSize = sizeof(data);
 
             std::array<WCHAR, 5> name{};
-            if ( is_null_or_empty(data.lpszClassName) )
+            if ( !data.lpszClassName )
             {
                 {
                     std::array<char, name.size() - 1u> hexname{};
