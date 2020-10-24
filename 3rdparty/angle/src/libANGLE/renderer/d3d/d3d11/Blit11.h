@@ -12,8 +12,7 @@
 #include "common/angleutils.h"
 #include "libANGLE/Error.h"
 #include "libANGLE/angletypes.h"
-#include "libANGLE/renderer/d3d/d3d11/ResourceManager11.h"
-#include "libANGLE/renderer/d3d/d3d11/renderer11_utils.h"
+#include "libANGLE/renderer/d3d/d3d11/LazyResource11.h"
 
 #include <map>
 

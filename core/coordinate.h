@@ -88,8 +88,8 @@ struct coordiante_inverse_axis<coordiante_system::math>
 
 struct coordinate_transformation
 {
-    polynomial<real_t> x;
-    polynomial<real_t> y;
+    polynomial2<real_t> x;
+    polynomial2<real_t> y;
 
     constexpr coordinate_transformation(rect_t from, rect_t to) noexcept
         : x{ lerp(from.x_axis_range(), to.x_axis_range()) }
@@ -133,7 +133,7 @@ public:
         return false;
     }
 
-    explicit constexpr operator bool() const noexcept
+    constexpr explicit operator bool() const noexcept
     {
         using namespace coordiante_validation;
         return validate_for<system>(rect_);

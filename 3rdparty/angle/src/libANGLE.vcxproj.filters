@@ -6870,6 +6870,13 @@
     <ClInclude Include="libANGLE\renderer\null\VertexArrayNULL.h">
       <Filter>libANGLE\renderer\null</Filter>
     </ClInclude>
-    <None Include="angle.gyp"/>
+    <ClCompile Include="libANGLE\renderer\d3d\d3d11\LazyResource11.cpp">
+      <Filter>libANGLE\renderer\d3d\d3d11</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="libANGLE\renderer\d3d\d3d11\LazyResource11.h">
+      <Filter>libANGLE\renderer\d3d\d3d11</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

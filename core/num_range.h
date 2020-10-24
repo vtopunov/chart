@@ -6,81 +6,73 @@
 template<class T>
 struct num_range
 {
-    vec<T> bounds;
+    vec2<T> bounds;
 
-    template<size_t index>
-    constexpr T get() const noexcept
-    {
-        return bounds.get<index>();
-    }
-
+    [[nodiscard]]
     constexpr T front() const noexcept
     {
-        return bounds.front();
+        return bounds._0;
     }
 
+    [[nodiscard]]
     constexpr T back() const noexcept
     {
-        return bounds.back();
+        return bounds._1;
     }
 
-    constexpr T length() const noexcept
+    [[nodiscard]]
+    constexpr decltype(auto) length() const noexcept
     {
         return difference(bounds);
     }
 
-    constexpr T center() const noexcept
+    [[nodiscard]]
+    constexpr decltype(auto) center() const noexcept
     {
         return mean(bounds);
     }
 
+    [[nodiscard]]
     constexpr bool includes(const T& value) const noexcept
     {
-        if constexpr (!std::is_arithmetic_v<T>)
-        {
-            D_ASSERT(!"invalid type");
-            return false;
-        }
-
+        static_assert( std::is_arithmetic_v<T> );
         return value >= min(*this) && value <= max(*this);
     }
 
+    [[nodiscard]]
     constexpr num_range with_inclusion(const T& value) const noexcept
     {
         return
         {
-            min(vec{ bounds._0, value }),
-            max(vec{ value, bounds._1 })
+            min(vec2{ bounds._0, value }),
+            max(vec2{ value, bounds._1 })
         };
     }
 
+    [[nodiscard]]
     constexpr num_range with_moving(const T& move) const noexcept
     {
         return num_range{ bounds + fill_vec(move) };
     }
 
+    [[nodiscard]]
     constexpr bool operator == (const num_range&) const noexcept = default;
 
+    [[nodiscard]]
     constexpr bool operator != (const num_range&) const noexcept = default;
 };
 
 template<class T>
 num_range(T, T)->num_range<T>;
 
-template<class T>
+template<class T> [[nodiscard]]
 constexpr T min(const num_range<T>& range) noexcept
 {
     return min(range.bounds);
 }
 
-template<class T>
+template<class T> [[nodiscard]]
 constexpr T max(const num_range<T>& range) noexcept
 {
     return max(range.bounds);
-}
-
-template<class T>
-constexpr num_range<T> inverse(const num_range<T>& range) noexcept
-{
-    return { reverse(range.bounds) };
 }

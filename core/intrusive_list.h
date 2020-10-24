@@ -1,51 +1,28 @@
 #pragma once
 
-template<class T>
-struct intrusive_list_node
+struct intrusive_list_node 
 {
-    T* prev;
-    T* next;
+    intrusive_list_node* prev;
+    intrusive_list_node* next;
 };
 
-template<class T>
-using intrusive_list_member_ptr = intrusive_list_node<T> T::*;
-
-template<class T>
-constexpr T* next(intrusive_list_member_ptr<T> list, const T* item) noexcept
+[[nodiscard]]
+constexpr intrusive_list_node cyclic(intrusive_list_node* node) noexcept
 {
-    return (item->*list).next;
+    return { node, node };
 }
 
-template<class T>
-constexpr T* prev(intrusive_list_member_ptr<T> list, const T* item) noexcept
+constexpr void pop(intrusive_list_node item) noexcept
 {
-    return (item->*list).prev;
+    item.prev->next = item.next;
+    item.next->prev = item.prev;
 }
 
-template<class T>
-constexpr void set_next(intrusive_list_member_ptr<T> list, T* item, T* next) noexcept
+[[nodiscard]]
+constexpr intrusive_list_node push(intrusive_list_node* current, intrusive_list_node* item) noexcept
 {
-    (item->*list).next = next;
-}
-
-template<class T>
-constexpr void set_prev(intrusive_list_member_ptr<T> list, T* item, T* prev) noexcept
-{
-    (item->*list).prev = prev;
-}
-
-template<class T>
-constexpr void pop(intrusive_list_member_ptr<T> list, intrusive_list_node<T> item) noexcept
-{
-    set_next(list, item.prev, item.next);
-    set_prev(list, item.next, item.prev);
-}
-
-template<class T>
-constexpr intrusive_list_node<T> push(intrusive_list_member_ptr<T> list, T* current, T* item) noexcept
-{
-    const intrusive_list_node<T> root{ item, next(list, item) };
-    set_next(list, root.prev, current);
-    set_prev(list, root.next, current);
+    const intrusive_list_node root{ item, item->next };
+    root.prev->next = current;
+    root.next->prev = current;
     return root;
 }

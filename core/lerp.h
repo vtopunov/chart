@@ -2,33 +2,27 @@
 
 #include <core/vec.h>
 #include <core/num_range.h>
-#include <core/point.h>
 #include <core/polynomial.h>
 
-template<class To, class From>
-constexpr decltype(auto) lerp(const vec<From>& from, const vec<To>& to) noexcept
-{
-    const auto difference_from = from._1 - from._0;
-    D_ASSERT(difference_from);
-
-    const auto scaling = (to._1 - to._0) / difference_from;
-    const auto offset = (to._0 * from._1 - to._1 * from._0) / difference_from;
-
-    return polynomial{ offset, scaling };
-}
-
-template<class To, class From>
+template<class To, class From> [[nodiscard]]
 constexpr decltype(auto) lerp(const num_range<From>& from, const num_range<To>& to) noexcept
 {
-    return lerp(from.bounds, to.bounds);
+    const auto length_from = from.length();
+    D_ASSERT(length_from);
+
+    const auto scaling = to.length() / length_from;
+    const auto offset = (to.front() * from.back() - to.back() * from.front()) / length_from;
+
+    return polynomial2{ offset, scaling };
 }
 
-template<class T>
-constexpr decltype(auto) lerp(const point<T>& p0, const point<T>& p1) noexcept
+
+template<class T> [[nodiscard]]
+constexpr decltype(auto) lerp(const num_range<vec2<T>>& line) noexcept
 {
     return lerp
     (
-        vec{ p0.x(), p1.x() },
-        vec{ p0.y(), p1.y() }
+        num_range{ line.bounds._0.x(), line.bounds._1.x() },
+        num_range{ line.bounds._0.y(), line.bounds._1.y() }
     );
 }

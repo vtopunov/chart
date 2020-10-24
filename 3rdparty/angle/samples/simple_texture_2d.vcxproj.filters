@@ -9,6 +9,5 @@
     <ClCompile Include="simple_texture_2d\SimpleTexture2D.cpp">
       <Filter>simple_texture_2d</Filter>
     </ClCompile>
-    <None Include="samples.gyp"/>
   </ItemGroup>
 </Project>

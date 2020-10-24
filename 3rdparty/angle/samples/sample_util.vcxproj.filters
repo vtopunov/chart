@@ -39,6 +39,5 @@
     <ClInclude Include="sample_util\tga_utils.h">
       <Filter>sample_util</Filter>
     </ClInclude>
-    <None Include="samples.gyp"/>
   </ItemGroup>
 </Project>

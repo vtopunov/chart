@@ -1,208 +1,150 @@
 #pragma once
 
 #include <core/num_range.h>
-#include <core/point.h>
 
 template<class T>
 struct rect;
 
 template<class T>
-struct rect_size
-{
-    point<T> measures;
-
-    constexpr T width() const noexcept
-    {
-        return measures.x();
-    }
-
-    constexpr T height() const noexcept
-    {
-        return measures.y();
-    }
-
-    constexpr point<T> to_point() const noexcept
-    {
-        return measures;
-    }
-};
-
-template<class T>
-rect_size(T, T)->rect_size<T>;
-
-template<class T>
-rect_size(point<T>)->rect_size<T>;
-
-template<class T>
-rect_size(vec<T>)->rect_size<T>;
-
-template<class T>
 struct rect
 {
-    using value_type = T;
-    using point_type = point<value_type>;
-    using point_range_type = num_range<point_type>;
-    using axis_range_type = num_range<value_type>;
-    using rect_size_type = rect_size<value_type>;
+    using vec_t = vec2<T>;
+    using diagonal_t = num_range<vec_t>;
 
-    point_range_type diagonal;
+    diagonal_t diagonal;
 
-    template<axis_type axis>
-    constexpr axis_range_type axis_range() const noexcept
-    {
-        return
-        {
-            diagonal.front().get<axis>(),
-            diagonal.back().get<axis>()
-        };
-    }
-
-    constexpr axis_range_type x_axis_range() const noexcept
-    {
-        return axis_range<axis_type::X>();
-    }
-
-    constexpr axis_range_type y_axis_range() const noexcept
-    {
-        return axis_range<axis_type::Y>();
-    }
-
-    constexpr point_type v00() const noexcept
+    [[nodiscard]]
+    constexpr vec_t v00() const noexcept
     {
         return diagonal.front();
     }
 
-    constexpr point_type v01() const noexcept
+    [[nodiscard]]
+    constexpr vec_t v01() const noexcept
     {
         return { x0(), y1() };
     }
 
-    constexpr point_type v10() const noexcept
+    [[nodiscard]]
+    constexpr vec_t v10() const noexcept
     {
         return { x1(), y0() };
     }
 
-    constexpr point_type v11() const noexcept
+    [[nodiscard]]
+    constexpr vec_t v11() const noexcept
     {
         return diagonal.back();
     }
 
-    constexpr rect_size_type size() const noexcept
+    [[nodiscard]]
+    constexpr vec_t center() const noexcept
     {
-        return
-        {
-            diagonal.length()
-        };
+        return diagonal.center();
     }
 
-    constexpr value_type x0() const noexcept
+    [[nodiscard]]
+    constexpr T x0() const noexcept
     {
         return diagonal.front().x();
     }
 
-    constexpr value_type y0() const noexcept
+    [[nodiscard]]
+    constexpr T y0() const noexcept
     {
         return diagonal.front().y();
     }
 
-    constexpr value_type x1() const noexcept
+    [[nodiscard]]
+    constexpr T x1() const noexcept
     {
         return diagonal.back().x();
     }
 
-    constexpr value_type y1() const noexcept
+    [[nodiscard]]
+    constexpr T y1() const noexcept
     {
         return diagonal.back().y();
     }
 
-    constexpr value_type width() const noexcept
+    [[nodiscard]]
+    constexpr vec_t sizes() const noexcept
     {
-        return x_axis_range().length();
+        return diagonal.length();
     }
 
-    constexpr value_type height() const noexcept
+    [[nodiscard]]
+    constexpr T width() const noexcept
     {
-        return y_axis_range().length();
+        return x1() - x0();
     }
 
-    constexpr rect with_zooming(const point_type& zoom) const noexcept
+    [[nodiscard]]
+    constexpr T height() const noexcept
     {
-        const auto center = diagonal.center();
-
-        const point_type radius
-        {
-            (zoom.x() * width()) / 2,
-            (zoom.y() * height()) / 2
-        };
-
-        return { center - radius, center + radius };
+        return y1() - y0();
     }
 
-    constexpr rect with_inclusion(const point_type& point) const noexcept
+    [[nodiscard]]
+    constexpr rect with_zooming(vec_t zoom_sizes) const noexcept
+    {
+        const auto new_radius = ( zoom_sizes * sizes() ) / 2;
+        const auto fix_center = center();
+        return { fix_center - new_radius, fix_center + new_radius };
+    }
+
+    [[nodiscard]]
+    constexpr rect with_inclusion(vec_t point) const noexcept
     {
         return rect{ diagonal.with_inclusion(point) };
     }
 
-    constexpr rect with_moving(const point_type& move) const noexcept
+    [[nodiscard]]
+    constexpr rect with_moving(vec_t move) const noexcept
     {
         return rect{ diagonal.with_moving(move) };
     }
 
-    constexpr rect with_frame(value_type frame_width, value_type frame_height) const noexcept
+    [[nodiscard]]
+    constexpr rect with_frame(T width) const noexcept
     {
-        const point frame{ frame_width, frame_height };
-        return rect{ diagonal.front() - frame, diagonal.back() + frame };
+        const vec_t radius_inc{ width, width };
+        return rect{ diagonal.front() - radius_inc, diagonal.back() + radius_inc };
     }
 
-    constexpr bool includes(const point_type& point) const noexcept
-    {
-        return x_axis_range().includes(point.x())
-            && y_axis_range().includes(point.y());
-    }
-
-    constexpr bool includes(const rect& rect) const noexcept
-    {
-        return includes(rect.diagonal.front())
-            && includes(rect.diagonal.back());
-    }
-
+    [[nodiscard]]
     constexpr bool operator == (const rect&) const noexcept = default;
 
+    [[nodiscard]]
     constexpr bool operator != (const rect&) const noexcept = default;
 };
 
 template<class T>
-rect(point<T>, point<T>)->rect<T>;
+rect(vec2<T>, vec2<T>)->rect<T>;
 
-template<class T>
-constexpr rect<T> make_range_rect(const num_range<T>& x, const num_range<T>& y) noexcept
+enum class axis : size_t
 {
-    return
-    {
-        point{ x.bounds._0, y.bounds._0 },
-        point{ x.bounds._1, y.bounds._1 }
-    };
-}
+    x,
+    y
+};
 
-template<class T>
-constexpr rect<T> make_range_rect(x_axis_type, const num_range<T>& x, const num_range<T>& y) noexcept
-{
-    return make_range_rect(x, y);
-}
-
-template<class T>
-constexpr rect<T> make_range_rect(y_axis_type, const num_range<T>& y, const num_range<T>& x) noexcept
-{
-    return make_range_rect(x, y);
-}
-
-template<axis_type axis, class T>
+template<axis a, class T> [[nodiscard]]
 constexpr rect<T> inverse_axis(const rect<T>& rect) noexcept
 {
-    return make_range_rect
-    (
-        axis_constant<axis>(),
-        inverse(rect.axis_range<axis>()),
-        rect.axis_range<other_axis_v<axis>>()
-    );
+    if constexpr ( a == axis::x )
+    {
+        return
+        {
+            rect.v10(),
+            rect.v01(),
+        };
+    }
+    else
+    {
+        return
+        {
+            rect.v01(),
+            rect.v10()
+        };
+    }
 }

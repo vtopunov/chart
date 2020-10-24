@@ -2,28 +2,26 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="assert.h" />
-    <ClInclude Include="axis_type.h" />
-    <ClInclude Include="coordinate.h" />
-    <ClInclude Include="flags.h" />
     <ClInclude Include="intrusive_list.h" />
     <ClInclude Include="lerp.h" />
     <ClInclude Include="member_detector.h" />
     <ClInclude Include="narrow_cast.h" />
     <ClInclude Include="num_range.h" />
-    <ClInclude Include="point.h" />
     <ClInclude Include="rational.h" />
     <ClInclude Include="rect.h" />
-    <ClInclude Include="small_flat_map.h" />
-    <ClInclude Include="span.h" />
     <ClInclude Include="vec.h" />
     <ClInclude Include="zstring_view.h" />
     <ClInclude Include="small_vector.h" />
-    <ClInclude Include="unique_function.h" />
-    <ClInclude Include="handle.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="underlying_cast.h" />
     <ClInclude Include="polynomial.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="uninitialized_dynarray.h" />
+    <ClInclude Include="resouce.h" />
+    <ClInclude Include="null.h" />
+    <ClInclude Include="view.h" />
+    <ClInclude Include="buffer_view.h" />
+    <ClInclude Include="debug.h" />
+    <ClInclude Include="os.h" />
   </ItemGroup>
 </Project>

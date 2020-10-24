@@ -41,12 +41,12 @@ class MultiTextureSample : public SampleApplication
     virtual bool initialize()
     {
         const std::string vs =
-            R"(attribute vec4 a_position;
+            R"(attribute vec2 a_position;
             attribute vec2 a_texCoord;
             varying vec2 v_texCoord;
             void main()
             {
-                gl_Position = a_position;
+                gl_Position = vec4(a_position, 0.0, 1.0);
                 v_texCoord = a_texCoord;
             })";
 
@@ -107,16 +107,17 @@ class MultiTextureSample : public SampleApplication
     {
         GLfloat vertices[] =
         {
-            -0.5f,  0.5f, 0.0f,  // Position 0
-             0.0f,  0.0f,        // TexCoord 0
-            -0.5f, -0.5f, 0.0f,  // Position 1
-             0.0f,  1.0f,        // TexCoord 1
-             0.5f, -0.5f, 0.0f,  // Position 2
-             1.0f,  1.0f,        // TexCoord 2
-             0.5f,  0.5f, 0.0f,  // Position 3
-             1.0f,  0.0f         // TexCoord 3
+            -0.5f,  0.5f,   // Position 0
+             0.0f,  0.0f,   // TexCoord 0
+            -0.5f, -0.5f,   // Position 1
+             0.0f,  1.0f,   // TexCoord 1
+             0.5f,  0.5f,   // Position 3
+             1.0f,  0.0f,   // TexCoord 3
+             0.5f, -0.5f,   // Position 2
+             1.0f,  1.0f    // TexCoord 2
+
         };
-        GLushort indices[] = { 0, 1, 2, 0, 2, 3 };
+        GLubyte indices[] = { 0, 1, 3, 0, 3, 2 };
 
         // Set the viewport
         glViewport(0, 0, getWindow()->getWidth(), getWindow()->getHeight());
@@ -128,9 +129,9 @@ class MultiTextureSample : public SampleApplication
         glUseProgram(mProgram);
 
         // Load the vertex position
-        glVertexAttribPointer(mPositionLoc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), vertices);
+        glVertexAttribPointer(mPositionLoc, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), vertices);
         // Load the texture coordinate
-        glVertexAttribPointer(mTexCoordLoc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), vertices + 3);
+        glVertexAttribPointer(mTexCoordLoc, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), vertices + 2);
 
         glEnableVertexAttribArray(mPositionLoc);
         glEnableVertexAttribArray(mTexCoordLoc);
@@ -149,7 +150,7 @@ class MultiTextureSample : public SampleApplication
         // Set the light map sampler to texture unit 1
         glUniform1i(mLightMapLoc, 1);
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, indices);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
     }
 
   private:

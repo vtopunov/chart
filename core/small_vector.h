@@ -2,36 +2,66 @@
 
 #include <memory>
 #include <algorithm>
-#include <optional>
+#include <span>
+#include <iterator>
 
+#include <core/utility.h>
+#include <core/narrow_cast.h>
 #include <core/uninitialized_dynarray.h>
-#include <core/span.h>
 
 #undef min
 #undef max
 
-constexpr size_t optimal_geometric_growth(size_t value) noexcept
+#pragma warning(push)
+#pragma warning(disable : 26492) //	Don't use const_cast
+
+template<class It>
+constexpr It back_move(It to, It back) noexcept
 {
-    constexpr size_t num_fib{ 5u };
-    constexpr size_t den_fib{ 8u };
-    constexpr auto max_value = std::numeric_limits<size_t>::max();
+    constexpr auto is_trivially_copyable =
+        std::is_trivially_copyable_v<typename std::iterator_traits<It>::value_type>;
 
-    constexpr auto num_overflow = max_value / num_fib;
+    if constexpr (is_trivially_copyable)
+    {
+        if (back != to)
+        {
+            auto temp = std::move(*back);
+            std::copy(to, back, std::next(to));
+            std::swap(*to, temp);
+        }
+    }
+    else
+    {
+        while (back != to)
+        {
+            auto& temp = *back;
+            std::swap(*--back, temp);
+        }
+    }
 
-    const auto increment
-        = (value <= num_overflow)
-        ? (num_fib * value) / den_fib
-        : num_fib * (value / den_fib);
-
-    const auto increment_overflow = max_value - increment;
-
-    const auto result
-        = (value <= increment_overflow)
-        ? value + increment
-        : max_value;
-
-    return result;
+    return to;
 }
+
+template<class size_type> [[nodiscard]]
+constexpr size_type optimal_memory_growth(size_type value) noexcept
+{
+    static_assert(std::is_unsigned_v<size_type>);
+    constexpr size_type factor{ 2u };
+    constexpr auto max_size = std::numeric_limits<size_type>::max();
+    constexpr auto overflow = max_size / factor;
+    return (value > overflow) ? max_size : (factor * value);
+}
+
+template<class size_type> [[nodiscard]]
+constexpr size_type optimal_capacity_limit(size_type expected_capacity) noexcept
+{
+    return optimal_memory_growth(optimal_memory_growth(expected_capacity));
+}
+
+struct attach_construct_t
+{};
+
+inline constexpr attach_construct_t attach_construct{};
 
 template<class T, size_t N>
 class small_vector
@@ -39,8 +69,7 @@ class small_vector
     using self = small_vector;
 
 public:
-    static_assert(N > 0);
-    static constexpr size_t small_size = N;
+    static_assert(N > 0u);
 
     using value_type = T;
     using pointer = value_type*;
@@ -49,39 +78,61 @@ public:
     using const_reference = const value_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    using span_type = span<value_type>;
-    using const_span_type = span<std::add_const_t<value_type>>;
+    using span_type = std::span<value_type>;
+    using const_span_type = std::span<std::add_const_t<value_type>>;
     using uninitialized_dynarray_type = uninitialized_dynarray<value_type>;
     using size_type = typename uninitialized_dynarray_type::size_type;
 
+    static constexpr size_type static_size{ N };
+
     constexpr small_vector() noexcept
-        : data_{ small_ }
+        : data_{ static_ }
         , size_{ 0u }
     {}
 
     small_vector(const self& right) noexcept
-        : self(const_span_type(right))
+        : self{ static_cast<const_span_type>(right) }
     {}
 
-    small_vector(const_span_type right_span) noexcept
-        : self()
+    small_vector(const_span_type right) noexcept
+        : self{}
     {
-        assign(right_span);
+        if (right.size() > static_size)
+        {
+            const auto ok = _try_reallocate(right.size());
+            D_ASSERT(ok);
+            if (!ok)
+            {
+                return;
+            }
+        }
+
+        _copy_initialization_elements(right);
+    }
+
+    small_vector(attach_construct_t, self& right) noexcept
+        : self{}
+    {
+        if (right.is_static())
+        {
+            size_ = right._uninitialized_move_to(static_);
+        }
+        else
+        {
+            _dynamic_construct(right.dynamic_);
+            _dynamic_move_completion(right);
+        }
     }
 
     small_vector(self&& right) noexcept
-        : self()
-    {
-        _move_assign(std::move(right));
-    }
+        : self{attach_construct, right}
+    {}
 
     self& operator = (const self& right) noexcept
     {
-        if (this != &right)
+        if (this != std::addressof(right))
         {
-            assign(right);
+            D_ASSERT_WITH_SIDE_EFFECTS(try_assign(right));
         }
 
         return *this;
@@ -89,165 +140,191 @@ public:
 
     self& operator = (const_span_type right) noexcept
     {
-        assign(right);
+        D_ASSERT_WITH_SIDE_EFFECTS(try_assign(right));
         return *this;
     }
 
     self& operator = (self&& right) noexcept
     {
-        if (this != &right)
+        if (this != std::addressof(right))
         {
-            _move_assign(std::move(right));
+            if (right.is_static())
+            {
+                _destroy();
+                size_ = right._uninitialized_move_to(static_);
+            }
+            else
+            {
+                D_UNUSED(_destroy_elements());
+
+                _dynamic_attach(right.dynamic_);
+                _dynamic_move_completion(right);
+            }
         }
 
         return *this;
     }
 
-    void assing(const_pointer source, size_type source_size) noexcept
+    [[nodiscard]]
+    bool try_assign(const_span_type right) noexcept
     {
-        clear();
+        D_UNUSED(_destroy_elements());
 
-        if (try_reserve(source_size))
+        if (right.size() > capacity())
         {
-            std::uninitialized_copy_n(source, source_size, data_);
-            size_ = source_size;
-        }
-    }
-
-    void assign(const_span_type right) noexcept
-    {
-        assing(right.data(), right.size());
-    }
-
-    const_iterator insert(const_iterator position, value_type item) noexcept
-    {
-        D_ASSERT(position >= cbegin() && position <= cend());
-
-        const auto position_index = (position - data_);
-
-        iterator result{ nullptr };
-
-        if (try_reserve(size() + 1u))
-        {
-            result = data_ + position_index;
-            const auto last_position = data_ + size_;
-
-            if (result == last_position)
+            if (!_try_reallocate(right.size()))
             {
-                new (result) value_type(std::move(item));
-                ++size_;
-            }
-            else
-            {
-                const auto last_valid_position = std::prev(last_position);
-                new (last_position) value_type(std::move(*last_valid_position));
-                ++size_;
-
-                std::move_backward(result, last_valid_position, last_position);
-                *result = std::move(item);
+                return false;
             }
         }
         else
         {
-            result = data_ + size_;
+            _collect(right.size());
         }
 
-        return result;
+        _copy_initialization_elements(right);
+
+        return true;
     }
 
-    size_t erase(const_iterator first, const_iterator last) noexcept
+    template<class... Args>
+    [[nodiscard]] const_iterator try_emplace(const_iterator position, Args&&... args) noexcept
     {
-        D_ASSERT(last >= first);
-        D_ASSERT(first >= cbegin());
-        D_ASSERT(last <= cend());
+        D_ASSERT(position >= cbegin());
+        D_ASSERT(position <= cend());
 
-        struct collector
+        const auto position_index = (position - data_);
+
+        if (const auto last = try_emplace_back(std::forward<Args>(args)...))
         {
-            pointer data;
-            size_type size;
+            return back_move(data_ + position_index, last);
+        }
+
+        return nullptr;
+    }
+
+    size_type erase(const_iterator first, const_iterator last) noexcept
+    {
+        class collector
+        {
+        public:
+            constexpr explicit collector(small_vector& store) noexcept
+                : store_{ store }
+                , locked_data_{ store.data_ }
+                , locked_size_{ store._release_size() }
+            {}
+
+            D_DISABLE_COPY_MOVE(collector)
+
+            [[nodiscard]]
+            constexpr size_type erase(const_pointer first, const_pointer last) noexcept
+            {
+                return _set_removed_data(_remove_elements(first, last));
+            }
 
             ~collector() noexcept
             {
-                std::destroy_n(data, size);
+                std::destroy_n(locked_data_, locked_size_);
+                store_._collect();
             }
+
+        private:
+            [[nodiscard]]
+            constexpr size_type _set_removed_data(pointer removed_data) noexcept
+            {
+                const auto new_size = to_unsingned(removed_data - locked_data_);
+                locked_data_ = removed_data;
+                
+                const auto count_of_erased = locked_size_ - new_size;
+                locked_size_ = count_of_erased;
+
+                store_.size_ = new_size;
+
+                return count_of_erased;
+            }
+
+            [[nodiscard]]
+            constexpr pointer _remove_elements(const_pointer first, const_pointer last) const noexcept
+            {
+                D_ASSERT(last >= first);
+                D_ASSERT(first >= locked_data_);
+                
+
+                const auto last_last = locked_data_ + locked_size_;
+                D_ASSERT(last <= last_last);
+
+                return std::move
+                (
+                    const_cast<pointer>(last), 
+                    last_last, 
+                    const_cast<pointer>(first)
+                );
+            }
+
+        private:
+            small_vector& store_;
+            pointer locked_data_;
+            size_type locked_size_;
         };
 
-        collector temp{ data_, std::exchange(size_, 0u) };
-
-        const auto erasable_data = std::move
-        (
-            temp.data + (last - temp.data),
-            temp.data + temp.size,
-            temp.data + (first - temp.data)
-        );
-
-        const auto new_size = narrow_cast<size_t>(erasable_data - temp.data);
-
-        size_ = new_size;
-
-        temp.data = erasable_data;
-        temp.size -= new_size;
-        return temp.size;
+        return collector{ *this }.erase(first, last);
     }
 
+    [[nodiscard]]
     bool try_reserve(size_type new_capacity) noexcept
     {
-        const auto capacity = self::capacity();
-        const auto already_reserved = new_capacity <= capacity;
-        return already_reserved || _growth_reallocate(capacity, new_capacity);
+        return (new_capacity <= capacity()) || _try_reallocate(new_capacity);
     }
 
-    void reserve(size_t new_capacity) noexcept
+    void reserve(size_type new_capacity) noexcept
     {
-        try_reserve(new_capacity);
+        D_ASSERT_WITH_SIDE_EFFECTS(try_reserve(new_capacity));
+    }
+
+    [[nodiscard]]
+    bool try_shrink_to_fit() noexcept
+    {
+        bool ok{ true };
+
+        if (is_dynamic() && dynamic_.size() > size_)
+        {
+            if (size_ <= static_size)
+            {
+                _switch_to_static();
+            }
+            else
+            {
+                ok = _try_reallocate(size_);
+            }
+        }
+
+        return ok;
     }
 
     void shrink_to_fit() noexcept
     {
-        if (data_ != small_ && size_ < big_.size())
-        {
-            if (size_ <= small_size)
-            {
-                struct collector
-                {
-                    uninitialized_dynarray_type data;
-                    size_type size;
-
-                    ~collector() noexcept
-                    {
-                        std::destroy_n(data.data(), size);
-                    }
-                };
-
-                const collector temp{ std::move(big_), std::exchange(size_, 0u) };
-
-                data_ = small_;
-                std::uninitialized_move_n(temp.data.data(), temp.size, small_);
-                size_ = temp.size;
-            }
-            else
-            {
-                _reallocate(size_);
-            }
-        }
+        D_ASSERT_WITH_SIDE_EFFECTS(try_shrink_to_fit());
     }
 
-    void push_back(value_type item) noexcept
+    template<class... Args>
+    [[nodiscard]] pointer try_emplace_back(Args&&... args) noexcept
     {
-        if (try_reserve(size() + 1u))
+        if (_try_indeterminate_reserve(size() + 1u))
         {
-            const auto last_position = data_ + size_;
-            new (last_position) value_type(std::move(item));
+            const auto last = data_ + size_;
+            std::construct_at(last, std::forward<Args>(args)...);
             ++size_;
+            return last;
         }
+
+        return nullptr;
     }
 
     void pop_back() noexcept
     {
         D_ASSERT(size_);
-        const auto new_size = std::exchange(size_, 0u) - 1u;
-        std::destroy_at(data_ + new_size);
-        size_ = new_size;
+        std::destroy_at(--size_ + data_);
+        _collect();
     }
 
     void erase(const_iterator position) noexcept
@@ -257,236 +334,342 @@ public:
 
     void clear() noexcept
     {
-        std::destroy_n(data_, std::exchange(size_, 0u));
+        D_UNUSED(_destroy_elements());
+        _collect(0u);
     }
 
-    constexpr size_t capacity() const noexcept
+    [[nodiscard]]
+    constexpr size_type capacity() const noexcept
     {
-        return (data_ == small_) ? small_size : big_.size();
+        return is_static() ? static_size : dynamic_.size();
     }
 
+    [[nodiscard]]
     constexpr size_type size() const noexcept
     {
         return size_;
     }
 
+    [[nodiscard]]
     constexpr pointer data() noexcept
     {
         return data_;
     }
 
+    [[nodiscard]]
     constexpr const_pointer data() const noexcept
     {
         return data_;
     }
 
+    [[nodiscard]]
     constexpr const_iterator cbegin() const noexcept
     {
         return data_;
     }
 
+    [[nodiscard]]
     constexpr const_iterator cend() const noexcept
     {
-        return _end();
+        return _cend();
     }
 
+    [[nodiscard]]
     constexpr const_iterator begin() const noexcept
     {
         return cbegin();
     }
 
+    [[nodiscard]]
     constexpr const_iterator end() const noexcept
     {
         return cend();
     }
 
+    [[nodiscard]]
     constexpr iterator begin() noexcept
     {
-        return data_;
+        return const_cast<iterator>(cbegin());
     }
 
+    [[nodiscard]]
     constexpr iterator end() noexcept
     {
-        return const_cast<pointer>(_end());
+        return const_cast<iterator>(cend());
     }
 
-    constexpr const_reverse_iterator crbegin() const noexcept
-    {
-        return { cend() };
-    }
-
-    constexpr const_reverse_iterator crend() const noexcept
-    {
-        return { cbegin() };
-    }
-
-    constexpr const_reverse_iterator rbegin() const noexcept
-    {
-        return crbegin();
-    }
-
-    constexpr const_reverse_iterator rend() const noexcept
-    {
-        return crend();
-    }
-
-    constexpr reverse_iterator rbegin() noexcept
-    {
-        return { end() };
-    }
-
-    constexpr reverse_iterator rend() noexcept
-    {
-        return { begin() };
-    }
-
+    [[nodiscard]]
     constexpr const_reference cfront() const noexcept
     {
         return *data_;
     }
 
+    [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
-        return *std::prev(_end());
+        return *(_cend()-1u);
     }
 
+    [[nodiscard]]
     constexpr const_reference front() const noexcept
     {
         return cfront();
     }
 
+    [[nodiscard]]
     constexpr const_reference back() const noexcept
     {
         return cback();
     }
 
+    [[nodiscard]]
     constexpr reference front() noexcept
     {
         return const_cast<reference>(cfront());
     }
 
+    [[nodiscard]]
     constexpr reference back() noexcept
     {
         return const_cast<reference>(cback());
     }
 
+    [[nodiscard]]
     constexpr const_reference operator[](size_type index) const noexcept
     {
         return value(index);
     }
 
+    [[nodiscard]]
     constexpr reference operator[](size_type index) noexcept
     {
         return value(index);
     }
 
+    [[nodiscard]]
     constexpr const_reference cvalue(size_type index) const noexcept
     {
         return data_[index];
     }
 
+    [[nodiscard]]
     constexpr const_reference value(size_type index) const noexcept
     {
         return cvalue(index);
     }
 
+    [[nodiscard]]
     constexpr reference value(size_type index) noexcept
     {
         return const_cast<reference>(cvalue(index));
     }
 
-    constexpr bool is_small() const noexcept
+    [[nodiscard]]
+    constexpr bool is_static() const noexcept
     {
-        return data_ == small_;
+        return static_ == data_;
+    }
+
+    [[nodiscard]]
+    constexpr bool is_dynamic() const noexcept
+    {
+        return !is_static();
     }
 
     ~small_vector() noexcept
     {
-        clear();
-
-        if (data_ != small_)
-        {
-            big_.~uninitialized_dynarray();
-        }
+        _destroy();
     }
 
 private:
-    void _move_assign(self&& right) noexcept
+    [[nodiscard]]
+    constexpr const_pointer _cend() const noexcept
     {
-        if (right.data_ == right.small_)
-        {
-            clear();
+        return data_ + size_;
+    }
 
-            const auto new_size = right.size_;
-            std::uninitialized_move_n(right.data_, new_size, data_);
-            size_ = new_size;
+    [[nodiscard]]
+    constexpr size_type _release_size() noexcept
+    {
+        return std::exchange(size_, 0u);
+    }
+
+    [[nodiscard]]
+    size_type _destroy_elements() noexcept
+    {
+        const auto size = _release_size();
+        std::destroy_n(data_, size);
+        return size;
+    }
+
+    void _destroy() noexcept
+    {
+        D_UNUSED(_destroy_elements());
+
+        if (is_dynamic())
+        {
+            data_ = static_;
+            std::destroy_at(std::addressof(dynamic_));
+        }
+    }
+
+    void _copy_initialization_elements(const_span_type source) noexcept
+    {
+        std::uninitialized_copy_n(source.data(), source.size(), data_);
+        size_ = source.size();
+    }
+
+    [[nodiscard]]
+    size_type _uninitialized_move_to(span_type destination) noexcept
+    {
+        D_ASSERT(size_ <= destination.size());
+        std::uninitialized_move_n(data_, size_, destination.data());
+        return _destroy_elements();
+    }
+
+    constexpr void _dynamic_construct(uninitialized_dynarray_type& dynamic) noexcept
+    {
+        std::construct_at(std::addressof(dynamic_), std::move(dynamic));
+    }
+
+    constexpr void _dynamic_attach(uninitialized_dynarray_type& dynamic) noexcept
+    {
+        if (is_static())
+        {
+            _dynamic_construct(dynamic);
         }
         else
         {
-            if (data_ == small_)
-            {
-                clear();
-                new (&big_) uninitialized_dynarray_type(std::move(right.big_));
-            }
-            else
-            {
-                big_.swap(right.big_);
-            }
-
-            right.data_ = right.big_.data();
-            data_ = big_.data();
-            std::swap(size_, right.size_);
+            dynamic_.swap(dynamic);
         }
     }
 
-    bool _reallocate(size_type new_capacity) noexcept
+    [[nodiscard]]
+    bool _try_reallocate(size_type new_capacity) noexcept
     {
-        D_ASSERT(new_capacity > small_size);
+        D_ASSERT(new_capacity > static_size);
 
-        const auto new_data = typed_memory_allocation<T>(new_capacity);
-
-        if (new_data)
+        if (uninitialized_dynarray_type temp{new_capacity})
         {
-            uninitialized_dynarray_type temp(attach_memory_construct, new_data, new_capacity);
-
-            std::uninitialized_move_n(data_, size_, new_data);
-
-            const auto size = std::exchange(size_, 0u);
-            std::destroy_n(data_, size);
-
-            if (data_ == small_)
-            {
-                new (&big_) uninitialized_dynarray_type(std::move(temp));
-            }
-            else
-            {
-                big_.swap(temp);
-            }
-
-            data_ = big_.data();
-            size_ = size;
+            size_ = _uninitialized_move_to(temp);
+            _dynamic_attach(temp);
+            data_ = dynamic_.data();
+            return true;
         }
 
-        return !!new_data;
+        return false;
     }
 
-    bool _growth_reallocate(size_type prev, size_type next) noexcept
+    void _switch_to_static() noexcept
     {
-        D_ASSERT(prev < next);
-        return _reallocate(std::max(next, optimal_geometric_growth(prev)));
+        D_ASSERT(is_dynamic());
+
+        class collector
+        {
+        public:
+            constexpr explicit collector(small_vector& store) noexcept
+                : store_{ store }
+                , data_{ std::move(store.dynamic_) }
+                , size_{ store_._release_size() }
+            {
+                store_.data_ = store_.static_;
+            }
+
+            D_DISABLE_COPY_MOVE(collector)
+
+            void uninitialized_move_to_static() const noexcept
+            {
+                D_ASSERT(size_ <= static_size);
+                static_assert(std::is_same_v<decltype(data_.data()), pointer>);
+                std::uninitialized_move_n(data_.data(), size_, store_.data_);
+                store_.size_ = size_;
+            }
+
+            ~collector() noexcept
+            {
+                std::destroy_n(data_.data(), size_);
+            }
+
+        private:
+            small_vector& store_;
+            const uninitialized_dynarray_type data_;
+            const size_type size_;
+        };
+
+        const collector temp{ *this };
+        temp.uninitialized_move_to_static();
     }
 
-    constexpr const_pointer _end() const noexcept
+    constexpr void _dynamic_move_completion(self& right) noexcept
     {
-        return data_ + size_;
+        const auto size = right.size_;
+        right.data_ = right.dynamic_.data();
+        right.size_ = 0u;
+
+        data_ = dynamic_.data();
+        size_ = size;
+    }
+
+    [[nodiscard]]
+    bool _try_indeterminate_reserve(size_type require_capacity) noexcept
+    {
+        const auto old_capacity = capacity();
+        return require_capacity <= old_capacity
+            || _try_reallocate(std::max(require_capacity, optimal_memory_growth(old_capacity)));
+    }
+
+    [[nodiscard]]
+    bool _try_collect(size_type expected_capacity) noexcept
+    {
+        bool ok{ true };
+
+        if (is_dynamic())
+        {
+            constexpr auto min_capacity_limit = optimal_capacity_limit(static_size);
+
+            const auto is_expected_small = (expected_capacity <= static_size);
+
+            const auto capacity_limit
+                = is_expected_small
+                ? min_capacity_limit
+                : optimal_capacity_limit(expected_capacity);
+
+            const auto current_capacity = dynamic_.size();
+
+            if (current_capacity > capacity_limit)
+            {
+                if (is_expected_small)
+                {
+                    _switch_to_static();
+                }
+                else
+                {
+                    ok = _try_reallocate(expected_capacity);
+                }
+            }
+        }
+
+        return ok;
+    }
+
+    void _collect(size_type expected_capacity) noexcept
+    {
+        D_ASSERT_WITH_SIDE_EFFECTS(_try_collect(expected_capacity));
+    }
+
+    void _collect() noexcept
+    {
+        _collect(size_);
     }
 
 private:
     union
     {
-        value_type small_[small_size];
-        uninitialized_dynarray_type big_;
+        value_type static_[static_size];
+        uninitialized_dynarray_type dynamic_;
     };
     pointer data_;
-    size_t size_;
+    size_type size_;
 };
+
+#pragma warning(pop)

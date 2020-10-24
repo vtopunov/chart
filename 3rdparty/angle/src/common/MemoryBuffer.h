@@ -19,18 +19,34 @@ namespace angle
 
 class MemoryBuffer final : NonCopyable
 {
-  public:
-    MemoryBuffer();
+public:
+    constexpr MemoryBuffer() noexcept
+        : mData{ nullptr }
+        , mSize{ 0u }
+    {}
+
     ~MemoryBuffer();
 
-    MemoryBuffer(MemoryBuffer &&other);
-    MemoryBuffer &operator=(MemoryBuffer &&other);
+    constexpr MemoryBuffer(MemoryBuffer&& other) noexcept
+        : mData{ std::exchange(other.mData, nullptr) }
+        , mSize{ std::exchange(other.mSize, 0u) }
+    {}
+
+    constexpr MemoryBuffer& operator=(MemoryBuffer&& other) noexcept
+    {
+        std::swap(mData, other.mData);
+        std::swap(mSize, other.mSize);
+        return *this;
+    }
 
     bool resize(size_t size);
-    size_t size() const { return mSize; }
-    bool empty() const { return mSize == 0; }
 
-    const uint8_t *data() const { return mData; }
+    constexpr size_t size() const { return mSize; }
+    
+    constexpr bool empty() const { return !mSize; }
+
+    constexpr const uint8_t *data() const { return mData; }
+    
     uint8_t *data()
     {
         ASSERT(mData);

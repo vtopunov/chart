@@ -1,0 +1,45 @@
+test .
+C:\Users\vt\Desktop\glab\tools\relpathshrink|
+
+test .\dir
+C:\Users\vt\Desktop\glab\tools\relpathshrink\dir|
+
+test ..
+C:\Users\vt\Desktop\glab\tools|
+
+test ..\dir
+C:\Users\vt\Desktop\glab\tools\dir|
+
+test "..\" + file_name('.') + "0"
+C:\Users\vt\Desktop\glab\tools\relpathshrink0|
+
+test "..\" + remove_suffix(file_name('.'), 1)
+C:\Users\vt\Desktop\glab\tools\relpathshrin|
+
+test ..\..
+C:\Users\vt\Desktop\glab|
+
+test ..\..\dir
+C:\Users\vt\Desktop\glab\dir|
+
+test ..\..\dir0\dir1
+C:\Users\vt\Desktop\glab\dir0\dir1|
+
+test "..\..\" + file_name('..') + '0'
+C:\Users\vt\Desktop\glab\tools0|
+
+test "..\..\" + remove_suffix(file_name('..'),1)
+C:\Users\vt\Desktop\glab\tool|
+
+test "..\..\" + file_name('..') + '0' + "\dir"
+C:\Users\vt\Desktop\glab\tools0\dir|
+
+test "..\..\" + remove_suffix(file_name('..'),1) + "\dir"
+C:\Users\vt\Desktop\glab\tool\dir|
+
+test "..\..\" + file_name('..') + '0' + "\dir0\dir1"
+C:\Users\vt\Desktop\glab\tools0\dir0\dir1|
+
+test false detection
+C:\
+

@@ -14,11 +14,6 @@
 namespace angle
 {
 
-// MemoryBuffer implementation.
-MemoryBuffer::MemoryBuffer() : mSize(0), mData(nullptr)
-{
-}
-
 MemoryBuffer::~MemoryBuffer()
 {
     free(mData);
@@ -66,18 +61,6 @@ void MemoryBuffer::fill(uint8_t datum)
     {
         std::fill(mData, mData + mSize, datum);
     }
-}
-
-MemoryBuffer::MemoryBuffer(MemoryBuffer &&other) : MemoryBuffer()
-{
-    *this = std::move(other);
-}
-
-MemoryBuffer &MemoryBuffer::operator=(MemoryBuffer &&other)
-{
-    std::swap(mSize, other.mSize);
-    std::swap(mData, other.mData);
-    return *this;
 }
 
 // ScratchBuffer implementation.
