@@ -11,16 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{374CFD70-F327-40F0-9763-DE99BD27EE3A}</ProjectGuid>
+    <ProjectGuid>{1E3A33E9-C894-4513-B5E9-E2913F86F0E6}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>test_texture</RootNamespace>
+    <RootNamespace>utility</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
     <CharacterSet>Unicode</CharacterSet>
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Label="Locals">
     <PlatformToolset>v142</PlatformToolset>
@@ -51,7 +51,6 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <ExceptionHandling>false</ExceptionHandling>
       <DisableSpecificWarnings>28251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)3rdparty\libspng\spng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
@@ -82,7 +81,6 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(SolutionDir)3rdparty\libspng\spng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
@@ -97,23 +95,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\3rdparty\angle\src\libEGL.vcxproj">
-      <Project>{777ac703-c49d-e67c-f2ea-2bede272a25f}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\3rdparty\angle\src\libGLESv2.vcxproj">
       <Project>{d5d676ed-c189-2a6b-8de3-f4ca6175550f}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\3rdparty\zlib\contrib\vstudio\vc16\zlib.vcxproj">
-      <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
+    <ProjectReference Include="..\..\3rdparty\libspng\libspng.vcxproj">
+      <Project>{d24003c4-41bd-48e6-ae88-c076f95b61de}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\display\display.vcxproj">
       <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\utility\utility.vcxproj">
-      <Project>{1e3a33e9-c894-4513-b5e9-e2913f86f0e6}</Project>
+    <ProjectReference Include="..\..\file\file.vcxproj">
+      <Project>{499e20aa-8c6a-4235-a383-4e6d4c5e6aff}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\image\image.vcxproj">
+      <Project>{730d00f2-56bf-4f42-8055-a1517b0214c4}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="utility.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="utility.h" />
   </ItemGroup>
 </Project>

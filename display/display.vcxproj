@@ -14,7 +14,6 @@
     <ClInclude Include="egl\config.h" />
     <ClInclude Include="egl\egl_window.h" />
     <ClInclude Include="gl\config.h" />
-    <ClInclude Include="gl\draw.h" />
     <ClInclude Include="gl\shader.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="event_processor.h" />
@@ -24,7 +23,9 @@
     <ClInclude Include="event_timer.h" />
     <ClInclude Include="event_processors_container.h" />
     <ClInclude Include="gl\texture.h" />
-    <ClInclude Include="gl\type_id.h" />
+    <ClInclude Include="gl\glsl_typeid.h" />
+    <ClInclude Include="gl\draw.h" />
+    <ClInclude Include="gl\vertex.h" />
     <ClInclude Include="window.h" />
     <ClInclude Include="window_type.h" />
   </ItemGroup>
@@ -33,6 +34,7 @@
     <ClCompile Include="event_processor.cpp" />
     <ClCompile Include="event_timer.cpp" />
     <ClCompile Include="event_processors_container.cpp" />
+    <ClCompile Include="gl\draw.cpp" />
     <ClCompile Include="gl\shader.cpp" />
     <ClCompile Include="gl\texture.cpp" />
     <ClCompile Include="window.cpp" />

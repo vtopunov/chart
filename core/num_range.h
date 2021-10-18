@@ -36,7 +36,10 @@ struct num_range
     constexpr bool includes(const T& value) const noexcept
     {
         static_assert( std::is_arithmetic_v<T> );
-        return value >= min(*this) && value <= max(*this);
+
+        const auto sorted = (bounds._1 < bounds._0) ? reverse(bounds) : bounds;
+
+        return ( bounds._0 <= value ) && ( value <= bounds._1 );
     }
 
     [[nodiscard]]
@@ -52,7 +55,7 @@ struct num_range
     [[nodiscard]]
     constexpr num_range with_moving(const T& move) const noexcept
     {
-        return num_range{ bounds + fill_vec(move) };
+        return num_range{ bounds + fill_vec2(move) };
     }
 
     [[nodiscard]]

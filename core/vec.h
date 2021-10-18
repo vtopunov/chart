@@ -12,7 +12,9 @@
 template<class T>
 struct vec2
 {
+    static constexpr size_t tuple_size{ 2u };
     using value_type = T;
+    using view_type = std::span<const T, tuple_size>;
 
     T _0;
     T _1;
@@ -29,12 +31,23 @@ struct vec2
         return _1;
     }
 
-    using const_span_type = std::span<std::add_const_t<value_type>, 2u>;
+    [[nodiscard]]
+    consteval size_t size() const noexcept
+    {
+        return tuple_size;
+    }
 
     [[nodiscard]]
-    constexpr operator const_span_type() const noexcept
+    constexpr const T* data() const noexcept
     {
-        return const_span_type{ std::addressof(_0), const_span_type::extent };
+        static_assert(std::addressof(_0) + 1 == std::addressof(_1));
+        return std::addressof(_0);
+    }
+
+    [[nodiscard]]
+    constexpr operator view_type() const noexcept
+    {
+        return view_type{ data(), size() };
     }
 
     [[nodiscard]]
@@ -48,7 +61,7 @@ template<class T>
 vec2(T, T)->vec2<T>;
 
 template<class T> [[nodiscard]]
-constexpr vec2<T> fill_vec(const T& value) noexcept
+constexpr vec2<T> fill_vec2(const T& value) noexcept
 {
     return
     {
@@ -58,22 +71,22 @@ constexpr vec2<T> fill_vec(const T& value) noexcept
 }
 
 template<class T> [[nodiscard]]
-constexpr vec2<T> shift_push_back(const vec2<T>& vec2, const T& value) noexcept
+constexpr vec2<T> shift_push_back(const vec2<T>& vec, const T& value) noexcept
 {
     return
     {
-        vec2._1,
+        vec._1,
         value
     };
 }
 
 template<class T> [[nodiscard]]
-constexpr vec2<T> shift_push_front(const vec2<T>& vec2, const T& value) noexcept
+constexpr vec2<T> shift_push_front(const vec2<T>& vec, const T& value) noexcept
 {
     return
     {
         value,
-        vec2._0
+        vec._0
     };
 }
 

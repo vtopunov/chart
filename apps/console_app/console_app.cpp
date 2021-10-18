@@ -18,70 +18,63 @@
 #include <core/underlying_cast.h>
 #include <core/intrusive_list.h>
 #include <core/small_vector.h>
+#include <display/gl/glsl_typeid.h>
+#include <file/path.h>
+#include <display/gl/shader.h>
+#include <display/gl/vertex.h>
 
-namespace
+using namespace std::string_view_literals;
+
+template<class T>
+struct index
 {
-    struct empty
-    {};
+    using type = T;
 
-    struct s_w_e
+    operator size_t () const noexcept
     {
-        int64_t i;
-        uint64_t j;
-        [[no_unique_address]] empty e;
-
-        int64_t gi() const
-        {
-            return i;
-        }
-
-        constexpr ~s_w_e()
-        {
-            i = 0;
-        }
-    };
-   
-    enum class i32_e : uint32_t
-    {};
-
-    struct i32
-    {
-        i32_e l;
-    };
-
-    struct i64
-    {
-        i32 l;
-        uint32_t m;
-    };
-
-    constexpr bool always_true(bool b) noexcept
-    {
-        D_ASSERT(b);
-        return b;
+        const auto size = sizeof(T);
+        return size;
     }
-}
+};
+
+
+template <class... As>
+struct vi
+{};
+
+template<class Vertex, size_t... I>
+struct vi<Vertex, std::index_sequence<I...>>
+{
+
+};
+
+template <class... As>
+struct vs
+{
+
+    inline static size_t as[]
+    {
+        index<As>{}...
+    };
+};
+
+
+struct swp
+{
+    void swap(swp& o) noexcept
+    {
+        D_ASSERT(false);
+    }
+};
 
 int main() noexcept
 {
     
+    const auto& vas = vs<int, size_t, char>::as;
 
-    std::vector<s_w_e> v{{1, 2}, {3, 5}, {5, 6}};
-    v.reserve(v.size() + 1);
+    swp swp0, swp1;
 
-    small_vector<s_w_e, 3> sv;
-    sv.try_emplace_back(1, 2);
-    sv.try_emplace(sv.begin(), 7, 8u);
-
-
-    s_w_e swe{0, 0, {}};
-    constexpr auto r = sizeof(swe);
-
-    constexpr auto fls = always_true(true);
+    std::swap(swp0, swp1);
     
-    constexpr auto rr = sizeof(i64);
-
-    std::cout << rr;
-
     return 0;
 }

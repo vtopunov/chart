@@ -3,7 +3,6 @@
 #include <core/debug.h>
 
 #include <display/event_loop.h>
-#include <display/gl/shader.h>
 #include <display/gl/draw.h>
 #include <display/egl/egl_window.h>
 
@@ -16,8 +15,6 @@ using namespace display;
 
 namespace
 {
-    using glcolor_t = rgba_color<GLfloat>;
-
     constexpr auto anima_start_color = colors::yellow;
     constexpr auto anima_end_color = colors::black;
     constexpr auto anima_pause_color = anima_start_color;
@@ -29,12 +26,6 @@ namespace
     constexpr duration_t anima_working_time{6 * anima_period};
     constexpr duration_t anima_paused_time{anima_working_time};
 
-    void clear(glcolor_t color) noexcept
-    {
-        glClearColor(color.r, color.g, color.b, color.a);
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
-
     constexpr duration_rep_t oscillating_time(duration_rep_t time, duration_rep_t period) noexcept
     {
         const auto count = time / period;
@@ -44,7 +35,7 @@ namespace
         return oscillating_sign * (time - bound);
     }
 
-    constexpr glcolor_t anima_color(duration_t now) noexcept
+    constexpr rgba_colorf_t anima_color(duration_t now) noexcept
     {
         constexpr auto anima_period_rep = anima_period.count();
 
@@ -54,7 +45,7 @@ namespace
             num_range{anima_start_color, anima_end_color}
         );
 
-        return color_cast<glcolor_t>(anima_lerp(oscillating_time(now.count(), anima_period_rep)));
+        return color_cast<rgba_colorf_t>(anima_lerp(oscillating_time(now.count(), anima_period_rep)));
     }
 
     void draw_figure(duration_t now) noexcept
@@ -80,10 +71,10 @@ namespace
            )"_glsl
         );
 
-        static const auto a_position = gl::get_attribute<gl::type_id::vec2f>(shaders, "a_position");
-        static const auto u_color = gl::get_uniform<gl::type_id::vec4f>(shaders, "u_color");
+        static const auto a_position = gl::get_attribute_location(shaders, "a_position"_zsv);
+        static const auto u_color = gl::get_uniform<gl::glsl_typeid::vec4f>(shaders, "u_color"_zsv);
 
-        clear(anima_color(now));
+        gl::clear(anima_color(now));
 
         gl::use(shaders);
 
@@ -95,17 +86,16 @@ namespace
         constexpr GLfloat y_top{ 1.0f };
         constexpr GLfloat y_bottom{ y_top - dia };
 
-        constexpr GLfloat vertices[] =
+        constexpr gl::vec2f vertices[]
         {
-            x_left + radius, y_top,
-            x_left, y_bottom,
-            x_left + dia, y_bottom
+            { x_left + radius, y_top },
+            { x_left, y_bottom },
+            { x_left + dia, y_bottom }
         };
 
-        gl::set_pointer(a_position, vertices);
-        gl::enable_array(a_position);
+        set_vertex_pointer(a_position, vertices);
 
-        gl::draw_arrays(gl::draw_mode::triangles, 0, std::size(vertices) / a_position.tuple_size);
+        gl::draw_arrays(gl::draw_mode::triangles, 0, std::size(vertices));
     }
 
     struct main_processor

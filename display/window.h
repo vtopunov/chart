@@ -11,21 +11,21 @@
 
 namespace display
 {   
-    inline constexpr auto use_default_px = narrow_cast<pixel_t>( CW_USEDEFAULT );
-    inline constexpr auto use_default_vec = fill_vec(use_default_px);
+    inline constexpr auto usedefault_px = narrow_cast<pixel_t>( CW_USEDEFAULT );
+    inline constexpr auto usedefault_vec = fill_vec2(usedefault_px);
 
-    constexpr void px_by_default(pixel_t& value, pixel_t new_px) noexcept
+    constexpr void set_usedefault(pixel_t& value, pixel_t new_px) noexcept
     {
-        if (value == use_default_px)
+        if (value == usedefault_px)
         {
             value = new_px;
         }
     }
 
-    constexpr void px_by_default(vec_t& value, vec_t new_vec) noexcept
+    constexpr void set_usedefault(pixel_vec2_t& value, pixel_vec2_t new_vec) noexcept
     {
-        px_by_default(value._0, new_vec._0);
-        px_by_default(value._1, new_vec._1);
+        set_usedefault(value._0, new_vec._0);
+        set_usedefault(value._1, new_vec._1);
     }
 
     struct window_dependency
@@ -103,12 +103,12 @@ namespace display
     void quit() noexcept;
 
     [[nodiscard]]
-    rect_t rect(window_resource window) noexcept;
+    pixel_rect_t rect(window_resource window) noexcept;
 
-    bool rect(window_resource window, rect_t rc) noexcept;
+    bool rect(window_resource window, pixel_rect_t rc) noexcept;
 
     [[nodiscard]]
-    rect_t display_rect() noexcept;
+    pixel_rect_t display_rect() noexcept;
 
     using window_t = unique_resource<window_resource>;
 
@@ -133,7 +133,7 @@ namespace display
             return *this;
         }
 
-        constexpr window_factory& position(vec_t position) noexcept
+        constexpr window_factory& position(pixel_vec2_t position) noexcept
         {
             position_ = position;
             return *this;
@@ -142,16 +142,16 @@ namespace display
 
         constexpr window_factory& position(pixel_t x, pixel_t y) noexcept
         {
-            return position(vec_t{ x, y });
+            return position(pixel_vec2_t{ x, y });
         }
 
-        constexpr window_factory& position_by_default(vec_t position) noexcept
+        constexpr window_factory& usedefault_position(pixel_vec2_t position) noexcept
         {
-            px_by_default(position_, position);
+            set_usedefault(position_, position);
             return *this;
         }
 
-        constexpr window_factory& sizes(vec_t sizes) noexcept
+        constexpr window_factory& sizes(pixel_vec2_t sizes) noexcept
         {
             sizes_ = sizes;
             return *this;
@@ -159,23 +159,23 @@ namespace display
 
         constexpr window_factory& sizes(pixel_t width, pixel_t height) noexcept
         {
-            return sizes(vec_t{ width, height });
+            return sizes(pixel_vec2_t{ width, height });
         }
 
-        constexpr window_factory& sizes_by_default(vec_t sizes) noexcept
+        constexpr window_factory& usedefault_sizes(pixel_vec2_t sizes) noexcept
         {
-            px_by_default(sizes_, sizes);
+            set_usedefault(sizes_, sizes);
             return *this;
         }
 
-        constexpr window_factory& rect(const rect_t& rc) noexcept
+        constexpr window_factory& rect(const pixel_rect_t& rc) noexcept
         {
-            return position(rc.v00()).sizes(rc.sizes());
+            return position(rc.p00()).sizes(rc.sizes());
         }
 
-        constexpr window_factory& rect_by_default(const rect_t& rc) noexcept
+        constexpr window_factory& usedefault_rect(const pixel_rect_t& rc) noexcept
         {
-            return position_by_default(rc.v00()).sizes_by_default(rc.sizes());
+            return usedefault_position(rc.p00()).usedefault_sizes(rc.sizes());
         }
 
         [[nodiscard]]
@@ -186,7 +186,7 @@ namespace display
         std::wstring title_;
         window_resource parent_{ nullwindow };
         std::optional<DWORD> style_;
-        vec_t position_{ use_default_vec };
-        vec_t sizes_{ use_default_vec };
+        pixel_vec2_t position_{ usedefault_vec };
+        pixel_vec2_t sizes_{ usedefault_vec };
     };
 }

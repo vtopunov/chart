@@ -29,20 +29,78 @@ namespace display
             texture_2d = GL_TEXTURE_2D
         };
 
-        template<texture_target binded_target>
-        struct binded_texture_resource : texture_resource
+        template<texture_target target>
+        struct select_glsl_sampler_typeid
+        {};
+
+        template<>
+        struct select_glsl_sampler_typeid<texture_target::texture_2d> : glsl_typeid_constant<glsl_typeid::sampler2D>
+        {};
+
+        template<texture_target target>
+        inline constexpr auto glsl_sampler_typeid_v = select_glsl_sampler_typeid<target>::value;
+
+        template<texture_target target>
+        using uniform_sampler_t = uniform<glsl_sampler_typeid_v<target>>;
+
+        template<texture_target target>
+        using sampler_value_t = glsl_tuple_element_type_t<glsl_sampler_typeid_v<target>>;
+
+        template<texture_target target>
+        struct texture_sampler
         {
-            static constexpr auto target = binded_target;
+            uniform_sampler_t<target> location;
+            sampler_value_t<target> value;
         };
 
-        using texture_resource2d_t = binded_texture_resource<texture_target::texture_2d>;
+        [[nodiscard]]
+        std::underlying_type_t<uniform_location> get_sampler_number(shaders_program_resource program, uniform_location location) noexcept;
+
+        template<texture_target target> [[nodiscard]]
+        texture_sampler<target> get_texture_sampler(shaders_program_resource program, zstring_view name) noexcept
+        {
+            const auto sampler_uniform_location = get_uniform_location(program, name);
+
+            const texture_sampler<target> sampler
+            {
+                .location{ sampler_uniform_location  },
+                .value{ narrow_cast<sampler_value_t<target>>( get_sampler_number(program, sampler_uniform_location) ) }
+            };
+
+            D_ASSERT(sampler.location.test(program, name));
+
+            return sampler;
+        }
+
+        using texture_sampler2D_t = texture_sampler<texture_target::texture_2d>;
+
+        [[nodiscard]]
+        inline texture_sampler2D_t get_texture_sampler2D(shaders_program_resource program, zstring_view name) noexcept
+        {
+            return get_texture_sampler<texture_target::texture_2d>(program, name);
+        }
+
+        template<texture_target Target>
+        struct specialized_texture_resource : texture_resource
+        {
+            static constexpr auto target = Target;
+
+            void bind() const noexcept
+            {
+                glBindTexture(to_underlying(target), d);
+            }
+
+            void bind(texture_sampler<target> sampler) const noexcept
+            {
+                glActiveTexture(narrow_cast<GLenum>(GL_TEXTURE0 + sampler.value));
+                bind();
+                set(sampler.location, sampler.value);
+            }
+        };
+
+        using texture_resource2d_t = specialized_texture_resource<texture_target::texture_2d>;
 
         using texture2d_t = unique_resource<texture_resource2d_t, texture_resource_deleter>;
-
-        inline void bind(texture_resource2d_t texture) noexcept
-        {
-            glBindTexture(to_underlying(texture.target), texture.d);
-        }
 
         enum class pixel_format : GLenum
         {
@@ -70,21 +128,5 @@ namespace display
 
         [[nodiscard]]
         texture2d_t create_texture2d(size_t width, size_t height, texture_format format, const void* pixels) noexcept;
-
-        struct texture_sampler2D
-        {
-            uniform_sampler2D_t location;
-            sampler2D_value_t value;
-        };
-
-        [[nodiscard]]
-        texture_sampler2D get_texture_sampler2D(shaders_program_resource program, zstring_view name) noexcept;
-
-        inline void bind(texture_resource2d_t texture, texture_sampler2D sampler) noexcept
-        {
-            glActiveTexture(narrow_cast<GLenum>(GL_TEXTURE0 + sampler.value));
-            bind(texture);
-            set(sampler.location, sampler.value);
-        }
     }
 }

@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 namespace
 {
-    constexpr rect_t make_subwindow_rect(vec_t sizes) noexcept
+    constexpr pixel_rect_t make_subwindow_rect(pixel_vec2_t sizes) noexcept
     {
         return
         {

@@ -53,7 +53,7 @@ namespace display
                 location_detail_getter_t get_location_detail,
                 shaders_program_resource program,
                 location_index_t location,
-                type_id test_type_id,
+                glsl_typeid test_typeid,
                 zstring_view test_name
             ) noexcept
             {
@@ -84,7 +84,7 @@ namespace display
                 };
 
                 const auto test0 = (size == 1u);
-                const auto test1 = test0 && (type_id == to_underlying(test_type_id));
+                const auto test1 = test0 && (type_id == to_underlying(test_typeid));
                 const auto test2 = test1 && (name == test_name.as_string_view());
 
                 return test2;
@@ -119,7 +119,7 @@ namespace display
             (
                 shaders_program_resource program,
                 LocationType location,
-                type_id test_type_id,
+                glsl_typeid test_typeid,
                 zstring_view test_name
             )
             {
@@ -128,7 +128,7 @@ namespace display
                     location_detail_getter_v<LocationType>,
                     program,
                     to_underlying(location),
-                    test_type_id,
+                    test_typeid,
                     test_name
                 );
             }
@@ -257,9 +257,9 @@ namespace display
             return get_location<attribute_location>(program, name);
         }
 
-        bool test_attribute(shaders_program_resource program, attribute_location location, type_id test_type_id, zstring_view test_name) noexcept
+        bool test_attribute(shaders_program_resource program, attribute_location location, glsl_typeid test_typeid, zstring_view test_name) noexcept
         {
-            return test_location(program, location, test_type_id, test_name);
+            return test_location(program, location, test_typeid, test_name);
         }
 
         uniform_location get_uniform_location(shaders_program_resource program, zstring_view name) noexcept
@@ -267,9 +267,9 @@ namespace display
             return get_location<uniform_location>(program, name);
         }
 
-        bool test_uniform(shaders_program_resource program, uniform_location location, type_id test_type_id, zstring_view test_name) noexcept
+        bool test_uniform(shaders_program_resource program, uniform_location location, glsl_typeid test_typeid, zstring_view test_name) noexcept
         {
-            return test_location(program, location, test_type_id, test_name);
+            return test_location(program, location, test_typeid, test_name);
         }
     }
 }

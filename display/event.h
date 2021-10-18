@@ -164,7 +164,7 @@ namespace display
         }
 
         [[nodiscard]]
-        constexpr vec_t position() const noexcept
+        constexpr pixel_vec2_t position() const noexcept
         {
             return { x(), y() };
         }
@@ -193,7 +193,7 @@ namespace display
         }
 
         [[nodiscard]]
-        constexpr vec_t sizes() const noexcept
+        constexpr pixel_vec2_t sizes() const noexcept
         {
             return { width(), height() };
         }

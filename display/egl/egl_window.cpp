@@ -104,7 +104,7 @@ namespace display
 
         const auto display_rect = display::display_rect();
 
-        app_.rect_by_default(display_rect);
+        app_.usedefault_rect(display_rect);
 
         auto& p = as_mutable(result.resource());
 

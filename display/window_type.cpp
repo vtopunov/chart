@@ -24,10 +24,19 @@ namespace display
         }
 
         [[nodiscard]]
-        constexpr LPCWSTR make_in_atom(ATOM atom) noexcept
+        LPCWSTR make_in_atom(ATOM atom) noexcept
         {
-            return std::bit_cast<LPCWSTR>(static_cast<ULONG_PTR>(atom));
+#pragma push_macro("LPCTSTR")
+#pragma push_macro("LPTSTR")
+#undef LPCTSTR
+#define LPCTSTR LPCWSTR
+#undef LPTSTR
+#define LPTSTR LPWSTR
+            return MAKEINTATOM(atom);
+#pragma pop_macro("LPTSTR")
+#pragma pop_macro("LPCTSTR")
         }
+
 
         [[nodiscard]]
         HCURSOR load_cursor(HINSTANCE instance, LPCWSTR wstr) noexcept

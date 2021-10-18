@@ -29,7 +29,6 @@ T* typed_memory_allocation(size_t size) noexcept
 }
 
 
-
 template<class T>
 class uninitialized_dynarray
 {
@@ -87,6 +86,12 @@ public:
     {
         std::swap(data_, right.data_);
         std::swap(size_, right.size_);
+    }
+
+    void reset() noexcept
+    {
+        [[maybe_unused]]
+        const uninitialized_dynarray temp{ std::move(*this) };
     }
 
     [[nodiscard]]

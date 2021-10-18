@@ -41,6 +41,27 @@ namespace display
             glDeleteTextures(1, &texture.d);
         }
 
+        std::underlying_type_t<uniform_location> get_sampler_number(shaders_program_resource program, uniform_location location) noexcept
+        {
+            std::underlying_type_t<uniform_location> number{ 0u };
+
+            for (auto locaion = to_underlying(location); locaion; )
+            {
+                --locaion;
+
+                GLenum type_id{ 0 };
+                GLint size{ 0 };
+                glGetActiveUniform(to_underlying(program), locaion, 0, nullptr, &size, &type_id, nullptr);
+
+                if (is_sampler(underlying_cast<glsl_typeid>(type_id)))
+                {
+                    ++number;
+                }
+            }
+
+            return number;
+        }
+
         texture2d_t create_texture2d(size_t width, size_t height, texture_format format, const void* pixels) noexcept
         {
             using texture_t = texture2d_t;
@@ -53,7 +74,9 @@ namespace display
                 gen_texture()
             };
 
-            bind(texture);
+            D_ASSERT(texture);
+
+            texture->bind();
             
             texture_parameter(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             texture_parameter(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -62,36 +85,5 @@ namespace display
 
             return texture;
         }
-
-#pragma warning(push)
-#pragma warning(disable : 26496) // Diagnostic tools error. The variable 'result' does not change after construction
-
-        texture_sampler2D get_texture_sampler2D(shaders_program_resource program, zstring_view name) noexcept
-        {
-            texture_sampler2D result
-            {
-                .location{ get_uniform<type_id::sampler2D>(program, name) },
-                .value{ 0 }
-            };
-
-            for (auto locaion = result.location.location_as_uint(); locaion; )
-            {
-                --locaion;
-
-                GLenum type_id{ 0 };
-                GLint size{ 0 };
-                glGetActiveUniform(to_underlying(program), locaion, 0, nullptr, &size, &type_id, nullptr);
-
-                if (type_id == to_underlying(type_id::sampler2D))
-                {
-                    ++result.value;
-                }
-            }
-
-            return result;
-        }
-
-#pragma warning(pop)
-
     }
 }

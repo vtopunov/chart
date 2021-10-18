@@ -36,6 +36,11 @@ struct is_zstring_view<const T> : is_zstring_view<T>
 template<class T>
 inline constexpr bool is_zstring_view_v = is_zstring_view<T>::value;
 
+struct null_terminated_construct_t
+{};
+
+inline constexpr null_terminated_construct_t null_terminated_construct{};
+
 template<class T>
 class basic_zstring_view
 {
@@ -58,10 +63,20 @@ public:
         : string_{ c_string }
     {}
 
+    constexpr basic_zstring_view(null_terminated_construct_t, const_pointer data, size_t size) noexcept
+        : string_{ data, size }
+    {}
+
     template<class C, class = std::enable_if_t<is_string_v<C> && !is_zstring_view_v<C>>>
     constexpr basic_zstring_view(const C& string) noexcept
-        : string_{ string.c_str(), string.size() }
+        : basic_zstring_view{ null_terminated_construct, string.c_str(), string.size() }
     {}
+
+    [[nodiscard]]
+    constexpr operator string_view () const noexcept
+    {
+        return as_string_view();
+    }
 
     [[nodiscard]]
     constexpr string_view as_string_view() const noexcept
@@ -121,13 +136,13 @@ private:
 template<class T> [[nodiscard]]
 constexpr bool operator==(const basic_zstring_view<T>& left, const basic_zstring_view<T>& right) noexcept
 {
-    return left.as_string_view() == right.as_string_view();
+    return left.as_string_view() == right;
 }
 
 template<class T> [[nodiscard]]
 constexpr bool operator!=(const basic_zstring_view<T>& left, const basic_zstring_view<T>& right) noexcept
 {
-    return left.as_string_view() != right.as_string_view();
+    return left.as_string_view() != right;
 }
 
 using zstring_view = basic_zstring_view<char>;

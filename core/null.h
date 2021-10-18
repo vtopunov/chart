@@ -40,12 +40,12 @@ namespace private_detail_null_instance
     template<class T>
     struct select<null_instance<T>>
     {
-        using type = null_instance<std::remove_cvref_t<T>>;
+        using type = null_instance<std::decay_t<T>>;
     };
 }
 
 template<class T>
-using null_t = typename private_detail_null_instance::select<std::remove_cvref_t<T>>::type;
+using null_t = typename private_detail_null_instance::select<std::decay_t<T>>::type;
 
 namespace private_detail_validate
 {

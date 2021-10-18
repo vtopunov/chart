@@ -22,6 +22,6 @@ namespace display
         using processor_t = unique_resource<processor_resource>;
 
         [[nodiscard]]
-        processor_t bind(window_resource window, void* data, event_callback_t callback) noexcept;
+        processor_t create_processor(window_resource window, void* data, event_callback_t callback) noexcept;
     }
 }

@@ -16,6 +16,9 @@
     <ClCompile Include="window.cpp" />
     <ClCompile Include="window_procedure_impl.cpp" />
     <ClCompile Include="window_type.cpp" />
+    <ClCompile Include="gl\draw.cpp">
+      <Filter>gl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gl\config.h">
@@ -27,7 +30,7 @@
     <ClInclude Include="egl\egl_window.h">
       <Filter>egl</Filter>
     </ClInclude>
-    <ClInclude Include="gl\type_id.h">
+    <ClInclude Include="gl\glsl_typeid.h">
       <Filter>gl</Filter>
     </ClInclude>
     <ClInclude Include="gl\texture.h">
@@ -42,10 +45,13 @@
     <ClInclude Include="event_processors_container.h" />
     <ClInclude Include="window.h" />
     <ClInclude Include="window_type.h" />
+    <ClInclude Include="gl\shader.h">
+      <Filter>gl</Filter>
+    </ClInclude>
     <ClInclude Include="gl\draw.h">
       <Filter>gl</Filter>
     </ClInclude>
-    <ClInclude Include="gl\shader.h">
+    <ClInclude Include="gl\vertex.h">
       <Filter>gl</Filter>
     </ClInclude>
   </ItemGroup>

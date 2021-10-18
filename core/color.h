@@ -60,6 +60,7 @@ template<class T>
 struct rgba_color
 {
     using tint_type = T;
+    using view_type = std::span<const tint_type, 4u>;
 
     tint_type r;
     tint_type g;
@@ -81,18 +82,23 @@ struct rgba_color
         return color_cast<wide_argb_color_type>(*this);
     }
 
-    using const_span_type = std::span<const tint_type, 4u>;
-
     [[nodiscard]]
-    constexpr operator const_span_type() const noexcept
+    constexpr operator view_type() const noexcept
     {
-        return const_span_type{ std::addressof(r), const_span_type::extent };
+        static_assert(sizeof(rgba_color<T>) == 4 * sizeof(T));
+        return view_type{ std::addressof(r), view_type::extent };
     }
 
     [[nodiscard]]
     static constexpr rgba_color instance(tint_type a, tint_type r, tint_type g, tint_type b) noexcept
     {
         return {r, g, b, a};
+    }
+
+    [[nodiscard]]
+    static constexpr rgba_color instance(view_type view) noexcept
+    {
+        return instance(view[0], view[1], view[2], view[3]);
     }
 
     [[nodiscard]]
@@ -103,6 +109,9 @@ struct rgba_color
 };
 
 using rgba_color32_t = rgba_color<tint_byte_t>;
+using rgba_color32_view = rgba_color32_t::view_type;
+using rgba_colorf_t = rgba_color<float>;
+using rgba_colorf_view = rgba_colorf_t::view_type;
 
 static_assert( sizeof(rgba_color32_t) == 4 );
 
@@ -269,6 +278,12 @@ constexpr Target color_cast(const Source& src) noexcept
         const auto argb_uint32 = color_to_argb_uint32(rgba_color32);
         return narrow_cast<Target>( argb_uint32 );
     }
+}
+
+template<class T>
+constexpr rgba_colorf_t to_colorf(const rgba_color<T>& source) noexcept
+{
+    return color_cast<rgba_colorf_t>(source);
 }
 
 template<class T> [[nodiscard]]
@@ -454,4 +469,16 @@ namespace colors
     inline constexpr auto cyan = 0x00ffff_rgb;
     inline constexpr auto magenta = 0xff00ff_rgb;
     inline constexpr auto yellow = 0xffff00_rgb;
+
+    inline constexpr auto black_f = to_colorf(black);
+    inline constexpr auto gray_f = to_colorf(gray);
+    inline constexpr auto white_f = to_colorf(white);
+
+    inline constexpr auto red_f = to_colorf(red);
+    inline constexpr auto green_f = to_colorf(green);
+    inline constexpr auto blue_f = to_colorf(blue);
+
+    inline constexpr auto cyan_f = to_colorf(cyan);
+    inline constexpr auto magenta_f = to_colorf(magenta);
+    inline constexpr auto yellow_f = to_colorf(yellow);
 }

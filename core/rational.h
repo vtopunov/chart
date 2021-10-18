@@ -17,6 +17,15 @@ using wide_int_t = std::conditional_t
 template<class T>
 struct rational
 {
+    //
+    // TODO:
+    // 
+    // template<class T, T den = dynamic_den>
+    // struct rational;
+    // 
+    // using fixed32_t = rational<int32_t, 65536>;
+    //
+
     using int_type = T;
     static_assert( std::is_integral_v<int_type> );
 

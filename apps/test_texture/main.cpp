@@ -1,14 +1,11 @@
-#include <variant>
-
+#include <core/color.h>
 #include <core/debug.h>
 
 #include <display/event_loop.h>
-#include <display/gl/texture.h>
 #include <display/gl/draw.h>
 #include <display/egl/egl_window.h>
 
-#include <file/file_mmap.h>
-#include <image/png.h>
+#include <apps/utility/utility.h>
 
 using namespace std::string_view_literals;
 using namespace display::gl_literals;
@@ -17,67 +14,6 @@ using namespace display;
 
 namespace
 {
-    gl::texture2d_t png_texture(file::path_string_view_t path) noexcept
-    {
-        constexpr auto png_format = image::png_format::RGBA8;
-        constexpr auto gl_format = gl::R8G8B8A8;
-
-        const auto map_file = file::mmap(path);
-        if (!map_file)
-        {
-            output_debug_string(L"can't mapping file: {}\n", path.as_string_view());
-            return {};
-        }
-
-        const auto png = image::png_instance();
-
-        const auto accept_png_errno = [] (image::png_errno errc) noexcept
-        {
-            const auto is_error = errc != image::png_errno::OK;
-
-            if (is_error)
-            {
-                output_debug_string("png error: {}: {}\n", to_underlying(errc), image::png_error_string(errc).c_str());
-            }
-
-            return is_error;
-        };
-
-        if (accept_png_errno(image::png_set_buffer(png, map_file)))
-        {
-            return {};
-        }
-
-        const image::png_header png_header{ png };
-
-        size_t size = 0;
-        if (accept_png_errno(image::png_decoded_image_size(png, png_format, &size)))
-        {
-            return {};
-        }
-
-        if (!size)
-        {
-            output_debug_string(L"empty png image: {}\n", path.as_string_view());
-            return {};
-        }
-
-        uninitialized_dynarray<std::byte> buffer{ size };
-        
-        if (!buffer)
-        {
-            output_debug_string("out of memory: size = {}\n", size);
-            return {};
-        }
-
-        if (accept_png_errno(image::png_decode_image(png, png_format, buffer)))
-        {
-            return {};
-        }
-
-        return gl::create_texture2d(png_header.width(), png_header.height(), gl_format, buffer.data());
-    }
-
     void draw_texture_mix(gl::texture_resource2d_t base_texture, gl::texture_resource2d_t mix_texture) noexcept
     {
         static const auto shaders = gl::create_shaders_program
@@ -113,49 +49,43 @@ namespace
            )"_glsl
         );
 
-        static const auto a_position = gl::get_attribute<gl::type_id::vec2f>(shaders, "a_position");
-        static const auto a_texture = gl::get_attribute<gl::type_id::vec2f>(shaders, "a_texture");
-        static const auto s_base_texture = gl::get_texture_sampler2D(shaders, "s_base_texture");
-        static const auto s_mix_texture = gl::get_texture_sampler2D(shaders, "s_mix_texture");
+        static const gl::attribute_location attributes[] =
+        {
+            gl::get_attribute_location(shaders, "a_position"_zsv),
+            gl::get_attribute_location(shaders, "a_texture"_zsv)
+        };
 
-        glClearColor(1.0, 1.0, 1.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
+        static const auto s_base_texture = gl::get_texture_sampler2D(shaders, "s_base_texture"_zsv);
+        static const auto s_mix_texture = gl::get_texture_sampler2D(shaders, "s_mix_texture"_zsv);
+
+        gl::clear(colors::white_f);
 
         gl::use(shaders);
 
         constexpr GLfloat radius{ 0.25f };
-
-        constexpr GLfloat vertices[] =
+        
+        constexpr gl::vertex<gl::vec2f, gl::vec2f> vertices[]
         {
-            -radius,  radius, 0.0f, 0.0f,
-            -radius, -radius, 0.0f, 1.0f,
-             radius,  radius, 1.0f, 0.0f,
-             radius, -radius, 1.0f, 1.0f
+            { {-radius,  radius}, {0.0f, 0.0f} },
+            { {-radius, -radius}, {0.0f, 1.0f} },
+            { {radius,  radius}, {1.0f, 0.0f} },
+            { {radius, -radius}, {1.0f, 1.0f} }
         };
 
+        static const gl::vertex_buffer vbo{ vertices };
 
-        constexpr auto stride = a_position.tuple_size + a_texture.tuple_size;
-        gl::set_pointer(a_position, vertices, stride);
-        gl::set_pointer(a_texture, vertices + a_position.tuple_size, stride);
+        vbo.bind(attributes);
 
-        gl::enable_array(a_position);
-        gl::enable_array(a_texture);
+        base_texture.bind(s_base_texture);
+        mix_texture.bind(s_mix_texture);
 
-        gl::bind(base_texture, s_base_texture);
-        gl::bind(mix_texture, s_mix_texture);
-
-        gl::draw_arrays(gl::draw_mode::triangle_strip, 0, std::size(vertices) / stride);
-
-        //{
-        //    constexpr GLubyte indices[]{ 0, 1, 3, 0, 3, 2 };
-        //    gl::draw_elements(gl::draw_mode::triangles, indices);
-        //}
+        vbo.draw(gl::draw_mode::triangle_strip);
     }
 
     class main_processor
     {
     public:
-        main_processor() = default;
+        constexpr main_processor() noexcept = default;
 
         bool initialize() noexcept
         {
@@ -211,7 +141,7 @@ namespace
 
         int run() noexcept
         {
-            return display::run_event_loop(egl_window_, *this);
+            return run_event_loop(egl_window_, *this);
         }
 
     private:

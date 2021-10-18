@@ -15,8 +15,8 @@ namespace display
     using window_handle_t = HWND;
 
     using pixel_t = int;
-    using vec_t = vec2<pixel_t>;
-    using rect_t = rect<pixel_t>;
+    using pixel_vec2_t = vec2<pixel_t>;
+    using pixel_rect_t = rect<pixel_t>;
 
     struct window_resource
     {

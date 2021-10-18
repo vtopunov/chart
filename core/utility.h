@@ -20,6 +20,9 @@
 template<bool test, class T>
 using add_const_if_t = std::conditional_t<test, std::add_const_t<T>, T>;
 
+template<class S, class D>
+using copy_const_t = add_const_if_t<std::is_const_v<S>, D>;
+
 template<class Value, class Old, class New>
 using replace_t = std::conditional_t<std::is_same_v<Value, Old>, New, Value>;
 

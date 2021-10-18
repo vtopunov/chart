@@ -6,13 +6,9 @@ namespace display
 {
     namespace
     {
-        void reset_event_processors() noexcept
-        {
-            event_processor::processors_container_global().reset();
-        }
-
         void break_event_loop() noexcept
         {
+            event_processor::processors_container_global().reset();
             PostQuitMessage(0);
         }
 
@@ -62,16 +58,16 @@ namespace display
         }
 
         [[nodiscard]]
-        constexpr rect_t make_rect_from_gdi(const RECT& rect) noexcept
+        constexpr pixel_rect_t make_rect_from_gdi(const RECT& rect) noexcept
         {
             return
             {
-                vec_t
+                pixel_vec2_t
                 {
                     narrow_cast<pixel_t>(rect.left),
                     narrow_cast<pixel_t>(rect.top)
                 },
-                vec_t
+                pixel_vec2_t
                 {
                     narrow_cast<pixel_t>(rect.right),
                     narrow_cast<pixel_t>(rect.bottom)
@@ -90,7 +86,7 @@ namespace display
         }
 
         [[nodiscard]]
-        rect_t full_rect(window_handle_t window_handle) noexcept
+        pixel_rect_t full_rect(window_handle_t window_handle) noexcept
         {
             RECT rect{ 0, 0, 0, 0 };
             D_ASSERT_WITH_SIDE_EFFECTS(GetWindowRect(window_handle, &rect));
@@ -136,14 +132,14 @@ namespace display
         }
     }
 
-    rect_t rect(window_resource window) noexcept
+    pixel_rect_t rect(window_resource window) noexcept
     {
         RECT rect{ 0, 0, 0, 0 };
         D_ASSERT_WITH_SIDE_EFFECTS(GetClientRect(window.handle, &rect));
         return make_rect_from_gdi(rect);
     }
 
-    bool rect(window_resource window, rect_t rc) noexcept
+    bool rect(window_resource window, pixel_rect_t rc) noexcept
     {
         return !!SetWindowPos
         (
@@ -154,7 +150,7 @@ namespace display
         );
     }
 
-    rect_t display_rect() noexcept
+    pixel_rect_t display_rect() noexcept
     {
         return full_rect(GetDesktopWindow());
     }
@@ -173,7 +169,7 @@ namespace display
     {
         if (window)
         {
-            const struct collector
+            struct collector
             {
                 constexpr collector() noexcept = default;
 
@@ -183,11 +179,13 @@ namespace display
                 {
                     if (!window_container_global().size())
                     {
-                        reset_event_processors();
                         break_event_loop();
                     }
                 }
-            } temp;
+            };
+
+            [[maybe_unused]]
+            const collector temp;
 
             return close(window_container_global(), window);
         }
@@ -198,12 +196,10 @@ namespace display
     void quit() noexcept
     {
         auto& g_window_set = window_container_global();
-        if (!g_window_set.size())
+        if (g_window_set.size())
         {
             window_container window_set{ attach_construct, g_window_set };
-            D_ASSERT(window_set.size() && !g_window_set.size());
 
-            reset_event_processors();
             break_event_loop();
 
             do
@@ -254,14 +250,14 @@ namespace display
 
             if (result)
             {
-                auto& g_window_set = window_container_global();
+                auto& window_set = window_container_global();
 
-                const auto ok = !!g_window_set.try_emplace
+                const auto ok = !!window_set.try_emplace
                 (
                     std::upper_bound
                     (
-                        g_window_set.cbegin(),
-                        g_window_set.cend(),
+                        window_set.cbegin(),
+                        window_set.cend(),
                         as_parent(parent_)
                     ),
                     result.resource(),

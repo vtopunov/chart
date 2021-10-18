@@ -15,10 +15,10 @@ void test_rect() noexcept
     constexpr auto sizes01 = p1 - p0;
 
     static_assert( rc.diagonal == line01 );
-    static_assert( rc.v00() == p0 );
-    static_assert( rc.v01() == vec2{ p0.x(), p1.y() } );
-    static_assert( rc.v10() == vec2{ p1.x(), p0.y() } );
-    static_assert( rc.v11() == p1 );
+    static_assert( rc.p00() == p0 );
+    static_assert( rc.p01() == vec2{ p0.x(), p1.y() } );
+    static_assert( rc.p10() == vec2{ p1.x(), p0.y() } );
+    static_assert( rc.p11() == p1 );
     static_assert( rc.center() == center01 );
     static_assert( rc.x0() == p0.x() );
     static_assert( rc.y0() == p0.y() );

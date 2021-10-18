@@ -56,7 +56,7 @@ namespace display
             event_callback_instance<std::remove_pointer_t<std::remove_const_t<decltype(processor_ptr)>>>::callback
         };
 
-        const auto event_processing = event_processor::bind
+        const auto event_processing = event_processor::create_processor
         (
             mainwindow,
             processor_ptr,

@@ -14,25 +14,25 @@ struct rect
     diagonal_t diagonal;
 
     [[nodiscard]]
-    constexpr vec_t v00() const noexcept
+    constexpr vec_t p00() const noexcept
     {
         return diagonal.front();
     }
 
     [[nodiscard]]
-    constexpr vec_t v01() const noexcept
+    constexpr vec_t p01() const noexcept
     {
         return { x0(), y1() };
     }
 
     [[nodiscard]]
-    constexpr vec_t v10() const noexcept
+    constexpr vec_t p10() const noexcept
     {
         return { x1(), y0() };
     }
 
     [[nodiscard]]
-    constexpr vec_t v11() const noexcept
+    constexpr vec_t p11() const noexcept
     {
         return diagonal.back();
     }
@@ -135,16 +135,16 @@ constexpr rect<T> inverse_axis(const rect<T>& rect) noexcept
     {
         return
         {
-            rect.v10(),
-            rect.v01(),
+            rect.p10(),
+            rect.p01(),
         };
     }
     else
     {
         return
         {
-            rect.v01(),
-            rect.v10()
+            rect.p01(),
+            rect.p10()
         };
     }
 }

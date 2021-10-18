@@ -11,7 +11,7 @@ namespace display
             return processors_container_global().erase(processor);
         }
 
-        processor_t bind(window_resource window, void* data, event_callback_t callback) noexcept
+        processor_t create_processor(window_resource window, void* data, event_callback_t callback) noexcept
         {
             return
             {
