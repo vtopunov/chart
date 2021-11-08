@@ -4,6 +4,8 @@ extern void test_narrow_cast() noexcept;
 extern void test_underlying_cast() noexcept;
 extern void test_buffer_view() noexcept;
 extern void test_vec() noexcept;
+extern void test_point2d() noexcept;
+extern void test_size2d() noexcept;
 extern void test_num_range() noexcept;
 extern void test_rect() noexcept;
 extern void test_lerp() noexcept;
@@ -22,6 +24,8 @@ int main() noexcept
     test_underlying_cast();
     test_buffer_view();
     test_vec();
+    test_point2d();
+    test_size2d();
     test_num_range();
     test_rect();
     test_lerp();

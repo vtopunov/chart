@@ -4,7 +4,6 @@
 #include <span>
 
 #include <core/member_detector.h>
-#include <core/utility.h>
 #include <core/narrow_cast.h>
 
 template<bool immutable>

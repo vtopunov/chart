@@ -1,150 +1,90 @@
 #pragma once
 
+#include <core/utility.h>
+#include <core/narrow_cast.h>
 #include <core/num_range.h>
-
-template<class T>
-struct rect;
+#include <core/size2d.h>
+#include <core/point2d.h>
 
 template<class T>
 struct rect
 {
-    using vec_t = vec2<T>;
-    using diagonal_t = num_range<vec_t>;
+    using scalar_type = T;
+    using size_type = make_unsigned_or_t<scalar_type>;
+    using size2d_type = size2d<size_type>;
+    using point2d_type = point2d<scalar_type>;
+    using diagonal_line_type = num_range<point2d_type>;
 
-    diagonal_t diagonal;
+    diagonal_line_type diagonal;
 
     [[nodiscard]]
-    constexpr vec_t p00() const noexcept
+    constexpr point2d_type p00() const noexcept
     {
-        return diagonal.front();
+        return diagonal._0;
     }
 
     [[nodiscard]]
-    constexpr vec_t p01() const noexcept
+    constexpr point2d_type p01() const noexcept
     {
         return { x0(), y1() };
     }
 
     [[nodiscard]]
-    constexpr vec_t p10() const noexcept
+    constexpr point2d_type p10() const noexcept
     {
         return { x1(), y0() };
     }
 
     [[nodiscard]]
-    constexpr vec_t p11() const noexcept
+    constexpr point2d_type p11() const noexcept
     {
-        return diagonal.back();
+        return diagonal._1;
     }
 
     [[nodiscard]]
-    constexpr vec_t center() const noexcept
+    constexpr scalar_type x0() const noexcept
     {
-        return diagonal.center();
+        return diagonal._0.x();
     }
 
     [[nodiscard]]
-    constexpr T x0() const noexcept
+    constexpr scalar_type y0() const noexcept
     {
-        return diagonal.front().x();
+        return diagonal._0.y();
     }
 
     [[nodiscard]]
-    constexpr T y0() const noexcept
+    constexpr scalar_type x1() const noexcept
     {
-        return diagonal.front().y();
+        return diagonal._1.x();
     }
 
     [[nodiscard]]
-    constexpr T x1() const noexcept
+    constexpr scalar_type y1() const noexcept
     {
-        return diagonal.back().x();
+        return diagonal._1.y();
     }
 
     [[nodiscard]]
-    constexpr T y1() const noexcept
+    constexpr size2d_type sizes() const noexcept
     {
-        return diagonal.back().y();
+        return { width(), height() };
     }
 
     [[nodiscard]]
-    constexpr vec_t sizes() const noexcept
+    constexpr size_type width() const noexcept
     {
-        return diagonal.length();
+        return narrow_cast<size_type>(x1() - x0());
     }
 
     [[nodiscard]]
-    constexpr T width() const noexcept
+    constexpr size_type height() const noexcept
     {
-        return x1() - x0();
+        return narrow_cast<size_type>(y1() - y0());
     }
-
-    [[nodiscard]]
-    constexpr T height() const noexcept
-    {
-        return y1() - y0();
-    }
-
-    [[nodiscard]]
-    constexpr rect with_zooming(vec_t zoom_sizes) const noexcept
-    {
-        const auto new_radius = ( zoom_sizes * sizes() ) / 2;
-        const auto fix_center = center();
-        return { fix_center - new_radius, fix_center + new_radius };
-    }
-
-    [[nodiscard]]
-    constexpr rect with_inclusion(vec_t point) const noexcept
-    {
-        return rect{ diagonal.with_inclusion(point) };
-    }
-
-    [[nodiscard]]
-    constexpr rect with_moving(vec_t move) const noexcept
-    {
-        return rect{ diagonal.with_moving(move) };
-    }
-
-    [[nodiscard]]
-    constexpr rect with_frame(T width) const noexcept
-    {
-        const vec_t radius_inc{ width, width };
-        return rect{ diagonal.front() - radius_inc, diagonal.back() + radius_inc };
-    }
-
-    [[nodiscard]]
-    constexpr bool operator == (const rect&) const noexcept = default;
-
-    [[nodiscard]]
-    constexpr bool operator != (const rect&) const noexcept = default;
 };
 
 template<class T>
-rect(vec2<T>, vec2<T>)->rect<T>;
+rect(point2d<T>, point2d<T>)->rect<T>;
 
-enum class axis : size_t
-{
-    x,
-    y
-};
-
-template<axis a, class T> [[nodiscard]]
-constexpr rect<T> inverse_axis(const rect<T>& rect) noexcept
-{
-    if constexpr ( a == axis::x )
-    {
-        return
-        {
-            rect.p10(),
-            rect.p01(),
-        };
-    }
-    else
-    {
-        return
-        {
-            rect.p01(),
-            rect.p10()
-        };
-    }
-}
+using rect_px_t = rect<pixel_t>;

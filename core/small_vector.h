@@ -7,7 +7,7 @@
 
 #include <core/utility.h>
 #include <core/narrow_cast.h>
-#include <core/uninitialized_dynarray.h>
+#include <core/buffer.h>
 
 #undef min
 #undef max
@@ -47,7 +47,7 @@ constexpr size_type optimal_memory_growth(size_type value) noexcept
 {
     static_assert(std::is_unsigned_v<size_type>);
     constexpr size_type factor{ 2u };
-    constexpr auto max_size = std::numeric_limits<size_type>::max();
+    constexpr auto max_size = numeric_max_v<size_type>;
     constexpr auto overflow = max_size / factor;
     return (value > overflow) ? max_size : (factor * value);
 }
@@ -80,8 +80,8 @@ public:
     using const_iterator = const_pointer;
     using span_type = std::span<value_type>;
     using const_span_type = std::span<std::add_const_t<value_type>>;
-    using uninitialized_dynarray_type = uninitialized_dynarray<value_type>;
-    using size_type = typename uninitialized_dynarray_type::size_type;
+    using buffer_type = buffer<value_type>;
+    using size_type = typename buffer_type::size_type;
 
     static constexpr size_type static_size{ N };
 
@@ -214,7 +214,7 @@ public:
                 , locked_size_{ store._release_size() }
             {}
 
-            D_DISABLE_COPY_MOVE(collector)
+            D_DISABLE_COPY_MOVE(collector);
 
             [[nodiscard]]
             constexpr size_type erase(const_pointer first, const_pointer last) noexcept
@@ -527,12 +527,12 @@ private:
         return _destroy_elements();
     }
 
-    constexpr void _dynamic_construct(uninitialized_dynarray_type& dynamic) noexcept
+    constexpr void _dynamic_construct(buffer_type& dynamic) noexcept
     {
         std::construct_at(std::addressof(dynamic_), std::move(dynamic));
     }
 
-    constexpr void _dynamic_attach(uninitialized_dynarray_type& dynamic) noexcept
+    constexpr void _dynamic_attach(buffer_type& dynamic) noexcept
     {
         if (is_static())
         {
@@ -549,7 +549,7 @@ private:
     {
         D_ASSERT(new_capacity > static_size);
 
-        if (uninitialized_dynarray_type temp{new_capacity})
+        if (buffer_type temp{buffer_construct, new_capacity})
         {
             size_ = _uninitialized_move_to(temp);
             _dynamic_attach(temp);
@@ -575,7 +575,7 @@ private:
                 store_.data_ = store_.static_;
             }
 
-            D_DISABLE_COPY_MOVE(collector)
+            D_DISABLE_COPY_MOVE(collector);
 
             void uninitialized_move_to_static() const noexcept
             {
@@ -592,7 +592,7 @@ private:
 
         private:
             small_vector& store_;
-            const uninitialized_dynarray_type data_;
+            const buffer_type data_;
             const size_type size_;
         };
 
@@ -666,7 +666,7 @@ private:
     union
     {
         value_type static_[static_size];
-        uninitialized_dynarray_type dynamic_;
+        buffer_type dynamic_;
     };
     pointer data_;
     size_type size_;

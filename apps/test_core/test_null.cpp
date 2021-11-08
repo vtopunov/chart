@@ -48,7 +48,7 @@ void test_null() noexcept
     static_assert( std::is_same_v<null_t<nulltest_t>, nulltest_t> );
     static_assert( std::is_same_v<null_t<const nulltest_t>, nulltest_t> );
 
-    test_null null{ nulltest_t{} };
+    test_null null = nulltest_t{};
     D_ASSERT(!null.b);
     D_ASSERT(!null.i);
     D_ASSERT(!null.ptr);
@@ -59,7 +59,7 @@ void test_null() noexcept
     D_ASSERT(!default_unique->i);
     D_ASSERT(!default_unique->ptr);
 
-    linked_resource<test_null, skip_op> default_linked;
+    shared_resource<test_null, skip_op> default_linked;
     D_ASSERT(!default_linked->b);
     D_ASSERT(!default_linked->i);
     D_ASSERT(!default_linked->ptr);
@@ -69,12 +69,12 @@ void test_null() noexcept
         std::chrono::milliseconds ms;
     };
 
-    test_time_null tm_null{ null_t<test_time_null>{} };
+    test_time_null tm_null = null_t<test_time_null>{};
     D_ASSERT(!tm_null.ms.count());
 
     unique_resource<test_time_null, skip_op> default_unique_tm;
     D_ASSERT(!default_unique_tm->ms.count());
 
-    linked_resource<test_time_null, skip_op> default_linked_tm;
+    shared_resource<test_time_null, skip_op> default_linked_tm;
     D_ASSERT(!default_linked_tm->ms.count());
 }

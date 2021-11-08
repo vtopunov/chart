@@ -30,7 +30,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   <Import Project="$(SolutionDir)\core\core.props" />
-  <Import Project="$(SolutionDir)\display\display.props" />
+  <Import Project="$(SolutionDir)\3rdparty\angle\angle.props" />
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
@@ -97,16 +97,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\3rdparty\angle\src\libEGL.vcxproj">
-      <Project>{777ac703-c49d-e67c-f2ea-2bede272a25f}</Project>
+    <ProjectReference Include="..\..\egl\egl.vcxproj">
+      <Project>{c68c0dc6-5bbb-4620-9132-d734195ecaa5}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\3rdparty\angle\src\libGLESv2.vcxproj">
-      <Project>{d5d676ed-c189-2a6b-8de3-f4ca6175550f}</Project>
+    <ProjectReference Include="..\..\gl\gl.vcxproj">
+      <Project>{24516ac3-b08d-4a84-a63c-735a50200b28}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\3rdparty\zlib\contrib\vstudio\vc16\zlib.vcxproj">
-      <Project>{8fd826f8-3739-44e6-8cc8-997122e53b8d}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\display\display.vcxproj">
+    <ProjectReference Include="..\..\ui\ui.vcxproj">
       <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>
     </ProjectReference>
     <ProjectReference Include="..\utility\utility.vcxproj">

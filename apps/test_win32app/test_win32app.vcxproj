@@ -19,7 +19,6 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(SolutionDir)\core\core.props" />
-  <Import Project="$(SolutionDir)\display\display.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -93,7 +92,7 @@
     <ClCompile Include="test_win32app.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\display\display.vcxproj">
+    <ProjectReference Include="..\..\ui\ui.vcxproj">
       <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>
     </ProjectReference>
   </ItemGroup>

@@ -1,0 +1,189 @@
+#pragma once
+
+#include <core/size2d.h>
+
+#include <gl/shader.h>
+
+namespace gl
+{
+    using texture_descriptor_t = GLuint;
+
+    struct texture_resource
+    {
+        texture_descriptor_t d;
+
+        [[nodiscard]]
+        constexpr explicit operator bool() const noexcept
+        {
+            return !!d;
+        }
+    };
+
+    struct texture_resource_deleter
+    {
+        void operator () (texture_resource texture, resource_destroy_t) const noexcept;
+    };
+
+    enum class texture_target : GLenum
+    {
+        texture_2d = GL_TEXTURE_2D
+    };
+
+    inline void bind_texture(texture_target target, texture_resource texture) noexcept
+    {
+        glBindTexture(to_underlying(target), texture.d);
+    }
+
+    template<texture_target Target>
+    struct specialized_texture_resource : texture_resource
+    {
+        static constexpr auto target = Target;
+
+        void bind() const noexcept
+        {
+            bind_texture(target, *this);
+        }
+    };
+
+    using texture_resource2d_t = specialized_texture_resource<texture_target::texture_2d>;
+
+    using texture2d_t = unique_resource<texture_resource2d_t, texture_resource_deleter>;
+
+    enum class pixel_format : GLenum
+    {
+        RGBA = GL_RGBA,
+        RGB = GL_RGB,
+        LUMINANCE = GL_LUMINANCE
+    };
+
+    enum class pixel_type : GLenum
+    {
+        UNSIGNED_BYTE = GL_UNSIGNED_BYTE,
+        UNSIGNED_SHORT_565 = GL_UNSIGNED_SHORT_5_6_5
+    };
+
+    struct texture_format
+    {
+        pixel_format format;
+        pixel_type type;
+    };
+
+    inline constexpr texture_format R8G8B8A8{ pixel_format::RGBA, pixel_type::UNSIGNED_BYTE };
+    inline constexpr texture_format R8G8B8{ pixel_format::RGB, pixel_type::UNSIGNED_BYTE };
+    inline constexpr texture_format R5G6B5{ pixel_format::RGB, pixel_type::UNSIGNED_SHORT_565 };
+    inline constexpr texture_format LUMINANCE8{ pixel_format::LUMINANCE, pixel_type::UNSIGNED_BYTE };
+
+    [[nodiscard]]
+    texture2d_t create_texture2d(size2d_t sizes, texture_format format, const void* pixels) noexcept;
+
+    class texture_image2d
+    {
+    public:
+        D_DEFAULT_MOVABLE_ONLY(texture_image2d);
+
+        constexpr texture_image2d() noexcept = default;
+
+        texture_image2d(size2d_t sizes, texture_format format, const void* pixels)
+            : texture_{ create_texture2d(sizes, format, pixels) }
+            , sizes_{ sizes }
+        {}
+
+        [[nodiscard]]
+        constexpr explicit operator bool() const noexcept
+        {
+            return !!texture_;
+        }
+
+        [[nodiscard]]
+        constexpr operator texture_resource2d_t () const noexcept
+        {
+            return texture_;
+        }
+
+        [[nodiscard]]
+        constexpr size2d_t  sizes() const noexcept
+        {
+            return sizes_;
+        }
+
+        [[nodiscard]]
+        constexpr upixel_t width() const noexcept
+        {
+            return sizes_.width();
+        }
+
+        [[nodiscard]]
+        constexpr upixel_t height() const noexcept
+        {
+            return sizes_.height();
+        }
+
+    private:
+        texture2d_t texture_;
+        size2d_t sizes_{};
+    };
+
+
+    template<texture_target target>
+    struct select_glsl_sampler_typeid
+    {};
+
+    template<>
+    struct select_glsl_sampler_typeid<texture_target::texture_2d> : glsl_typeid_constant<glsl_typeid::sampler2D>
+    {};
+
+    template<texture_target target>
+    inline constexpr auto glsl_sampler_typeid_v = select_glsl_sampler_typeid<target>::value;
+
+    struct null_texture_sampler;
+
+    [[nodiscard]]
+    std::underlying_type_t<uniform_location> get_sampler_number(shaders_program_resource program, uniform_location location) noexcept;
+
+    template<texture_target target>
+    struct texture_sampler
+    {
+        using null_type = null_texture_sampler;
+
+        static constexpr auto sampler_typeid = glsl_sampler_typeid_v<target>;
+        using uniform_sampler_type = uniform<sampler_typeid>;
+        using sampler_value_type = glsl_tuple_element_type_t<sampler_typeid>;
+        static_assert(std::is_same_v<sampler_value_type, glsl_view_t<sampler_typeid>>);
+
+        uniform_sampler_type sampler;
+        sampler_value_type value;
+
+        void store(specialized_texture_resource<target> texture) const noexcept
+        {
+            glActiveTexture(narrow_cast<GLenum>(GL_TEXTURE0 + value));
+            texture.bind();
+            sampler.store(value);
+        }
+
+        [[nodiscard]]
+        static texture_sampler instance(shaders_program_resource program, zstring_view name) noexcept
+        {
+            const auto sampler_location = uniform_sampler_type::instance(program, name);
+
+            return
+            {
+                sampler_location,
+                narrow_cast<sampler_value_type>(get_sampler_number(program, sampler_location.location))
+            };
+        }
+    };
+
+    struct null_texture_sampler
+    {
+        template<texture_target target>
+        [[nodiscard]] constexpr operator texture_sampler<target>() const noexcept
+        {
+            return { invaliduniform, {} };
+        }
+    };
+
+    using nulltexturesampler_t = null_texture_sampler;
+    inline constexpr nulltexturesampler_t invalidtexturesampler{};
+
+    using texture_sampler2D_t = texture_sampler<texture_target::texture_2d>;
+}

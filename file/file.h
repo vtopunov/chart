@@ -27,7 +27,8 @@ namespace file
             template<class N>
             constexpr operator N () const noexcept
             {
-                return N{ file_descriptor(-1) };
+                static_assert(std::is_base_of_v<file_resource, N>);
+                return { file_descriptor(-1) };
             }
         };
 
@@ -38,7 +39,6 @@ namespace file
     };
 
     using invalidfile_t = null_t<file_resource>;
-
     inline constexpr invalidfile_t invalidfile{};
 
     struct ro_file_resource : file_resource
@@ -69,7 +69,7 @@ namespace file
     };
 
 
-    struct ro_file : public unique_resource<ro_file_resource, file_resource_deleter>
+    struct ro_file : unique_resource<ro_file_resource, file_resource_deleter>
     {
         using unique_resource::unique_resource;
 
@@ -83,7 +83,7 @@ namespace file
         }
     };
 
-    struct wo_file : public unique_resource<wo_file_resource, file_resource_deleter>
+    struct wo_file : unique_resource<wo_file_resource, file_resource_deleter>
     {
         using unique_resource::unique_resource;
 
@@ -97,7 +97,7 @@ namespace file
         }
     };
 
-    struct rw_file : public unique_resource<rw_file_resource, file_resource_deleter>
+    struct rw_file : unique_resource<rw_file_resource, file_resource_deleter>
     {
         using unique_resource::unique_resource;
 

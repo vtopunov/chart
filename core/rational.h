@@ -365,7 +365,7 @@ constexpr bool operator >= (const rational<T> left, const rational<T> right) noe
 template<class T> [[nodiscard]]
 constexpr rational<T> rational<T>::from_string(std::span<const char> string) noexcept
 {
-    constexpr T max = std::numeric_limits<T>::max();
+    constexpr T max_v = numeric_max_v<T>;
 
     constexpr auto is_digit = [] (char c) noexcept
     {
@@ -400,7 +400,7 @@ constexpr rational<T> rational<T>::from_string(std::span<const char> string) noe
 
         const char digit = ( c - '0' );
 
-        if ( ( r.num > ( max - digit ) / 10 ) || ( r.den > max / 10 ) )
+        if ( ( r.num > ( max_v - digit ) / 10 ) || ( r.den > max_v / 10 ) )
         {
             D_ASSERT(!"sint overflow");
             if ( isdot )

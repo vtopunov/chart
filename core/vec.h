@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <span>
 
-#include <core/underlying_cast.h>
+#include <core/pixel.h>
+#include <core/narrow_cast.h>
+#include <core/member_detector.h>
 
 #undef min
 #undef max
@@ -20,19 +22,7 @@ struct vec2
     T _1;
 
     [[nodiscard]]
-    constexpr T x() const noexcept
-    {
-        return _0;
-    }
-
-    [[nodiscard]]
-    constexpr T y() const noexcept
-    {
-        return _1;
-    }
-
-    [[nodiscard]]
-    consteval size_t size() const noexcept
+    constexpr size_t size() const noexcept
     {
         return tuple_size;
     }
@@ -40,14 +30,13 @@ struct vec2
     [[nodiscard]]
     constexpr const T* data() const noexcept
     {
-        static_assert(std::addressof(_0) + 1 == std::addressof(_1));
         return std::addressof(_0);
     }
 
     [[nodiscard]]
     constexpr operator view_type() const noexcept
     {
-        return view_type{ data(), size() };
+        return view_type{ data(), tuple_size };
     }
 
     [[nodiscard]]
@@ -59,6 +48,8 @@ struct vec2
 
 template<class T>
 vec2(T, T)->vec2<T>;
+
+using vec2px_t = vec2<pixel_t>;
 
 template<class T> [[nodiscard]]
 constexpr vec2<T> fill_vec2(const T& value) noexcept
@@ -111,12 +102,6 @@ template<class T> [[nodiscard]]
 constexpr decltype( auto )  difference(const vec2<T>& v) noexcept
 {
     return v._1 - v._0;
-}
-
-template<class T> [[nodiscard]]
-constexpr decltype( auto ) mean(const vec2<T>& v) noexcept
-{
-    return sum(v) / 2;
 }
 
 template<class T> [[nodiscard]]
@@ -217,5 +202,23 @@ constexpr vec2<T> max(const vec2<T>& a, const vec2<T>& b) noexcept
     {
         max(vec2{ a._0, b._0 }),
         max(vec2{ a._1, b._1 })
+    };
+}
+
+template<class T>
+using decl_value_type_t = typename T::value_type;
+
+template<class T>
+constexpr bool is_value_type_v = is_detected_v<decl_value_type_t, T>;
+
+template<class OutT, class InT> [[nodiscard]]
+constexpr std::enable_if_t<is_value_type_v<OutT>, OutT> vec2_cast(const vec2<InT>& in) noexcept
+{
+    using value_t = decl_value_type_t<OutT>;
+
+    return 
+    { 
+        narrow_cast<value_t>( in._0 ), 
+        narrow_cast<value_t>( in._1 )
     };
 }

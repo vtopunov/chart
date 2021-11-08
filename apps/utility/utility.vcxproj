@@ -30,7 +30,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   <Import Project="$(SolutionDir)\core\core.props" />
-  <Import Project="$(SolutionDir)\display\display.props" />
+  <Import Project="$(SolutionDir)\3rdparty\angle\angle.props" />
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
@@ -101,7 +101,7 @@
     <ProjectReference Include="..\..\3rdparty\libspng\libspng.vcxproj">
       <Project>{d24003c4-41bd-48e6-ae88-c076f95b61de}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\display\display.vcxproj">
+    <ProjectReference Include="..\..\ui\ui.vcxproj">
       <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\file\file.vcxproj">

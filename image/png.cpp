@@ -51,16 +51,14 @@ namespace image
         errno_ = underlying_cast<png_errno>(spng_get_ihdr(png, reinterpret_cast<spng_ihdr*>(&storage_)));
     }
 
-    uint32_t png_header::width() const noexcept
+    upixel_t png_header::width() const noexcept
     {
-        static_assert(std::is_same_v<decltype(spng_ihdr::width), uint32_t>);
-        return reinterpret_cast<const spng_ihdr&>(storage_).width;
+        return narrow_cast<upixel_t>(reinterpret_cast<const spng_ihdr&>(storage_).width);
     }
 
-    uint32_t png_header::height() const noexcept
+    upixel_t png_header::height() const noexcept
     {
-        static_assert(std::is_same_v<decltype(spng_ihdr::height), uint32_t>);
-        return reinterpret_cast<const spng_ihdr&>(storage_).height;
+        return narrow_cast<upixel_t>(reinterpret_cast<const spng_ihdr&>(storage_).height);
     }
 
     uint8_t png_header::bit_depth() const noexcept

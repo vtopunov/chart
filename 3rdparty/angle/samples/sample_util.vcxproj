@@ -114,8 +114,6 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Lib>
-      <AdditionalLibraryDirectories>C:/Program Files (x86)/Windows Kits/10/Lib/winv6.3/um/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <OutputFile>$(OutDir)lib\$(ProjectName)$(TargetExt)</OutputFile>
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
     <Link>
@@ -199,8 +197,6 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Lib>
-      <AdditionalLibraryDirectories>C:/Program Files (x86)/Windows Kits/10/Lib/winv6.3/um/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <OutputFile>$(OutDir)lib\$(ProjectName)$(TargetExt)</OutputFile>
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
     <Link>

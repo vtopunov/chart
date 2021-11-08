@@ -9,25 +9,11 @@ void test_num_range() noexcept
 
     static_assert( min(range) == 1 );
     static_assert( max(range) == 3 );
-    static_assert( range.front() == 1 );
-    static_assert( range.back() == 3 );
-    static_assert( !range.includes( 0 ) );
-    static_assert( range.includes( 1 ) );
-    static_assert( range.includes( 2 ) );
-    static_assert( range.includes( 3 ) );
-    static_assert( !range.includes( 4 ) );
 
     {
-        constexpr auto range_with_4 = range.with_inclusion( 4 );
-        static_assert( range_with_4.includes( 4 ) );
-        static_assert( range_with_4.includes( 1 ) );
-        static_assert( !range_with_4.includes( 0 ) );
-    }
-
-    {
-        constexpr auto range_moving_1 = range.with_moving( 1 );
-        static_assert( range_moving_1.includes( 4 ) );
-        static_assert( !range_moving_1.includes( 1 ) );
+        constexpr auto inv_r = inverse(range);
+        static_assert(min(inv_r) == 1);
+        static_assert(max(inv_r) == 3);
     }
 
     D_ASSERT( !errno );

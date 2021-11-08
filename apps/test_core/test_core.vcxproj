@@ -101,6 +101,7 @@
     <ClCompile Include="test_buffer_view.cpp" />
     <ClCompile Include="test_color.cpp" />
     <ClCompile Include="test_null.cpp" />
+    <ClCompile Include="test_point2d.cpp" />
     <ClCompile Include="test_resource.cpp" />
     <ClCompile Include="test_lerp.cpp" />
     <ClCompile Include="test_lerp_color.cpp" />
@@ -108,6 +109,7 @@
     <ClCompile Include="test_num_range.cpp" />
     <ClCompile Include="test_rational.cpp" />
     <ClCompile Include="test_rect.cpp" />
+    <ClCompile Include="test_size2d.cpp" />
     <ClCompile Include="test_small_vector.cpp" />
     <ClCompile Include="test_underlying_cast.cpp" />
     <ClCompile Include="test_utility.cpp" />

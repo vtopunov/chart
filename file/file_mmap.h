@@ -21,10 +21,10 @@ namespace file
 
         struct null_type
         {
-            template<class N>
-            constexpr operator N () const noexcept
+            [[nodiscard]]
+            constexpr operator file_mmap_resource () const noexcept
             {
-                return N
+                return
                 {
                     _private_detail
                     {

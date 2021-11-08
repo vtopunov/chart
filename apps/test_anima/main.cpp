@@ -2,16 +2,14 @@
 #include <core/lerp.h>
 #include <core/debug.h>
 
-#include <display/event_loop.h>
-#include <display/gl/draw.h>
-#include <display/egl/egl_window.h>
+#include <ui/event_loop.h>
+#include <gl/draw.h>
+#include <egl/window.h>
 
 using namespace std::string_view_literals;
 using namespace std::chrono_literals;
 using namespace std::chrono;
-using namespace display::gl_literals;
-using namespace display;
-
+using namespace gl_literals;
 
 namespace
 {
@@ -72,13 +70,13 @@ namespace
         );
 
         static const auto a_position = gl::get_attribute_location(shaders, "a_position"_zsv);
-        static const auto u_color = gl::get_uniform<gl::glsl_typeid::vec4f>(shaders, "u_color"_zsv);
+        static const auto u_color = gl::uniform<gl::glsl_typeid::vec4f>::instance(shaders, "u_color"_zsv);
 
         gl::clear(anima_color(now));
 
         gl::use(shaders);
 
-        gl::set(u_color, anima_color(now + anima_period));
+        u_color.store(anima_color(now + anima_period));
 
         constexpr GLfloat radius{ 0.25f };
         constexpr GLfloat dia{ 2 * radius };
@@ -86,35 +84,35 @@ namespace
         constexpr GLfloat y_top{ 1.0f };
         constexpr GLfloat y_bottom{ y_top - dia };
 
-        constexpr gl::vec2f vertices[]
+        constexpr gl::vec2f_t vertices[]
         {
             { x_left + radius, y_top },
             { x_left, y_bottom },
             { x_left + dia, y_bottom }
         };
 
-        set_vertex_pointer(a_position, vertices);
+        gl::set_vertex_pointer(a_position, vertices);
 
         gl::draw_arrays(gl::draw_mode::triangles, 0, std::size(vertices));
     }
 
     struct main_processor
     {
-        egl_window_t egl_window;
+        egl::window egl_window;
 
         duration_t anima_time{duration_t::zero()};
 
-        event_timer anima_wakeup_timer;
+        ui::event_timer anima_wakeup_timer;
 
         void draw() const noexcept
         {
-            [[maybe_unused]]
-            const auto lock = egl_window->begin();
-            
-            draw_figure(anima_time);
+            if (const auto lock = egl::begin_painting(egl_window))
+            {
+                draw_figure(anima_time);
+            }
         }
 
-        bool operator () (peek_event)  noexcept
+        bool operator () (ui::peek_event)  noexcept
         {
             constexpr auto period = anima_working_time + anima_paused_time;
 
@@ -137,7 +135,7 @@ namespace
                 if (!anima_wakeup_timer)
                 {
                     const auto anima_wakeup_time = period - duration_now;
-                    anima_wakeup_timer = create_event_timer(anima_wakeup_time);
+                    anima_wakeup_timer = ui::create_event_timer(anima_wakeup_time);
                     D_ASSERT(anima_wakeup_timer);
 
                     anima_time = duration_t::zero();
@@ -147,7 +145,7 @@ namespace
             return is_anima;
         }
 
-        void operator () (idle_event) noexcept
+        void operator () (ui::idle_event) noexcept
         {
             draw();
         }
@@ -160,11 +158,11 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
     {
         .egl_window
         {
-            egl_window_factory{}
+            egl::window_factory{}
             .title(L"hello triangle")
             .window_type
             (
-                window_type_factory{}
+                ui::window_type_factory{}
                 .module_instance(instance)
                 .create()
             )
@@ -175,12 +173,12 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
     if (!processor.egl_window)
     {
         output_debug_string("create window error: window error: {}, egl error: {}\n", 
-            display::last_error_code(), eglGetError());
+            ui::error_code(), eglGetError());
         return -1;
     }
 
-    show(processor.egl_window, command_show);
+    ui::show(processor.egl_window, command_show);
 
-    return run_event_loop(processor.egl_window, processor);
+    return ui::run_event_loop(processor.egl_window, processor);
 }
 

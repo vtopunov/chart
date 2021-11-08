@@ -19,35 +19,34 @@ struct unsafe_resource
 #pragma warning( push )
 #pragma warning( disable : 26418 ) 
 template<class T>
-unsafe_resource<T>& unsafe(const linked_resource<T>& safe) noexcept
+unsafe_resource<T>& unsafe(const shared_resource<T>& safe) noexcept
 {
-    static_assert( sizeof(linked_resource<T>) == sizeof(linked_resource<T>) );
-    static_assert( alignof( linked_resource<T> ) == alignof( linked_resource<T> ) );
+    static_assert( sizeof(shared_resource<T>) == sizeof(shared_resource<T>) );
+    static_assert( alignof( shared_resource<T> ) == alignof( shared_resource<T> ) );
     return ( unsafe_resource<T>& )safe;
 }
 #pragma warning(pop)
 
 template<class T>
-const intrusive_list_node* node(const linked_resource<T>& safe) noexcept
+const intrusive_list_node* node(const shared_resource<T>& safe) noexcept
 {
     return &unsafe(safe).c;
 }
 
 template<class T>
-const intrusive_list_node* prev(const linked_resource<T>& safe) noexcept
+const intrusive_list_node* prev(const shared_resource<T>& safe) noexcept
 {
     return node(safe)->prev;
 }
 
 template<class T>
-const intrusive_list_node* next(const linked_resource<T>& safe) noexcept
+const intrusive_list_node* next(const shared_resource<T>& safe) noexcept
 {
     return node(safe)->next;
 }
 
 struct tested_resouce
 {
-public:
     tested_resouce() noexcept = default;
 
     tested_resouce(int right) noexcept
@@ -72,7 +71,7 @@ void close(const tested_resouce& resouce) noexcept
 }
 
 using tested_unique = unique_resource<tested_resouce>;
-using tested_linked = linked_resource<tested_resouce>;
+using tested_linked = shared_resource<tested_resouce>;
 
 static_assert( std::is_same_v<null_t<tested_unique>, null_t<tested_resouce>> );
 static_assert( std::is_same_v<null_t<tested_linked>, null_t<tested_resouce>> );
@@ -91,7 +90,7 @@ constexpr void close(verifiable_resource) noexcept
 {}
 
 using verifiable_unique = unique_resource<verifiable_resource>;
-using verifiable_linked = linked_resource<verifiable_resource>;
+using verifiable_linked = shared_resource<verifiable_resource>;
 
 static_assert( !std::is_same_v<null_t<tested_resouce>, null_t<verifiable_resource>> );
 static_assert( std::is_same_v<null_t<verifiable_unique>, null_t<verifiable_resource>> );

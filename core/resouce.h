@@ -24,7 +24,7 @@ private:
     friend class unique_resource;
 
     template <class T, class D>
-    friend class linked_resource;
+    friend class shared_resource;
 
     constexpr resource_destroy_t() noexcept = default;
 };
@@ -49,7 +49,7 @@ public:
     static constexpr null_type null{};
 
     constexpr unique_resource() noexcept
-        : resource_{ null }
+        : resource_( null )
     {}
 
     constexpr unique_resource(null_type) noexcept
@@ -137,10 +137,10 @@ private:
 };
 
 template<class T, class D = resource_default_deleter>
-class linked_resource
+class shared_resource
 {
 private:
-    using self = linked_resource;
+    using self = shared_resource;
 
 public:
     using resource_type = T;
@@ -150,33 +150,33 @@ public:
     using unique_resource_type = unique_resource<resource_type, deleter_type>;
     static constexpr null_type null{};
 
-    constexpr linked_resource() noexcept
-        : linked_resource{ resource_construct, null }
+    constexpr shared_resource() noexcept
+        : resource_( null )
+        , copies_{ self_linked() }
     {}
 
-    constexpr linked_resource(null_type) noexcept
-        : linked_resource{}
+    constexpr shared_resource(null_type) noexcept
+        : shared_resource{}
     {}
 
-    constexpr linked_resource(unique_resource_type&& right) noexcept
-        : linked_resource{ resource_construct, right.release() }
+    constexpr shared_resource(unique_resource_type&& right) noexcept
+        : shared_resource{ resource_construct, right.release() }
     {}
 
-
-    linked_resource(linked_resource&& right) noexcept = delete;
+    shared_resource(shared_resource&& right) noexcept = delete;
 
     template<class... Args>
-    constexpr linked_resource(resource_construct_t, Args&&... args) noexcept
+    constexpr shared_resource(resource_construct_t, Args&&... args) noexcept
         : resource_{ std::forward<Args>(args)... }
         , copies_{ self_linked() }
     {}
 
-    constexpr linked_resource(const linked_resource& right) noexcept
+    constexpr shared_resource(const shared_resource& right) noexcept
         : resource_{ right.resource_ }
         , copies_{ linked_with(right) }
     {}
 
-    ~linked_resource() noexcept
+    ~shared_resource() noexcept
     {
         if ( has_copies() )
         {
@@ -188,7 +188,7 @@ public:
         }
     }
 
-    linked_resource& operator = (const linked_resource& right) noexcept
+    shared_resource& operator = (const shared_resource& right) noexcept
     {
         if ( this != std::addressof(right) )
         {
@@ -199,15 +199,15 @@ public:
         return *this;
     }
 
-    linked_resource& operator = (linked_resource&& right) noexcept = delete;
+    shared_resource& operator = (shared_resource&& right) noexcept = delete;
 
-    linked_resource& operator = (unique_resource_type&& right) noexcept
+    shared_resource& operator = (unique_resource_type&& right) noexcept
     {
         deattach_and_reset(right.release());
         return *this;
     }
 
-    linked_resource& operator = (null_type) noexcept
+    shared_resource& operator = (null_type) noexcept
     {
         deattach_and_reset();
         return *this;
@@ -260,21 +260,6 @@ public:
         deattach_and_reset(null);
     }
 
-    [[nodiscard]]
-    constexpr resource_type deattach_and_release() noexcept
-    {
-        if ( has_copies() )
-        {
-            unlink();
-        }
-        else
-        {
-            copies_ = self_linked();
-        }
-
-        return std::exchange(resource_, null);
-    }
-
 private:
     [[nodiscard]]
     constexpr bool has_copies() const noexcept
@@ -289,7 +274,7 @@ private:
     };
 
     [[nodiscard]]
-    constexpr intrusive_list_node linked_with(const linked_resource& item) noexcept
+    constexpr intrusive_list_node linked_with(const shared_resource& item) noexcept
     {
 #pragma warning(push)
 #pragma warning(disable : 26492) // Don't use const_cast

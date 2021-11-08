@@ -1,23 +1,27 @@
 #include "utility.h"
 
-#include <core/uninitialized_dynarray.h>
 #include <core/debug.h>
 
 #include <image/png.h>
 
 #include <file/file_mmap.h>
 
-gl::texture2d_t png_texture(file::path_string_view_t path) noexcept
+gl::texture_image2d png_reader::texture_from_file(file::path_string_view_t path) noexcept
 {
-    constexpr auto png_format = image::png_format::RGBA8;
-    constexpr auto gl_format = gl::R8G8B8A8;
-
     const auto map_file = file::mmap(path);
     if (!map_file)
     {
         output_debug_string(L"can't mapping file: {}\n", path.as_string_view());
         return {};
     }
+
+    return texture_from_bytes(map_file);
+}
+
+gl::texture_image2d png_reader::texture_from_bytes(const_buffer_view image) noexcept
+{
+    constexpr auto png_format = image::png_format::RGBA8;
+    constexpr auto gl_format = gl::R8G8B8A8;
 
     const auto png = image::png_instance();
 
@@ -33,7 +37,7 @@ gl::texture2d_t png_texture(file::path_string_view_t path) noexcept
         return is_error;
     };
 
-    if (accept_png_errno(image::png_set_buffer(png, map_file)))
+    if (accept_png_errno(image::png_set_buffer(png, image)))
     {
         return {};
     }
@@ -48,11 +52,14 @@ gl::texture2d_t png_texture(file::path_string_view_t path) noexcept
 
     if (!size)
     {
-        output_debug_string(L"empty png image: {}\n", path.as_string_view());
+        output_debug_string(L"empty png image\n");
         return {};
     }
 
-    uninitialized_dynarray<std::byte> buffer{ size };
+    if (buffer.size() < size)
+    {
+        buffer = { buffer_construct, size };
+    }
 
     if (!buffer)
     {
@@ -65,5 +72,5 @@ gl::texture2d_t png_texture(file::path_string_view_t path) noexcept
         return {};
     }
 
-    return gl::create_texture2d(png_header.width(), png_header.height(), gl_format, buffer.data());
+    return { png_header.sizes(), gl_format, buffer.data() };
 }

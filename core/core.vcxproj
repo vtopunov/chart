@@ -24,7 +24,10 @@
     <ClInclude Include="debug.h" />
     <ClInclude Include="null.h" />
     <ClInclude Include="os.h" />
-    <ClInclude Include="uninitialized_dynarray.h" />
+    <ClInclude Include="buffer.h" />
+    <ClInclude Include="pixel.h" />
+    <ClInclude Include="point2d.h" />
+    <ClInclude Include="size2d.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="intrusive_list.h" />
     <ClInclude Include="color.h" />

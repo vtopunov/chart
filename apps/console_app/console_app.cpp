@@ -14,14 +14,12 @@
 #include <vector>
 #include <map>
 #include <variant>
+#include <array>
 
 #include <core/underlying_cast.h>
 #include <core/intrusive_list.h>
 #include <core/small_vector.h>
-#include <display/gl/glsl_typeid.h>
-#include <file/path.h>
-#include <display/gl/shader.h>
-#include <display/gl/vertex.h>
+#include <core/point2d.h>
 
 using namespace std::string_view_literals;
 
@@ -68,13 +66,20 @@ struct swp
 };
 
 int main() noexcept
-{
-    
+{    
     const auto& vas = vs<int, size_t, char>::as;
 
     swp swp0, swp1;
 
     std::swap(swp0, swp1);
     
+    constexpr point2d_px_t p = vec2_cast<point2d_px_t>(vec2px_t{1, 2});
+
+ 
+    const auto v = vec2_cast<std::vector<int>>(vec2px_t{ 1, 2 });
+ 
+
+    constexpr std::array<int, 5u> arr{-1};
+
     return 0;
 }

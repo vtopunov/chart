@@ -1,16 +1,14 @@
 #include <core/color.h>
 #include <core/debug.h>
 
-#include <display/event_loop.h>
-#include <display/gl/draw.h>
-#include <display/egl/egl_window.h>
+#include <ui/event_loop.h>
+#include <gl/draw.h>
+#include <egl/window.h>
 
 #include <apps/utility/utility.h>
 
 using namespace std::string_view_literals;
-using namespace display::gl_literals;
-using namespace display;
-
+using namespace gl_literals;
 
 namespace
 {
@@ -49,14 +47,9 @@ namespace
            )"_glsl
         );
 
-        static const gl::attribute_location attributes[] =
-        {
-            gl::get_attribute_location(shaders, "a_position"_zsv),
-            gl::get_attribute_location(shaders, "a_texture"_zsv)
-        };
-
-        static const auto s_base_texture = gl::get_texture_sampler2D(shaders, "s_base_texture"_zsv);
-        static const auto s_mix_texture = gl::get_texture_sampler2D(shaders, "s_mix_texture"_zsv);
+        static const auto attributes = gl::get_attribute_locations(shaders, "a_position"_zsv, "a_texture"_zsv);
+        static const auto s_base_texture = gl::texture_sampler2D_t::instance(shaders, "s_base_texture"_zsv);
+        static const auto s_mix_texture = gl::texture_sampler2D_t::instance(shaders, "s_mix_texture"_zsv);
 
         gl::clear(colors::white_f);
 
@@ -64,7 +57,7 @@ namespace
 
         constexpr GLfloat radius{ 0.25f };
         
-        constexpr gl::vertex<gl::vec2f, gl::vec2f> vertices[]
+        constexpr gl::vertex<gl::vec2f_t, gl::vec2f_t> vertices[]
         {
             { {-radius,  radius}, {0.0f, 0.0f} },
             { {-radius, -radius}, {0.0f, 1.0f} },
@@ -74,12 +67,15 @@ namespace
 
         static const gl::vertex_buffer vbo{ vertices };
 
-        vbo.bind(attributes);
+        s_base_texture.store(base_texture);
+        s_mix_texture.store(mix_texture);
 
-        base_texture.bind(s_base_texture);
-        mix_texture.bind(s_mix_texture);
+        vbo.bind(attributes).draw(gl::draw_mode::triangle_strip);
 
-        vbo.draw(gl::draw_mode::triangle_strip);
+        // {
+        //   constexpr GLubyte indices[]{ 0, 2, 1, 1, 2, 3 };
+        //   gl::draw_elements(gl::draw_mode::triangles, indices);
+        // }
     }
 
     class main_processor
@@ -89,22 +85,24 @@ namespace
 
         bool initialize() noexcept
         {
-            egl_window_ = egl_window_factory{}.create();
+            egl_window_ = egl::window_factory{}.create();
             if (!egl_window_)
             {
                 output_debug_string("create window error: window error: {}, egl error: {}\n",
-                    display::last_error_code(), eglGetError());
+                    ui::error_code(), eglGetError());
                 return false;
             }
             
-            base_texture_ = png_texture(_PATH("base.png"));
+            png_reader png;
+
+            base_texture_ = png.texture_from_file(_PATH("base.png"));
             if (!base_texture_)
             {
                 output_debug_string("create png texture error: {}\n", glGetError());
                 return false;
             }
 
-            mix_texture_ = png_texture(_PATH("mix.png"));
+            mix_texture_ = png.texture_from_file(_PATH("mix.png"));
             if (!mix_texture_)
             {
                 output_debug_string("create png texture error: {}\n", glGetError());
@@ -117,23 +115,23 @@ namespace
         void show(int command_show) noexcept
         {
             need_redraw_ = true;
-            display::show(egl_window_, command_show);
+            ui::show(egl_window_, command_show);
         }
 
         void draw() const noexcept
         {
-            [[maybe_unused]]
-            const auto lock = egl_window_->begin();
-
-            draw_texture_mix(base_texture_, mix_texture_);
+            if (const auto lock = egl::begin_painting(egl_window_))
+            {
+                draw_texture_mix(base_texture_, mix_texture_);
+            }
         }
 
-        bool operator () (peek_event) const noexcept
+        bool operator () (ui::peek_event) const noexcept
         {
             return need_redraw_;
         }
         
-        void operator () (idle_event) noexcept
+        void operator () (ui::idle_event) noexcept
         {
             need_redraw_ = false;
             draw();
@@ -141,13 +139,13 @@ namespace
 
         int run() noexcept
         {
-            return run_event_loop(egl_window_, *this);
+            return ui::run_event_loop(egl_window_, *this);
         }
 
     private:
-        egl_window_t egl_window_;
-        gl::texture2d_t base_texture_;
-        gl::texture2d_t mix_texture_;
+        egl::window egl_window_;
+        gl::texture_image2d base_texture_;
+        gl::texture_image2d mix_texture_;
         bool need_redraw_{ false };
     };
 }

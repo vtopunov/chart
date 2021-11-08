@@ -4,6 +4,7 @@
 #include <functional>
 #include <span>
 
+#include <core/utility.h>
 #include <core/rational.h>
 
 template<class T>
@@ -24,7 +25,7 @@ constexpr T tint_max() noexcept
     }
     else
     {
-        constexpr auto byte_max = std::numeric_limits<tint_byte_t>::max();
+        constexpr auto byte_max = numeric_max_v<tint_byte_t>;
 
         if constexpr (is_rational_v<T>)
         {

@@ -94,7 +94,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(OutDir)obj\global_intermediate\angle;..\include;..\util;..\src;..\src\common\third_party\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/MP /d2guard4 /Wv:18 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MP /Wv:18 %(AdditionalOptions)</AdditionalOptions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -117,13 +117,11 @@
     </Lib>
     <Link>
       <AdditionalDependencies>kernel32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;user32.lib;uuid.lib;odbc32.lib;odbccp32.lib;delayimp.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:/Program Files (x86)/Windows Kits/10/Lib/winv6.3/um/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/guard:cf %(AdditionalOptions)</AdditionalOptions>
       <FixedBaseAddress>false</FixedBaseAddress>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ImportLibrary>$(OutDir)lib\$(TargetName).lib</ImportLibrary>
       <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
-      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
@@ -198,13 +196,11 @@
     </Lib>
     <Link>
       <AdditionalDependencies>kernel32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;user32.lib;uuid.lib;odbc32.lib;odbccp32.lib;delayimp.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:/Program Files (x86)/Windows Kits/10/Lib/winv6.3/um/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>/guard:cf %(AdditionalOptions)</AdditionalOptions>
       <FixedBaseAddress>false</FixedBaseAddress>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ImportLibrary>$(OutDir)lib\$(TargetName).lib</ImportLibrary>
       <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
-      <OutputFile>$(OutDir)$(ProjectName)$(TargetExt)</OutputFile>
       <SubSystem>Console</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>

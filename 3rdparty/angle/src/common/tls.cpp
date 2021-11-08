@@ -28,7 +28,7 @@ using namespace ABI::Windows::System::Threading;
 typedef vector<void*> ThreadLocalData;
 
 static __declspec(thread) ThreadLocalData* currentThreadData = nullptr;
-static set<ThreadLocalData*> allThreadData;
+static use<ThreadLocalData*> allThreadData;
 static DWORD nextTlsIndex = 0;
 static vector<DWORD> freeTlsIndices;
 

@@ -22,11 +22,11 @@ template<class T>
 class basic_zstring_view;
 
 template <class T>
-struct is_zstring_view : public std::false_type
+struct is_zstring_view : std::false_type
 {};
 
 template <class T>
-struct is_zstring_view<basic_zstring_view<T>> : public std::true_type
+struct is_zstring_view<basic_zstring_view<T>> : std::true_type
 {};
 
 template <class T>

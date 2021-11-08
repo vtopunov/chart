@@ -3,6 +3,7 @@
 #include <core/buffer_view.h>
 #include <core/zstring_view.h>
 #include <core/resouce.h>
+#include <core/size2d.h>
 
 struct spng_ctx;
 
@@ -135,7 +136,7 @@ namespace image
 
     class png_header
     {
-    public:
+    public:    
         explicit png_header(png_resource png) noexcept;
 
         [[nodiscard]]
@@ -145,16 +146,22 @@ namespace image
         }
 
         [[nodiscard]]
-        uint32_t width() const noexcept;
+        upixel_t width() const noexcept;
 
         [[nodiscard]]
-        uint32_t height() const noexcept;
+        upixel_t height() const noexcept;
 
         [[nodiscard]]
         uint8_t bit_depth() const noexcept;
 
         [[nodiscard]]
         png_color_type color_type() const noexcept;
+
+        [[nodiscard]]
+        size2d_t sizes() const noexcept
+        {
+            return { width(), height() };
+        }
 
         [[nodiscard]]
         constexpr png_errno error_code() const noexcept
