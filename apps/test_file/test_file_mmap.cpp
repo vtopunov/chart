@@ -20,7 +20,7 @@ void test_file_mmap() noexcept
 
     value_type content[1024]{};
     constexpr size_t content_size = sizeof(content);
-    constexpr size_t number_of_tests{ 256u };
+    constexpr size_t number_of_tests{ 256_uz };
     
     for ( size_t i = 0; i < number_of_tests; ++i )
     {
@@ -42,16 +42,16 @@ void test_file_mmap() noexcept
 
         {
             const auto mmap = file::mmap(file_name);
-            D_ASSERT(mmap && mmap->size() == content_size);
+            D_ASSERT(mmap && mmap.r().size() == content_size);
            
             
             {
-                const auto mmap_span = mmap->buffer().as_span<value_type>();
+                const auto mmap_span = mmap.r().view().as_span<value_type>();
                 D_ASSERT(mmap_span.front() == content[0]);
                 D_ASSERT(mmap_span.size() == std::size(content));
             }
             
-            D_ASSERT(!memcmp(mmap->data(), content, content_size));
+            D_ASSERT(!memcmp(mmap.r().data(), content, content_size));
         }
     }
 

@@ -2,7 +2,7 @@
 
 #include <bit>
 
-#include <core/underlying_cast.h>
+#include <core/narrow_cast.h>
 #include <core/os.h>
 
 #include <file/file_io.h>
@@ -20,7 +20,7 @@ namespace file
         [[nodiscard]]
         constexpr access_flags operator | (access_flags left, access_flags right) noexcept
         {
-            return underlying_cast<access_flags>( to_underlying(left) | to_underlying(right) );
+            return safe_numeric_cast<access_flags>( to_underlying(left) | to_underlying(right) );
         }
 
         enum class share_flags : DWORD
@@ -32,7 +32,7 @@ namespace file
         [[nodiscard]]
         constexpr share_flags operator | (share_flags left, share_flags right) noexcept
         {
-            return underlying_cast<share_flags>( to_underlying(left) | to_underlying(right) );
+            return safe_numeric_cast<share_flags>( to_underlying(left) | to_underlying(right) );
         }
 
         enum class creation_mode : DWORD
@@ -81,14 +81,40 @@ namespace file
                 )
             );
         }
+
+        void apply_write_mode(file_resource file, write_mode mode) noexcept
+        {
+            if (invalidfile != file)
+            {
+                if (write_mode::append == mode)
+                {
+                    seek(file, 0LL, seek_mode::end);
+                }
+            }
+        }
     }
 
-    void file_resource_deleter::operator()(file_resource file, resource_destroy_t) const noexcept
+    void file_resource_deleter::operator()(file_resource file) const noexcept
     {
-        if ( file != invalidfile )
+        if (invalidfile != file)
         {
             D_ASSERT_WITH_SIDE_EFFECTS(CloseHandle(file.fd));
         }
+    }
+
+    ro_file_resource standard_input() noexcept
+    {
+        return { as_file_descriptor(GetStdHandle(STD_INPUT_HANDLE)) };
+    }
+
+    wo_file_resource standard_output() noexcept
+    {
+        return { as_file_descriptor(GetStdHandle(STD_OUTPUT_HANDLE)) };
+    }
+
+    wo_file_resource standard_error() noexcept
+    {
+        return { as_file_descriptor(GetStdHandle(STD_ERROR_HANDLE)) };
     }
 
     ro_file ro_open(path_string_view_t path) noexcept
@@ -108,10 +134,7 @@ namespace file
             create_file(path, access_flags::write, select_creation_mode(mode))
         };
 
-        if ( mode == write_mode::append )
-        {
-            seek(result, 0LL, seek_mode::end);
-        }
+        apply_write_mode(result, mode);
 
         return result;
     }
@@ -126,10 +149,7 @@ namespace file
             create_file(path, access, select_creation_mode(mode))
         };
 
-        if ( mode == write_mode::append )
-        {
-            seek(result, 0LL, seek_mode::end);
-        }
+        apply_write_mode(result, mode);
 
         return result;
     }

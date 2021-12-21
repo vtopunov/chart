@@ -39,7 +39,7 @@ namespace egl
         class attributes_builder
         {
         public:
-            static constexpr size_t size = 2u * max_num_of_attributes + 1u;
+            static constexpr size_t size = 2_uz * max_num_of_attributes + 1_uz;
 
             [[nodiscard]]
             constexpr const EGLint* take() noexcept
@@ -50,7 +50,7 @@ namespace egl
 
             constexpr attributes_builder& add(EGLint attribute, EGLint value) noexcept
             {
-                D_ASSERT(position + 2u < size);
+                D_ASSERT(position + 2_uz < size);
                 data[position] = attribute;
                 data[++position] = value;
                 ++position;
@@ -59,66 +59,62 @@ namespace egl
 
         private:
             EGLint data[size];
-            size_t position{ 0u };
+            size_t position{ 0_uz };
         };
 
 #pragma warning(pop)
     }
 
-    void window_resource_collector::operator()(const window_resource& window, resource_destroy_t) const noexcept
+    void window_resources_collector::operator()(const window_resources& w) const noexcept
     {
         {
-            const auto& egl = window.egl;
-
-            if (egl.surface)
+            if (w.surface)
             {
-                D_ASSERT_WITH_SIDE_EFFECTS(eglDestroySurface(egl.display, egl.surface));
+                D_ASSERT_WITH_SIDE_EFFECTS(eglDestroySurface(w.display, w.surface));
             }
 
-            if (egl.context)
+            if (w.context)
             {
-                D_ASSERT_WITH_SIDE_EFFECTS(eglDestroyContext(egl.display, egl.context));
+                D_ASSERT_WITH_SIDE_EFFECTS(eglDestroyContext(w.display, w.context));
             }
 
-            if (egl.display)
+            if (w.display)
             {
-                eglMakeCurrent(egl.display, nullptr, nullptr, nullptr);
-                D_ASSERT_WITH_SIDE_EFFECTS(eglTerminate(egl.display));
+                eglMakeCurrent(w.display, nullptr, nullptr, nullptr);
+                D_ASSERT_WITH_SIDE_EFFECTS(eglTerminate(w.display));
             }
         }
 
-        ui::close(window.renderer_wnd);
-        ui::close(window.app_wnd);
+        ui::close(w.renderer_wnd);
+        ui::close(w.app_wnd);
     }
 
-    window window_factory::create() noexcept
+    window_t window_factory::create() noexcept
     {
-        window result;
+        window_t result;
 
-        auto& p = as_mutable(result.resource());
+        auto& w = as_mutable(result.r());
 
-        p.app_wnd
-            = app_
-            .create()
-            .release();
+        w.app_wnd = app_.create().release();
 
-        const auto viewport = ui::desktop_sizes();
-
-        if (p.app_wnd && viewport)
+        if (w.app_wnd)
         {
-            p.renderer_wnd
+            w.sizes = ui::desktop_sizes();
+        }
+
+        if (w.sizes)
+        {
+            w.renderer_wnd
                 = ui::window_factory{ app_ }
                 .title({})
-                .parent(p.app_wnd)
+                .parent(w.app_wnd)
                 .position(0, 0)
-                .sizes(viewport)
+                .sizes(w.sizes)
                 .create()
                 .release();
         }
 
-        auto& egl = p.egl;
-
-        if (p.renderer_wnd)
+        if (w.renderer_wnd)
         {
 #pragma warning(push)
 #pragma warning(disable : 26490) // Don't use reinterpret_cast
@@ -134,20 +130,20 @@ namespace egl
                     egl_none
                 };
 
-                egl.display = static_cast<display_descriptor>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
+                w.display = static_cast<display_descriptor_t>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
             }
         }
 
-        if (egl.display)
+        if (w.display)
         {
-            if (!eglInitialize(egl.display, nullptr, nullptr) || !eglBindAPI(EGL_OPENGL_ES_API))
+            if (!eglInitialize(w.display, nullptr, nullptr) || !eglBindAPI(EGL_OPENGL_ES_API))
             {
                 result.reset();
             }
         }
 
         EGLConfig config{ nullptr };
-        if (egl.display)
+        if (w.display)
         {
             constexpr EGLint config_attributes[] =
             {
@@ -161,7 +157,7 @@ namespace egl
             };
 
             EGLint config_count{ 0 };
-            const auto choose_ok = eglChooseConfig(egl.display, config_attributes, &config, 1, &config_count);
+            const auto choose_ok = eglChooseConfig(w.display, config_attributes, &config, 1, &config_count);
 
             if (!choose_ok || (config_count != 1))
             {
@@ -169,11 +165,11 @@ namespace egl
             }
         }
 
-        const auto extensions = query_extensions(egl.display);
+        const auto extensions = query_extensions(w.display);
 
         if (config)
         {
-            attributes_builder<2u> surface_attributes;
+            attributes_builder<2_uz> surface_attributes;
 
             surface_attributes.add(EGL_DIRECT_COMPOSITION_ANGLE, EGL_TRUE);
 
@@ -182,18 +178,18 @@ namespace egl
                 surface_attributes.add(EGL_POST_SUB_BUFFER_SUPPORTED_NV, EGL_TRUE);
             }
 
-            egl.surface = static_cast<surface_descriptor>(eglCreateWindowSurface
+            w.surface = static_cast<surface_descriptor_t>(eglCreateWindowSurface
             (
-                egl.display,
+                w.display,
                 config,
-                p.renderer_wnd.handle,
+                w.renderer_wnd.handle,
                 surface_attributes.take()
             ));
         }
 
-        if (egl.surface)
+        if (w.surface)
         {
-            attributes_builder<5u> context_attributes;
+            attributes_builder<5_uz> context_attributes;
 
             if (extensions.has("EGL_KHR_create_context"sv))
             {
@@ -207,16 +203,12 @@ namespace egl
                 }
             }
 
-            egl.context = static_cast<context_descriptor>(eglCreateContext(egl.display, config, nullptr, context_attributes.take()));
+            w.context = static_cast<context_descriptor_t>(eglCreateContext(w.display, config, nullptr, context_attributes.take()));
         }
 
-        if (egl.context)
+        if (w.context)
         {
-            if (eglMakeCurrent(egl.display, egl.surface, egl.surface, egl.context))
-            {
-                p.viewport = viewport;
-            }
-            else
+            if (!eglMakeCurrent(w.display, w.surface, w.surface, w.context))
             {
                 result.reset();
             }

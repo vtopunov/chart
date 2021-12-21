@@ -63,11 +63,17 @@ namespace file
     };
 
 
+    ro_file_resource standard_input() noexcept;
+
+    wo_file_resource standard_output() noexcept;
+
+    wo_file_resource standard_error() noexcept;
+
+
     struct file_resource_deleter
     {
-        void operator () (file_resource file, resource_destroy_t) const noexcept;
+        void operator () (file_resource file) const noexcept;
     };
-
 
     struct ro_file : unique_resource<ro_file_resource, file_resource_deleter>
     {
@@ -78,7 +84,7 @@ namespace file
         {
 #pragma warning(push)
 #pragma warning(disable : 26437) //  Don't slice
-            return resource();
+            return static_cast<file_resource>(r());
 #pragma warning(pop)
         }
     };
@@ -92,7 +98,7 @@ namespace file
         {
 #pragma warning(push)
 #pragma warning(disable : 26437) //  Don't slice
-            return resource();
+            return static_cast<file_resource>(r());
 #pragma warning(pop)
         }
     };
@@ -101,23 +107,26 @@ namespace file
     {
         using unique_resource::unique_resource;
 
+#pragma warning(push)
+#pragma warning(disable : 26437) //  Don't slice
         [[nodiscard]]
         constexpr operator file_resource() const noexcept
         {
-            return resource();
+            return static_cast<file_resource>(r());
         }
 
         [[nodiscard]]
         constexpr operator ro_file_resource() const noexcept
         {
-            return resource();
+            return static_cast<ro_file_resource>(r());
         }
 
         [[nodiscard]]
         constexpr operator wo_file_resource() const noexcept
         {
-            return resource();
+            return static_cast<wo_file_resource>(r());
         }
+#pragma warning(pop)
     };
 
     [[nodiscard]]

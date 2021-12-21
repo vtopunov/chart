@@ -11,7 +11,7 @@ void test_rect() noexcept
     constexpr rect rc{p0, p1};
 
     constexpr num_range line01{ p0, p1 };
-    constexpr auto sizes01 = vec2_cast<size2d<unsigned>>( p1 - p0 );
+    constexpr auto sizes01 = narrow2d_cast<size2d<unsigned>>( p1 - p0 );
 
     static_assert( rc.diagonal == line01 );
     static_assert( rc.p00() == p0 );

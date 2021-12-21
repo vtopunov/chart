@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/underlying_cast.h>
 #include <core/resouce.h>
 #include <core/zstring_view.h>
 
@@ -16,13 +15,16 @@ namespace gl
         null
     };
 
-    void close(shader_resource shader) noexcept;
-
     void set_source(shader_resource shader, string_view source) noexcept;
 
     bool compile(shader_resource shader) noexcept;
 
-    using shader_t = unique_resource<shader_resource>;
+    struct shader_resource_deleter
+    {
+        void operator () (shader_resource shader) const noexcept;
+    };
+
+    using shader_t = unique_resource<shader_resource, shader_resource_deleter>;
 
     enum class shader_type : GLenum
     {
@@ -38,11 +40,6 @@ namespace gl
         null
     };
 
-    using nullprogram_t = null_t<shaders_program_resource>;
-    inline constexpr nullprogram_t nullprogram;
-
-    void close(shaders_program_resource program) noexcept;
-
     void attach_shader(shaders_program_resource program, shader_resource shader) noexcept;
 
     bool compile(shaders_program_resource program, string_view source, shader_type type) noexcept;
@@ -54,7 +51,12 @@ namespace gl
         glUseProgram(to_underlying(program));
     }
 
-    using shaders_program_t = unique_resource<shaders_program_resource>;
+    struct shaders_program_resource_deleter
+    {
+        void operator () (shaders_program_resource program) const noexcept;
+    };
+
+    using shaders_program_t = unique_resource<shaders_program_resource, shaders_program_resource_deleter>;
 
     [[nodiscard]]
     shaders_program_t create_shaders_program() noexcept;
@@ -80,9 +82,9 @@ namespace gl
     attribute_location get_attribute_location(shaders_program_resource program, zstring_view name) noexcept;
 
     template<class... Names> [[nodiscard]]
-    std::array<attribute_location, sizeof...(Names)>  get_attribute_locations(shaders_program_resource program, Names... names) noexcept
+    std::array<attribute_location, sizeof...(Names)>  get_attribute_locations(shaders_program_resource program, const Names&... names) noexcept
     {
-         return { get_attribute_location(program, std::forward<Names>(names))... };
+         return { get_attribute_location(program, names)... };
     }
 
     [[nodiscard]]
@@ -106,7 +108,7 @@ namespace gl
     [[nodiscard]]
     constexpr location_int_t location_as_int(uniform_location location) noexcept
     {
-        return narrow_cast<location_int_t>(to_underlying(location));
+        return narrow_cast<location_int_t>(location);
     }
 
     [[nodiscard]]
@@ -127,19 +129,9 @@ namespace gl
         glUniform2iv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, GLint v0, GLint v1) noexcept
-    {
-        glUniform2i(location_as_int(u), v0, v1);
-    }
-
     inline void store_uniform_value(uniform_location u, const_span2f_t value) noexcept
     {
         glUniform2fv(location_as_int(u), 1, std::data(value));
-    }
-
-    inline void store_uniform_value(uniform_location u, GLfloat v0, GLfloat v1) noexcept
-    {
-        glUniform2f(location_as_int(u), v0, v1);
     }
 
     inline void store_uniform_value(uniform_location u, const_span3i_t value) noexcept
@@ -161,6 +153,34 @@ namespace gl
     {
         glUniform4fv(location_as_int(u), 1, std::data(value));
     }
+
+    template<glsl_typeid id>
+    struct store_uniform_method
+    {
+        static constexpr auto value = [] () noexcept
+        {};
+    };
+
+    template<>
+    struct store_uniform_method<glsl_typeid::vec2i>
+    {
+        static constexpr auto value = glUniform2i;
+    };
+
+    template<>
+    struct store_uniform_method<glsl_typeid::vec2f>
+    {
+        static constexpr auto value = glUniform2f;
+    };
+
+    template<>
+    struct store_uniform_method<glsl_typeid::vec4f>
+    {
+        static constexpr auto value = glUniform4f;
+    };
+
+    template<glsl_typeid id>
+    inline constexpr auto store_uniform_method_v = store_uniform_method<id>::value;
 
     [[nodiscard]]
     bool test_uniform
@@ -208,6 +228,12 @@ namespace gl
             store_uniform_value(location, view);
         }
 
+        template<class... Types>
+        auto store(const Types&... values) const -> decltype(store_uniform_method_v<id>(location_as_int(location), values...))
+        {
+            return store_uniform_method_v<id>(location_as_int(location), values...);
+        }
+
         [[nodiscard]] 
         static uniform instance(shaders_program_resource program, zstring_view name) noexcept
         {
@@ -217,7 +243,8 @@ namespace gl
         }
     };
 
-    using uniform_vec2f_t = uniform<gl::glsl_typeid::vec2f>;
+    using uniform_vec2f_t = uniform<glsl_typeid::vec2f>;
+    using uniform_vec4f_t = uniform<glsl_typeid::vec4f>;
 
     namespace literals
     {
@@ -225,12 +252,6 @@ namespace gl
         constexpr string_view operator"" _glsl(const GLchar * source, size_t length) noexcept
         {
             return { source, length };
-        }
-
-        [[nodiscard]]
-        constexpr zstring_view operator"" _zsv(const GLchar * source, size_t length) noexcept
-        {
-            return { null_terminated_construct, source, length };
         }
     }
 }

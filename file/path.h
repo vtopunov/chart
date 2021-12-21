@@ -13,7 +13,7 @@ namespace file
         [[nodiscard]]
         constexpr path_string_view_t operator"" _path(const path_char_t* source, size_t length) noexcept
         {
-            return { null_terminated_construct, source, length };
+            return { c_str_construct, source, length };
         }
     }
 }

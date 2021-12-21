@@ -1,14 +1,11 @@
 #include "window_type.h"
 
 #include <charconv>
-#include <algorithm>
 #include <array>
 
-#include <core/underlying_cast.h>
+#include <core/narrow_cast.h>
 
 #include <ui/window.h>
-
-#include <bit>
 
 namespace ui
 {
@@ -22,33 +19,6 @@ namespace ui
             static uint32_t id{ 0u };
             return ++id;
         }
-
-        [[nodiscard]]
-        LPCWSTR make_in_atom(ATOM atom) noexcept
-        {
-#pragma push_macro("LPCTSTR")
-#pragma push_macro("LPTSTR")
-#undef LPCTSTR
-#define LPCTSTR LPCWSTR
-#undef LPTSTR
-#define LPTSTR LPWSTR
-            return MAKEINTATOM(atom);
-#pragma pop_macro("LPTSTR")
-#pragma pop_macro("LPCTSTR")
-        }
-
-
-        [[nodiscard]]
-        HCURSOR load_cursor(HINSTANCE instance, LPCWSTR wstr) noexcept
-        {
-            return LoadCursorW(instance, wstr);
-        }
-
-        [[nodiscard]]
-        HCURSOR load_cursor(HINSTANCE instance, LPCSTR wstr) noexcept
-        {
-            return LoadCursorA(instance, wstr);
-        }
     }
 
     error_code_t error_code() noexcept
@@ -61,7 +31,7 @@ namespace ui
         return static_cast<HBRUSH>( GetStockObject(to_underlying(brush)) );
     }
 
-    void window_type_resource_deleter::operator()(window_type_resource type, resource_destroy_t) const noexcept
+    void window_type_resource_deleter::operator()(window_type_resource type) const noexcept
     {
         if (type)
         {
@@ -75,7 +45,7 @@ namespace ui
         {
             WNDCLASSEXW& data_;
 
-            constexpr collector(WNDCLASSEXW& data) noexcept
+            constexpr explicit collector(WNDCLASSEXW& data) noexcept
                : data_{ data }
             {}
 
@@ -122,7 +92,7 @@ namespace ui
 
         if ( !data_.hCursor )
         {
-            data_.hCursor = load_cursor(nullptr, IDC_ARROW);
+            data_.hCursor = LoadCursorW(nullptr, IDC_ARROWW);
         }
 
         if (!data_.hbrBackground)
@@ -134,7 +104,7 @@ namespace ui
         {
             resource_construct,
             data_.hInstance,
-            make_in_atom(RegisterClassExW(&data_))
+            MAKEINTATOMW(RegisterClassExW(&data_))
         };
     }
 }

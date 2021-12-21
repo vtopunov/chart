@@ -1,7 +1,6 @@
 #include "file_io.h"
 
 #include <core/narrow_cast.h>
-#include <core/underlying_cast.h>
 
 #include <core/os.h>
 
@@ -10,15 +9,11 @@ namespace file
     namespace
     {
         using native_seek_mode_t = DWORD;
-
-        constexpr native_seek_mode_t to_native(seek_mode mode) noexcept
-        {
-            return narrow_cast<native_seek_mode_t>(to_underlying(mode));
-        };
+        static_assert(is_safe_numeric_conversion_v<native_seek_mode_t, seek_mode>);
 
         constexpr bool test_seek_mode_defs(seek_mode mode, native_seek_mode_t def) noexcept
         {
-            return to_native(mode) == def;
+            return to_underlying(mode) == def;
         };
 
         static_assert(test_seek_mode_defs(seek_mode::begin, FILE_BEGIN));
@@ -43,7 +38,7 @@ namespace file
 
         native_offset_t result{ native_error_seek };
 
-        if ( !SetFilePointerEx(file.fd, to_native_offset(offset), &result, to_native(mode) ) )
+        if ( !SetFilePointerEx(file.fd, to_native_offset(offset), &result, to_underlying(mode) ) )
         {
             result = native_error_seek;
         }

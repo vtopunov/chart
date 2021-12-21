@@ -6,7 +6,7 @@
 
 namespace file
 {
-    void file_mmap_resource_deleter::operator()(file_mmap_resource resource, resource_destroy_t tag) const noexcept
+    void file_mmap_resource_deleter::operator()(file_mmap_resource resource) const noexcept
     {
         const auto& p = resource.private_detail_;
 
@@ -21,20 +21,20 @@ namespace file
         }
 
         constexpr file_resource_deleter close{};
-        close(p.file_, tag);
+        close(p.file_);
     }
 
     file_mmap mmap(path_string_view_t path) noexcept
     {
         file_mmap result;
 
-        auto& p = as_mutable(result.resource().private_detail_);
+        auto& p = as_mutable(result.r().private_detail_);
 
         p.file_ = ro_open(path).release();
 
         if ( p.file_ != invalidfile )
         {
-            p.size_ = clamp_cast<size_t>( size(p.file_) );
+            p.size_ = clamp_cast<size_t>(size(p.file_));
         }
 
         if ( p.size_ )
@@ -52,7 +52,14 @@ namespace file
 
         if ( p.fmmd_ )
         {
-            p.data_ = MapViewOfFile(p.fmmd_, FILE_MAP_READ, 0u, 0u, p.size_);
+            p.data_ = MapViewOfFile
+            (
+                p.fmmd_,
+                FILE_MAP_READ, 
+                0u, 
+                0u, 
+                safe_numeric_cast<SIZE_T>(p.size_)
+            );
         }
 
         if ( !p.data_ )

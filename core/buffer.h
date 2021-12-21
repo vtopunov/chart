@@ -1,9 +1,5 @@
 #pragma once
 
-#include <cstdlib>
-#include <limits>
-#include <utility>
-
 #include <core/buffer_view.h>
 
 template<class T> [[nodiscard]]
@@ -34,6 +30,11 @@ struct buffer_construct_t
 
 inline constexpr buffer_construct_t buffer_construct{};
 
+struct buffer_attach_construct_t
+{};
+
+inline constexpr buffer_attach_construct_t buffer_attach_construct{};
+
 template<class T>
 class buffer
 {
@@ -41,23 +42,28 @@ public:
     using size_type = size_t;
     using value_type = T;
     using pointer = value_type*;
+    using void_pointer = copy_const_t<value_type, void>*;
     using const_pointer = const value_type*;
     using reference = value_type&;
     using const_reference = const value_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using view_type = buffer_view;
+    using buffer_view_type = basic_buffer_view<std::is_const_v<T>>;
 
     constexpr buffer() noexcept = default;
 
     constexpr buffer(buffer&& right) noexcept
         : data_{ std::exchange(right.data_, nullptr) }
-        , size_{ std::exchange(right.size_, 0u) }
+        , size_{ std::exchange(right.size_, 0_uz) }
+    {}
+
+    constexpr buffer(buffer_attach_construct_t, pointer mem, size_t size) noexcept
+        : data_{ mem }
+        , size_{ (mem) ? size : 0_uz }
     {}
 
     buffer(buffer_construct_t, size_t size) noexcept
-        : data_{ typed_memory_allocation<T>(size) }
-        , size_{ size }
+        : buffer{ buffer_attach_construct, typed_memory_allocation<T>(size), size }
     {}
 
     buffer(const buffer&) noexcept = delete;
@@ -113,6 +119,30 @@ public:
     }
 
     [[nodiscard]]
+    constexpr void_pointer void_data() const noexcept
+    {
+        return data_;
+    }
+
+    [[nodiscard]]
+    constexpr const void* cvoid_data() const noexcept
+    {
+        return data_;
+    }
+
+    [[nodiscard]]
+    constexpr buffer_view_type as_void_view() const noexcept
+    {
+        return *this;
+    }
+
+    [[nodiscard]]
+    constexpr const_buffer_view as_cvoid_view() const noexcept
+    {
+        return *this;
+    }
+
+    [[nodiscard]]
     constexpr const_iterator cbegin() const noexcept
     {
         return data_;
@@ -157,7 +187,7 @@ public:
     [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
-        return *(_end() - 1u);
+        return *(_end() - 1_uz);
     }
 
     [[nodiscard]]
@@ -223,5 +253,25 @@ private:
 
 private:
     pointer data_{ nullptr };
-    size_type size_{ 0u };
+    size_type size_{ 0_uz };
 };
+
+template<class T> [[nodiscard]]
+bool try_reserve(buffer<T>& mem, size_t size) noexcept
+{
+    if (mem.size() < size)
+    {
+        buffer<T> new_buffer{ buffer_construct, size };
+        if (!new_buffer)
+        {
+            return false;
+        }
+
+        mem = std::move(new_buffer);
+    }
+
+    return true;
+}
+
+using byte_buffer_t = buffer<std::byte>;
+static_assert(1_uz == sizeof(byte_buffer_t::value_type));

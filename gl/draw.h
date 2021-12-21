@@ -10,7 +10,7 @@
 
 namespace gl
 {
-    using rgba_colorf_view = std::span<const GLfloat, 4u>;
+    using rgba_colorf_view = std::span<const GLfloat, 4_uz>;
 
     inline void clear(rgba_colorf_view color) noexcept
     {
@@ -150,7 +150,7 @@ namespace gl
     template<class Vertex>
     void set_vertex_pointer(attribute_location attribute, const Vertex* data) noexcept
     {
-        set_vertex_pointer(std::span<attribute_location>{std::addressof(attribute), 1u}, data);
+        set_vertex_pointer(std::span<attribute_location>{std::addressof(attribute), 1_uz}, data);
     }
 
     using buffer_descriptor_t = GLuint;
@@ -168,7 +168,7 @@ namespace gl
 
     struct buffer_resource_deleter
     {
-        void operator () (buffer_resource buffer, resource_destroy_t) const noexcept;
+        void operator () (buffer_resource buffer) const noexcept;
     };
 
     enum class buffer_target : GLenum
@@ -232,7 +232,7 @@ namespace gl
 
         constexpr vertex_buffer(vertex_buffer&& vb) noexcept
             : bo_{ std::move(vb.bo_) }
-            , size_{ std::exchange(vb.size_, 0u) }
+            , size_{ std::exchange(vb.size_, 0_uz) }
         {}
 
         constexpr vertex_buffer& operator = (vertex_buffer&& vb) noexcept
@@ -267,13 +267,13 @@ namespace gl
 
         vertex_buffer_user bind(attribute_location attribute) const noexcept
         {
-            bind(std::span<attribute_location>{std::addressof(attribute), 1u});
+            bind(std::span<attribute_location>{std::addressof(attribute), 1_uz});
             return { size_ };
         }
 
     private:
         buffer_t bo_;
-        size_t size_{ 0u };
+        size_t size_{ 0_uz };
     };
 
     template <class T, size_t Extent>

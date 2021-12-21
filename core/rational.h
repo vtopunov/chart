@@ -60,19 +60,15 @@ struct rational
     [[nodiscard]]
     static constexpr rational from_string(std::span<const char> string) noexcept;
 
-    using wide_int_type = wide_int_t<int_type>;
-
-    template<
-        bool dummy = true,
-        class = std::enable_if_t<( !std::is_same_v<int_type, wide_int_type>&& dummy )>
-    > [[nodiscard]]
-        constexpr operator rational<wide_int_type>() const noexcept
+    template<class U, class = std::enable_if_t<std::negation_v<std::is_same<U, T>> && is_safe_numeric_conversion_v<U, T>>>
+    [[nodiscard]] constexpr operator rational<U>() const noexcept
     {
-        return
+        constexpr auto cast = [] (T value) noexcept
         {
-            num,
-            den
+            return safe_numeric_cast<U>(value);
         };
+
+        return { cast(num), cast(den) };
     }
 };
 
@@ -152,7 +148,7 @@ constexpr Target rational_cast(const Source src) noexcept
             else
             {
                 static_assert( std::is_floating_point_v<Target> );
-                return static_cast<Target>( src.num ) / static_cast<Target>( src.den );
+                return narrow_cast<Target>( src.num ) / narrow_cast<Target>( src.den );
             }
         }
     }
@@ -187,7 +183,7 @@ constexpr rational<T> operator + (const rational<T> left, const rational<T> righ
 template<class T, class U> [[nodiscard]]
 constexpr std::enable_if_t
 <
-    is_safe_integral_conversion_v<T, U>,
+    is_safe_numeric_conversion_v<T, U>,
     rational<T>
 >
 operator + (const rational<T> left, const U right) noexcept
@@ -202,7 +198,7 @@ operator + (const rational<T> left, const U right) noexcept
 template<class T, class U> [[nodiscard]]
 constexpr std::enable_if_t
 <
-    is_safe_integral_conversion_v<T, U>,
+    is_safe_numeric_conversion_v<T, U>,
     rational<T>
 >
 operator + (const U left, const rational<T> right) noexcept
@@ -213,7 +209,7 @@ operator + (const U left, const rational<T> right) noexcept
 template<class T, class U> [[nodiscard]]
 constexpr std::enable_if_t
 <
-    is_safe_integral_conversion_v<T, U>
+    is_safe_numeric_conversion_v<T, U>
     && std::is_signed_v<T>
     && std::is_signed_v<U>,
     rational<T>
@@ -230,7 +226,7 @@ operator - (const rational<T> left, const U right) noexcept
 template<class T, class U> [[nodiscard]]
 constexpr std::enable_if_t
 <
-    is_safe_integral_conversion_v<T, U>
+    is_safe_numeric_conversion_v<T, U>
     && std::is_signed_v<T>
     && std::is_signed_v<U>,
     rational<T>
@@ -270,7 +266,7 @@ constexpr rational<T> operator * (const rational<T> left, const rational<T> righ
 template<class T, class U> [[nodiscard]]
 constexpr std::enable_if_t
 <
-    is_safe_integral_conversion_v<T, U>,
+    is_safe_numeric_conversion_v<T, U>,
     rational<T>
 >
 operator * (const rational<T> left, const U right) noexcept
@@ -288,7 +284,7 @@ operator * (const rational<T> left, const U right) noexcept
 template<class T, class U> [[nodiscard]]
 constexpr std::enable_if_t
 <
-    is_safe_integral_conversion_v<T, U>,
+    is_safe_numeric_conversion_v<T, U>,
     rational<T>
 >
 operator * (const U left, const rational<T> right) noexcept
@@ -299,7 +295,7 @@ operator * (const U left, const rational<T> right) noexcept
 template<class T, class U> [[nodiscard]]
 constexpr std::enable_if_t
 <
-    is_safe_integral_conversion_v<T, U>,
+    is_safe_numeric_conversion_v<T, U>,
     rational<T>
 >
 operator / (const rational<T> left, const U right) noexcept
@@ -320,7 +316,7 @@ operator / (const rational<T> left, const U right) noexcept
 template<class T, class U> [[nodiscard]]
 constexpr std::enable_if_t
 <
-    is_safe_integral_conversion_v<T, U>,
+    is_safe_numeric_conversion_v<T, U>,
     rational<T>
 >
 operator / (const U left, const rational<T> right) noexcept

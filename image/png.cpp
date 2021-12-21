@@ -2,9 +2,6 @@
 
 #include <spng.h>
 
-#include <core/underlying_cast.h>
-
-
 namespace image
 {
     static_assert(to_underlying(png_errno::IO_ERROR) == SPNG_IO_ERROR);
@@ -13,11 +10,16 @@ namespace image
 
     zstring_view png_error_string(png_errno e) noexcept
     {
+        if (e == png_errno::SIZE)
+        {
+            return "invalid image size"_zsv;
+        }
+
         return spng_strerror(static_cast<spng_errno>(e));
     }
 
 
-    void png_resource_deleter::operator()(png_resource png, resource_destroy_t) const noexcept
+    void png_resource_deleter::operator()(png_resource png) const noexcept
     {
         spng_ctx_free(png);
     }
@@ -36,7 +38,7 @@ namespace image
 
     png_errno png_set_buffer(png_resource png, const_buffer_view buffer) noexcept
     {
-        return underlying_cast<png_errno>(spng_set_png_buffer(png, buffer.data(), buffer.size()));
+        return safe_numeric_cast<png_errno>(spng_set_png_buffer(png, buffer.data(), buffer.size()));
     }
 
 
@@ -48,17 +50,17 @@ namespace image
         , errno_{ png_errno::NOIHDR }
     {
         static_assert(png_header_len >= sizeof(spng_ihdr));
-        errno_ = underlying_cast<png_errno>(spng_get_ihdr(png, reinterpret_cast<spng_ihdr*>(&storage_)));
+        errno_ = safe_numeric_cast<png_errno>(spng_get_ihdr(png, reinterpret_cast<spng_ihdr*>(&storage_)));
     }
 
-    upixel_t png_header::width() const noexcept
+    pxside_t png_header::width() const noexcept
     {
-        return narrow_cast<upixel_t>(reinterpret_cast<const spng_ihdr&>(storage_).width);
+        return as_pxside(reinterpret_cast<const spng_ihdr&>(storage_).width);
     }
 
-    upixel_t png_header::height() const noexcept
+    pxside_t png_header::height() const noexcept
     {
-        return narrow_cast<upixel_t>(reinterpret_cast<const spng_ihdr&>(storage_).height);
+        return as_pxside(reinterpret_cast<const spng_ihdr&>(storage_).height);
     }
 
     uint8_t png_header::bit_depth() const noexcept
@@ -75,7 +77,7 @@ namespace image
         static_assert(to_underlying(png_color_type::INDEXED) == SPNG_COLOR_TYPE_INDEXED);
         static_assert(to_underlying(png_color_type::GRAYSCALE_ALPHA) == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA);
         static_assert(to_underlying(png_color_type::TRUECOLOR_ALPHA) == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA);
-        return underlying_cast<png_color_type>(reinterpret_cast<const spng_ihdr&>(storage_).color_type);
+        return safe_numeric_cast<png_color_type>(reinterpret_cast<const spng_ihdr&>(storage_).color_type);
     }
 
 #pragma warning(push) // don't use reinterpret_cast
@@ -89,13 +91,67 @@ namespace image
 
     png_errno png_decoded_image_size(png_resource png, png_format format, size_t* size) noexcept
     {
-        return underlying_cast<png_errno>(spng_decoded_image_size(png, to_underlying(format), size));
+        return safe_numeric_cast<png_errno>(spng_decoded_image_size(png, to_underlying(format), size));
     }
 
     png_errno png_decode_image(png_resource png, png_format format, buffer_view out) noexcept
     {
-        return underlying_cast<png_errno>(spng_decode_image(png, out.data(), out.size(), to_underlying(format), 0));
+        return safe_numeric_cast<png_errno>(spng_decode_image(png, out.data(), out.size(), to_underlying(format), 0));
     }
 
+    png_errno png_decode_image(const_buffer_view image, rgba32_pixmap_t& out) noexcept
+    {
+        constexpr auto png_format = png_format::RGBA8;
 
+        if (!image || !image.size())
+        {
+            return png_errno::SIZE;
+        }
+
+        const auto png = png_instance();
+        if (!png)
+        {
+            return png_errno::MEM;
+        }
+
+        png_errno errc{ png_errno::OK };
+
+        const auto accept_errc = [&errc](png_errno new_errc) noexcept
+        {
+            errc = new_errc;
+            return png_errno::OK != new_errc;
+        };
+
+        if (accept_errc(png_set_buffer(png, image)))
+        {
+            return errc;
+        }
+
+        const png_header png_header{ png };
+        if (accept_errc(png_header.error_code()))
+        {
+            return errc;
+        }
+
+        size_t size = 0;
+        if (accept_errc(png_decoded_image_size(png, png_format, &size)))
+        {
+            return errc;
+        }
+
+        if (!size)
+        {
+            return png_errno::SIZE;
+        }
+
+        const rgba32_pixmap_t::space_type space{ png_header.sizes() };
+        if (space.size_bytes() != size)
+        {
+            return png_errno::SIZE;
+        }
+
+        out = rgba32_pixmap_t{ out.release_buffer(), space };
+
+        return png_decode_image(png, png_format, out);
+    }
 }

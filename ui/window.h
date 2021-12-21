@@ -2,20 +2,17 @@
 
 #include <optional>
 
-#include <core/underlying_cast.h>
 #include <core/rect.h>
 #include <core/small_vector.h>
+#include <core/zstring_view.h>
+
+#include <px/pxfwd.h>
 
 #include <ui/window_fwd.h>
 #include <ui/window_type.h>
 
 namespace ui
 {   
-    inline constexpr auto usedefault_px = narrow_cast<pixel_t>(CW_USEDEFAULT);
-    inline constexpr auto usedefault_upx = static_cast<upixel_t>(CW_USEDEFAULT);
-    inline constexpr auto usedefault_vec = fill_vec2(usedefault_px);
-    inline constexpr size2d_t usedefault_size2d{ fill_vec2(usedefault_upx) };
-
     struct window_dependency
     {
         window_resource current;
@@ -28,7 +25,7 @@ namespace ui
         }
     };
 
-    using window_container = small_vector<window_dependency, 6>;
+    using window_container = small_vector<window_dependency, 6_uz>;
 
     struct window_childrens
     {
@@ -112,17 +109,25 @@ namespace ui
     void quit() noexcept;
 
     [[nodiscard]]
-    rect_px_t rect(window_resource window) noexcept;
+    px::rect_t rect(window_resource window) noexcept;
 
-    bool rect(window_resource window, rect_px_t rc) noexcept;
-
-    [[nodiscard]]
-    size2d_t desktop_sizes() noexcept;
+    bool rect(window_resource window, px::rect_t rc) noexcept;
 
     [[nodiscard]]
-    size2d_t display_resolution() noexcept;
+    px::size2d_t desktop_sizes() noexcept;
 
-    using window_t = unique_resource<window_resource>;
+    [[nodiscard]]
+    px::size2d_t display_resolution() noexcept;
+
+    struct window_resource_deleter
+    {
+        void operator () (window_resource window) const noexcept
+        {
+            close(window);
+        }
+    };
+
+    using window_t = unique_resource<window_resource, window_resource_deleter>;
 
     class window_factory
     {
@@ -145,31 +150,29 @@ namespace ui
             return *this;
         }
 
-        constexpr window_factory& position(vec2px_t position) noexcept
+        constexpr window_factory& position(px::point2d_t position) noexcept
         {
             position_ = position;
             return *this;
         }
 
-
-        constexpr window_factory& position(pixel_t x, pixel_t y) noexcept
+        constexpr window_factory& position(pxside_t x, pxside_t y) noexcept
         {
-            return position(vec2px_t{ x, y });
+            return position(px::point2d_t{ x, y });
         }
 
-        constexpr window_factory& sizes(size2d_t sizes) noexcept
+        constexpr window_factory& sizes(px::size2d_t sizes) noexcept
         {
-            sizes_._0 = narrow_cast<pixel_t>(sizes.width());
-            sizes_._1 = narrow_cast<pixel_t>(sizes.height());
+            sizes_ = sizes;
             return *this;
         }
 
-        constexpr window_factory& sizes(upixel_t width, upixel_t height) noexcept
+        constexpr window_factory& sizes(pxside_t width, pxside_t height) noexcept
         {
-            return sizes(size2d_t{ width, height });
+            return sizes(px::size2d_t{ width, height });
         }
 
-        constexpr window_factory& rect(const rect_px_t& rc) noexcept
+        constexpr window_factory& rect(const px::rect_t& rc) noexcept
         {
             return position(rc.p00()).sizes(rc.sizes());
         }
@@ -179,14 +182,21 @@ namespace ui
         window_t create() noexcept;
 
     private:
-        static constexpr auto usedefault_vec = fill_vec2(narrow_cast<pixel_t>(CW_USEDEFAULT));
+        using native_pxside_t = int;
+        static constexpr native_pxside_t cw_usedefault{ CW_USEDEFAULT };
+        static constexpr auto px_usedefault = static_cast<pxside_t>(cw_usedefault);
+
+        static constexpr native_pxside_t px_to_native(pxside_t px) noexcept
+        {
+            return (px == px_usedefault) ? cw_usedefault : narrow_cast<native_pxside_t>(px);
+        }
 
     private:
         shared_window_type_t type_;
         std::wstring title_;
         window_resource parent_ = nullwindow;
         std::optional<DWORD> style_;
-        vec2px_t position_{ usedefault_vec };
-        vec2px_t sizes_{ usedefault_vec };
+        px::point2d_t position_{ px_usedefault, 0_px };
+        px::size2d_t sizes_{ px_usedefault, 0_px };
     };
 }

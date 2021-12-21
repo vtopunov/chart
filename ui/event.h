@@ -1,8 +1,8 @@
 #pragma once
 
-#include <core/underlying_cast.h>
-#include <core/size2d.h>
-#include <core/point2d.h>
+#include <core/narrow_cast.h>
+
+#include <px/pxfwd.h>
 
 #include <ui/event_fwd.h>
 
@@ -75,15 +75,21 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr pixel_t x_long_parameter() const noexcept
+        constexpr pxside_t x_long_parameter() const noexcept
         {
-            return narrow_cast<pixel_t>( GET_X_LPARAM(long_parameter()) );
+            return as_pxside( GET_X_LPARAM(long_parameter()) );
         }
 
         [[nodiscard]]
-        constexpr pixel_t y_long_parameter() const noexcept
+        constexpr pxside_t y_long_parameter() const noexcept
         {
-            return narrow_cast<pixel_t>( GET_Y_LPARAM(long_parameter()) );
+            return as_pxside( GET_Y_LPARAM(long_parameter()) );
+        }
+
+        [[nodiscard]]
+        constexpr px::vec2_t vec_long_parameter() const noexcept
+        {
+            return { x_long_parameter(), y_long_parameter() };
         }
 
     private:
@@ -154,27 +160,27 @@ namespace ui
     {
     public:
         [[nodiscard]]
-        constexpr pixel_t x() const noexcept
+        constexpr pxside_t x() const noexcept
         {
             return x_long_parameter();
         }
 
         [[nodiscard]]
-        constexpr pixel_t y() const noexcept
+        constexpr pxside_t y() const noexcept
         {
             return y_long_parameter();
         }
 
         [[nodiscard]]
-        constexpr point2d_px_t position() const noexcept
+        constexpr px::point2d_t position() const noexcept
         {
-            return { x(), y() };
+            return { vec_long_parameter() };
         }
 
         [[nodiscard]]
         constexpr mouse_keys keys() const noexcept
         {
-            return { underlying_cast<mouse_keys::e_mouse_keys>( word_parameter() ) };
+            return { safe_numeric_cast<mouse_keys::e_mouse_keys>( word_parameter() ) };
         }
     };
 
@@ -183,21 +189,21 @@ namespace ui
     {
     public:
         [[nodiscard]]
-        constexpr upixel_t width() const noexcept
+        constexpr pxside_t width() const noexcept
         {
-            return narrow_cast<upixel_t>( x_long_parameter() );
+            return x_long_parameter();
         }
 
         [[nodiscard]]
-        constexpr upixel_t height() const noexcept
+        constexpr pxside_t height() const noexcept
         {
-            return narrow_cast<upixel_t>( y_long_parameter() );
+            return y_long_parameter();
         }
 
         [[nodiscard]]
-        constexpr size2d_t sizes() const noexcept
+        constexpr px::size2d_t sizes() const noexcept
         {
-            return { width(), height() };
+            return { vec_long_parameter() };
         }
     };
 

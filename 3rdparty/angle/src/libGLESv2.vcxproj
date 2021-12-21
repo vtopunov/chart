@@ -126,7 +126,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="libGLESv2\libGLESv2.def" />
-    <None Include="angle.gyp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\angleutils.h" />

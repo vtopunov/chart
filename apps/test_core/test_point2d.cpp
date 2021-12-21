@@ -13,10 +13,10 @@ void test_point2d() noexcept
     constexpr point2d upt{ uv };
     static_assert(std::is_same_v<decltype(upt), const point2d<unsigned>>);
 
-    static_assert(vec2_cast<point2d<int>>(upt) == pt);
-    static_assert(vec2_cast<vec2<int>>(upt) == v);
-    static_assert(vec2_cast<point2d<unsigned>>(pt) == upt);
-    static_assert(vec2_cast<vec2<unsigned>>(pt) == uv);
+    static_assert(narrow2d_cast<point2d<int>>(upt) == pt);
+    static_assert(narrow2d_cast<vec2<int>>(upt) == v);
+    static_assert(narrow2d_cast<point2d<unsigned>>(pt) == upt);
+    static_assert(narrow2d_cast<vec2<unsigned>>(pt) == uv);
 
     constexpr point2d cpt{ '\5', '\6' };
     static_assert(std::is_same_v<decltype(cpt), const point2d<char>>);

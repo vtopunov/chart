@@ -21,13 +21,14 @@
   <ItemGroup>
     <ClInclude Include="assert.h" />
     <ClInclude Include="buffer_view.h" />
+    <ClInclude Include="colorfwd.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="null.h" />
     <ClInclude Include="os.h" />
     <ClInclude Include="buffer.h" />
-    <ClInclude Include="pixel.h" />
     <ClInclude Include="point2d.h" />
     <ClInclude Include="size2d.h" />
+    <ClInclude Include="utf.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="intrusive_list.h" />
     <ClInclude Include="color.h" />
@@ -39,10 +40,8 @@
     <ClInclude Include="rational.h" />
     <ClInclude Include="rect.h" />
     <ClInclude Include="small_vector.h" />
-    <ClInclude Include="underlying_cast.h" />
     <ClInclude Include="resouce.h" />
     <ClInclude Include="vec.h" />
-    <ClInclude Include="view.h" />
     <ClInclude Include="zstring_view.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -57,27 +56,23 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/view.h>
 #include <core/vec.h>
 
 #include <gl/config.h>
@@ -11,17 +10,17 @@ namespace gl
     using vec2f_t = vec2<GLfloat>;
     using vec2b_t = vec2<GLboolean>;
 
-    using const_span2i_t = std::span<const GLint, 2u>;
-    using const_span2f_t = std::span<const GLfloat, 2u>;
-    using const_span2b_t = std::span<const GLboolean, 2u>;
+    using const_span2i_t = std::span<const GLint, 2_uz>;
+    using const_span2f_t = std::span<const GLfloat, 2_uz>;
+    using const_span2b_t = std::span<const GLboolean, 2_uz>;
 
-    using const_span3i_t = std::span<const GLint, 3u>;
-    using const_span3f_t = std::span<const GLfloat, 3u>;
-    using const_span3b_t = std::span<const GLboolean, 3u>;
+    using const_span3i_t = std::span<const GLint, 3_uz>;
+    using const_span3f_t = std::span<const GLfloat, 3_uz>;
+    using const_span3b_t = std::span<const GLboolean, 3_uz>;
 
-    using const_span4i_t = std::span<const GLint, 4u>;
-    using const_span4f_t = std::span<const GLfloat, 4u>;
-    using const_span4b_t = std::span<const GLboolean, 4u>;
+    using const_span4i_t = std::span<const GLint, 4_uz>;
+    using const_span4f_t = std::span<const GLfloat, 4_uz>;
+    using const_span4b_t = std::span<const GLboolean, 4_uz>;
 
     enum class glsl_typeid : GLenum
     {
@@ -185,27 +184,27 @@ namespace gl
             case glsl_typeid::vec4i:
             case glsl_typeid::vec4b:
             case glsl_typeid::mat2f:
-                return 4u;
+                return 4_uz;
 
             case glsl_typeid::vec3f:
             case glsl_typeid::vec3i:
             case glsl_typeid::vec3b:
-                return 3u;
+                return 3_uz;
 
             case glsl_typeid::vec2f:
             case glsl_typeid::vec2i:
             case glsl_typeid::vec2b:
-                return 2u;
+                return 2_uz;
 
             case glsl_typeid::mat4f:
-                return 4u * 4u;
+                return 4_uz * 4_uz;
 
             case glsl_typeid::mat3f:
-                return 3u * 3u;
+                return 3_uz * 3_uz;
 
         }
 
-        return 1u;
+        return 1_uz;
     };
 
     template<glsl_typeid id>
@@ -267,7 +266,7 @@ namespace gl
     {};
 
     template<glsl_typeid id, size_t tuple_size, class T>
-    struct select_glsl_view1 : select_glsl_view2<id, tuple_size, T, std::remove_cvref_t<view_t<T>>>
+    struct select_glsl_view1 : select_glsl_view2<id, tuple_size, T, std::remove_cvref_t<typename T::view_type>>
     {};
 
     template<glsl_typeid id, size_t tuple_size>
@@ -279,7 +278,7 @@ namespace gl
     {};
 
     template<glsl_typeid id>
-    struct select_glsl_view0<id, 1u>
+    struct select_glsl_view0<id, 1_uz>
     {
         static constexpr auto base_id = is_sampler(id) ? glsl_tuple_element_typeid(id) : id;
 

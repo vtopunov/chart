@@ -2,10 +2,15 @@
 
 #include <core/size2d.h>
 
+#include <px/pixmap.h>
+
 #include <gl/shader.h>
 
 namespace gl
 {
+    constexpr size_t default_alignment{ 4_uz };
+    static_assert(px::default_alignment == gl::default_alignment);
+
     using texture_descriptor_t = GLuint;
 
     struct texture_resource
@@ -21,7 +26,7 @@ namespace gl
 
     struct texture_resource_deleter
     {
-        void operator () (texture_resource texture, resource_destroy_t) const noexcept;
+        void operator () (texture_resource texture) const noexcept;
     };
 
     enum class texture_target : GLenum
@@ -34,6 +39,7 @@ namespace gl
         glBindTexture(to_underlying(target), texture.d);
     }
 
+
     template<texture_target Target>
     struct specialized_texture_resource : texture_resource
     {
@@ -45,9 +51,44 @@ namespace gl
         }
     };
 
-    using texture_resource2d_t = specialized_texture_resource<texture_target::texture_2d>;
+    using specialized_target_texture2d_texture_resource_t = specialized_texture_resource<texture_target::texture_2d>;
 
-    using texture2d_t = unique_resource<texture_resource2d_t, texture_resource_deleter>;
+    struct texture2d_resource : specialized_target_texture2d_texture_resource_t
+    {
+        using base_resource_type = specialized_target_texture2d_texture_resource_t;
+
+        using view_type = base_resource_type;
+
+        struct null_type : null_t<base_resource_type>
+        {
+            constexpr operator texture2d_resource () const noexcept
+            {
+                return { static_cast<base_resource_type>(*this), {} };
+            }
+        };
+
+        px::size2d_t sizes;
+    };
+
+    using texture2d_t = unique_resource<texture2d_resource, texture_resource_deleter>;
+
+    [[nodiscard]]
+    constexpr px::size2d_t sizes(const texture2d_resource& tex) noexcept
+    {
+        return tex.sizes;
+    }
+
+    [[nodiscard]]
+    constexpr pxside_t width(const texture2d_resource& tex) noexcept
+    {
+        return tex.sizes.width();
+    }
+
+    [[nodiscard]]
+    constexpr pxside_t height(const texture2d_resource& tex) noexcept
+    {
+        return tex.sizes.height();
+    }
 
     enum class pixel_format : GLenum
     {
@@ -74,55 +115,51 @@ namespace gl
     inline constexpr texture_format LUMINANCE8{ pixel_format::LUMINANCE, pixel_type::UNSIGNED_BYTE };
 
     [[nodiscard]]
-    texture2d_t create_texture2d(size2d_t sizes, texture_format format, const void* pixels) noexcept;
+    texture2d_t create_texture2d(px::size2d_t sizes, texture_format format, const void* pixels) noexcept;
 
-    class texture_image2d
+    template<size_t PxSize>
+    struct texpix_traits 
     {
-    public:
-        D_DEFAULT_MOVABLE_ONLY(texture_image2d);
-
-        constexpr texture_image2d() noexcept = default;
-
-        texture_image2d(size2d_t sizes, texture_format format, const void* pixels)
-            : texture_{ create_texture2d(sizes, format, pixels) }
-            , sizes_{ sizes }
-        {}
-
-        [[nodiscard]]
-        constexpr explicit operator bool() const noexcept
-        {
-            return !!texture_;
-        }
-
-        [[nodiscard]]
-        constexpr operator texture_resource2d_t () const noexcept
-        {
-            return texture_;
-        }
-
-        [[nodiscard]]
-        constexpr size2d_t  sizes() const noexcept
-        {
-            return sizes_;
-        }
-
-        [[nodiscard]]
-        constexpr upixel_t width() const noexcept
-        {
-            return sizes_.width();
-        }
-
-        [[nodiscard]]
-        constexpr upixel_t height() const noexcept
-        {
-            return sizes_.height();
-        }
-
-    private:
-        texture2d_t texture_;
-        size2d_t sizes_{};
+        static constexpr bool enabled{ false };
     };
 
+    template<>
+    struct texpix_traits<1_uz>
+    {
+        static constexpr bool enabled{ true };
+        static constexpr texture_format format{ LUMINANCE8 };
+    };
+
+    template<>
+    struct texpix_traits<4_uz>
+    {
+        static constexpr bool enabled{ true };
+        static constexpr texture_format format{ R8G8B8A8 };
+    };
+
+    template<class T>
+    constexpr bool texpix_enabled_v = texpix_traits<sizeof(T)>::enabled;
+
+    template<class T>
+    constexpr auto texpix_format_v = texpix_traits<sizeof(T)>::format;
+
+    template<class T> 
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d_t> create_texture2d(px::size2d_t sizes, const T* pixels) noexcept
+    {
+        return create_texture2d(sizes, texpix_format_v<T>, pixels);
+    }
+
+    template<class T>
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d_t> create_texture2d(pixspan<T> image) noexcept
+    {
+        return create_texture2d(image.sizes(), image.data());
+    }
+
+    template<class T>
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d_t> create_texture2d(const pixmap<T>& image) noexcept
+    {
+        return create_texture2d(pixspan{image});
+    }
 
     template<texture_target target>
     struct select_glsl_sampler_typeid
@@ -135,15 +172,15 @@ namespace gl
     template<texture_target target>
     inline constexpr auto glsl_sampler_typeid_v = select_glsl_sampler_typeid<target>::value;
 
-    struct null_texture_sampler;
-
     [[nodiscard]]
     std::underlying_type_t<uniform_location> get_sampler_number(shaders_program_resource program, uniform_location location) noexcept;
+
+    struct null_tex_sampler;
 
     template<texture_target target>
     struct texture_sampler
     {
-        using null_type = null_texture_sampler;
+        using null_type = null_tex_sampler;
 
         static constexpr auto sampler_typeid = glsl_sampler_typeid_v<target>;
         using uniform_sampler_type = uniform<sampler_typeid>;
@@ -173,7 +210,7 @@ namespace gl
         }
     };
 
-    struct null_texture_sampler
+    struct null_tex_sampler
     {
         template<texture_target target>
         [[nodiscard]] constexpr operator texture_sampler<target>() const noexcept
@@ -182,8 +219,9 @@ namespace gl
         }
     };
 
-    using nulltexturesampler_t = null_texture_sampler;
-    inline constexpr nulltexturesampler_t invalidtexturesampler{};
+    using nulltexsampler_t = null_tex_sampler;
+    inline constexpr nulltexsampler_t invalidtexsampler{};
 
     using texture_sampler2D_t = texture_sampler<texture_target::texture_2d>;
+    static_assert(std::is_same_v<nulltexsampler_t, null_t<texture_sampler2D_t> >);
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <core/utility.h>
-#include <core/narrow_cast.h>
 #include <core/num_range.h>
 #include <core/size2d.h>
 #include <core/point2d.h>
@@ -10,7 +8,7 @@ template<class T>
 struct rect
 {
     using scalar_type = T;
-    using size_type = make_unsigned_or_t<scalar_type>;
+    using size_type = make_unsigned_opt_t<scalar_type>;
     using size2d_type = size2d<size_type>;
     using point2d_type = point2d<scalar_type>;
     using diagonal_line_type = num_range<point2d_type>;
@@ -86,5 +84,3 @@ struct rect
 
 template<class T>
 rect(point2d<T>, point2d<T>)->rect<T>;
-
-using rect_px_t = rect<pixel_t>;

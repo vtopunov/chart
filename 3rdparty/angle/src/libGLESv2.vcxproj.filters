@@ -123,6 +123,5 @@
     <ClInclude Include="libGLESv2\resource.h">
       <Filter>libGLESv2</Filter>
     </ClInclude>
-    <None Include="angle.gyp"/>
   </ItemGroup>
 </Project>

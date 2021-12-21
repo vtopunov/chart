@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <span>
 
-#include <core/pixel.h>
 #include <core/narrow_cast.h>
 #include <core/member_detector.h>
 
@@ -14,7 +13,7 @@
 template<class T>
 struct vec2
 {
-    static constexpr size_t tuple_size{ 2u };
+    static constexpr size_t tuple_size{ 2_uz };
     using value_type = T;
     using view_type = std::span<const T, tuple_size>;
 
@@ -49,7 +48,17 @@ struct vec2
 template<class T>
 vec2(T, T)->vec2<T>;
 
-using vec2px_t = vec2<pixel_t>;
+template<class T> [[nodiscard]]
+constexpr const vec2<T>& as_vec2(const vec2<T>& vec) noexcept
+{
+    return vec;
+}
+
+template<class T> [[nodiscard]]
+constexpr vec2<T>& as_vec2(vec2<T>& vec) noexcept
+{
+    return vec;
+}
 
 template<class T> [[nodiscard]]
 constexpr vec2<T> fill_vec2(const T& value) noexcept
@@ -212,13 +221,19 @@ template<class T>
 constexpr bool is_value_type_v = is_detected_v<decl_value_type_t, T>;
 
 template<class OutT, class InT> [[nodiscard]]
-constexpr std::enable_if_t<is_value_type_v<OutT>, OutT> vec2_cast(const vec2<InT>& in) noexcept
+constexpr std::enable_if_t<is_value_type_v<OutT>, OutT> narrow2d_cast(InT x, InT y) noexcept
 {
     using value_t = decl_value_type_t<OutT>;
 
-    return 
-    { 
-        narrow_cast<value_t>( in._0 ), 
-        narrow_cast<value_t>( in._1 )
+    return
+    {
+        narrow_cast<value_t>(x),
+        narrow_cast<value_t>(y)
     };
+}
+
+template<class OutT, class InT> [[nodiscard]]
+constexpr std::enable_if_t<is_value_type_v<OutT>, OutT> narrow2d_cast(const vec2<InT>& in) noexcept
+{
+    return narrow2d_cast<OutT>(in._0, in._1);
 }

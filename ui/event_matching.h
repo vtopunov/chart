@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ui/event.h>
-#include <ui/event_timer.h>
+#include <ui/timer_fwd.h>
 
 namespace ui
 {
@@ -13,7 +13,7 @@ namespace ui
 
     struct timer_event
     {
-        event_timer_resource timer_id;
+        timer_resource timer_id;
     };
 
     template<class T>
@@ -58,7 +58,7 @@ namespace ui
     {
         if ( msg.message == WM_TIMER )
         {
-            ( *function )( timer_event{ underlying_cast<event_timer_resource>( msg.wParam ) } );
+            ( *function )( timer_event{ narrow_cast<timer_resource>( msg.wParam ) } );
         }
 
         return 0;

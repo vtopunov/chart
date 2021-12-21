@@ -14,10 +14,10 @@ void test_size2d() noexcept
     constexpr size2d usz{ uv };
     static_assert(std::is_same_v<decltype(usz), const size2d<unsigned>>);
 
-    static_assert(vec2_cast<size2d<int>>(usz) == sz);
-    static_assert(vec2_cast<vec2<int>>(usz) == v);
-    static_assert(vec2_cast<size2d<unsigned>>(sz) == usz);
-    static_assert(vec2_cast<vec2<unsigned>>(sz) == uv);
+    static_assert(narrow2d_cast<size2d<int>>(usz) == sz);
+    static_assert(narrow2d_cast<vec2<int>>(usz) == v);
+    static_assert(narrow2d_cast<size2d<unsigned>>(sz) == usz);
+    static_assert(narrow2d_cast<vec2<unsigned>>(sz) == uv);
 
     constexpr size2d csz{ '\5', '\6' };
     static_assert(std::is_same_v<decltype(csz), const size2d<char>>);

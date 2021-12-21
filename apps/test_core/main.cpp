@@ -1,7 +1,6 @@
 
 extern void test_utility() noexcept;
 extern void test_narrow_cast() noexcept;
-extern void test_underlying_cast() noexcept;
 extern void test_buffer_view() noexcept;
 extern void test_vec() noexcept;
 extern void test_point2d() noexcept;
@@ -16,12 +15,12 @@ extern void test_null() noexcept;
 extern void test_resource() noexcept;
 extern void test_small_vector() noexcept;
 extern void test_buffer() noexcept;
+extern void test_utf() noexcept;
 
 int main() noexcept
 {
     test_utility();
     test_narrow_cast();
-    test_underlying_cast();
     test_buffer_view();
     test_vec();
     test_point2d();
@@ -36,6 +35,7 @@ int main() noexcept
     test_resource();
     test_small_vector();
     test_buffer();
+    test_utf();
 
     return 0;
 }

@@ -112,9 +112,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="utility.cpp" />
+    <ClCompile Include="png.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="utility.h" />
+    <ClInclude Include="png.h" />
+    <ClInclude Include="shaders.h" />
   </ItemGroup>
 </Project>

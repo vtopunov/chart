@@ -6,6 +6,21 @@
 
 namespace
 {
+    template<class T>
+    struct is_span : std::false_type
+    {};
+
+    template<class T, size_t n>
+    struct is_span<std::span<T, n>> : std::true_type
+    {};
+    
+    template<class T>
+    struct is_span<const T> : is_span<T>
+    {};
+
+    template<class T>
+    inline constexpr bool is_span_v = is_span<T>::value;
+
     template<bool immutable>
     bool test_impl_impl(basic_buffer_view<immutable> b, const void* data, size_t size) noexcept
     {
@@ -64,7 +79,7 @@ namespace
         static_assert(std::is_same_v<decltype(b.cfront()), byte_cref>);
         static_assert(std::is_same_v<decltype(b.back()), byte_ref>);
         static_assert(std::is_same_v<decltype(b.cback()), byte_cref>);
-        static_assert(std::is_same_v<decltype(b[0u]), byte_ref>);
+        static_assert(std::is_same_v<decltype(b[0_uz]), byte_ref>);
         static_assert(std::is_same_v<decltype(b.begin()), byte_ptr>);
         static_assert(std::is_same_v<decltype(b.cbegin()), byte_cptr>);
         static_assert(std::is_same_v<decltype(b.end()), byte_ptr>);
@@ -136,15 +151,60 @@ namespace
         return test_mut_impl(b, data, size);
     }
 
+    template<class T>
+    struct add_const_span
+    {
+        using type = std::add_const_t<T>;
+    };
+
+    template<class T, size_t N>
+    struct add_const_span<std::span<T, N>>
+    {
+        using type = const std::span<const T, N>;
+    };
+   
+    template<class T>
+    struct add_const_span<const T> : add_const_span<T>
+    {};
+
+    template<class T>
+    using add_const_span_t = typename add_const_span<T>::type;
+
+    template<class T>
+    struct remove_const_span
+    {
+        using type = std::remove_const_t<T>;
+    };
+
+    template<class T, size_t N>
+    struct remove_const_span<std::span<T, N>>
+    {
+        using type = std::span<std::remove_const_t<T>, N>;
+    };
+
+    template<class T>
+    struct remove_const_span<const T> : remove_const_span<T>
+    {};
+
+    template<class T>
+    using remove_const_span_t = typename remove_const_span<T>::type;
+
+    template<class C>
+    constexpr void test_static_asserts() noexcept
+    {
+        static_assert(!is_buffer_view_v<C>);
+        static_assert(is_size_bytes_v<C>);
+        static_assert(is_convertible_data<remove_const_span_t<C>, void*>::value);
+        static_assert(is_convertible_data<remove_const_span_t<C>, const void*>::value);
+        static_assert(!is_convertible_data<add_const_span_t<C>, void*>::value);
+        static_assert(is_convertible_data<add_const_span_t<C>, const void*>::value);
+    }
+
     template<class C>
     void test(const C& c) noexcept
     {
-        static_assert(is_size_bytes_v<C>);
-        static_assert(is_convertible_data<C, void*>::value);
-        static_assert(is_convertible_data<C, const void*>::value);
-        static_assert(!is_convertible_data<const C, void*>::value);
-        static_assert(is_convertible_data<const C, const void*>::value);
-
+        test_static_asserts<C>();
+        
         const void* data{ std::data(c) };
         size_t size{ size_bytes(c) };
         D_ASSERT(size / sizeof(*std::data(c)) == std::size(c));
@@ -152,6 +212,11 @@ namespace
         {
             const auto success_overload_and_select_immutable = test_impl(c, data, size);
             D_ASSERT(success_overload_and_select_immutable);
+        }
+
+        if constexpr (is_span_v<C>) 
+        {
+            D_ASSERT(test_const_impl(C(c), data, size));
         }
 
         {
@@ -165,12 +230,8 @@ namespace
     template<class C>
     void test(C& c) noexcept
     {
-        static_assert(is_size_bytes_v<C>);
-        static_assert(is_convertible_data<C, void*>::value);
-        static_assert(is_convertible_data<C, const void*>::value);
-        static_assert(!is_convertible_data<const C, void*>::value);
-        static_assert(is_convertible_data<const C, const void*>::value);
-
+        test_static_asserts<C>();
+        
         const void* data{ std::data(c) };
         size_t size{ size_bytes(c) };
         D_ASSERT(size / sizeof(*std::data(c)) == std::size(c));
@@ -194,7 +255,23 @@ namespace
             D_ASSERT(immutable);
         }
 
-        test(std::as_const(c));
+        if constexpr (std::is_array_v<C>)
+        {
+            test(std::as_const(c));
+        }
+        else
+        {
+            add_const_span_t<C> const_c{ c };
+            test(const_c);
+        }
+    }
+
+    template<class T, size_t n>
+    void test_span(std::span<T, n> c) noexcept
+    {
+        add_const_if_t<std::is_const_v<T>, std::span<T, n>>& ref = c;
+
+        test(ref);
     }
 }
 
@@ -202,14 +279,36 @@ void test_buffer_view() noexcept
 {
     static_assert(!std::is_same_v<buffer_view, const_buffer_view>);
 
-    std::vector v{ 1, 2, 3, 4, 5 };
-    std::array a{ 1, 2, 3, 4, 5 };
-    std::u16string s{ u"12345" };
-    int m[]{ 1, 2, 3, 4, 5 };
+    {
+        std::vector v{ 1, 2, 3, 4, 5 };
+        std::array a{ 1, 2, 3, 4, 5 };
+        std::u16string s{ u"12345" };
+        int m[]{ 1, 2, 3, 4, 5 };
+        std::span ispm{ m };
+        std::span ispv{ v };
 
-    test(v);
-    test(a);
-    test(s);
-    test(m);
+        test(v);
+        test(a);
+        test(s);
+        test(m);
+        test_span(ispm);
+        test_span(ispv);
+    }
+
+    {
+        const std::vector cv{ 1, 2, 3, 4, 5 };
+        constexpr std::array ca{ 1, 2, 3, 4, 5 };
+        const std::u16string cs{ u"12345" };
+        constexpr int cm[]{ 1, 2, 3, 4, 5 };
+        constexpr std::span cispm{ cm };
+        const std::span cispv{ cv };
+    
+        test(cv);
+        test(ca);
+        test(cs);
+        test(cm);
+        test_span(cispm);
+        test_span(cispv);
+    }
 }
 

@@ -7,7 +7,7 @@
 struct skip_op
 {
     template<class T>
-    void operator () (T&&, resource_destroy_t) const noexcept
+    void operator () (T&&) const noexcept
     {}
 };
 
@@ -55,14 +55,14 @@ void test_null() noexcept
 
     unique_resource<test_null, skip_op> default_unique;
 
-    D_ASSERT(!default_unique->b);
-    D_ASSERT(!default_unique->i);
-    D_ASSERT(!default_unique->ptr);
+    D_ASSERT(!default_unique.r().b);
+    D_ASSERT(!default_unique.r().i);
+    D_ASSERT(!default_unique.r().ptr);
 
     shared_resource<test_null, skip_op> default_linked;
-    D_ASSERT(!default_linked->b);
-    D_ASSERT(!default_linked->i);
-    D_ASSERT(!default_linked->ptr);
+    D_ASSERT(!default_linked.r().b);
+    D_ASSERT(!default_linked.r().i);
+    D_ASSERT(!default_linked.r().ptr);
 
     struct test_time_null
     {
@@ -73,8 +73,10 @@ void test_null() noexcept
     D_ASSERT(!tm_null.ms.count());
 
     unique_resource<test_time_null, skip_op> default_unique_tm;
-    D_ASSERT(!default_unique_tm->ms.count());
+    D_ASSERT(!default_unique_tm.r().ms.count());
 
     shared_resource<test_time_null, skip_op> default_linked_tm;
-    D_ASSERT(!default_linked_tm->ms.count());
+    D_ASSERT(!default_linked_tm.r().ms.count());
+
+    D_ASSERT(!errno);
 }

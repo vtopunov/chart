@@ -62,13 +62,20 @@ namespace ui
             callback
         );
 
+        const auto translate_and_dispatch = [processor_ptr] (const native_event& msg) noexcept
+        {
+            call_event(processor_ptr, msg.msg);
+            msg.translate_and_dispatch();
+        };
+
         for ( native_event msg{};;)
         {
             if ( call_event(processor_ptr, peek_event{}) )
             {
                 while ( msg.try_receive() )
                 {
-                    msg.translate_and_dispatch();
+                    translate_and_dispatch(msg);
+
                     if ( msg.is_quit() )
                     {
                         return msg.exit_status();
@@ -81,8 +88,7 @@ namespace ui
             {
                 if ( msg.receive() )
                 {
-                    call_event(processor_ptr, msg.msg);
-                    msg.translate_and_dispatch();
+                    translate_and_dispatch(msg);
                 }
                 else
                 {

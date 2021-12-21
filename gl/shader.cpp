@@ -59,7 +59,7 @@ namespace gl
             constexpr size_t name_buffer_static_size{ 4 * sizeof(size_t) };
 
             small_vector<GLchar, name_buffer_static_size> name_buffer{};
-            name_buffer.reserve(test_name.size() + 2u);
+            name_buffer.reserve(test_name.size() + 2_uz);
 
             GLsizei name_size{ 0 };
             GLenum type_id{ 0 };
@@ -82,7 +82,7 @@ namespace gl
                 narrow_cast<size_t>(name_size)
             };
 
-            const auto test0 = (size == 1u);
+            const auto test0 = (size == 1_uz);
             const auto test1 = test0 && (type_id == to_underlying(test_typeid));
             const auto test2 = test1 && (name == test_name.as_string_view());
 
@@ -140,15 +140,7 @@ namespace gl
             static_assert(std::is_signed_v<decltype(location)>);
             static_assert(std::is_unsigned_v<location_index_t>);
             static_assert(std::is_same_v<location_index_t, std::underlying_type_t<LocationType>>);
-            return static_cast<LocationType>(narrow_cast<location_index_t>(location));
-        }
-    }
-
-    void close(shader_resource shader) noexcept
-    {
-        if (has_value(shader))
-        {
-            glDeleteShader(to_underlying(shader));
+            return narrow_cast<LocationType>(location);
         }
     }
 
@@ -165,21 +157,21 @@ namespace gl
         return compile_status(shader);
     }
 
+    void shader_resource_deleter::operator()(shader_resource shader) const noexcept
+    {
+        if (has_value(shader))
+        {
+            glDeleteShader(to_underlying(shader));
+        }
+    }
+
     shader_t create_shader(shader_type type) noexcept
     {
         return
         {
             resource_construct,
-            underlying_cast<shader_resource>(glCreateShader(to_underlying(type)))
+            safe_numeric_cast<shader_resource>(glCreateShader(to_underlying(type)))
         };
-    }
-
-    void close(shaders_program_resource program) noexcept
-    {
-        if (has_value(program))
-        {
-            glDeleteProgram(to_underlying(program));
-        }
     }
 
     void attach_shader(shaders_program_resource program, shader_resource shader) noexcept
@@ -202,7 +194,7 @@ namespace gl
             {
                 const auto log_size = compile_log_size(shader);
 
-                if (log_size > 1u)
+                if (log_size > 1_uz)
                 {
                     std::basic_string<GLchar> chars(log_size, GLchar{});
                     compile_log_read(shader, chars);
@@ -220,12 +212,20 @@ namespace gl
         return link_status(program);
     }
 
+    void shaders_program_resource_deleter::operator()(shaders_program_resource program) const noexcept
+    {
+        if (has_value(program))
+        {
+            glDeleteProgram(to_underlying(program));
+        }
+    }
+
     shaders_program_t create_shaders_program() noexcept
     {
         return
         {
             resource_construct,
-            underlying_cast<shaders_program_resource>(glCreateProgram())
+            safe_numeric_cast<shaders_program_resource>(glCreateProgram())
         };
     }
 

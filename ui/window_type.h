@@ -44,7 +44,7 @@ namespace ui
 
     struct window_type_resource_deleter
     {
-        void operator () (window_type_resource type, resource_destroy_t) const noexcept;
+        void operator () (window_type_resource type) const noexcept;
     };
 
     using unique_window_type_t = unique_resource<window_type_resource, window_type_resource_deleter>;

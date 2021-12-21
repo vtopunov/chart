@@ -3,15 +3,17 @@
 #include <string_view>
 #include <compare>
 
+#include <core/assert.h>
+
 template<class T>
-inline constexpr T empty_c_string[] = { T{} };
+inline constexpr T empty_c_string_v[] = { T{} };
 
 template <class, class = void>
 struct is_string : std::false_type
 {};
 
 template <class T>
-struct is_string<T, std::void_t<decltype(std::declval<T>().c_str())>>
+struct is_string<T, std::void_t<decltype(std::declval<T>().c_str()), decltype(std::size(std::declval<T&>()))>>
     : std::true_type
 {};
 
@@ -36,10 +38,26 @@ struct is_zstring_view<const T> : is_zstring_view<T>
 template<class T>
 inline constexpr bool is_zstring_view_v = is_zstring_view<T>::value;
 
-struct null_terminated_construct_t
+struct c_str_construct_t
 {};
 
-inline constexpr null_terminated_construct_t null_terminated_construct{};
+inline constexpr c_str_construct_t c_str_construct{};
+
+template<class T>
+constexpr bool is_null_terminated(const T* string, size_t size) noexcept
+{
+    while (string[size])
+    {
+        if (!size)
+        {
+            return false;
+        }
+
+        --size;
+    }
+
+    return true;
+}
 
 template<class T>
 class basic_zstring_view
@@ -56,20 +74,22 @@ public:
     using difference_type = ptrdiff_t;
 
     constexpr basic_zstring_view() noexcept
-        : string_{ empty_c_string<value_type> }
+        : string_{ empty_c_string_v<value_type> }
     {}
 
     constexpr basic_zstring_view(const_pointer c_string) noexcept
         : string_{ c_string }
     {}
 
-    constexpr basic_zstring_view(null_terminated_construct_t, const_pointer data, size_t size) noexcept
+    constexpr basic_zstring_view(c_str_construct_t, const_pointer data, size_t size) noexcept
         : string_{ data, size }
-    {}
+    {
+        D_ASSERT(is_null_terminated(data, size));
+    }
 
     template<class C, class = std::enable_if_t<is_string_v<C> && !is_zstring_view_v<C>>>
     constexpr basic_zstring_view(const C& string) noexcept
-        : basic_zstring_view{ null_terminated_construct, string.c_str(), string.size() }
+        : basic_zstring_view{ c_str_construct, string.c_str(), std::size(string) }
     {}
 
     [[nodiscard]]
@@ -150,3 +170,9 @@ using wzstring_view = basic_zstring_view<wchar_t>;
 using u8zstring_view = basic_zstring_view<char8_t>;
 using u16zstring_view = basic_zstring_view<char16_t>;
 using u32zstring_view = basic_zstring_view<char32_t>;
+
+[[nodiscard]]
+constexpr zstring_view operator"" _zsv(const char* source, size_t length) noexcept
+{
+    return { c_str_construct, source, length };
+}

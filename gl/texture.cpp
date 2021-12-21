@@ -4,7 +4,7 @@ namespace gl
 {
     namespace
     {
-        void texture_image2D(texture_target target, size2d_t sizes, texture_format format, const void* pixels) noexcept
+        void texture_image2D(texture_target target, px::size2d_t sizes, texture_format format, const void* pixels) noexcept
         {
             glTexImage2D
             (
@@ -33,21 +33,21 @@ namespace gl
         }
     }
 
-    void texture_resource_deleter::operator()(texture_resource texture, resource_destroy_t) const noexcept
+    void texture_resource_deleter::operator()(texture_resource texture) const noexcept
     {
         glDeleteTextures(1, &texture.d);
     }
 
-    texture2d_t create_texture2d(size2d_t sizes, texture_format format, const void* pixels) noexcept
+    texture2d_t create_texture2d(px::size2d_t sizes, texture_format format, const void* pixels) noexcept
     {
         using texture_t = texture2d_t;
-        using texture_resource_t = typename texture_t::resource_type;
-        constexpr auto target = texture_resource_t::target;
+        constexpr auto target = texture_t::resource_type::target;
 
         texture_t texture
         {
             resource_construct,
-            gen_texture()
+            gen_texture(),
+            sizes
         };
 
         D_ASSERT(texture);
@@ -75,7 +75,7 @@ namespace gl
             GLint size{ 0 };
             glGetActiveUniform(to_underlying(program), locaion, 0, nullptr, &size, &type_id, nullptr);
 
-            if (is_sampler(underlying_cast<glsl_typeid>(type_id)))
+            if (is_sampler(safe_numeric_cast<glsl_typeid>(type_id)))
             {
                 ++number;
             }
@@ -83,5 +83,4 @@ namespace gl
 
         return number;
     }
-
 }

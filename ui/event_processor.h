@@ -20,7 +20,15 @@ namespace ui
 
     bool close(event_processor_resource processor) noexcept;
 
-    using event_processor_t = unique_resource<event_processor_resource>;
+    struct event_processor_resource_deleter
+    {
+        void operator()(event_processor_resource processor) const noexcept
+        {
+            close(processor);
+        }
+    };
+
+    using event_processor_t = unique_resource<event_processor_resource, event_processor_resource_deleter>;
 
     [[nodiscard]]
     event_processor_t create_event_processor(window_resource window, void* data, event_callback_t callback) noexcept;

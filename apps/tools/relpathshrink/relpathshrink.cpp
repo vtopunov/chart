@@ -1,8 +1,7 @@
-#include <filesystem>
-#include <string_view>
-#include <iostream>
-
 #include <core/small_vector.h>
+
+#include <file/file_io.h>
+#include <file/file_mmap.h>
 
 namespace
 {
@@ -11,6 +10,7 @@ namespace
         char first;
         char last;
 
+        [[nodiscard]]
         constexpr bool contains(const char value) const noexcept
         {
             return value >= first && value <= last;
@@ -24,73 +24,81 @@ namespace
         char slash;
         char backslash;
 
-        constexpr bool is_lower(const char value) const noexcept
-        {
-            return lower_abc.contains(value);
-        }
-
+        [[nodiscard]]
         constexpr bool is_upper(const char value) const noexcept
         {
             return upper_abc.contains(value);
         }
 
+        [[nodiscard]]
         constexpr bool is_slash(const char value) const noexcept
         {
             return value == slash
                 || value == backslash;
         }
 
-        constexpr char lower2upper(const char value) const noexcept
-        {
-            return upper_abc.first + ( value - lower_abc.first );
-        }
-
+        [[nodiscard]]
         constexpr char upper2lower(const char value) const noexcept
         {
-            return lower_abc.first + ( value - upper_abc.first );
+            return lower_abc.first + (value - upper_abc.first);
         }
     };
 
     constexpr locale ascii
     {
-        .upper_abc = { 'A', 'Z' },
-        .lower_abc = { 'a', 'z' },
-        .slash = '/',
-        .backslash = '\\'
+        .upper_abc{ 'A', 'Z' },
+        .lower_abc{ 'a', 'z' },
+        .slash{ '/' },
+        .backslash{ '\\' }
     };
 
-    constexpr char preferred_path_separator = ascii.backslash;
-    constexpr char alternative_path_separator = ascii.slash;
-
-    constexpr char unipathchar(char value) noexcept
+    struct path_spec
     {
-        if ( value == alternative_path_separator )
+        char preferred_sep;
+        char alternative_sep;
+        bool case_insensitive;
+
+        [[nodiscard]]
+        constexpr char unisep(char ch) const noexcept
         {
-            value = preferred_path_separator;
-        }
-        else if ( ascii.is_upper(value) )
-        {
-            value = ascii.upper2lower(value);
+            return (ch == alternative_sep) ? preferred_sep : ch;
         }
 
-        return value;
+        [[nodiscard]]
+        constexpr char unicase(char ch) const noexcept
+        {
+            return (case_insensitive && ascii.is_upper(ch)) ? ascii.upper2lower(ch) : ch;
+        }
+
+        [[nodiscard]]
+        constexpr char unichar(char ch) const noexcept
+        {
+            return unicase(unisep(ch));
+        }
+
+        [[nodiscard]]
+        constexpr bool unieq(char c0, char c1) const noexcept
+        {
+            return unichar(c0) == unichar(c1);
+        }
+    };
+
+    constexpr path_spec ms_path_spec
+    {
+        .preferred_sep{ ascii.backslash },
+        .alternative_sep{ ascii.slash },
+        .case_insensitive{ true }
+    };
+
+    constexpr void remove_endslash(std::string& s) noexcept
+    {
+        while (s.size() && ascii.is_slash(s.back()))
+        {
+            s.pop_back();
+        }
     }
 
-    constexpr std::string_view unipath(std::span<char> path) noexcept
-    {
-        if ( path.size() && ascii.is_slash(path.back()) )
-        {
-            path = path.first(path.size() - 1u);
-        }
-
-        for ( auto& ch : path )
-        {
-            ch = unipathchar(ch);
-        }
-
-        return { std::data(path), std::size(path) };
-    }
-
+    [[nodiscard]]
     constexpr bool is_div_char(const char value) noexcept
     {
         return value == ';'
@@ -99,23 +107,23 @@ namespace
             || value == '|'
             || value == '\n'
             || value == '\''
-            || value == '\"';
+            || value == '\"'
+            || value == '*';
     }
 
-    using cstrspan = std::span<const char>;
-
-    constexpr bool is_valid_cd(cstrspan chars) noexcept
+    [[nodiscard]]
+    constexpr bool is_valid_cd(std::string_view chars) noexcept
     {
         bool has_slash{ false };
 
-        for ( const auto ch : chars )
+        for (const auto ch : chars)
         {
-            if ( is_div_char(ch) )
+            if (is_div_char(ch))
             {
                 return false;
             }
 
-            if ( !has_slash )
+            if (!has_slash)
             {
                 has_slash = ascii.is_slash(ch);
             }
@@ -124,58 +132,150 @@ namespace
         return has_slash && !ascii.is_slash(chars.back());
     }
 
-    bool convert_to_relpath(std::string_view current, std::istream& in, std::ostream& out)
+    class wo_buffered_file_resource
     {
-        using traits = std::char_traits<char>;
+    public:
+        static constexpr size_t buffer_size{ 1024_uz };
+        static constexpr size_t small_size{ (5_uz * buffer_size) / 8_uz };
 
-        constexpr size_t detect_size{ _MAX_DRIVE + 1u };
+#pragma warning(push)
+#pragma warning(disable: 26495)
+        constexpr explicit wo_buffered_file_resource(file::wo_file_resource out) noexcept
+            : out_{ out }
+            , size_{ 0_uz }
+        {}
+#pragma warning(pop)
 
-        if ( std::size(current) <= detect_size || !is_valid_cd(current) )
+        void put(char ch) noexcept
+        {
+            *_memory_for(1_uz) = ch;
+        }
+
+        void write(const_buffer_view data) noexcept
+        {
+            if (data.size() > small_size)
+            {
+                _flush_all();
+                _direct_write(data.data(), data.size());
+                return;
+            }
+
+            memcpy(_memory_for(data.size()), data.data(), data.size());
+        }
+
+        ~wo_buffered_file_resource() noexcept
+        {
+            _flush_all();
+        }
+
+
+    private:
+        [[nodiscard]]
+        char* _memory_for(size_t size) noexcept
+        {
+            _flush_for(size);
+
+            const auto mem = buffer_ + size_;
+            size_ += size;
+            return mem;
+        }
+
+        void _flush_all() noexcept
+        {
+            _flush_for(buffer_size);
+        }
+
+        void _flush_for(size_t size) noexcept
+        {
+            if (size > (buffer_size - size_))
+            {
+                _direct_write(buffer_, std::exchange(size_, 0_uz));
+            }
+        }
+
+        void _direct_write(const void* data, size_t size) const noexcept
+        {
+            file::write(out_, data, size);
+        }
+
+    private:
+        file::wo_file_resource out_;
+        size_t size_;
+        char buffer_[buffer_size];
+    };
+
+    [[nodiscard]]
+    constexpr size_t find_first_endslash(std::string_view str, size_t pos) noexcept
+    {
+        pos = std::min(pos, str.size());
+
+        while (pos && !ascii.is_slash(str[pos]))
+        {
+            --pos;
+        }
+
+        return pos;
+    }
+
+    void write_relpath(wo_buffered_file_resource& out, std::string_view current, size_t pos) noexcept
+    {
+        constexpr char sep_up[]{ ms_path_spec.preferred_sep, '.', '.' };
+        constexpr std::span sep_up_sp{ sep_up };
+        constexpr auto up_sp = sep_up_sp.last<2_uz>();
+
+        out.write(up_sp);
+
+        for (auto up_pos = pos + 1_uz; up_pos < current.size(); ++up_pos)
+        {
+            if (ascii.is_slash(current[up_pos]))
+            {
+                out.write(sep_up_sp);
+            }
+        }
+    }
+
+    using cspanchar = std::span<const char>;
+
+    void write_tail(wo_buffered_file_resource& out, cspanchar buffer, size_t pos) noexcept
+    {
+        const auto tail = buffer.subspan(pos);
+        out.write(tail);
+    }
+
+    [[nodiscard]]
+    bool convert_to_relpath(std::string_view current, cspanchar in, file::wo_file_resource out_res) noexcept
+    {
+        constexpr size_t detect_size{ _MAX_DRIVE + 1_uz };
+
+        if (std::size(current) <= detect_size)
         {
             return false;
         }
 
-        small_vector<char, _MAX_PATH> buffer;
+        if (!is_valid_cd(current))
+        {
+            return false;
+        }
 
+        wo_buffered_file_resource out{ out_res };
+        small_vector<char, _MAX_PATH> relpathbuffer;
         bool need_search_div{ false };
 
-        auto out_write = [&out] (cstrspan data)
+        for (const auto ch : in)
         {
-            out.write(data.data(), data.size());
-        };
-
-        for ( ;;)
-        {
-            const auto int_ch = in.get();
-            if ( traits::eq_int_type(int_ch, traits::eof()) )
+            if (need_search_div)
             {
-                if ( buffer.size() == current.size() )
-                {
-                    out.put('.');
-                }
-                else
-                {
-                    out_write(buffer);
-                }
-                break;
-            }
-
-            const auto ch = traits::to_char_type(int_ch);
-            if ( need_search_div )
-            {
-                D_ASSERT(!buffer.size());
+                D_ASSERT(!relpathbuffer.size());
                 out.put(ch);
                 need_search_div = !is_div_char(ch);
                 continue;
             }
 
-            const auto uni_ch = unipathchar(ch);
+            auto pos = relpathbuffer.size();
 
-            auto pos = buffer.size();
-
-            if ( pos < current.size() && uni_ch == current[pos] )
+            if (pos < current.size() && ms_path_spec.unieq(ch, current[pos]))
             {
-                if ( !buffer.try_emplace_back(ch) )
+                if (!relpathbuffer.try_emplace_back(ch))
                 {
                     return false;
                 }
@@ -187,76 +287,86 @@ namespace
 
             need_search_div = !is_div;
 
-            if ( pos < detect_size )
+            if (pos < detect_size)
             {
-                out_write(buffer);
-                buffer.clear();
+                out.write(relpathbuffer);
                 out.put(ch);
+
+                relpathbuffer.clear();
                 continue;
             }
 
-            const auto buffer_is_break = is_div || ascii.is_slash(ch);
-
-            if ( pos == current.size() && buffer_is_break )
             {
-                buffer.clear();
-                if ( is_div )
-                {
-                    out.put('.');
-                    out.put(ch);
-                }
-                continue;
-            }
+                const auto relpath_is_break = is_div || ascii.is_slash(ch);
 
-            if ( !buffer_is_break || !ascii.is_slash(current[pos]) )
-            {
-                do
+                if (relpath_is_break)
                 {
-                    if ( ascii.is_slash(current[--pos]) )
+                    if (pos == current.size())
                     {
-                        break;
+                        if (is_div)
+                        {
+                            out.put('.');
+                            out.put(ch);
+                        }
+
+                        relpathbuffer.clear();
+                        continue;
                     }
                 }
-                while ( pos );
-            }
-
-            constexpr char up[] = { '.', '.' };
-
-            out_write(up);
-
-            for ( auto up_pos = pos + 1; up_pos < current.size(); ++up_pos )
-            {
-                if ( ascii.is_slash(current[up_pos]) )
+                else
                 {
-                    out.put(preferred_path_separator);
-                    out_write(up);
+                    pos = find_first_endslash(current, pos);
                 }
             }
 
-            out_write(cstrspan{ buffer }.subspan(pos));
-            buffer.clear();
+            write_relpath(out, current, pos);
+            write_tail(out, relpathbuffer, pos);
             out.put(ch);
+
+            relpathbuffer.clear();
+        }
+
+        if (relpathbuffer.size() == current.size())
+        {
+            out.put('.');
+        }
+        else
+        {
+            out.write(relpathbuffer);
         }
 
         return true;
     }
 }
 
-int main()
+int wmain(int argc, wchar_t* argv[], wchar_t**)
 {
     constexpr int failed = -1;
     constexpr int successed = 0;
 
-    std::ios_base::sync_with_stdio(false);
-
-    const auto current_path = std::filesystem::current_path();
-    if ( !current_path.is_absolute() )
+    if (argc <= 1)
     {
         return failed;
     }
 
-    auto current_path_string = current_path.string();
-    if ( !convert_to_relpath(unipath(current_path_string), std::cin, std::cout) )
+    const std::filesystem::path path{ argv[1] };
+
+    const auto map = file::mmap(path.c_str());
+    if (!map)
+    {
+        return failed;
+    }
+
+    auto cd = absolute(path).parent_path().generic_string();
+
+    remove_endslash(cd);
+
+    if (cd.empty())
+    {
+        return failed;
+    }
+
+    if (!convert_to_relpath(cd, map.r().view().as_span<char>(), file::standard_output()))
     {
         return failed;
     }

@@ -46,7 +46,7 @@ template<class size_type> [[nodiscard]]
 constexpr size_type optimal_memory_growth(size_type value) noexcept
 {
     static_assert(std::is_unsigned_v<size_type>);
-    constexpr size_type factor{ 2u };
+    constexpr size_type factor = 2;
     constexpr auto max_size = numeric_max_v<size_type>;
     constexpr auto overflow = max_size / factor;
     return (value > overflow) ? max_size : (factor * value);
@@ -69,7 +69,7 @@ class small_vector
     using self = small_vector;
 
 public:
-    static_assert(N > 0u);
+    static_assert(N > 0_uz);
 
     using value_type = T;
     using pointer = value_type*;
@@ -87,7 +87,7 @@ public:
 
     constexpr small_vector() noexcept
         : data_{ static_ }
-        , size_{ 0u }
+        , size_{ 0_uz }
     {}
 
     small_vector(const self& right) noexcept
@@ -309,7 +309,7 @@ public:
     template<class... Args>
     [[nodiscard]] pointer try_emplace_back(Args&&... args) noexcept
     {
-        if (_try_indeterminate_reserve(size() + 1u))
+        if (_try_indeterminate_reserve(size() + 1_uz))
         {
             const auto last = data_ + size_;
             std::construct_at(last, std::forward<Args>(args)...);
@@ -335,7 +335,7 @@ public:
     void clear() noexcept
     {
         D_UNUSED(_destroy_elements());
-        _collect(0u);
+        _collect(0_uz);
     }
 
     [[nodiscard]]
@@ -407,7 +407,7 @@ public:
     [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
-        return *(_cend()-1u);
+        return *(_cend()-1_uz);
     }
 
     [[nodiscard]]
@@ -491,7 +491,7 @@ private:
     [[nodiscard]]
     constexpr size_type _release_size() noexcept
     {
-        return std::exchange(size_, 0u);
+        return std::exchange(size_, 0_uz);
     }
 
     [[nodiscard]]
@@ -604,7 +604,7 @@ private:
     {
         const auto size = right.size_;
         right.data_ = right.dynamic_.data();
-        right.size_ = 0u;
+        right.size_ = 0_uz;
 
         data_ = dynamic_.data();
         size_ = size;

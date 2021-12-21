@@ -111,7 +111,7 @@
     <ClCompile Include="test_rect.cpp" />
     <ClCompile Include="test_size2d.cpp" />
     <ClCompile Include="test_small_vector.cpp" />
-    <ClCompile Include="test_underlying_cast.cpp" />
+    <ClCompile Include="test_utf.cpp" />
     <ClCompile Include="test_utility.cpp" />
     <ClCompile Include="test_vec.cpp" />
   </ItemGroup>

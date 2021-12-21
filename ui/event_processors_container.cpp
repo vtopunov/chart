@@ -1,7 +1,5 @@
 #include "event_processors_container.h"
 
-#include <core/underlying_cast.h>
-
 namespace ui
 {
     namespace
@@ -9,7 +7,7 @@ namespace ui
         event_processor_resource new_event_processor_description() noexcept
         {
             static auto current = to_underlying(event_processor_resource::null);
-            return underlying_cast<event_processor_resource>(++current);
+            return safe_numeric_cast<event_processor_resource>(++current);
         }
     }
 
@@ -45,7 +43,7 @@ namespace ui
 
     size_t event_processors_container::erase(window_resource window) noexcept
     {
-        size_t count = 0u;
+        size_t count{ 0_uz };
 
         if (lock_)
         {

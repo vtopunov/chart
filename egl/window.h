@@ -5,33 +5,45 @@
 
 namespace egl
 {
-    using ui_window_resource_t = ui::window_resource;
+    namespace private_detail_egl_descriptor
+    {
+        enum class descriptor_type_id
+        {
+            display,
+            surface,
+            context
+        };
 
-    struct _egl_descriptor
-    {};
+        struct egl_base_descriptor
+        {};
 
-    template<class descriptor>
-    using _egl_descriptor_t = std::conditional_t<std::is_class_v<std::remove_pointer_t<descriptor>>, std::remove_pointer_t<descriptor>, _egl_descriptor>;
+        template<class descriptor>
+        using egl_base_descriptor_t = std::conditional_t<std::is_class_v<std::remove_pointer_t<descriptor>>, std::remove_pointer_t<descriptor>, egl_base_descriptor>;
 
-    struct _display_descriptor : _egl_descriptor_t<EGLDisplay>
-    {};
+        template<descriptor_type_id TypeId, class NativeDescriptor>
+        struct descriptor_source : egl_base_descriptor_t<NativeDescriptor>
+        {
+            static constexpr auto type_id = TypeId;
+        };
 
-    struct _surface_descriptor : _egl_descriptor_t<EGLDisplay>
-    {};
+        template<descriptor_type_id TypeId, class NativeDescriptor>
+        using egl_descriptor_t = copy_pointer_t<NativeDescriptor, descriptor_source<TypeId, NativeDescriptor>>;
 
-    struct _context_descriptor : _egl_descriptor_t<EGLContext>
-    {};
+        using display_descriptor_t = egl_descriptor_t<descriptor_type_id::display, EGLDisplay>;
 
-    using display_descriptor = std::conditional_t<std::is_pointer_v<EGLDisplay>, _display_descriptor*, _display_descriptor>;
+        using surface_descriptor_t = egl_descriptor_t<descriptor_type_id::surface, EGLSurface>;
 
-    using surface_descriptor = std::conditional_t<std::is_pointer_v<EGLSurface>, _surface_descriptor*, _surface_descriptor>;
+        using context_descriptor_t = egl_descriptor_t<descriptor_type_id::context, EGLContext>;
+    }
 
-    using context_descriptor = std::conditional_t<std::is_pointer_v<EGLContext>, _context_descriptor*, _context_descriptor>;
+    using display_descriptor_t = private_detail_egl_descriptor::display_descriptor_t;
+    using surface_descriptor_t = private_detail_egl_descriptor::surface_descriptor_t;
+    using context_descriptor_t = private_detail_egl_descriptor::context_descriptor_t;
 
     struct display_surface
     {
-        display_descriptor display;
-        surface_descriptor surface;
+        display_descriptor_t display;
+        surface_descriptor_t surface;
 
         [[nodiscard]]
         constexpr explicit operator bool() const noexcept
@@ -40,118 +52,93 @@ namespace egl
         }
     };
 
-    struct display_surface_context
+    struct painting_collector
     {
-        display_descriptor display;
-        surface_descriptor surface;
-        context_descriptor context;
+        void operator () (display_surface surface) const noexcept
+        {
+            eglSwapBuffers(surface.display, surface.surface);
+        }
+    };
+
+    using painting_t = unique_resource<display_surface, painting_collector>;
+
+    struct null_window_resources;
+
+    struct window_resources
+    {
+        using view_type = ui::window_resource;
+
+        struct null_type
+        {
+            [[nodiscard]]
+            constexpr operator window_resources() const noexcept
+            {
+                return window_resources
+                {
+                    .app_wnd = ui::nullwindow,
+                    .renderer_wnd = ui::nullwindow,
+                    .sizes{ 0_px, 0_px },
+                    .display{ nullptr },
+                    .surface{ nullptr },
+                    .context{ nullptr }
+                };
+            }
+        };
+
+        view_type app_wnd;
+        view_type renderer_wnd;
+
+        px::size2d_t sizes;
+
+        display_descriptor_t display;
+        surface_descriptor_t surface;
+        context_descriptor_t context;
 
         [[nodiscard]]
         constexpr explicit operator bool() const noexcept
         {
             return !!context;
         }
-    };
-
-    inline void swap_buffers(display_surface surface) noexcept
-    {
-        eglSwapBuffers(surface.display, surface.surface);
-    }
-
-    struct swap_buffers_collector
-    {
-        void operator () (display_surface surface, resource_destroy_t) const noexcept
-        {
-            swap_buffers(surface);
-        }
-    };
-
-    using painting_context_t = unique_resource<display_surface, swap_buffers_collector>;
-
-    struct window_resource
-    {
-        using view_type = ui_window_resource_t;
-
-        ui_window_resource_t app_wnd;
-        ui_window_resource_t renderer_wnd;
-
-        size2d_t viewport;
-
-        display_surface_context egl;
 
         [[nodiscard]]
-        constexpr explicit operator bool() const noexcept
-        {
-            return !!egl;
-        }
-
-        struct painting_initializer
-        {
-            size2d_t viewport;
-            display_surface surface;
-
-            [[nodiscard]]
-            constexpr explicit operator bool() const noexcept
-            {
-                return !!surface;
-            }
-        };
-
-        [[nodiscard]]
-        constexpr operator painting_initializer () const noexcept
-        {
-            return 
-            { 
-                .viewport{ viewport },
-                .surface
-                {
-                    .display{ egl.display, },
-                    .surface{ egl.surface }
-                }
-            };
-        }
-
-        [[nodiscard]]
-        constexpr operator ui_window_resource_t () const noexcept
+        constexpr operator view_type () const noexcept
         {
             return app_wnd;
         }
     };
 
-    struct window_resource_collector
+    struct window_resources_collector
     {
-        void operator () (const window_resource& egl, resource_destroy_t) const noexcept;
+        void operator () (const window_resources& egl) const noexcept;
     };
 
-    struct window : unique_resource<window_resource, window_resource_collector>
-    {
-        using unique_resource::unique_resource;
-
-        [[nodiscard]]
-        constexpr operator window_resource::painting_initializer () const noexcept
-        {
-            return resource();
-        }
-    };
+    using window_t = unique_resource<window_resources, window_resources_collector>;
 
     [[nodiscard]]
-    inline painting_context_t begin_painting(window_resource::painting_initializer resource) noexcept
+    inline painting_t begin_painting(const window_resources& resources) noexcept
     {
-        if (resource)
+        if (resources)
         {
             glViewport
             (
                 0, 0,
-                narrow_cast<GLsizei>(resource.viewport.width()),
-                narrow_cast<GLsizei>(resource.viewport.height())
+                narrow_cast<GLsizei>(resources.sizes.width()),
+                narrow_cast<GLsizei>(resources.sizes.height())
             );
         }
 
         return
         {
             resource_construct,
-            resource.surface
+            resources.display,
+            resources.surface
         };
+    }
+
+    [[nodiscard]]
+    constexpr px::size2d_t sizes(const window_resources& resources) noexcept
+    {
+        return resources.sizes;
     }
 
     class window_factory
@@ -170,7 +157,7 @@ namespace egl
         }
 
         [[nodiscard]]
-        window create() noexcept;
+        window_t create() noexcept;
 
     private:
         ui::window_factory app_;

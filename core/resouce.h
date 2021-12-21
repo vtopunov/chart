@@ -1,8 +1,5 @@
 #pragma once
 
-#include <utility>
-
-#include <core/view.h>
 #include <core/null.h>
 #include <core/intrusive_list.h>
 
@@ -10,35 +7,23 @@ template<class T>
 using has_value_t = decltype(has_value(std::declval<T&>()));
 
 template<class T>
-constexpr bool has_check_v = is_detected_v<has_value_t, T>;
+inline constexpr bool has_check_v = is_detected_v<has_value_t, T>;
+
+template<class T>
+using decl_view_t = typename T::view_type;
+
+template <class T>
+using view_t = detected_or_t<T, decl_view_t, T>;
+
+template <class T>
+inline constexpr bool is_view_v = is_detected_v<decl_view_t, T>;
 
 struct resource_construct_t
 {};
 
 inline constexpr resource_construct_t resource_construct{};
 
-class resource_destroy_t
-{
-private:
-    template <class T, class D>
-    friend class unique_resource;
-
-    template <class T, class D>
-    friend class shared_resource;
-
-    constexpr resource_destroy_t() noexcept = default;
-};
-
-struct resource_default_deleter
-{
-    template<class T>
-    void operator () (T&& resource, resource_destroy_t) const noexcept
-    {
-        close(std::move(resource));
-    }
-};
-
-template <class T, class D = resource_default_deleter>
+template <class T, class D>
 class unique_resource
 {
 public:
@@ -49,7 +34,7 @@ public:
     static constexpr null_type null{};
 
     constexpr unique_resource() noexcept
-        : resource_( null )
+        : resource_(null)
     {}
 
     constexpr unique_resource(null_type) noexcept
@@ -69,7 +54,8 @@ public:
 
     ~unique_resource() noexcept
     {
-        close_(std::move(resource_), close_tag_);
+        constexpr deleter_type close{};
+        close(std::move(resource_));
     }
 
     constexpr unique_resource& operator=(unique_resource&& right) noexcept
@@ -88,32 +74,31 @@ public:
 
     constexpr void swap(unique_resource& right) noexcept
     {
-        std::swap(resource_, right.resource_);
+        ::swap(resource_, right.resource_);
+    }
+
+    template<bool dummy = true, class = std::enable_if_t<(dummy) && has_check_v<resource_type>>>
+    [[nodiscard]] constexpr explicit operator bool() const noexcept
+    {
+        return has_value(r());
+    }
+
+    template<bool dummy = true, class = std::enable_if_t<(dummy) && is_view_v<resource_type>>>
+    [[nodiscard]] constexpr operator view_type () const noexcept
+    {
+#pragma warning(push)
+#pragma warning(disable : 26437) //  Don't slice
+        return static_cast<view_type>(r());
+#pragma warning(pop)
+    }
+
+    [[nodiscard]] constexpr operator const resource_type& () const noexcept
+    {
+        return r();
     }
 
     [[nodiscard]]
-    constexpr const resource_type& resource() const noexcept
-    {
-        return resource_;
-    }
-
-    [[nodiscard]]
-    constexpr decltype( auto )  operator ->() const noexcept
-    {
-        return &resource_;
-    }
-
-    template<
-        bool dummy = true,
-        class = std::enable_if_t<( has_check_v<resource_type> && dummy )>
-    > [[nodiscard]]
-        constexpr explicit operator bool() const noexcept
-    {
-        return has_value(resource_);
-    }
-
-    [[nodiscard]]
-    constexpr operator view_type () const noexcept
+    constexpr const resource_type& r() const noexcept
     {
         return resource_;
     }
@@ -130,13 +115,12 @@ public:
         const unique_resource temp{ std::move(*this) };
     }
 
+
 private:
     resource_type resource_;
-    static constexpr deleter_type close_{};
-    static constexpr resource_destroy_t close_tag_{};
 };
 
-template<class T, class D = resource_default_deleter>
+template<class T, class D>
 class shared_resource
 {
 private:
@@ -151,7 +135,7 @@ public:
     static constexpr null_type null{};
 
     constexpr shared_resource() noexcept
-        : resource_( null )
+        : resource_(null)
         , copies_{ self_linked() }
     {}
 
@@ -178,19 +162,19 @@ public:
 
     ~shared_resource() noexcept
     {
-        if ( has_copies() )
+        if (has_copies())
         {
             unlink();
         }
         else
         {
-            close_(std::move(resource_), close_tag_);
+            close_(std::move(resource_));
         }
     }
 
     shared_resource& operator = (const shared_resource& right) noexcept
     {
-        if ( this != std::addressof(right) )
+        if (this != std::addressof(right))
         {
             deattach_and_reset(right.resource_);
             copies_ = linked_with(right);
@@ -213,29 +197,25 @@ public:
         return *this;
     }
 
-    [[nodiscard]]
-    constexpr const resource_type& resource() const noexcept
+    template<bool dummy = true, class = std::enable_if_t<(dummy) && has_check_v<resource_type>>>
+    [[nodiscard]] constexpr explicit operator bool() const noexcept
     {
-        return resource_;
+        return has_value(r());
+    }
+
+    template<bool dummy = true, class = std::enable_if_t<(dummy) && is_view_v<resource_type>>>
+    [[nodiscard]] constexpr operator view_type () const noexcept
+    {
+        return r();
+    }
+
+    [[nodiscard]] constexpr operator const resource_type& () const noexcept
+    {
+        return r();
     }
 
     [[nodiscard]]
-    constexpr decltype( auto ) operator ->() const noexcept
-    {
-        return &resource_;
-    }
-
-    template<
-        bool dummy = true,
-        class = std::enable_if_t<(has_check_v<resource_type> && dummy )>
-    > [[nodiscard]]
-        constexpr explicit operator bool() const noexcept
-    {
-        return has_value(resource_);
-    }
-
-    [[nodiscard]]
-    constexpr operator view_type () const noexcept
+    constexpr const resource_type& r() const noexcept
     {
         return resource_;
     }
@@ -243,7 +223,7 @@ public:
     template<class T>
     void deattach_and_reset(T&& new_resource) noexcept
     {
-        if ( has_copies() )
+        if (has_copies())
         {
             unlink();
             resource_ = std::forward<T>(new_resource);
@@ -251,7 +231,7 @@ public:
         else
         {
             copies_ = self_linked();
-            close_(std::exchange(resource_, std::forward<T>(new_resource)), close_tag_);
+            close_(std::exchange(resource_, std::forward<T>(new_resource)));
         }
     }
 
@@ -293,5 +273,4 @@ private:
     resource_type resource_;
     intrusive_list_node copies_;
     static constexpr deleter_type close_{};
-    static constexpr resource_destroy_t close_tag_{};
 };

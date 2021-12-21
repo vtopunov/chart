@@ -28,14 +28,19 @@ template <class T>
 struct is_buffer_view<const T> : is_buffer_view<T>
 {};
 
+template <class T>
+inline constexpr bool is_buffer_view_v = is_buffer_view<T>::value;
+
 template<class C>
+using data_pointer_t = decltype(as_pointer(std::data(std::declval<C&>())));
+
+template<class C> [[nodiscard]]
 constexpr auto size_bytes(const C& c) noexcept 
-    -> decltype(as_pointer(std::data(std::declval<C&>())), std::size(std::declval<C&>()), size_t(0u))
+    -> decltype(as_pointer(std::data(std::declval<C&>())), std::size(std::declval<C&>()), 0_uz)
 {
-    using data_t = decltype(as_pointer(std::data(std::declval<C&>())));
+    using data_t = data_pointer_t<C>;
     using value_t = std::remove_cvref_t<std::remove_pointer_t<data_t>>;
     using value_with_size_t = replace_t<value_t, void, std::byte>;
-
     constexpr size_t type_size = sizeof(value_with_size_t);
 
     return size_mul<type_size>(narrow_cast<size_t>(std::size(c)));
@@ -51,7 +56,7 @@ template<class C>
 inline constexpr bool is_size_bytes_v = is_size_bytes<C>::value;
 
 template<class C, class DataPointer>
-struct is_convertible_data : std::is_convertible<decltype(std::data(std::declval<C&>())), DataPointer>
+struct is_convertible_data : std::is_convertible<data_pointer_t<C>, DataPointer>
 {};
 
 template <class C, class Data>
@@ -67,10 +72,10 @@ class basic_buffer_view
 {
 public:
     template<class T>
-    using immutable_t = add_const_if_t<immutable, T>;
+    using switchable_const = add_const_if_t<immutable, T>;
 
     using value_type = std::byte;
-    using element_type = immutable_t<value_type>;
+    using element_type = switchable_const<value_type>;
     using size_type = size_t;
     using pointer = element_type*;
     using const_pointer = const element_type*;
@@ -78,7 +83,7 @@ public:
     using const_reference = const element_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using data_pointer = immutable_t<void>*;
+    using data_pointer = switchable_const<void>*;
 
     template<class C>
     static constexpr bool is_compatible_v = is_compatible_buffer_v<C, data_pointer>;
@@ -92,7 +97,7 @@ public:
 
     constexpr basic_buffer_view(const basic_buffer_view&) noexcept = default;
 
-    template<bool dummy = true, class = std::enable_if_t<(immutable && dummy)>>
+    template<bool dummy = true, class = std::enable_if_t<(dummy) && immutable>>
     constexpr basic_buffer_view(const buffer_view& buffer) noexcept
         : data_{ buffer.data() }
         , size_{ buffer.size() }
@@ -104,9 +109,15 @@ public:
         , size_{ size_bytes(container) }
     {}
 
+    template<class T, size_t n, std::enable_if_t<is_compatible_v<std::span<T, n>>, int> = 0>
+    constexpr basic_buffer_view(std::span<T, n> span) noexcept
+        : data_{ std::data(span) }
+        , size_{ size_bytes(span) }
+    {}
+
     constexpr basic_buffer_view& operator = (const basic_buffer_view&) noexcept = default;
 
-    template<bool dummy = true, class = std::enable_if_t<(immutable&& dummy)>>
+    template<bool dummy = true, class = std::enable_if_t<(dummy) && immutable>>
     constexpr basic_buffer_view& operator = (const buffer_view& buffer) noexcept
     {
         data_ = buffer.data();
@@ -140,29 +151,35 @@ public:
         return size_;
     }
 
-    template<class T>
-    [[nodiscard]] constexpr immutable_t<T>* as_ptr() const noexcept
+    [[nodiscard]]
+    constexpr const_buffer_view as_const() const noexcept
     {
-        return static_cast<immutable_t<T>*>(data());
+        return *this;
     }
 
     template<class T>
-    using immutable_span_t = std::span<immutable_t<T>>;
+    [[nodiscard]] constexpr switchable_const<T>* as_ptr() const noexcept
+    {
+        return static_cast<switchable_const<T>*>(data());
+    }
 
     template<class T>
-    [[nodiscard]] constexpr immutable_span_t<T> as_span() const noexcept
+    using span_switchable_const = std::span<switchable_const<T>>;
+
+    template<class T>
+    [[nodiscard]] constexpr span_switchable_const<T> as_span() const noexcept
     {
         return { as_ptr<T>(), size() / sizeof(T) };
     }
 
     [[nodiscard]]
-    constexpr immutable_t<std::byte>* as_bytes_ptr() const noexcept
+    constexpr switchable_const<std::byte>* as_bytes_ptr() const noexcept
     {
         return as_ptr<std::byte>();
     }
 
     [[nodiscard]]
-    constexpr immutable_span_t<std::byte> as_bytes() const noexcept
+    constexpr span_switchable_const<std::byte> as_bytes() const noexcept
     {
         return { as_bytes_ptr(), size() };
     }
@@ -182,7 +199,7 @@ public:
     [[nodiscard]]
     constexpr reference front() const noexcept
     {
-        return value(0u);
+        return value(0_uz);
     }
 
     [[nodiscard]]
@@ -194,7 +211,7 @@ public:
     [[nodiscard]]
     constexpr reference back() const noexcept
     {
-        return *(_end() - 1u);
+        return *(_end() - 1_uz);
     }
 
     [[nodiscard]]
@@ -236,5 +253,5 @@ private:
 
 private:
     data_pointer data_{ nullptr };
-    size_type size_{ 0u };
+    size_type size_{ 0_uz };
 };

@@ -13,24 +13,35 @@
 #include <windowsx.h>
 #pragma warning(pop)
 
-#undef OpenFile
-#undef LoadBitmap
-#undef MessageBox
-#undef GetObject
-#undef CreateFile
-#undef CreateEvent
-#undef CreateDirectory
-#undef DeleteFile
-#undef MoveFile
-#undef CopyFile
-#undef PathFileExists
-#undef CreateFileMapping
-#undef FindFirstFile
-#undef FindNextFile
-#undef GetTempPath
-#undef GetCurrentTime
-#undef SendMessage
-#undef GetMessage
-#undef OutputDebugString
-#undef OVERFLOW
 
+#define LPCTSTR LPCWSTR
+#define LPTSTR LPWSTR
+
+[[nodiscard]]
+constexpr LPCWSTR MAKEINTATOMW(ATOM atom) noexcept
+{
+    return MAKEINTATOM(atom);
+}
+
+#undef LPCTSTR
+#undef LPTSTR
+
+
+#pragma push_macro("MAKEINTRESOURCE")
+
+#ifdef MAKEINTRESOURCEW
+#undef MAKEINTRESOURCE
+#define MAKEINTRESOURCE MAKEINTRESOURCEW
+
+[[nodiscard]]
+constexpr LPCWSTR _IDC_ARROWW() noexcept
+{
+    return IDC_ARROW;
+}
+
+#endif
+
+#pragma pop_macro("MAKEINTRESOURCE")
+
+
+#define IDC_ARROWW _IDC_ARROWW()

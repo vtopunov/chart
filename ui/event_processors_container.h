@@ -84,7 +84,7 @@ namespace ui
             [[nodiscard]]
             constexpr enumerate begin() const noexcept
             {
-                return { 0u, std::addressof(as_immutable(container_)->items_) };
+                return { 0_uz, std::addressof(container_->items_) };
             }
 
             [[nodiscard]]
@@ -117,7 +117,7 @@ namespace ui
 
     private:
         container_type items_;
-        size_t lock_{ 0u };
+        size_t lock_{ 0_uz };
     };
 
     [[nodiscard]]

@@ -39,7 +39,7 @@ namespace
         const auto wof = file::wo_open(file_name, mode);
         D_ASSERT(wof);
 
-        for ( size_t i = 0u; i < n_blocks; ++i )
+        for ( size_t i = 0_uz; i < n_blocks; ++i )
         {
             check_block_size(write(wof, test_data.data(), block_size));
         }
@@ -50,7 +50,7 @@ namespace
         const auto rof = file::ro_open(file_name);
         D_ASSERT(rof);
 
-        for ( size_t i = 0u; i < n_blocks; ++i )
+        for ( size_t i = 0_uz; i < n_blocks; ++i )
         {
             char buffer[block_size]{};
             check_block_size(read(rof, buffer, block_size));
@@ -66,28 +66,28 @@ namespace
 
     void test_write_mode() noexcept
     {
-        test_write(3u, file::write_mode::truncate);
-        test_read(3u);
-        test_write(4u, file::write_mode::rewrite);
-        test_read(4u);
-        test_write(2u, file::write_mode::append);
-        test_read(6u);
-        test_write(5u, file::write_mode::rewrite);
-        test_read(6u);
-        test_write(0u, file::write_mode::truncate);
-        test_read(0u);
+        test_write(3_uz, file::write_mode::truncate);
+        test_read(3_uz);
+        test_write(4_uz, file::write_mode::rewrite);
+        test_read(4_uz);
+        test_write(2_uz, file::write_mode::append);
+        test_read(6_uz);
+        test_write(5_uz, file::write_mode::rewrite);
+        test_read(6_uz);
+        test_write(0_uz, file::write_mode::truncate);
+        test_read(0_uz);
 
         D_ASSERT(!file::wo_open(file_name, file::write_mode::create));
         D_ASSERT(try_remove());
         D_ASSERT(!file::ro_open(file_name));
         
-        test_write(5u, file::write_mode::create);
-        test_read(5u);
+        test_write(5_uz, file::write_mode::create);
+        test_read(5_uz);
     }
 
     void test_rw() noexcept
     {
-        constexpr size_t n_blocks{ 7u };
+        constexpr size_t n_blocks{ 7_uz };
         constexpr size_t file_size = size_blocks(n_blocks);
         constexpr auto end_offset = narrow_cast<file::offset_t>( file_size );
 
@@ -165,7 +165,7 @@ namespace
 
         for ( size_t blocks = start_blocks; blocks <= 20; )
         {
-            test_write(1u, file::write_mode::append);
+            test_write(1_uz, file::write_mode::append);
             ++blocks;
             test_read(blocks);
             test_size(blocks);

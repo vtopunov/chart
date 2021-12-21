@@ -16,15 +16,16 @@
     <ClInclude Include="event_processor.h" />
     <ClInclude Include="event_loop.h" />
     <ClInclude Include="event_matching.h" />
-    <ClInclude Include="event_timer.h" />
+    <ClInclude Include="timer.h" />
     <ClInclude Include="event_processors_container.h" />
+    <ClInclude Include="timer_fwd.h" />
     <ClInclude Include="window.h" />
     <ClInclude Include="window_fwd.h" />
     <ClInclude Include="window_type.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="event_processor.cpp" />
-    <ClCompile Include="event_timer.cpp" />
+    <ClCompile Include="timer.cpp" />
     <ClCompile Include="event_processors_container.cpp" />
     <ClCompile Include="window.cpp" />
     <ClCompile Include="window_procedure_impl.cpp" />
@@ -43,14 +44,12 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -79,7 +78,6 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalOptions>/Zc:char8_t %(AdditionalOptions)</AdditionalOptions>
       <EnablePREfast>true</EnablePREfast>
     </ClCompile>
     <Link>

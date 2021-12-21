@@ -77,7 +77,7 @@ namespace gl
         return gl_buffer;
     }
 
-    void buffer_resource_deleter::operator()(buffer_resource buffer, resource_destroy_t) const noexcept
+    void buffer_resource_deleter::operator()(buffer_resource buffer) const noexcept
     {
         glDeleteBuffers(1, &buffer.d);
     }

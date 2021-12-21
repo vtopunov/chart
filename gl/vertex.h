@@ -81,7 +81,7 @@ namespace gl
     using vertex_get_ptr_detail::get_ptr;
 
     template <class Tuple>
-    struct vertex_size : std::integral_constant<size_t, 1u>
+    struct vertex_size : std::integral_constant<size_t, 1_uz>
     {};
 
     template <class... Types>

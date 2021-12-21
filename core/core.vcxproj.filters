@@ -13,18 +13,17 @@
     <ClInclude Include="zstring_view.h" />
     <ClInclude Include="small_vector.h" />
     <ClInclude Include="color.h" />
-    <ClInclude Include="underlying_cast.h" />
     <ClInclude Include="polynomial.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="buffer.h" />
     <ClInclude Include="resouce.h" />
     <ClInclude Include="null.h" />
-    <ClInclude Include="view.h" />
     <ClInclude Include="buffer_view.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="os.h" />
     <ClInclude Include="size2d.h" />
-    <ClInclude Include="pixel.h" />
     <ClInclude Include="point2d.h" />
+    <ClInclude Include="utf.h" />
+    <ClInclude Include="colorfwd.h" />
   </ItemGroup>
 </Project>

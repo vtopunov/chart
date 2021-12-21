@@ -1,6 +1,12 @@
 test .
 C:\Users\vt\Desktop\chart\apps\tools\relpathshrink|
 
+test lower_case('.')
+c:\users\vt\desktop\chart\apps\tools\relpathshrink|
+
+test unix_sep('.')
+C:/Users/vt/Desktop/chart/apps/tools/relpathshrink|
+
 test .\dir
 C:\Users\vt\Desktop\chart\apps\tools\relpathshrink\dir|
 

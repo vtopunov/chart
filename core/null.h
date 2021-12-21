@@ -109,13 +109,13 @@ inline constexpr null_t<T> null_v{};
 namespace private_detail_null_compare
 {
     template<class T>
-    [[nodiscard]] constexpr auto eq_null(const T& value) noexcept -> decltype(std::declval<const T&>() == std::declval<const T&>())
+    [[nodiscard]] constexpr auto eq_null(const T& value) noexcept -> decltype(value == value)
     {
         return value == static_cast<T>(null_v<T>);
     }
 
     template<class T>
-    [[nodiscard]] constexpr auto not_eq_null(const T& value) noexcept -> decltype(std::declval<const T&>() != std::declval<const T&>())
+    [[nodiscard]] constexpr auto not_eq_null(const T& value) noexcept -> decltype(value != value)
     {
         return value != static_cast<T>(null_v<T>);
     }
@@ -129,19 +129,19 @@ namespace private_detail_has_value
 
 
     template<class T>
-    [[nodiscard]] constexpr auto has_value(const T& value, _order<_2>) noexcept -> decltype(!eq_null(std::declval<const T&>()))
+    [[nodiscard]] constexpr auto has_value(const T& value, _order<_2>) noexcept -> decltype(!eq_null(value))
     {
         return !eq_null(value);
     }
 
     template<class T>
-    [[nodiscard]] constexpr auto has_value(const T& value, _order<_1>) noexcept -> decltype(not_eq_null(std::declval<const T&>()))
+    [[nodiscard]] constexpr auto has_value(const T& value, _order<_1>) noexcept -> decltype(not_eq_null(value))
     {
         return not_eq_null(value);
     }
 
     template<class T>
-    [[nodiscard]] constexpr auto has_value(const T& value, _order<_0>) noexcept -> decltype(!!std::declval<const T&>())
+    [[nodiscard]] constexpr auto has_value(const T& value, _order<_0>) noexcept -> decltype(!!value)
     {
         return !!value;
     }
@@ -160,19 +160,19 @@ namespace private_detail_is_null
     using namespace ordered_overload;
 
     template<class T>
-    [[nodiscard]] constexpr auto is_null(const T& value, _order<_2>) noexcept -> decltype(!not_eq_null(std::declval<const T&>()))
+    [[nodiscard]] constexpr auto is_null(const T& value, _order<_2>) noexcept -> decltype(!not_eq_null(value))
     {
         return !not_eq_null(value);
     }
 
     template<class T>
-    [[nodiscard]] constexpr auto is_null(const T& value, _order<_1>) noexcept -> decltype(eq_null(std::declval<const T&>()))
+    [[nodiscard]] constexpr auto is_null(const T& value, _order<_1>) noexcept -> decltype(eq_null(value))
     {
         return eq_null(value);
     }
 
     template<class T>
-    [[nodiscard]] constexpr auto is_null(const T& value, _order<_0>) noexcept -> decltype(!std::declval<const T&>())
+    [[nodiscard]] constexpr auto is_null(const T& value, _order<_0>) noexcept -> decltype(!value)
     {
         return !value;
     }
@@ -186,37 +186,37 @@ namespace private_detail_is_null
 
 
 template<class T> [[nodiscard]]
-constexpr auto has_value(const T& value) noexcept -> decltype(private_detail_has_value::has_value(std::declval<const T&>()))
+constexpr auto has_value(const T& value) noexcept -> decltype(private_detail_has_value::has_value(value))
 {
     return private_detail_has_value::has_value(value);
 }
 
 template<class T> [[nodiscard]]
-constexpr auto is_null(const T& value) noexcept -> decltype(private_detail_is_null::is_null(std::declval<const T&>()))
+constexpr auto is_null(const T& value) noexcept -> decltype(private_detail_is_null::is_null(value))
 {
     return private_detail_is_null::is_null(value);
 }
 
 template<class T> [[nodiscard]]
-constexpr auto operator != (const T& value, null_t<T>) noexcept -> decltype(has_value(std::declval<const T&>()))
+constexpr auto operator != (const T& value, null_t<T>) noexcept -> decltype(has_value(value))
 {
     return has_value(value);
 }
 
 template<class T> [[nodiscard]]
-constexpr auto operator != (null_t<T>, const T& value) noexcept -> decltype(has_value(std::declval<const T&>()))
+constexpr auto operator != (null_t<T>, const T& value) noexcept -> decltype(has_value(value))
 {
     return has_value(value);
 }
 
 template<class T> [[nodiscard]]
-constexpr auto operator == (const T& value, null_t<T>) noexcept -> decltype(is_null(std::declval<const T&>()))
+constexpr auto operator == (const T& value, null_t<T>) noexcept -> decltype(is_null(value))
 {
     return is_null(value);
 }
 
 template<class T> [[nodiscard]]
-constexpr auto operator == (null_t<T>, const T& value) noexcept -> decltype(is_null(std::declval<const T&>()))
+constexpr auto operator == (null_t<T>, const T& value) noexcept -> decltype(is_null(value))
 {
     return is_null(value);
 }

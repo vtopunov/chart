@@ -31,7 +31,7 @@ namespace file
                         invalidfile,
                         nullptr,
                         nullptr,
-                        0u
+                        0_uz
                     }
                 };
             }
@@ -56,7 +56,7 @@ namespace file
         }
 
         [[nodiscard]]
-        constexpr const_buffer_view buffer() const noexcept
+        constexpr const_buffer_view view() const noexcept
         {
             return *this;
         }
@@ -64,7 +64,7 @@ namespace file
 
     struct file_mmap_resource_deleter
     {
-        void operator () (file_mmap_resource resource, resource_destroy_t tag) const noexcept;
+        void operator () (file_mmap_resource resource) const noexcept;
     };
 
     using file_mmap = unique_resource<file_mmap_resource, file_mmap_resource_deleter>;

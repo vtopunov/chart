@@ -58,20 +58,12 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr rect_px_t make_rect_from_gdi(const RECT& rect) noexcept
+        constexpr px::rect_t make_rect_from_gdi(const RECT& rect) noexcept
         {
             return
             {
-                vec2px_t
-                {
-                    narrow_cast<pixel_t>(rect.left),
-                    narrow_cast<pixel_t>(rect.top)
-                },
-                vec2px_t
-                {
-                    narrow_cast<pixel_t>(rect.right),
-                    narrow_cast<pixel_t>(rect.bottom)
-                }
+                narrow2d_cast<px::point2d_t>(rect.left, rect.top),
+                narrow2d_cast<px::point2d_t>(rect.right, rect.bottom)
             };
         }
 
@@ -128,14 +120,14 @@ namespace ui
         }
     }
 
-    rect_px_t rect(window_resource window) noexcept
+    px::rect_t rect(window_resource window) noexcept
     {
         RECT rect{ 0, 0, 0, 0 };
         D_ASSERT_WITH_SIDE_EFFECTS(GetClientRect(window.handle, &rect));
         return make_rect_from_gdi(rect);
     }
 
-    bool rect(window_resource window, rect_px_t rc) noexcept
+    bool rect(window_resource window, px::rect_t rc) noexcept
     {
         return !!SetWindowPos
         (
@@ -146,18 +138,16 @@ namespace ui
         );
     }
 
-    size2d_t desktop_sizes() noexcept
+    px::size2d_t desktop_sizes() noexcept
     {
         return rect(desktop_window()).sizes();
     }
 
-    size2d_t display_resolution() noexcept
+    px::size2d_t display_resolution() noexcept
     {
         DEVMODEW dev{};
-
         EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &dev);
-
-        return { narrow_cast<upixel_t>(dev.dmPelsWidth), narrow_cast<upixel_t>(dev.dmPelsHeight) };
+        return narrow2d_cast<px::size2d_t>(dev.dmPelsWidth, dev.dmPelsHeight);
     }
 
     bool show(window_resource window, int cmd) noexcept
@@ -239,16 +229,16 @@ namespace ui
                 CreateWindowExW
                 (
                     0,
-                    type_->name_id,
+                    type_.r().name_id,
                     title_.c_str(),
                     style,
-                    position_._0,
-                    position_._1,
-                    sizes_._0,
-                    sizes_._1,
+                    px_to_native(position_.x()),
+                    px_to_native(position_.y()),
+                    px_to_native(sizes_.width()),
+                    px_to_native(sizes_.height()),
                     parent_.handle,
                     nullptr,
-                    type_->module_instance,
+                    type_.r().module_instance,
                     nullptr
                 )
             };
@@ -265,7 +255,7 @@ namespace ui
                         window_set.cend(),
                         as_parent(parent_)
                     ),
-                    result.resource(),
+                    result.r(),
                     parent_,
                     type_
                 );

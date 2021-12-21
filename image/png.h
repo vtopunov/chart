@@ -1,14 +1,17 @@
 #pragma once
 
-#include <core/buffer_view.h>
 #include <core/zstring_view.h>
+#include <core/color.h>
 #include <core/resouce.h>
-#include <core/size2d.h>
+
+#include <px/pixmap.h>
 
 struct spng_ctx;
 
 namespace image
 {
+    using rgba32_pixmap_t = pixmap<rgba_color32_t>;
+
     enum class png_errno
     {
         IO_ERROR = -2,
@@ -98,7 +101,8 @@ namespace image
         NOSRC,
         NODST,
         OPSTATE,
-        NOTFINAL
+        NOTFINAL,
+        SIZE
     };
 
     [[nodiscard]]
@@ -108,7 +112,7 @@ namespace image
 
     struct png_resource_deleter
     {
-        void operator () (png_resource png, resource_destroy_t) const noexcept;
+        void operator () (png_resource png) const noexcept;
     };
 
     using png_t = unique_resource<png_resource, png_resource_deleter>;
@@ -146,10 +150,10 @@ namespace image
         }
 
         [[nodiscard]]
-        upixel_t width() const noexcept;
+        pxside_t width() const noexcept;
 
         [[nodiscard]]
-        upixel_t height() const noexcept;
+        pxside_t height() const noexcept;
 
         [[nodiscard]]
         uint8_t bit_depth() const noexcept;
@@ -158,7 +162,7 @@ namespace image
         png_color_type color_type() const noexcept;
 
         [[nodiscard]]
-        size2d_t sizes() const noexcept
+        px::size2d_t sizes() const noexcept
         {
             return { width(), height() };
         }
@@ -170,7 +174,7 @@ namespace image
         }
 
     private:
-        static constexpr auto png_header_len = 16; // fast pimpl constant
+        static constexpr auto png_header_len = 16_uz; // fast pimpl constant
         std::aligned_storage_t<png_header_len> storage_;
         png_errno errno_;
     };
@@ -188,4 +192,6 @@ namespace image
     png_errno png_decoded_image_size(png_resource png, png_format format, size_t* size) noexcept;
 
     png_errno png_decode_image(png_resource png, png_format format, buffer_view out) noexcept;
+
+    png_errno png_decode_image(const_buffer_view image, rgba32_pixmap_t& out) noexcept;
 }
