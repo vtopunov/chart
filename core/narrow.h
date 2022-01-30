@@ -8,8 +8,10 @@
 #undef min
 #undef max
 
-#pragma warning(push)
-#pragma warning(disable : 26472) //  Don't use a static_cast for arithmetic conversions. Use brace initialization, narrow_cast or narrow
+D_WARNING_PUSH
+D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
+
+using doublemax_t = long double;
 
 template <class E> [[nodiscard]]
 constexpr std::underlying_type_t<E> to_underlying(E e) noexcept
@@ -41,10 +43,13 @@ struct remove_enum
 template <class T>
 using remove_enum_t = typename remove_enum<T>::type;
 
-namespace private_detail_narrow_cast
+namespace private_detail_narrow
 {
     template<class Target, class Source>
     constexpr bool is_narrowing_v = std::numeric_limits<Target>::digits < std::numeric_limits<Source>::digits;
+
+    template<class Target, class Source>
+    constexpr bool is_narrowing_or_same_v = std::numeric_limits<Target>::digits <= std::numeric_limits<Source>::digits;
 
     template<class Target, class Source>
     constexpr bool is_signed2unsigned_v = std::is_signed_v<Source> && std::is_unsigned_v<Target>;
@@ -197,53 +202,82 @@ namespace private_detail_narrow_cast
             return v;
         }
     }
-}
 
-using private_detail_narrow_cast::is_narrowing_v;
-using private_detail_narrow_cast::is_safe_numeric_conversion_v;
-using private_detail_narrow_cast::is_safe_narrowing_conversion;
-using private_detail_narrow_cast::narrow_cast;
-using private_detail_narrow_cast::safe_numeric_cast;
+    template<class T>
+    using signed_int0_t = std::conditional_t<
+        is_narrowing_or_same_v<T, ptrdiff_t>, ptrdiff_t,
+        std::conditional_t<is_narrowing_or_same_v<T, int64_t>, int64_t, intmax_t>
+    >;
 
-template<class T> [[nodiscard]]
-constexpr std::enable_if_t
-<
-    std::is_integral_v<T>,
-    std::make_unsigned_t<T>
->
-to_unsingned(T signed_value) noexcept
-{
-    return narrow_cast<std::make_unsigned_t<T>>(signed_value);
-}
+    template<class T>
+    using signed_t = std::conditional_t<std::is_integral_v<T>, copy_const_t<T, signed_int0_t<std::remove_cv_t<T>>>, T>;
 
-template<class T> [[nodiscard]]
-constexpr std::enable_if_t
-<
-    std::is_integral_v<T>,
-    std::make_unsigned_t<T>
->
-clamp_to_unsingned(T signed_value) noexcept
-{
-    if constexpr (std::is_signed_v<T>)
+    template<class T>
+    [[nodiscard]] constexpr signed_t<T> to_signed(T value) noexcept
     {
-        constexpr T zero{};
-        return static_cast<std::make_unsigned_t<T>>((signed_value < zero) ? zero : signed_value);
+        return narrow_cast<signed_t<T>>(value);
     }
-    else
+
+    template<class T>
+    using fp0_t = std::conditional_t<is_narrowing_or_same_v<T, double_t>, double_t, doublemax_t>;
+
+    template<class T>
+    using fp_t = copy_const_t<T, fp0_t<std::remove_cv_t<T>>>;
+
+    template<class T>
+    [[nodiscard]] constexpr fp_t<T> to_fp(T value) noexcept
     {
-        return signed_value;
+        return value;
+    }
+
+    template<class T>
+    using far_unsigned0_t = std::conditional_t<
+        is_narrowing_v<T, size_t>, size_t,
+        std::conditional_t<is_narrowing_v<T, uint64_t>, uint64_t, uintmax_t>
+    >;
+
+    template<class T>
+    using far_signed0_t = std::conditional_t<
+        is_narrowing_v<T, ptrdiff_t>, ptrdiff_t,
+        std::conditional_t<is_narrowing_v<T, int64_t>, int64_t, intmax_t>
+    >;
+
+    template<class T>
+    using far_fp0_t = std::conditional_t<is_narrowing_v<T, double_t>, double_t, doublemax_t>;
+
+    template<class T>
+    using far_unsigned_t = copy_const_t<T, far_unsigned0_t<std::remove_cv_t<T>>>;
+
+    template<class T>
+    using far_signed_t = copy_const_t<T, far_signed0_t<std::remove_cv_t<T>>>;
+
+    template<class T>
+    using far_int_t = std::conditional_t<std::is_unsigned_v<T>, far_unsigned_t<T>, far_signed_t<T>>;
+
+    template<class T>
+    using far_fp_t = copy_const_t<T, far_fp0_t<std::remove_cv_t<T>>>;
+
+    template<class T>
+    using far_t = std::conditional_t<std::is_integral_v<T>, far_int_t<T>, std::conditional_t<std::is_floating_point_v<T>, far_fp_t<T>, T>>;
+
+    template<class T>
+    [[nodiscard]] constexpr far_t<T> to_far(T value) noexcept
+    {
+        return value;
     }
 }
 
-template<class T> [[nodiscard]]
-constexpr std::enable_if_t
-<
-    std::is_integral_v<T>,
-    std::make_signed_t<T>
->
-to_singned(T unsigned_value) noexcept
-{
-    return narrow_cast<std::make_signed_t<T>>(unsigned_value);
-}
+using private_detail_narrow::is_narrowing_v;
+using private_detail_narrow::is_narrowing_or_same_v;
+using private_detail_narrow::is_safe_numeric_conversion_v;
+using private_detail_narrow::is_safe_narrowing_conversion;
+using private_detail_narrow::narrow_cast;
+using private_detail_narrow::safe_numeric_cast;
+using private_detail_narrow::signed_t;
+using private_detail_narrow::to_signed;
+using private_detail_narrow::fp_t;
+using private_detail_narrow::to_fp;
+using private_detail_narrow::far_t;
+using private_detail_narrow::to_far;
 
-#pragma warning(pop)
+D_WARNING_POP

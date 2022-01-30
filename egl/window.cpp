@@ -30,14 +30,13 @@ namespace egl
 
         constexpr EGLint egl_none = EGL_NONE;
 
-#pragma warning(push)
-#pragma warning(disable : 26446) // Prefer to use gsl::at() instead of unchecked subscript operator
-#pragma warning(disable : 26482) //	Only index into arrays using constant expressions
-#pragma warning(disable : 26495) // 'data' is uninitialized
-
         template<size_t max_num_of_attributes>
         class attributes_builder
         {
+            D_WARNING_PUSH
+                D_WARNING_DISABLE_MSVC(W_unchecked_subscript_operator)
+                D_WARNING_DISABLE_MSVC(W_variable_is_uninitialized)
+
         public:
             static constexpr size_t size = 2_uz * max_num_of_attributes + 1_uz;
 
@@ -60,9 +59,9 @@ namespace egl
         private:
             EGLint data[size];
             size_t position{ 0_uz };
-        };
 
-#pragma warning(pop)
+            D_WARNING_POP
+        };
     }
 
     void window_resources_collector::operator()(const window_resources& w) const noexcept
@@ -116,23 +115,24 @@ namespace egl
 
         if (w.renderer_wnd)
         {
-#pragma warning(push)
-#pragma warning(disable : 26490) // Don't use reinterpret_cast
-            const auto eglGetPlatformDisplayEXT
-                = reinterpret_cast<PFNEGLGETPLATFORMDISPLAYEXTPROC>(eglGetProcAddress("eglGetPlatformDisplayEXT"));
-#pragma warning(pop)
+            D_WARNING_PUSH
+                D_WARNING_DISABLE_MSVC(W_do_not_use_reinterpret_cast)
 
-            if (eglGetPlatformDisplayEXT)
-            {
-                constexpr EGLint display_attributes[] =
+                if (const auto eglGetPlatformDisplayEXT
+                    = reinterpret_cast<PFNEGLGETPLATFORMDISPLAYEXTPROC>(eglGetProcAddress("eglGetPlatformDisplayEXT")))
                 {
-                    EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_DEFAULT_ANGLE,
-                    egl_none
-                };
+                    constexpr EGLint display_attributes[] =
+                    {
+                        EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_DEFAULT_ANGLE,
+                        egl_none
+                    };
 
-                w.display = static_cast<display_descriptor_t>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
-            }
+                    w.display = static_cast<display_descriptor_t>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
+                }
+
+            D_WARNING_POP
         }
+
 
         if (w.display)
         {

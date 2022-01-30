@@ -114,7 +114,6 @@ namespace
 
         void show(int command_show) noexcept
         {
-            need_redraw_ = true;
             ui::show(egl_, command_show);
         }
 
@@ -146,7 +145,8 @@ namespace
         egl::window_t egl_;
         gl::texture2d_t base_texture_;
         gl::texture2d_t mix_texture_;
-        bool need_redraw_{ false };
+
+        bool need_redraw_{ true };
     };
 }
 

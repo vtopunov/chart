@@ -13,7 +13,11 @@ namespace px
         using pixel_type = T;
         using const_pixel_type = std::add_const_t<T>;
         using space_type = pixspace<sizeof(T), Alignment>;
-        using view_type = pixspan<T, Alignment>;
+        using span_type = pixspan<T, Alignment>;
+        using const_span_type = pixspan<const_pixel_type, Alignment>;
+        using pixline_type = typename span_type::pixline_type;
+        using const_pixline_type = typename const_span_type::pixline_type;
+        using view_type = span_type;
         using const_view_type = pixspan<const_pixel_type, Alignment>;
         using line_size_type = typename space_type::line_size_type;
         
@@ -47,7 +51,7 @@ namespace px
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
-            if (try_reserve(buffer_, space.size_bytes()))
+            if (buffer_.try_resize(space.size_bytes()))
             {
                 _zero_memory();
             }
@@ -150,6 +154,60 @@ namespace px
         }
 
         [[nodiscard]]
+        constexpr const_pixline_type cline0() const noexcept
+        {
+            return { cdata(), space_type::line_size() };
+        }
+
+        [[nodiscard]]
+        constexpr const_pixline_type line0() const noexcept
+        {
+            return cline0();
+        }
+
+        [[nodiscard]]
+        constexpr pixline_type line0() noexcept
+        {
+            return { data(), space_type::line_size() };
+        }
+
+        [[nodiscard]]
+        constexpr const_pixline_type cbegin() const noexcept
+        {
+            return cline0();
+        }
+
+        [[nodiscard]]
+        constexpr const_pointer cend() const noexcept
+        {
+            return cdata() + space_type::size();
+        }
+
+        [[nodiscard]]
+        constexpr const_pixline_type begin() const noexcept
+        {
+            return cbegin();
+        }
+
+        [[nodiscard]]
+        constexpr const_pointer end() const noexcept
+        {
+            return cend();
+        }
+
+        [[nodiscard]]
+        constexpr pixline_type begin() noexcept
+        {
+            return line0();
+        }
+
+        [[nodiscard]]
+        constexpr const_pointer end() noexcept
+        {
+            return cend();
+        }
+
+        [[nodiscard]]
         constexpr const_view_type view() const noexcept
         {
             return cview();
@@ -183,7 +241,7 @@ namespace px
     private:
         void _zero_memory() noexcept
         {
-            memset(buffer_.data(), 0, buffer_.size());
+            memset(buffer_.data(), 0, space_type::size_bytes());
         }
 
         [[nodiscard]]

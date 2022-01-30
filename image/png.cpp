@@ -42,8 +42,8 @@ namespace image
     }
 
 
-#pragma warning(push)
-#pragma warning(disable : 26490) // don't use reinterpret_cast
+D_WARNING_PUSH
+D_WARNING_DISABLE_MSVC(W_do_not_use_reinterpret_cast)
 
     png_header::png_header(png_resource png) noexcept
         : storage_{}
@@ -80,7 +80,7 @@ namespace image
         return safe_numeric_cast<png_color_type>(reinterpret_cast<const spng_ihdr&>(storage_).color_type);
     }
 
-#pragma warning(push) // don't use reinterpret_cast
+D_WARNING_POP
 
 
     static_assert(to_underlying(png_format::RGBA8) == spng_format::SPNG_FMT_RGBA8);

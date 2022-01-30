@@ -5,7 +5,7 @@
     <ClInclude Include="intrusive_list.h" />
     <ClInclude Include="lerp.h" />
     <ClInclude Include="member_detector.h" />
-    <ClInclude Include="narrow_cast.h" />
+    <ClInclude Include="narrow.h" />
     <ClInclude Include="num_range.h" />
     <ClInclude Include="rational.h" />
     <ClInclude Include="rect.h" />
@@ -25,5 +25,7 @@
     <ClInclude Include="point2d.h" />
     <ClInclude Include="utf.h" />
     <ClInclude Include="colorfwd.h" />
+    <ClInclude Include="view.h" />
+    <ClInclude Include="warnings.h" />
   </ItemGroup>
 </Project>

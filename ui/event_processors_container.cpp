@@ -84,7 +84,6 @@ namespace ui
     {
         if ((event_processor_note::garbage_mark == window) || !callback)
         {
-            D_ASSERT(!"invalid argument");
             return event_processor_resource::null;
         }
 

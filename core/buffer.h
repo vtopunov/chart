@@ -2,6 +2,9 @@
 
 #include <core/buffer_view.h>
 
+D_WARNING_PUSH
+D_WARNING_DISABLE_MSVC(W_avoid_malloc_and_free)
+
 template<class T> [[nodiscard]]
 T* typed_memory_allocation(size_t size) noexcept
 {
@@ -12,14 +15,9 @@ T* typed_memory_allocation(size_t size) noexcept
 
     if (size <= overflow)
     {
-#pragma warning(push)
-#pragma warning(disable : 26408) // Avoid malloc and free
-
         using std::malloc;
 
         result = static_cast<T*>(malloc(type_size * size));
-
-#pragma warning(pop)
     }
 
     return result;
@@ -78,14 +76,9 @@ public:
 
     ~buffer() noexcept
     {
-#pragma warning(push)
-#pragma warning(disable : 26408) // Avoid malloc and free
-
         using std::free;
 
         free(data_);
-
-#pragma warning(pop)
     }
 
     [[nodiscard]]
@@ -244,6 +237,23 @@ public:
         return const_cast<reference>(cvalue(index));
     }
 
+    [[nodiscard]]
+    bool try_resize(size_t size) noexcept
+    {
+        if (size_ < size)
+        {
+            buffer<T> new_buffer{ buffer_construct, size };
+            if (!new_buffer)
+            {
+                return false;
+            }
+
+            swap(new_buffer);
+        }
+
+        return true;
+    }
+
 private:
     [[nodiscard]]
     constexpr const_pointer _end() const noexcept
@@ -256,22 +266,7 @@ private:
     size_type size_{ 0_uz };
 };
 
-template<class T> [[nodiscard]]
-bool try_reserve(buffer<T>& mem, size_t size) noexcept
-{
-    if (mem.size() < size)
-    {
-        buffer<T> new_buffer{ buffer_construct, size };
-        if (!new_buffer)
-        {
-            return false;
-        }
-
-        mem = std::move(new_buffer);
-    }
-
-    return true;
-}
-
 using byte_buffer_t = buffer<std::byte>;
 static_assert(1_uz == sizeof(byte_buffer_t::value_type));
+
+D_WARNING_POP

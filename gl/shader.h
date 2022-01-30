@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 #include <core/resouce.h>
 #include <core/zstring_view.h>
 
@@ -9,13 +11,14 @@ namespace gl
 {
     using zstring_view = basic_zstring_view<GLchar>;
     using string_view = std::basic_string_view<GLchar>;
+    using source_view = string_view;
 
     enum class shader_resource : GLuint
     {
         null
     };
 
-    void set_source(shader_resource shader, string_view source) noexcept;
+    void set_source(shader_resource shader, source_view source) noexcept;
 
     bool compile(shader_resource shader) noexcept;
 
@@ -42,7 +45,7 @@ namespace gl
 
     void attach_shader(shaders_program_resource program, shader_resource shader) noexcept;
 
-    bool compile(shaders_program_resource program, string_view source, shader_type type) noexcept;
+    bool compile(shaders_program_resource program, source_view source, shader_type type) noexcept;
 
     bool link(shaders_program_resource program) noexcept;
 
@@ -62,8 +65,7 @@ namespace gl
     shaders_program_t create_shaders_program() noexcept;
 
     [[nodiscard]]
-    shaders_program_t create_shaders_program(string_view vertex, string_view fragment) noexcept;
-
+    shaders_program_t create_shaders_program(source_view vertex, source_view fragment) noexcept;
 
     using location_numer_t = GLuint;
 
@@ -86,16 +88,6 @@ namespace gl
     {
          return { get_attribute_location(program, names)... };
     }
-
-    [[nodiscard]]
-    bool test_attribute
-    (
-        shaders_program_resource program,
-        attribute_location location,
-        glsl_typeid test_typeid,
-        zstring_view test_name
-    ) noexcept;
-
 
     enum class uniform_location : location_numer_t
     {
@@ -188,7 +180,7 @@ namespace gl
         shaders_program_resource program,
         uniform_location location,
         glsl_typeid test_typeid,
-        zstring_view test_name
+        string_view test_name
     ) noexcept;
 
     struct uniform_base
@@ -218,7 +210,7 @@ namespace gl
         using value_view_type = glsl_view_t<id>;
 
         [[nodiscard]]
-        bool test(shaders_program_resource program, zstring_view name) const noexcept
+        bool test(shaders_program_resource program, string_view name) const noexcept
         {
             return test_uniform(program, location, id, name);
         }
@@ -238,7 +230,7 @@ namespace gl
         static uniform instance(shaders_program_resource program, zstring_view name) noexcept
         {
             const uniform result{ get_uniform_location(program, name) };
-            D_ASSERT(result.test(program, name));
+            D_ASSERT(result.test(program, name.c_str()));
             return result;
         }
     };
@@ -249,7 +241,7 @@ namespace gl
     namespace literals
     {
         [[nodiscard]]
-        constexpr string_view operator"" _glsl(const GLchar * source, size_t length) noexcept
+        constexpr source_view operator"" _glsl(const GLchar * source, size_t length) noexcept
         {
             return { source, length };
         }

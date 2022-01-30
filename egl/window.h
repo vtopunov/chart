@@ -36,9 +36,9 @@ namespace egl
         using context_descriptor_t = egl_descriptor_t<descriptor_type_id::context, EGLContext>;
     }
 
-    using display_descriptor_t = private_detail_egl_descriptor::display_descriptor_t;
-    using surface_descriptor_t = private_detail_egl_descriptor::surface_descriptor_t;
-    using context_descriptor_t = private_detail_egl_descriptor::context_descriptor_t;
+    using private_detail_egl_descriptor::display_descriptor_t;
+    using private_detail_egl_descriptor::surface_descriptor_t;
+    using private_detail_egl_descriptor::context_descriptor_t;
 
     struct display_surface
     {

@@ -12,7 +12,7 @@
 #include <ui/window_type.h>
 
 namespace ui
-{   
+{
     struct window_dependency
     {
         window_resource current;
@@ -63,10 +63,10 @@ namespace ui
         [[nodiscard]]
         constexpr reference value() const noexcept
         {
-#pragma warning(push)
-#pragma warning(disable : 26446) // Prefer to use gsl::at() instead of unchecked subscript operator
-            return (*contaner)[position];
-#pragma warning(pop)
+            D_WARNING_PUSH
+                D_WARNING_DISABLE_MSVC(W_unchecked_subscript_operator)
+                return (*contaner)[position];
+            D_WARNING_POP
         }
 
         [[nodiscard]]

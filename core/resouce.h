@@ -1,22 +1,8 @@
 #pragma once
 
 #include <core/null.h>
+#include <core/view.h>
 #include <core/intrusive_list.h>
-
-template<class T>
-using has_value_t = decltype(has_value(std::declval<T&>()));
-
-template<class T>
-inline constexpr bool has_check_v = is_detected_v<has_value_t, T>;
-
-template<class T>
-using decl_view_t = typename T::view_type;
-
-template <class T>
-using view_t = detected_or_t<T, decl_view_t, T>;
-
-template <class T>
-inline constexpr bool is_view_v = is_detected_v<decl_view_t, T>;
 
 struct resource_construct_t
 {};
@@ -31,7 +17,7 @@ public:
     using view_type = view_t<resource_type>;
     using null_type = null_t<resource_type>;
     using deleter_type = D;
-    static constexpr null_type null{};
+    static constexpr auto null = null_v<std::remove_cvref_t<resource_type>>;
 
     constexpr unique_resource() noexcept
         : resource_(null)
@@ -77,7 +63,7 @@ public:
         ::swap(resource_, right.resource_);
     }
 
-    template<bool dummy = true, class = std::enable_if_t<(dummy) && has_check_v<resource_type>>>
+    template<bool dummy = true, class = std::enable_if_t<(dummy) && is_nullable_v<resource_type>>>
     [[nodiscard]] constexpr explicit operator bool() const noexcept
     {
         return has_value(r());
@@ -86,10 +72,7 @@ public:
     template<bool dummy = true, class = std::enable_if_t<(dummy) && is_view_v<resource_type>>>
     [[nodiscard]] constexpr operator view_type () const noexcept
     {
-#pragma warning(push)
-#pragma warning(disable : 26437) //  Don't slice
-        return static_cast<view_type>(r());
-#pragma warning(pop)
+        return view(r());
     }
 
     [[nodiscard]] constexpr operator const resource_type& () const noexcept
@@ -132,7 +115,7 @@ public:
     using null_type = null_t<resource_type>;
     using deleter_type = D;
     using unique_resource_type = unique_resource<resource_type, deleter_type>;
-    static constexpr null_type null{};
+    static constexpr auto null = null_v<std::remove_cvref_t<resource_type>>;
 
     constexpr shared_resource() noexcept
         : resource_(null)
@@ -197,7 +180,7 @@ public:
         return *this;
     }
 
-    template<bool dummy = true, class = std::enable_if_t<(dummy) && has_check_v<resource_type>>>
+    template<bool dummy = true, class = std::enable_if_t<(dummy) && is_nullable_v<resource_type>>>
     [[nodiscard]] constexpr explicit operator bool() const noexcept
     {
         return has_value(r());
@@ -256,12 +239,10 @@ private:
     [[nodiscard]]
     constexpr intrusive_list_node linked_with(const shared_resource& item) noexcept
     {
-#pragma warning(push)
-#pragma warning(disable : 26492) // Don't use const_cast
-
+D_WARNING_PUSH
+D_WARNING_DISABLE_MSVC(W_do_not_use_const_cast)
         return push(&copies_, const_cast<intrusive_list_node*>(&item.copies_));
-
-#pragma warning(pop)
+D_WARNING_POP
     }
 
     constexpr void unlink() const noexcept

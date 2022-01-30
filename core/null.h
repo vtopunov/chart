@@ -15,7 +15,7 @@ namespace private_detail_null_instance
     template<class T>
     [[nodiscard]] constexpr T enum_instance(_overload<T>, _order<_2>) noexcept
     {
-        return {};
+        return zero_v<T>;
     }
 
     template<class T>
@@ -58,7 +58,7 @@ struct null_instance
         }
         else
         {
-            return {};
+            return zero_v<T>;
         }
     }
 };
@@ -111,13 +111,13 @@ namespace private_detail_null_compare
     template<class T>
     [[nodiscard]] constexpr auto eq_null(const T& value) noexcept -> decltype(value == value)
     {
-        return value == static_cast<T>(null_v<T>);
+        return value == static_cast<T>(null_v<std::remove_cvref_t<T>>);
     }
 
     template<class T>
     [[nodiscard]] constexpr auto not_eq_null(const T& value) noexcept -> decltype(value != value)
     {
-        return value != static_cast<T>(null_v<T>);
+        return value != static_cast<T>(null_v<std::remove_cvref_t<T>>);
     }
 }
 
@@ -197,6 +197,7 @@ constexpr auto is_null(const T& value) noexcept -> decltype(private_detail_is_nu
     return private_detail_is_null::is_null(value);
 }
 
+
 template<class T> [[nodiscard]]
 constexpr auto operator != (const T& value, null_t<T>) noexcept -> decltype(has_value(value))
 {
@@ -220,3 +221,17 @@ constexpr auto operator == (null_t<T>, const T& value) noexcept -> decltype(is_n
 {
     return is_null(value);
 }
+
+
+template<class T>
+using has_value_t = decltype(has_value(std::declval<T&>()));
+
+template<class T>
+using is_null_t = decltype(is_null(std::declval<T&>()));
+
+template<class T>
+inline constexpr bool is_nullable_v = std::disjunction_v
+<
+    is_detected<has_value_t, T>,
+    is_detected<is_null_t, T>
+>;

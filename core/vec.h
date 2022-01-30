@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <span>
 
-#include <core/narrow_cast.h>
+#include <core/narrow.h>
 #include <core/member_detector.h>
 
 #undef min
@@ -102,19 +102,19 @@ constexpr vec2<T> reverse(const vec2<T>& v) noexcept
 }
 
 template<class T> [[nodiscard]]
-constexpr decltype( auto ) sum(const vec2<T>& v) noexcept
+constexpr decltype(auto) sum(const vec2<T>& v) noexcept
 {
     return v._1 + v._0;
 }
 
 template<class T> [[nodiscard]]
-constexpr decltype( auto )  difference(const vec2<T>& v) noexcept
+constexpr decltype(auto)  difference(const vec2<T>& v) noexcept
 {
     return v._1 - v._0;
 }
 
 template<class T> [[nodiscard]]
-constexpr decltype( auto ) operator - (const vec2<T>& right) noexcept
+constexpr decltype(auto) operator - (const vec2<T>& right) noexcept
 {
     return vec2
     {
@@ -123,8 +123,8 @@ constexpr decltype( auto ) operator - (const vec2<T>& right) noexcept
     };
 }
 
-template<class T> [[nodiscard]]
-constexpr decltype( auto ) operator - (const vec2<T>& left, const vec2<T>& right) noexcept
+template<class L, class R> [[nodiscard]]
+constexpr decltype(auto) operator - (const vec2<L>& left, const vec2<R>& right) noexcept
 {
     return vec2
     {
@@ -133,8 +133,8 @@ constexpr decltype( auto ) operator - (const vec2<T>& left, const vec2<T>& right
     };
 }
 
-template<class T> [[nodiscard]]
-constexpr decltype( auto ) operator + (const vec2<T>& left, const vec2<T>& right) noexcept
+template<class L, class R> [[nodiscard]]
+constexpr decltype(auto) operator + (const vec2<L>& left, const vec2<R>& right) noexcept
 {
     return vec2
     {
@@ -144,7 +144,7 @@ constexpr decltype( auto ) operator + (const vec2<T>& left, const vec2<T>& right
 }
 
 template<class T> [[nodiscard]]
-constexpr decltype( auto ) operator * (const vec2<T>& left, const T& right) noexcept
+constexpr decltype(auto) operator * (const vec2<T>& left, const T& right) noexcept
 {
     return vec2
     {
@@ -154,16 +154,40 @@ constexpr decltype( auto ) operator * (const vec2<T>& left, const T& right) noex
 }
 
 template<class T> [[nodiscard]]
-constexpr decltype( auto )  operator * (const T& left, const vec2<T>& right) noexcept
+constexpr decltype(auto) operator * (const T& left, const vec2<T>& right) noexcept
 {
-    return vec2
+    return right * left;
+}
+
+template<class L, class R>
+using decl_mul_t = std::remove_cvref_t<decltype(std::declval<std::add_const_t<L>>()* std::declval<std::add_const_t<R>>())>;
+
+template<class L, class R>
+using decl_div_t = std::remove_cvref_t<decltype(std::declval<std::add_const_t<L>>() / std::declval<std::add_const_t<R>>())>;
+
+template<class T, class U> [[nodiscard]]
+constexpr std::enable_if_t
+<
+    std::conjunction_v<std::negation<std::is_same<T, U>>, std::is_arithmetic<U>>, 
+    vec2<decl_mul_t<T, U>>
+> 
+operator * (const vec2<T>& left, const U& right) noexcept
+{
+    return
     {
-        right * left
+        left._0 * right,
+        left._1 * right
     };
 }
 
+template<class U, class T> [[nodiscard]]
+constexpr auto operator * (const U& left, const vec2<T>& right) noexcept -> decltype(right* left)
+{
+    return right * left;
+}
+
 template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t<std::is_arithmetic_v<U>, vec2<T>>  operator / (const vec2<T>& left, const U& right) noexcept
+constexpr std::enable_if_t<std::is_arithmetic_v<U>, vec2<decl_div_t<T, U>>>  operator / (const vec2<T>& left, const U& right) noexcept
 {
     return
     {

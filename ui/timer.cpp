@@ -1,6 +1,6 @@
 #include "timer.h"
 
-#include <core/narrow_cast.h>
+#include <core/narrow.h>
 
 using namespace std::chrono_literals;
 
@@ -48,7 +48,7 @@ namespace ui
     {
         const auto new_timer_id = create_or_set_timer(timer, interval);
 
-        if ( new_timer_id == timer )
+        if (  new_timer_id == timer.r() )
         {
             D_UNUSED(timer.release());
         }

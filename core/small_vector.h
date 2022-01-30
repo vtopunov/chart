@@ -6,14 +6,14 @@
 #include <iterator>
 
 #include <core/utility.h>
-#include <core/narrow_cast.h>
+#include <core/narrow.h>
 #include <core/buffer.h>
 
 #undef min
 #undef max
 
-#pragma warning(push)
-#pragma warning(disable : 26492) //	Don't use const_cast
+D_WARNING_PUSH
+D_WARNING_DISABLE_MSVC(W_do_not_use_const_cast)
 
 template<class It>
 constexpr It back_move(It to, It back) noexcept
@@ -232,7 +232,7 @@ public:
             [[nodiscard]]
             constexpr size_type _set_removed_data(pointer removed_data) noexcept
             {
-                const auto new_size = to_unsingned(removed_data - locked_data_);
+                const auto new_size = narrow_cast<size_t>(removed_data - locked_data_);
                 locked_data_ = removed_data;
                 
                 const auto count_of_erased = locked_size_ - new_size;
@@ -672,4 +672,4 @@ private:
     size_type size_;
 };
 
-#pragma warning(pop)
+D_WARNING_POP

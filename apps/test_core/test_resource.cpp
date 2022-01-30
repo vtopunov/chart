@@ -25,8 +25,6 @@ namespace
         intrusive_list_node c;
     };
 
-#pragma warning( push )
-#pragma warning( disable : 26418 ) 
     template<class T, class D>
     unsafe_resource<T, D>& unsafe(const shared_resource<T, D>& safe) noexcept
     {
@@ -37,7 +35,6 @@ namespace
         static_assert(alignof(safe_t) == alignof(unsafe_t));
         return (unsafe_t&) safe;
     }
-#pragma warning(pop)
 
     template<class T, class D>
     const intrusive_list_node* node(const shared_resource<T, D>& safe) noexcept
@@ -111,9 +108,6 @@ namespace
 
 void test_resource() noexcept
 {
-#pragma warning( push )
-#pragma warning( disable : 26415 ) 
-#pragma warning( disable : 26418 )
     constexpr struct
     {
         bool operator () (const tested_linked& h1, int value) const noexcept
@@ -140,7 +134,6 @@ void test_resource() noexcept
             return true;
         };
     } check;
-#pragma warning(pop)
 
     {
         {

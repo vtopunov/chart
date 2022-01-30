@@ -34,13 +34,13 @@ constexpr T tint_max() noexcept
 template<class T>
 struct wide_tint_type
 {
-    using type = wide_int_t<T>;
+    using type = signed_t<T>;
 };
 
 template<class T>
 struct wide_tint_type<rational<T>>
 {
-    using type = rational<wide_int_t<T>>;
+    using type = rational<signed_t<T>>;
 };
 
 template<class T>
@@ -108,8 +108,9 @@ using rgba_colorf_view = rgba_colorf_t::view_type;
 
 static_assert( sizeof(rgba_color32_t) == 4_uz );
 
-#pragma warning(push)
-#pragma warning(disable : 26472) //  Don't use a static_cast for arithmetic conversions. Use brace initialization, narrow_cast or narrow
+
+D_WARNING_PUSH
+D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
 
 [[nodiscard]]
 constexpr u8tint_t a_argb32(u32argb_t argb) noexcept
@@ -135,7 +136,8 @@ constexpr u8tint_t b_argb32(u32argb_t argb) noexcept
     return static_cast<u8tint_t>( argb & 0xffu );
 }
 
-#pragma warning(pop)
+D_WARNING_POP
+
 
 [[nodiscard]]
 constexpr rgba_color32_t u32argb_to_color(u32argb_t argb) noexcept

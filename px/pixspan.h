@@ -1,8 +1,7 @@
 #pragma once
 
-#include <core/colorfwd.h>
-
 #include <px/pixspace.h>
+#include <px/pixline.h>
 
 namespace px
 {
@@ -82,12 +81,9 @@ namespace px
     {
         return image;
     }
-
     
     template<class T, size_t OutAlignment, size_t InAlignment>
     constexpr size2d_t write(pixspan<T, OutAlignment> in, point2d_t position, pixspan<const T, InAlignment> out) noexcept;
-
-
 
     template<class T, size_t Alignment = default_alignment>
     class pixspan : public pixspace<sizeof(T), Alignment>
@@ -95,6 +91,7 @@ namespace px
     public:
         using pixel_type = T;
         using space_type = pixspace<sizeof(pixel_type), Alignment>;
+        using pixline_type = pixline<pixel_type>;
 
         using line_size_type = typename space_type::line_size_type;
 
@@ -197,6 +194,21 @@ namespace px
             return data_;
         }
 
+        constexpr pixline_type line0() const noexcept
+        {
+            return { data_, space_type::line_size() };
+        }
+
+        constexpr pixline_type begin() const noexcept
+        {
+            return line0();
+        }
+
+        constexpr const_pointer end() const noexcept
+        {
+            return data_ + space_type::size();
+        }
+
         template<class T>
         static constexpr bool is_compatible_for_store = (is_mutable) && is_compatible_for_write_v<T, pixel_type>;
 
@@ -206,13 +218,11 @@ namespace px
             return write(*this, position, as_const_pixspan(image));
         }
 
-
         template<class T>
         constexpr std::enable_if_t<is_compatible_for_store<T>, size2d_t> store(pxside_t x, pxside_t y, const T& image) const noexcept
         {
             return store(point2d_t{ x, y }, image);
         }
-
 
         template<class T>
         constexpr std::enable_if_t<is_compatible_for_store<T>, size2d_t> store(const T& image) const noexcept
@@ -223,7 +233,6 @@ namespace px
     private:
         pointer data_{ nullptr };
     };
-
 
     template<class T, size_t OutAlignment, size_t InAlignment>
     constexpr size2d_t write(pixspan<T, OutAlignment> out, point2d_t position, pixspan<const T, InAlignment> in) noexcept
@@ -238,16 +247,13 @@ namespace px
         };
 
         {
-            const auto in_line_size = in.line_size();
-            auto p_in = in.data();
-            const auto in_end = in.data() + crop_sizes.height() * in_line_size;
-
             const auto out_line_size = out.line_size();
             auto p_out = out.data() + y * out_line_size + x;
 
-            for (; p_in != in_end; p_in += in_line_size, p_out += out_line_size)
+            for (const auto p_in : in)
             {
                 std::copy_n(p_in, crop_sizes.width(), p_out);
+                p_out += out_line_size;
             }
         }
 

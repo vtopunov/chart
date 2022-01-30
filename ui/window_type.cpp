@@ -3,7 +3,7 @@
 #include <charconv>
 #include <array>
 
-#include <core/narrow_cast.h>
+#include <core/narrow.h>
 
 #include <ui/window.h>
 

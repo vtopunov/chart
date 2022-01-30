@@ -5,14 +5,7 @@
 #include <numeric>
 #include <span>
 
-#include <core/narrow_cast.h>
-
-template<class T>
-using wide_int_t = std::conditional_t
-<
-    is_narrowing_v<T, ptrdiff_t>, ptrdiff_t,
-    std::conditional_t<is_narrowing_v<T, intmax_t>, intmax_t, T>
->;
+#include <core/narrow.h>
 
 template<class T>
 struct rational

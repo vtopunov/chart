@@ -60,7 +60,6 @@ namespace
 
         void show() noexcept
         {
-            need_redraw_ = true;
             ui::show(egl_, ui::show_command::show_maximazed);
         }
 
@@ -115,7 +114,7 @@ namespace
         gl::texture2d_t texture_;
         shaders<vert::positioned_texture, frag::default_texture> shaders_;
 
-        bool need_redraw_{ false };
+        bool need_redraw_{ true };
     };
 }
 

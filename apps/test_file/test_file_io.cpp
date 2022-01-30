@@ -1,6 +1,6 @@
 #include <span>
 
-#include <core/narrow_cast.h>
+#include <core/narrow.h>
 #include <file/file_io.h>
 
 namespace

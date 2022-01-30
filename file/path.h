@@ -11,9 +11,9 @@ namespace file
     namespace literals
     {
         [[nodiscard]]
-        constexpr path_string_view_t operator"" _path(const path_char_t* source, size_t length) noexcept
+        constexpr path_string_view_t operator"" _path(const path_char_t* source, size_t) noexcept
         {
-            return { c_str_construct, source, length };
+            return source;
         }
     }
 }

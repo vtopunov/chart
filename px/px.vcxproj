@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="pixalgorithm.h" />
+    <ClInclude Include="pixline.h" />
     <ClInclude Include="pixmap.h" />
     <ClInclude Include="pixspace.h" />
     <ClInclude Include="pxalignment.h" />

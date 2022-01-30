@@ -5,6 +5,7 @@
 #include <limits>
 
 #include <core/assert.h>
+#include <core/warnings.h>
 
 #define D_DISABLE_COPY(Class) \
     Class(const Class &) = delete;\
@@ -30,12 +31,10 @@
     D_DISABLE_COPY(Class); \
     D_DEFAULT_MOVE(Class)
 
-
 constexpr size_t operator "" _uz(unsigned long long value) noexcept
 { 
     return value;
 }
-
 
 namespace ordered_overload
 {
@@ -64,7 +63,17 @@ namespace ordered_overload
 }
 
 template<class T>
-inline constexpr T zero_v{};
+struct zero_constant
+{
+    static constexpr T value{};
+};
+
+template<class T>
+struct zero_constant<const T> : zero_constant<T>
+{};
+
+template<class T>
+inline constexpr auto zero_v = zero_constant<T>::value;
 
 template<class T>
 constexpr bool is_positive(const T& value) noexcept
@@ -150,7 +159,7 @@ constexpr T* as_pointer(T* ptr) noexcept
 }
 
 template<class T> [[nodiscard]]
-constexpr std::add_const_t<std::add_const_t<T>*> as_const_pointer(T* ptr) noexcept
+constexpr std::add_const_t<T>*const as_const_pointer(T* ptr) noexcept
 {
     return ptr;
 }
@@ -161,9 +170,8 @@ constexpr T& as_reference(T& value) noexcept
     return value;
 }
 
-#pragma warning(push)
-#pragma warning(disable : 26465) // Don't use const_cast to cast away const
-#pragma warning(disable : 26493) // Don't use C-style casts
+D_WARNING_PUSH
+D_WARNING_DISABLE_MSVC(W_do_not_use_const_cast)
 
 template <class T> [[nodiscard]]
 constexpr T& as_mutable(const T& value) noexcept
@@ -174,10 +182,11 @@ constexpr T& as_mutable(const T& value) noexcept
 template <class T> [[nodiscard]]
 void as_mutable(const T&&) = delete;
 
-#pragma warning(pop)
+D_WARNING_POP
 
-#pragma warning(push)
-#pragma warning(disable : 26472) //  Don't use a static_cast for arithmetic conversions. Use brace initialization, narrow_cast or narrow
+
+D_WARNING_PUSH
+D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
 
 template<class Target, class Source>
 constexpr bool is_unsigned2_v = std::is_unsigned_v<Source> && std::is_unsigned_v<Target>;
@@ -227,7 +236,8 @@ constexpr std::enable_if_t<is_unsigned2_v<Target, Source>, Target> clamp_cast(So
     }
 }
 
-#pragma warning(pop)
+D_WARNING_POP
+
 
 template<size_t mul> [[nodiscard]]
 constexpr size_t size_mul(size_t size) noexcept

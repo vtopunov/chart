@@ -1,7 +1,8 @@
 
 extern void test_utility() noexcept;
-extern void test_narrow_cast() noexcept;
+extern void test_narrow() noexcept;
 extern void test_buffer_view() noexcept;
+extern void test_zstring_view() noexcept;
 extern void test_vec() noexcept;
 extern void test_point2d() noexcept;
 extern void test_size2d() noexcept;
@@ -20,8 +21,9 @@ extern void test_utf() noexcept;
 int main() noexcept
 {
     test_utility();
-    test_narrow_cast();
+    test_narrow();
     test_buffer_view();
+    test_zstring_view();
     test_vec();
     test_point2d();
     test_size2d();

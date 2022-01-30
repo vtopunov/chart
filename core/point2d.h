@@ -71,15 +71,49 @@ template<class T>
 point2d(const vec2<T>&)->point2d<T>;
 
 
-template<class T> [[nodiscard]]
-constexpr decltype(auto) operator - (const point2d<T>& left, const point2d<T>& right) noexcept
+template<class L, class R> [[nodiscard]]
+constexpr decltype(auto) operator - (const point2d<L>& left, const point2d<R>& right) noexcept
 {
     return point2d{ as_vec2(left) - as_vec2(right) };
 }
 
-template<class T> [[nodiscard]]
-constexpr decltype(auto) operator + (const point2d<T>& left, const point2d<T>& right) noexcept
+template<class L, class R> [[nodiscard]]
+constexpr decltype(auto) operator + (const point2d<L>& left, const point2d<R>& right) noexcept
 {
     return point2d{ as_vec2(left) + as_vec2(right) };
 }
 
+template<class T> [[nodiscard]]
+constexpr decltype(auto) operator * (const point2d<T>& left, const T& right) noexcept
+{
+    return point2d{ as_vec2(left) * right };
+}
+
+template<class T> [[nodiscard]]
+constexpr decltype(auto)  operator * (const T& left, const point2d<T>& right) noexcept
+{
+    return right * left;
+}
+
+template<class T, class U> [[nodiscard]]
+constexpr std::enable_if_t
+<
+    std::conjunction_v<std::negation<std::is_same<T, U>>, std::is_arithmetic<U>>,
+    point2d<decl_mul_t<T, U>>
+>
+operator * (const point2d<T>& left, const U& right) noexcept
+{
+    return { as_vec2(left) * right };
+}
+
+template<class U, class T> [[nodiscard]]
+constexpr auto operator * (const U& left, const point2d<T>& right) noexcept -> decltype(right* left)
+{
+    return right * left;
+}
+
+template<class T, class U> [[nodiscard]]
+constexpr std::enable_if_t<std::is_arithmetic_v<U>, point2d<decl_div_t<T, U>>>  operator / (const point2d<T>& left, const U& right) noexcept
+{
+    return { as_vec2(left) / right };
+}

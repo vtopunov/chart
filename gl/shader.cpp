@@ -53,7 +53,7 @@ namespace gl
             shaders_program_resource program,
             location_index_t location,
             glsl_typeid test_typeid,
-            zstring_view test_name
+            string_view test_name
         ) noexcept
         {
             constexpr size_t name_buffer_static_size{ 4 * sizeof(size_t) };
@@ -84,7 +84,7 @@ namespace gl
 
             const auto test0 = (size == 1_uz);
             const auto test1 = test0 && (type_id == to_underlying(test_typeid));
-            const auto test2 = test1 && (name == test_name.as_string_view());
+            const auto test2 = test1 && (name == test_name);
 
             return test2;
         }
@@ -119,7 +119,7 @@ namespace gl
             shaders_program_resource program,
             LocationType location,
             glsl_typeid test_typeid,
-            zstring_view test_name
+            string_view test_name
         )
         {
             return test_location
@@ -144,7 +144,7 @@ namespace gl
         }
     }
 
-    void set_source(shader_resource shader, string_view source) noexcept
+    void set_source(shader_resource shader, source_view source) noexcept
     {
         const auto source_data = source.data();
         const auto source_length = narrow_cast<GLint>(source.size());
@@ -179,7 +179,7 @@ namespace gl
         glAttachShader(to_underlying(program), to_underlying(shader));
     }
 
-    bool compile(shaders_program_resource program, string_view source, shader_type type) noexcept
+    bool compile(shaders_program_resource program, source_view source, shader_type type) noexcept
     {
         if (const auto shader = create_shader(type))
         {
@@ -229,7 +229,7 @@ namespace gl
         };
     }
 
-    shaders_program_t create_shaders_program(string_view vertex, string_view fragment) noexcept
+    shaders_program_t create_shaders_program(source_view vertex, source_view fragment) noexcept
     {
         auto program = create_shaders_program();
         D_ASSERT(program);
@@ -256,17 +256,12 @@ namespace gl
         return get_location<attribute_location>(program, name);
     }
 
-    bool test_attribute(shaders_program_resource program, attribute_location location, glsl_typeid test_typeid, zstring_view test_name) noexcept
-    {
-        return test_location(program, location, test_typeid, test_name);
-    }
-
     uniform_location get_uniform_location(shaders_program_resource program, zstring_view name) noexcept
     {
         return get_location<uniform_location>(program, name);
     }
 
-    bool test_uniform(shaders_program_resource program, uniform_location location, glsl_typeid test_typeid, zstring_view test_name) noexcept
+    bool test_uniform(shaders_program_resource program, uniform_location location, glsl_typeid test_typeid, string_view test_name) noexcept
     {
         return test_location(program, location, test_typeid, test_name);
     }

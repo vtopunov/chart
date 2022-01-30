@@ -2,7 +2,7 @@
 
 #include <bit>
 
-#include <core/narrow_cast.h>
+#include <core/narrow.h>
 #include <core/os.h>
 
 #include <file/file_io.h>
@@ -82,7 +82,7 @@ namespace file
             );
         }
 
-        void apply_write_mode(file_resource file, write_mode mode) noexcept
+        void set_write_mode(file_resource file, write_mode mode) noexcept
         {
             if (invalidfile != file)
             {
@@ -102,17 +102,17 @@ namespace file
         }
     }
 
-    ro_file_resource standard_input() noexcept
+    ro_file_resource in() noexcept
     {
         return { as_file_descriptor(GetStdHandle(STD_INPUT_HANDLE)) };
     }
 
-    wo_file_resource standard_output() noexcept
+    wo_file_resource out() noexcept
     {
         return { as_file_descriptor(GetStdHandle(STD_OUTPUT_HANDLE)) };
     }
 
-    wo_file_resource standard_error() noexcept
+    wo_file_resource err() noexcept
     {
         return { as_file_descriptor(GetStdHandle(STD_ERROR_HANDLE)) };
     }
@@ -134,7 +134,7 @@ namespace file
             create_file(path, access_flags::write, select_creation_mode(mode))
         };
 
-        apply_write_mode(result, mode);
+        set_write_mode(result, mode);
 
         return result;
     }
@@ -149,7 +149,7 @@ namespace file
             create_file(path, access, select_creation_mode(mode))
         };
 
-        apply_write_mode(result, mode);
+        set_write_mode(result, mode);
 
         return result;
     }

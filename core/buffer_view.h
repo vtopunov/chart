@@ -2,9 +2,10 @@
 
 #include <iterator>
 #include <span>
+#include <string_view>
 
 #include <core/member_detector.h>
-#include <core/narrow_cast.h>
+#include <core/narrow.h>
 
 template<bool immutable>
 class basic_buffer_view;
@@ -97,7 +98,7 @@ public:
 
     constexpr basic_buffer_view(const basic_buffer_view&) noexcept = default;
 
-    template<bool dummy = true, class = std::enable_if_t<(dummy) && immutable>>
+    template<bool dummy = true, std::enable_if_t<(dummy) && immutable, int> = 0>
     constexpr basic_buffer_view(const buffer_view& buffer) noexcept
         : data_{ buffer.data() }
         , size_{ buffer.size() }
@@ -117,7 +118,7 @@ public:
 
     constexpr basic_buffer_view& operator = (const basic_buffer_view&) noexcept = default;
 
-    template<bool dummy = true, class = std::enable_if_t<(dummy) && immutable>>
+    template<bool dummy = true, std::enable_if_t<(dummy) && immutable, int> = 0>
     constexpr basic_buffer_view& operator = (const buffer_view& buffer) noexcept
     {
         data_ = buffer.data();
@@ -169,7 +170,13 @@ public:
     template<class T>
     [[nodiscard]] constexpr span_switchable_const<T> as_span() const noexcept
     {
-        return { as_ptr<T>(), size() / sizeof(T) };
+        return { as_ptr<T>(), _count<T>() };
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr std::basic_string_view<std::remove_const_t<T>> as_str() const noexcept
+    {
+        return { as_ptr<T>(), _count<T>() };
     }
 
     [[nodiscard]]
@@ -249,6 +256,12 @@ private:
     constexpr pointer _end() const noexcept
     {
         return as_bytes_ptr() + size_;
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr size_t _count() const noexcept
+    {
+        return size() / sizeof(T);
     }
 
 private:

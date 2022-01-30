@@ -1,10 +1,10 @@
 #include <cstdio>
 #include <cstdint>
 
-#include <core/narrow_cast.h>
+#include <core/narrow.h>
 #include <core/assert.h>
 
-void test_narrow_cast() noexcept
+void test_narrow() noexcept
 {
     enum class u16_enum : uint16_t
     {};

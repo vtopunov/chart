@@ -42,7 +42,6 @@ namespace px
         size_t line_size_{};
     };
 
-
     template<size_t PxSize, size_t Alignment = default_alignment>
     class pixspace : private line_size_opt<is_dynamic_alignment_v<Alignment>>
     {

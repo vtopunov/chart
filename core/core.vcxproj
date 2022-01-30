@@ -34,7 +34,7 @@
     <ClInclude Include="color.h" />
     <ClInclude Include="member_detector.h" />
     <ClInclude Include="lerp.h" />
-    <ClInclude Include="narrow_cast.h" />
+    <ClInclude Include="narrow.h" />
     <ClInclude Include="num_range.h" />
     <ClInclude Include="polynomial.h" />
     <ClInclude Include="rational.h" />
@@ -42,6 +42,8 @@
     <ClInclude Include="small_vector.h" />
     <ClInclude Include="resouce.h" />
     <ClInclude Include="vec.h" />
+    <ClInclude Include="view.h" />
+    <ClInclude Include="warnings.h" />
     <ClInclude Include="zstring_view.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-#include <core/narrow_cast.h>
+#include <core/narrow.h>
 
 namespace private_detail_decode_utf
 {
@@ -28,10 +28,10 @@ namespace private_detail_decode_utf
 
             constexpr auto offset1 = [](uint8_t code) noexcept
             {
-#pragma warning(push)
-#pragma warning(disable : 26472) //  Don't use a static_cast
-                return static_cast<uint16_t>(code << 6);
-#pragma warning(pop)
+                D_WARNING_PUSH
+                    D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
+                    return static_cast<uint16_t>(code << 6);
+                D_WARNING_POP
             };
 
             if (code0 < 0xE0)
@@ -126,18 +126,23 @@ namespace private_detail_decode_utf
         return 1_uz;
     }
 
+
+
     template<size_t Size, class FirstIt, class LastIt>
     constexpr bool in_size(FirstIt first, LastIt last) noexcept
     {
         static_assert(is_safe_narrowing_conversion<ptrdiff_t>(Size));
 
-#pragma warning(push)
-#pragma warning(disable : 26472) //  Don't use a static_cast
-        constexpr auto diff = static_cast<ptrdiff_t>(Size);
-#pragma warning(pop)
+        D_WARNING_PUSH
+            D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
+            constexpr auto diff = static_cast<ptrdiff_t>(Size);
+        D_WARNING_POP;
 
         return (last - first) >= diff;
     }
+
+
+
 
 
     template<size_t OctetCount, class U8, class Write>

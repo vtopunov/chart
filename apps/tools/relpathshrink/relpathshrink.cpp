@@ -136,15 +136,14 @@ namespace
     {
     public:
         static constexpr size_t buffer_size{ 1024_uz };
-        static constexpr size_t small_size{ (5_uz * buffer_size) / 8_uz };
 
-#pragma warning(push)
-#pragma warning(disable: 26495)
+D_WARNING_PUSH
+D_WARNING_DISABLE_MSVC(W_variable_is_uninitialized) // buffer_
         constexpr explicit wo_buffered_file_resource(file::wo_file_resource out) noexcept
             : out_{ out }
             , size_{ 0_uz }
         {}
-#pragma warning(pop)
+D_WARNING_POP
 
         void put(char ch) noexcept
         {
@@ -153,7 +152,7 @@ namespace
 
         void write(const_buffer_view data) noexcept
         {
-            if (data.size() > small_size)
+            if (data.size() > buffer_size)
             {
                 _flush_all();
                 _direct_write(data.data(), data.size());
@@ -199,9 +198,9 @@ namespace
         }
 
     private:
+        char buffer_[buffer_size];
         file::wo_file_resource out_;
         size_t size_;
-        char buffer_[buffer_size];
     };
 
     [[nodiscard]]
@@ -234,25 +233,23 @@ namespace
         }
     }
 
-    using cspanchar = std::span<const char>;
-
-    void write_tail(wo_buffered_file_resource& out, cspanchar buffer, size_t pos) noexcept
+    void write_tail(wo_buffered_file_resource& out, std::span<const char> buffer, size_t pos) noexcept
     {
         const auto tail = buffer.subspan(pos);
         out.write(tail);
     }
 
     [[nodiscard]]
-    bool convert_to_relpath(std::string_view current, cspanchar in, file::wo_file_resource out_res) noexcept
+    bool convert_to_relpath(std::string_view path, std::string_view in, file::wo_file_resource out_res) noexcept
     {
         constexpr size_t detect_size{ _MAX_DRIVE + 1_uz };
 
-        if (std::size(current) <= detect_size)
+        if (std::size(path) <= detect_size)
         {
             return false;
         }
 
-        if (!is_valid_cd(current))
+        if (!is_valid_cd(path))
         {
             return false;
         }
@@ -273,7 +270,7 @@ namespace
 
             auto pos = relpathbuffer.size();
 
-            if (pos < current.size() && ms_path_spec.unieq(ch, current[pos]))
+            if (pos < path.size() && ms_path_spec.unieq(ch, path[pos]))
             {
                 if (!relpathbuffer.try_emplace_back(ch))
                 {
@@ -301,7 +298,7 @@ namespace
 
                 if (relpath_is_break)
                 {
-                    if (pos == current.size())
+                    if (pos == path.size())
                     {
                         if (is_div)
                         {
@@ -315,18 +312,18 @@ namespace
                 }
                 else
                 {
-                    pos = find_first_endslash(current, pos);
+                    pos = find_first_endslash(path, pos);
                 }
             }
 
-            write_relpath(out, current, pos);
+            write_relpath(out, path, pos);
             write_tail(out, relpathbuffer, pos);
             out.put(ch);
 
             relpathbuffer.clear();
         }
 
-        if (relpathbuffer.size() == current.size())
+        if (relpathbuffer.size() == path.size())
         {
             out.put('.');
         }
@@ -366,7 +363,7 @@ int wmain(int argc, wchar_t* argv[], wchar_t**)
         return failed;
     }
 
-    if (!convert_to_relpath(cd, map.r().view().as_span<char>(), file::standard_output()))
+    if (!convert_to_relpath(cd, view(map).as_str<char>(), file::out()))
     {
         return failed;
     }

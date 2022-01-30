@@ -36,10 +36,10 @@ namespace ui
         [[nodiscard]]
         constexpr int exit_status() const noexcept
         {
-#pragma warning(push)
-#pragma warning(disable : 26472) // Don't use static_cast for arithmetic conversions
-            return static_cast<int>( msg.wParam );
-#pragma warning(pop)
+            D_WARNING_PUSH
+                D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
+                return static_cast<int>(msg.wParam);
+            D_WARNING_POP
         }
 
         MSG msg;
@@ -62,21 +62,21 @@ namespace ui
             callback
         );
 
-        const auto translate_and_dispatch = [processor_ptr] (const native_event& msg) noexcept
+        const auto translate_and_dispatch = [processor_ptr](const native_event& msg) noexcept
         {
             call_event(processor_ptr, msg.msg);
             msg.translate_and_dispatch();
         };
 
-        for ( native_event msg{};;)
+        for (native_event msg{};;)
         {
-            if ( call_event(processor_ptr, peek_event{}) )
+            if (call_event(processor_ptr, peek_event{}))
             {
-                while ( msg.try_receive() )
+                while (msg.try_receive())
                 {
                     translate_and_dispatch(msg);
 
-                    if ( msg.is_quit() )
+                    if (msg.is_quit())
                     {
                         return msg.exit_status();
                     }
@@ -86,7 +86,7 @@ namespace ui
             }
             else
             {
-                if ( msg.receive() )
+                if (msg.receive())
                 {
                     translate_and_dispatch(msg);
                 }
