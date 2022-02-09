@@ -4,11 +4,18 @@ namespace gl
 {
     namespace
     {
-        void texture_image2D(texture_target target, px::size2d_t sizes, texture_format format, const void* pixels) noexcept
+        template<texture_target target>
+        void set_texture(specialized_texture_resource<target> texture, px::size2d sizes, texture_format format, const void* pixels) noexcept
         {
+            texture.bind();
+
+            constexpr auto gl_target = to_underlying(target);
+            glTexParameteri(gl_target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(gl_target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
             glTexImage2D
             (
-                to_underlying(target),
+                gl_target,
                 0,
                 to_underlying(format.format),
                 narrow_cast<GLsizei>(sizes.width()),
@@ -18,11 +25,6 @@ namespace gl
                 to_underlying(format.type),
                 pixels
             );
-        }
-
-        void texture_parameter(texture_target target, GLenum name, GLint value) noexcept
-        {
-            glTexParameteri(to_underlying(target), name, value);
         }
 
         texture_descriptor_t gen_texture() noexcept
@@ -38,12 +40,9 @@ namespace gl
         glDeleteTextures(1, &texture.d);
     }
 
-    texture2d_t create_texture2d(px::size2d_t sizes, texture_format format, const void* pixels) noexcept
+    texture2d create_texture2d(px::size2d sizes, texture_format format, const void* pixels) noexcept
     {
-        using texture_t = texture2d_t;
-        constexpr auto target = texture_t::resource_type::target;
-
-        texture_t texture
+        texture2d texture
         {
             resource_construct,
             gen_texture(),
@@ -52,12 +51,7 @@ namespace gl
 
         D_ASSERT(texture);
 
-        bind_texture(target, texture);
-
-        texture_parameter(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        texture_parameter(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-        texture_image2D(target, sizes, format, pixels);
+        set_texture(view(texture), sizes, format, pixels);
 
         return texture;
     }

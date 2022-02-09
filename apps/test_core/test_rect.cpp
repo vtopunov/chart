@@ -1,8 +1,16 @@
 #include <core/rect.h>
+
 #include <core/assert.h>
 
 void test_rect() noexcept
 {
+    {
+        using namespace private_detail_rect;
+        static_assert(std::is_same_v<make_unsigned_opt_t<float>, float>);
+        static_assert(std::is_same_v<make_unsigned_opt_t<int>, unsigned>);
+        static_assert(std::is_same_v<make_unsigned_opt_t<unsigned>, unsigned>);
+    }
+
     static_assert( std::is_trivial_v<rect<int>> && std::is_standard_layout_v<rect<int>> );
 
     constexpr point2d p0{1, 2};

@@ -597,46 +597,46 @@ namespace
     {
         static constexpr size_t n_static{ 16_uz };
 
-        using test_t = vector_test<T, TestT, n_static>;
+        using test_type = vector_test<T, TestT, n_static>;
 
-        static void static_empty_init(test_t&) noexcept
+        static void static_empty_init(test_type&) noexcept
         {};
 
-        static void static_full_init(test_t& test) noexcept
+        static void static_full_init(test_type& test) noexcept
         {
             test.fill(n_static);
         };
 
-        static test_t static_full() noexcept
+        static test_type static_full() noexcept
         {
-            test_t test;
+            test_type test;
             static_full_init(test);
             return test;
         }
 
-        static void dynamic_empty_init(test_t& test) noexcept
+        static void dynamic_empty_init(test_type& test) noexcept
         {
             test.test_reserve(n_static + 1);
         };
 
-        static void dynamic_min_init(test_t& test) noexcept
+        static void dynamic_min_init(test_type& test) noexcept
         {
             test.fill(n_static + 1);
         };
 
-        static void dynamic_static_full_init(test_t& test) noexcept
+        static void dynamic_static_full_init(test_type& test) noexcept
         {
             dynamic_empty_init(test);
             static_full_init(test);
             test.test_is_static(false);
         };
 
-        static void static_prefull_init(test_t& test) noexcept
+        static void static_prefull_init(test_type& test) noexcept
         {
             test.fill(n_static - 1);
         };
 
-        static void dynamic_ext_min_init(test_t& test) noexcept
+        static void dynamic_ext_min_init(test_type& test) noexcept
         {
             test.fill(n_static + 2);
         };
@@ -646,61 +646,61 @@ namespace
         static constexpr auto capacity_growth2 = optimal_memory_growth(capacity_growth1);
         static constexpr auto dynamic_big_size = capacity_growth2 + 1_uz;
 
-        static void dynamic_big_init(test_t& test) noexcept
+        static void dynamic_big_init(test_type& test) noexcept
         {
             test.fill(dynamic_big_size);
         };
 
-        static void dynamic_medium_init(test_t& test) noexcept
+        static void dynamic_medium_init(test_type& test) noexcept
         {
             test.fill(capacity_growth1 + 1_uz);
         };
 
-        static test_t dynamic_medium() noexcept
+        static test_type dynamic_medium() noexcept
         {
-            test_t test;
+            test_type test;
             dynamic_medium_init(test);
             return test;
         }
 
-        static test_t dynamic_big() noexcept
+        static test_type dynamic_big() noexcept
         {
-            test_t test;
+            test_type test;
             dynamic_big_init(test);
             return test;
         };
 
-        static void dynamic_static_prefull_init(test_t& test) noexcept
+        static void dynamic_static_prefull_init(test_type& test) noexcept
         {
             dynamic_empty_init(test);
             static_prefull_init(test);
             test.test_is_static(false);
         };
 
-        static void test_copy_constructor(test_t& left, test_t& right) noexcept
+        static void test_copy_constructor(test_type& left, test_type& right) noexcept
         {
             left.test_copy_constuctor(std::as_const(right));
         };
 
-        static void test_move_constructor(test_t& left, test_t& right) noexcept
+        static void test_move_constructor(test_type& left, test_type& right) noexcept
         {
             left.test_move_constuctor(right);
         };
 
-        static void test_ñopy_assigment(test_t& left, test_t& right) noexcept
+        static void test_ñopy_assigment(test_type& left, test_type& right) noexcept
         {
             left.test_copy_assignment(std::as_const(right));
         };
 
-        static void test_move_assignment(test_t& left, test_t& right) noexcept
+        static void test_move_assignment(test_type& left, test_type& right) noexcept
         {
             left.test_move_assignment(right);
         };
 
         static void test_constructors_and_assignment_op() noexcept
         {
-            using op1_t = void(*)(test_t&);
-            using op2_t = void(*)(test_t&, test_t&);
+            using op1_t = void(*)(test_type&);
+            using op2_t = void(*)(test_type&, test_type&);
 
             constexpr op1_t inits[]
             {
@@ -726,7 +726,7 @@ namespace
 
                     for (const auto test : constructor_tests)
                     {
-                        test_t left, right;
+                        test_type left, right;
                         right_init(right);
                         test(left, right);
                     }
@@ -745,7 +745,7 @@ namespace
 
                         for (const auto test : assignment_op_tests)
                         {
-                            test_t left, right;
+                            test_type left, right;
                             left_init(left);
                             right_init(right);
                             test(left, right);
@@ -757,7 +757,7 @@ namespace
 
         static void test_clear_shrink(size_t size) noexcept
         {
-            test_t test;
+            test_type test;
             test.test_emplace_back(size);
             test.test_clear();
             test.test_shrink_to_fit();
@@ -765,7 +765,7 @@ namespace
 
         static void test_pop_back_shrink(size_t size) noexcept
         {
-            test_t test;
+            test_type test;
             test.test_emplace_back(size);
             test.test_pop_back();
             test.test_shrink_to_fit();
@@ -773,7 +773,7 @@ namespace
 
         static void test_reserve(size_t size) noexcept
         {
-            test_t test;
+            test_type test;
             test.test_reserve(size);
             const auto data = test.small_v_.data();
             test.test_emplace_back(size);
@@ -792,7 +792,7 @@ namespace
 
         static void test_shrink_erase() noexcept
         {
-            const auto test_shrink_erase = [] (const test_t& factory) noexcept
+            const auto test_shrink_erase = [] (const test_type& factory) noexcept
             {
                 const auto size = factory.small_v_.size();
 
@@ -815,7 +815,7 @@ namespace
 
             for (size_t i = 0; i <= n_static; ++i)
             {
-                test_t test{ factory };
+                test_type test{ factory };
                 test.test_shrink_erase(i, test.small_v_.size() - n_static);
                 test.test_is_static(true);
             }
@@ -823,7 +823,7 @@ namespace
 
         static void test_emplace_random() noexcept
         {
-            test_t test;
+            test_type test;
 
             std::mt19937_64 random_engine{ std::random_device{}() };
 
@@ -837,7 +837,7 @@ namespace
 
         static void test_erase_random() noexcept
         {
-            test_t test;
+            test_type test;
             dynamic_big_init(test);
 
             std::mt19937_64 random_engine{ std::random_device{}() };

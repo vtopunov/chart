@@ -1,7 +1,8 @@
 #include "shader.h"
 
 #include <core/small_vector.h>
-#include <core/debug.h>
+
+#include <os/debug.h>
 
 
 namespace gl
@@ -159,13 +160,13 @@ namespace gl
 
     void shader_resource_deleter::operator()(shader_resource shader) const noexcept
     {
-        if (has_value(shader))
+        if (shader_resource::null != shader)
         {
             glDeleteShader(to_underlying(shader));
         }
     }
 
-    shader_t create_shader(shader_type type) noexcept
+    shader create_shader(shader_type type) noexcept
     {
         return
         {
@@ -198,7 +199,7 @@ namespace gl
                 {
                     std::basic_string<GLchar> chars(log_size, GLchar{});
                     compile_log_read(shader, chars);
-                    output_debug_string("GLSL {}\n", chars.c_str());
+                    e_debug("GLSL {}", chars.c_str());
                 }
             }
         }
@@ -214,13 +215,13 @@ namespace gl
 
     void shaders_program_resource_deleter::operator()(shaders_program_resource program) const noexcept
     {
-        if (has_value(program))
+        if (shaders_program_resource::null != program)
         {
             glDeleteProgram(to_underlying(program));
         }
     }
 
-    shaders_program_t create_shaders_program() noexcept
+    shaders_program create_shaders_program() noexcept
     {
         return
         {
@@ -229,7 +230,7 @@ namespace gl
         };
     }
 
-    shaders_program_t create_shaders_program(source_view vertex, source_view fragment) noexcept
+    shaders_program create_shaders_program(source_view vertex, source_view fragment) noexcept
     {
         auto program = create_shaders_program();
         D_ASSERT(program);

@@ -3,7 +3,8 @@
 #include <string>
 
 #include <core/resouce.h>
-#include <core/os.h>
+
+#include <os/os.h>
 
 namespace ui
 {
@@ -26,7 +27,7 @@ namespace ui
     [[nodiscard]]
     HBRUSH stock(stock_brush brush) noexcept;
 
-    struct window_type_resource
+    struct type_window_resource
     {
         HMODULE module_instance;
         LPCWSTR name_id;
@@ -38,49 +39,49 @@ namespace ui
         }
     };
 
-    using nullwindowtype_t = null_t<window_type_resource>;
+    using nulltypewindow_t = null_t<type_window_resource>;
 
-    inline constexpr nullwindowtype_t nullwindowtype{};
+    constexpr nulltypewindow_t nullwindowtype{};
 
     struct window_type_resource_deleter
     {
-        void operator () (window_type_resource type) const noexcept;
+        void operator () (type_window_resource type) const noexcept;
     };
 
-    using unique_window_type_t = unique_resource<window_type_resource, window_type_resource_deleter>;
+    using unique_type_window = unique_resource<type_window_resource, window_type_resource_deleter>;
 
-    using shared_window_type_t = shared_resource<window_type_resource, window_type_resource_deleter>;
+    using shared_type_window = shared_resource<type_window_resource, window_type_resource_deleter>;
 
-    class window_type_factory
+    class type_window_factory
     {
     public:
-        constexpr window_type_factory& style(UINT style) noexcept
+        constexpr type_window_factory& style(UINT style) noexcept
         {
             data_.style = style;
             return *this;
         }
 
-        window_type_factory& name(std::wstring name) noexcept
+        type_window_factory& name(std::wstring name) noexcept
         {
             name_ = std::move(name);
             data_.lpszClassName = name_.c_str();
             return *this;
         }
 
-        constexpr window_type_factory& module_instance(HMODULE instance) noexcept
+        constexpr type_window_factory& module_instance(HMODULE instance) noexcept
         {
             data_.hInstance = instance;
             return *this;
         }
 
-        window_type_factory& background(stock_brush brush) noexcept
+        type_window_factory& background(stock_brush brush) noexcept
         {
             data_.hbrBackground = stock(brush);
             return *this;
         }
 
         [[nodiscard]]
-        unique_window_type_t create() noexcept;
+        unique_type_window create() noexcept;
 
     private:
         WNDCLASSEXW data_{};

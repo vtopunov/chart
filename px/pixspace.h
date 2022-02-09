@@ -9,7 +9,9 @@ namespace px
     class line_size_opt
     {
     public:
-        template<size_t, size_t>
+        static constexpr bool is_enabled = false;
+
+        template<size_t>
         [[nodiscard]] static constexpr line_size_opt instance_from_width(size_t) noexcept
         {
             return {};
@@ -20,16 +22,18 @@ namespace px
     class line_size_opt<true>
     {
     public:
+        static constexpr bool is_enabled = true;
+
         constexpr line_size_opt() noexcept = default;
 
         constexpr line_size_opt(size_t line_size) noexcept
             : line_size_{ line_size }
         {}
 
-        template<size_t PxSize, size_t Alignment>
+        template<size_t PxSize>
         [[nodiscard]] static constexpr line_size_opt instance_from_width(size_t width) noexcept
         {
-            return { aligned_width<PxSize, Alignment>(width) };
+            return { aligned_width<PxSize, default_alignment>(width) };
         }
 
         [[nodiscard]]
@@ -42,49 +46,53 @@ namespace px
         size_t line_size_{};
     };
 
+    template<size_t Test, size_t Base>
+    using is_compatible_align_t = std::conjunction<std::negation<px::is_dynamic_alignment<Test>>, px::is_dynamic_alignment<Base>>;
+
+    template<size_t Test, size_t Base>
+    constexpr auto is_compatible_align_v = is_compatible_align_t<Test, Base>::value;
+
     template<size_t PxSize, size_t Alignment = default_alignment>
-    class pixspace : private line_size_opt<is_dynamic_alignment_v<Alignment>>
+    class pixspace : private line_size_opt<px::is_dynamic_alignment_v<Alignment>>
     {
     public:
         static constexpr auto px_size = PxSize;
         static constexpr auto alignment = Alignment;
-        static constexpr auto is_dynamic_alignment = is_dynamic_alignment_v<alignment>;
-        static constexpr auto static_or_default_alignment = is_dynamic_alignment ? default_alignment : alignment;
-        using line_size_type = line_size_opt<is_dynamic_alignment>;
+        using line_size_type = line_size_opt<px::is_dynamic_alignment_v<alignment>>;
 
         constexpr pixspace() noexcept = default;
 
         constexpr pixspace(const pixspace&) noexcept = default;
 
-        template<size_t Align, class = std::enable_if_t<(is_dynamic_alignment) && !is_dynamic_alignment_v<Align>>>
+        template<size_t Align, std::enable_if_t <is_compatible_align_v<Align, alignment>, int > = 0 >
         constexpr pixspace(const pixspace<px_size, Align>& right) noexcept
             : line_size_type{ right.line_size() }
             , sizes_{ right.sizes() }
         {}
 
-        constexpr pixspace(size2d_t sizes, line_size_type line_size) noexcept
+        constexpr pixspace(size2d sizes, line_size_type line_size) noexcept
             : line_size_type{ line_size }
             , sizes_{ sizes }
         {
             D_ASSERT(pixspace::width() <= pixspace::line_size());
         }
 
-        constexpr pixspace(size2d_t sizes) noexcept
-            : pixspace{ sizes, line_size_type::instance_from_width<px_size, static_or_default_alignment>(sizes.width()) }
+        constexpr pixspace(size2d sizes) noexcept
+            : pixspace{ sizes, line_size_type::instance_from_width<px_size>(sizes.width()) }
         {}
 
         constexpr pixspace(pxside_t w, pxside_t h) noexcept
-            : pixspace{ size2d_t{ w, h } }
+            : pixspace{ size2d{ w, h } }
         {}
 
 
         constexpr pixspace(pxside_t w, pxside_t h, line_size_type line_size) noexcept
-            : pixspace{ size2d_t{ w, h }, line_size }
+            : pixspace{ size2d{ w, h }, line_size }
         {}
 
         constexpr pixspace& operator = (const pixspace&) noexcept = default;
 
-        template<size_t Align, class = std::enable_if_t<(is_dynamic_alignment) && !is_dynamic_alignment_v<Align>>>
+        template<size_t Align, std::enable_if_t<is_compatible_align_v<Align, alignment>, int> = 0>
         constexpr pixspace& operator = (const pixspace<px_size, Align>& right) noexcept
         {
             line_size_type::operator = (line_size_type{ right.line_size() });
@@ -95,7 +103,7 @@ namespace px
         [[nodiscard]]
         constexpr size_t line_size() const noexcept
         {
-            if constexpr (is_dynamic_alignment)
+            if constexpr (line_size_type::is_enabled)
             {
                 return line_size_type::included_line_size();
             }
@@ -118,7 +126,7 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr size2d_t sizes() const noexcept
+        constexpr size2d sizes() const noexcept
         {
             return sizes_;
         }
@@ -136,7 +144,7 @@ namespace px
         }
 
     private:
-        size2d_t sizes_{};
+        size2d sizes_{};
     };
 
     template<size_t PxSize, size_t Alignment>
@@ -145,10 +153,10 @@ namespace px
         return c;
     }
 
-    using pix8space_t = pixspace<1_uz>;
-    using pix32space_t = pixspace<4_uz>;
+    using pix8space = pixspace<1_uz>;
+    using pix32space = pixspace<4_uz>;
 }
 
 using px::pixspace;
-using px::pix8space_t;
-using px::pix32space_t;
+using px::pix8space;
+using px::pix32space;

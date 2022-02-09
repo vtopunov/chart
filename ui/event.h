@@ -87,7 +87,7 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr px::vec2_t vec_long_parameter() const noexcept
+        constexpr px::vec2 vec_long_parameter() const noexcept
         {
             return { x_long_parameter(), y_long_parameter() };
         }
@@ -172,7 +172,7 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr px::point2d_t position() const noexcept
+        constexpr px::point2d position() const noexcept
         {
             return { vec_long_parameter() };
         }
@@ -201,7 +201,7 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr px::size2d_t sizes() const noexcept
+        constexpr px::size2d sizes() const noexcept
         {
             return { vec_long_parameter() };
         }

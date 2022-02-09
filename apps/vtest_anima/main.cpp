@@ -1,16 +1,15 @@
 #include <core/color.h>
 #include <core/lerp.h>
-#include <core/debug.h>
+
+#include <os/debug.h>
 
 #include <ui/event_loop.h>
 #include <ui/timer.h>
 #include <gl/draw.h>
 #include <egl/window.h>
 
-using namespace std::string_view_literals;
 using namespace std::chrono_literals;
 using namespace std::chrono;
-using namespace gl_literals;
 
 namespace
 {
@@ -71,7 +70,7 @@ namespace
         );
 
         static const auto a_position = gl::get_attribute_location(shaders, "a_position"_zsv);
-        static const auto u_color = gl::uniform_vec4f_t::instance(shaders, "u_color"_zsv);
+        static const auto u_color = gl::uniform_vec4f::instance(shaders, "u_color"_zsv);
 
         gl::clear(anima_color(now));
 
@@ -85,7 +84,7 @@ namespace
         constexpr GLfloat y_top{ 1.0f };
         constexpr GLfloat y_bottom{ y_top - dia };
 
-        constexpr gl::vec2f_t vertices[]
+        constexpr gl::vec2f vertices[]
         {
             { x_left + radius, y_top },
             { x_left, y_bottom },
@@ -99,7 +98,7 @@ namespace
 
     struct main_processor
     {
-        egl::window_t egl_window;
+        egl::window egl;
 
         duration_t anima_time{duration_t::zero()};
 
@@ -107,7 +106,7 @@ namespace
 
         void draw() const noexcept
         {
-            if (const auto lock = egl::begin_painting(egl_window))
+            if (const auto lock = begin_painting(egl))
             {
                 draw_figure(anima_time);
             }
@@ -156,13 +155,13 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
 {
     main_processor processor
     {
-        .egl_window
+        .egl
         {
             egl::window_factory{}
             .title(L"hello triangle")
             .window_type
             (
-                ui::window_type_factory{}
+                ui::type_window_factory{}
                 .module_instance(instance)
                 .create()
             )
@@ -170,15 +169,15 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
         }
     };
 
-    if (!processor.egl_window)
+    if (!processor.egl)
     {
-        output_debug_string("create window error: window error: {}, egl error: {}\n", 
+        e_debug("create window error: window error: {}, egl error: {}", 
             ui::error_code(), eglGetError());
-        return -1;
+        return EXIT_FAILURE;
     }
 
-    ui::show(processor.egl_window, command_show);
+    ui::show(processor.egl, command_show);
 
-    return ui::run_event_loop(processor.egl_window, processor);
+    return ui::run_event_loop(processor.egl, processor);
 }
 

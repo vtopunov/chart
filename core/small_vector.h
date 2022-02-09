@@ -1,9 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <algorithm>
-#include <span>
-#include <iterator>
 
 #include <core/utility.h>
 #include <core/narrow.h>
@@ -61,7 +58,7 @@ constexpr size_type optimal_capacity_limit(size_type expected_capacity) noexcept
 struct attach_construct_t
 {};
 
-inline constexpr attach_construct_t attach_construct{};
+constexpr attach_construct_t attach_construct{};
 
 template<class T, size_t N>
 class small_vector

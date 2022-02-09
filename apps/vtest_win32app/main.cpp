@@ -1,4 +1,5 @@
-#include <core/debug.h>
+#include <os/debug.h>
+
 #include <ui/window.h>
 #include <ui/timer.h>
 #include <ui/event_loop.h>
@@ -7,12 +8,12 @@ using namespace std::chrono_literals;
 
 namespace
 {
-    constexpr px::rect_t make_subwindow_rect(px::size2d_t sizes) noexcept
+    constexpr px::rect make_subwindow_rect(px::size2d sizes) noexcept
     {
         return
         {
-            narrow2d_cast<px::point2d_t>( sizes / 4u ),
-            narrow2d_cast<px::point2d_t>( (3u * sizes) / 4u )
+            narrow2d_cast<px::point2d>( sizes / 4u ),
+            narrow2d_cast<px::point2d>( (3u * sizes) / 4u )
         };
     }
 
@@ -36,7 +37,7 @@ namespace
 
         ui::event_result_t operator () (const ui::mouse_move_event& e) noexcept
         {
-            output_debug_string("mouse move: {} {}\n", e.x(), e.y());
+            debug("mouse move: {} {}", e.x(), e.y());
             quit_timer = set_timer(std::move(quit_timer), standby_time);
             D_ASSERT(quit_timer);
             return 0L;
@@ -44,7 +45,7 @@ namespace
 
         void operator () (const ui::timer_event& e) const noexcept
         {
-            if ( e.timer_id == quit_timer )
+            if ( e.is(quit_timer) )
             {
                 ui::quit();
             }
@@ -54,7 +55,8 @@ namespace
 
 int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
 {
-    ui::window_type_factory type_factory;
+    debug("create main window");
+    ui::type_window_factory type_factory;
     type_factory.module_instance(instance);
 
     const auto mainwindow =
@@ -65,10 +67,12 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
 
     if ( !mainwindow )
     {
-        output_debug_string("create window error {}\n", ui::error_code());
-        return -1;
+        e_debug("create window error {}", ui::error_code());
+        return EXIT_FAILURE;
     }
 
+
+    debug("create subwindow");
     const auto subwindow =
         ui::window_factory{}
         .type(type_factory.background(ui::stock_brush::light_gray).create())
@@ -78,12 +82,14 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
 
     if ( !subwindow )
     {
-        output_debug_string("create subwindow error {}\n", ui::error_code());
-        return -1;
+        e_debug("create subwindow error {}", ui::error_code());
+        return EXIT_FAILURE;
     }
 
+    debug("show main window");
     ui::show(mainwindow, command_show);
 
+    debug("run event loop");
     return ui::run_event_loop(mainwindow, main_processor{});
 }
 

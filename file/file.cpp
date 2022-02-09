@@ -3,7 +3,8 @@
 #include <bit>
 
 #include <core/narrow.h>
-#include <core/os.h>
+
+#include <os/os.h>
 
 #include <file/file_io.h>
 
@@ -63,7 +64,7 @@ namespace file
         }
 
         [[nodiscard]]
-        file_descriptor create_file(path_string_view_t path, access_flags access, creation_mode create) noexcept
+        file_descriptor create_file(path_zstring_view path, access_flags access, creation_mode create) noexcept
         {
             constexpr auto share = share_flags::read | share_flags::write;
 
@@ -117,7 +118,7 @@ namespace file
         return { as_file_descriptor(GetStdHandle(STD_ERROR_HANDLE)) };
     }
 
-    ro_file ro_open(path_string_view_t path) noexcept
+    ro_file ro_open(path_zstring_view path) noexcept
     {
         return
         {
@@ -126,7 +127,7 @@ namespace file
         };
     }
 
-    wo_file wo_open(path_string_view_t path, write_mode mode) noexcept
+    wo_file wo_open(path_zstring_view path, write_mode mode) noexcept
     {
         wo_file result
         {
@@ -139,7 +140,7 @@ namespace file
         return result;
     }
 
-    rw_file rw_open(path_string_view_t path, write_mode mode) noexcept
+    rw_file rw_open(path_zstring_view path, write_mode mode) noexcept
     {
         constexpr auto access = access_flags::read | access_flags::write;
 

@@ -1,8 +1,7 @@
-﻿#include <array>
-
-#include <core/color.h>
+﻿#include <core/color.h>
 #include <core/lerp.h>
-#include <core/debug.h>
+
+#include <os/debug.h>
 
 #include <ui/event_loop.h>
 
@@ -12,210 +11,176 @@
 
 #include <font/font.h>
 
-#include <apps/utility/shaders.h>
+#include <utility/shaders_library.h>
 
 
 using namespace std::string_view_literals;
-using namespace std::chrono_literals;
-using namespace gl_literals;
 
 namespace
 {
-    class main_processor
+    gl::texture2d text_rendering() noexcept
     {
-    public:
-        constexpr main_processor() noexcept = default;
-
-        D_DISABLE_COPY_MOVE(main_processor);
-
-        bool initialize() noexcept
+        pix8map image{ 300_px, 60_px };
+        if (!image)
         {
-            egl_ = egl::window_factory{}.create();
-            if (!egl_)
-            {
-                output_debug_string("create window error: window error: {}, egl error: {}\n",
-                    ui::error_code(), eglGetError());
-                return false;
-            }
+            e_debug("out of memory");
+            return {};
+        }
 
-            if (const auto resolution = ui::display_resolution(); sizes(egl_) != resolution)
-            {
-                output_debug_string
+        const auto font_file = file::mmap(_PATH("..\\fonts\\DroidSerif-Regular.ttf"));
+        if (!font_file)
+        {
+            e_debug("can't open font file");
+            return {};
+        }
+
+        const auto face = font::create_face(font_file, 20_px);
+
+        if (!face)
+        {
+            e_debug("can't create font");
+            return {};
+        }
+
+        
+        {
+            using namespace std::string_literals;
+            draw_text(image, 3_px, 20_px, face, u8"Привет мир !_!`"s);
+        }
+
+        size(face, 15_px);
+
+        {
+            constexpr auto c_text = u8"Правый верх";
+            const auto tm = text_metrics(face, c_text);
+            draw_text(image, image.width() - tm.width, -tm.top, face, c_text);
+        }
+
+        {
+            constexpr auto zsv_text = L">>> Центр <<<";
+
+            const auto tm = text_metrics(face, zsv_text);
+
+            draw_text
+            (
+                image,
+                (image.width() - tm.width) / 2u,
+                (image.height() + tm.bottom - tm.top) / 2u,
+                face,
+                zsv_text
+            );
+        }
+
+        {
+            constexpr auto text1 = "____"sv;
+            constexpr auto text2 = L"````"sv;
+            constexpr auto text3 = u8"Правый низ"sv;
+
+            const auto tm
+                = text_metrics
                 (
-                    "Instance of window is not high dpi. " 
-                    "Add <dpiAware>true</dpiAware> in manifest. " 
-                    "Resolution: {}x{}\n", resolution.width(), resolution.height()
-                );
-                return false;
-            }
-
-            pix8map_t image{ 300_px, 60_px };
-            if (!image)
-            {
-                output_debug_string("out of memory\n");
-                return false;
-            }
-
-            const auto font_file = file::mmap(_PATH("fonts/DroidSerif-Regular.ttf"));
-            if (!font_file)
-            {
-                output_debug_string("can't open font file\n");
-                return false;
-            }
-
-            const auto face = font::create_font(font_file, 20_px);
-            if (!face)
-            {
-                output_debug_string("can't create font\n");
-                return false;
-            }
-
-            draw_text(image, 3_px, 20_px, face, u8"Привет мир !_!`"sv);
-
-            size(face, 15_px);
-
-            {
-                constexpr auto text = u8"Правый верх"sv;
-                const auto tm = metrics(face, text);
-                draw_text(image, image.width()-tm.width, -tm.top, face, text);
-            }
-
-            {
-                constexpr auto text = u8">>> Центр <<<"sv;
-
-                const auto tm = metrics(face, text);
-
-                draw_text
-                (
-                    image,
-                    (image.width() - tm.width ) / 2u,
-                    (image.height()  + tm.bottom - tm.top ) / 2u,
-                    face,
-                    text
-                );
-            }
-
-            {
-                constexpr auto text1 = u8"____"sv;
-                constexpr auto text2 = u8"````"sv;
-                constexpr auto text3 = u8"Правый низ"sv;
-
-                const auto tm = metrics(face, text3, metrics(face, text2, metrics(face, text1)));
-                if (!tm)
-                {
-                    output_debug_string("invalid text metrics\n");
-                    return false;
-                }
-
-                auto cursor = draw_text
-                (
-                    image,
-                    image.width() - tm.width,
-                    image.height() - tm.bottom,
-                    face,
-                    text1
+                    text_metrics
+                    (
+                        text_metrics(face, text1),
+                        face, text2
+                    ),
+                    face, text3
                 );
 
-                cursor = draw_text(image, cursor, face, text2);
-                cursor = draw_text(image, cursor, face, text3);
-            }
-
-            texture_ = gl::create_texture2d(image);
-            if (!texture_)
+            if (!tm)
             {
-                output_debug_string("create texture error: {}\n", glGetError());
-                return false;
+                e_debug("invalid text metrics");
+                return {};
             }
 
-            if (!shaders_.build())
-            {
-                output_debug_string("build shaders program error\n");
-                return false;
-            }
+            auto cursor = draw_text
+            (
+                image,
+                image.width() - tm.width,
+                image.height() - tm.bottom,
+                face,
+                text1
+            );
 
-            shaders_.use();
-            shaders_.frag.u_color.store(colors::black_f);
-            shaders_.vert.u_position.store(0.f, 0.f);
-            shaders_.vert.u_size.store(narrow2d_cast<gl::vec2f_t>(sizes(texture_)));
-            shaders_.vert.u_viewport.store(narrow2d_cast<gl::vec2f_t>(sizes(egl_)));
-
-            return true;
+            cursor = draw_text(image, cursor, face, text2);
+            cursor = draw_text(image, cursor, face, text3);
         }
 
-        void show() noexcept
+        auto texture = gl::create_texture2d(image);
+        if (!texture)
         {
-            ui::show(egl_, ui::show_command::show_maximazed);
+            e_debug("create texture error: {}", glGetError());
+            return {};
         }
 
-        void draw() const noexcept
-        {
-            if (const auto lock = begin_painting(egl_))
-            {
-                gl::clear(colors::red_f);
-
-                shaders_.use();
-                shaders_.frag.s_texture.store(texture_);
-                const auto vbo_user = shaders_.vert.vbo.bind();
-
-                const auto [w, h] = sizes(egl_);
-                const auto dx = width(texture_) + 1_px;
-                const auto dy = height(texture_) + 1_px;
-
-                const auto y_color_lerp = lerp(num_range{ 0_px, h }, num_range{ colors::red, colors::blue });
-
-                for (pxside_t y = 0; y < h; y += dy)
-                {
-                    const auto yx_color_lerp = lerp(num_range{ 0_px, w }, num_range{ colors::green, color_cast<rgba_color32_t>(y_color_lerp(y)) });
-
-                    for (pxside_t x = 0; x < w; x += dx)
-                    {
-                        shaders_.frag.u_color.store(color_cast<rgba_colorf_t>(yx_color_lerp(x)));
-                        shaders_.vert.u_position.store(narrow2d_cast<gl::vec2f_t>(x, y));
-
-                        vbo_user.draw(gl::draw_mode::triangle_strip);
-                    }
-                }
-            }
-        }
-
-        bool operator () (ui::peek_event) const noexcept
-        {
-            return need_redraw_;
-        }
-
-        void operator () (ui::idle_event) noexcept
-        {
-            need_redraw_ = false;
-            draw();
-        }
-
-        int run() noexcept
-        {
-            return ui::run_event_loop(egl_, *this);
-        }
-
-    private:
-        egl::window_t egl_;
-        gl::texture2d_t texture_;
-        shaders<vert::positioned_texture, frag::gray_texture_mix_color>  shaders_;
-
-        bool need_redraw_{ true };
-    };
+        return texture;
+    }
 }
 
 int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
-    main_processor processor;
-
-    if (!processor.initialize())
+    const auto egl = egl::window_factory{}.create();
+    if (!egl)
     {
-        output_debug_string("initialize fail\n");
-        return -1;
+        e_debug("create window error: window error: {}, egl error: {}",
+            ui::error_code(), eglGetError());
+        return EXIT_FAILURE;
     }
 
-    processor.show();
+    if (!is_maximum_resolution(egl))
+    {
+        e_debug("Instance of window is not high dpi. Add <dpiAware>true</dpiAware> in manifest");
+        return EXIT_FAILURE;
+    }
 
-    return processor.run();
+    const auto texture = text_rendering();
+    if (!texture)
+    {
+        e_debug("text rendering fail");
+        return EXIT_FAILURE;
+    }
+
+    shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> shaders;
+    if (!shaders.build())
+    {
+        e_debug("build shaders program error");
+        return EXIT_FAILURE;
+    }
+
+    shaders.use();
+    shaders.vert.u_size.store(sizes(texture));
+    shaders.vert.u_viewport.store(sizes(egl));
+    shaders.frag.s_texture.store(texture);
+
+    if (const auto lock = begin_painting(egl))
+    {
+        gl::clear(gl::colors::red_f);
+
+        const auto vb = shaders.vert.a_frame.bind();
+
+        const auto [w, h] = sizes(egl);
+        const auto dx = width(texture) + 1_px;
+        const auto dy = height(texture) + 1_px;
+
+        const auto y_color_lerp = lerp(num_range{ 0_px, h }, num_range{ colors::red, colors::blue });
+
+        for (pxside_t y = 0; y < h; y += dy)
+        {
+            const auto yx_color_lerp = lerp(num_range{ 0_px, w }, num_range{ colors::green, color_cast<rgba_color32_t>(y_color_lerp(y)) });
+
+            for (pxside_t x = 0; x < w; x += dx)
+            {
+                shaders.frag.u_color.store(gl::to_colorf(yx_color_lerp(x)));
+                shaders.vert.u_position.store(point2d{ x, y });
+
+                vb.draw();
+            }
+        }
+    }
+
+    ui::show(egl, ui::show_command::show_maximazed);
+
+    return ui::run_event_loop(egl);
 }
 
 

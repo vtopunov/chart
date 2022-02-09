@@ -1,7 +1,8 @@
 #pragma once
 
 #include <core/null.h>
-#include <core/os.h>
+
+#include <os/os.h>
 
 namespace ui
 {
@@ -22,5 +23,5 @@ namespace ui
     };
 
     using nullwindow_t = null_t<window_resource>;
-    inline constexpr nullwindow_t nullwindow{};
+    constexpr nullwindow_t nullwindow{};
 }

@@ -2,6 +2,7 @@
 
 #include <core/buffer_view.h>
 
+
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_avoid_malloc_and_free)
 
@@ -26,12 +27,12 @@ T* typed_memory_allocation(size_t size) noexcept
 struct buffer_construct_t
 {};
 
-inline constexpr buffer_construct_t buffer_construct{};
+constexpr buffer_construct_t buffer_construct{};
 
 struct buffer_attach_construct_t
 {};
 
-inline constexpr buffer_attach_construct_t buffer_attach_construct{};
+constexpr buffer_attach_construct_t buffer_attach_construct{};
 
 template<class T>
 class buffer
@@ -266,7 +267,7 @@ private:
     size_type size_{ 0_uz };
 };
 
-using byte_buffer_t = buffer<std::byte>;
-static_assert(1_uz == sizeof(byte_buffer_t::value_type));
+using byte_buffer = buffer<std::byte>;
+static_assert(1_uz == sizeof(byte_buffer::value_type));
 
 D_WARNING_POP

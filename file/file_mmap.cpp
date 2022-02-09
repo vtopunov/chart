@@ -1,8 +1,8 @@
 #include "file_mmap.h"
 
-#include <core/utility.h>
+#include <core/clamp_cast.h>
 
-#include <core/os.h>
+#include <os/os.h>
 
 namespace file
 {
@@ -24,7 +24,7 @@ namespace file
         close(p.file_);
     }
 
-    file_mmap mmap(path_string_view_t path) noexcept
+    file_mmap mmap(path_zstring_view path) noexcept
     {
         file_mmap result;
 

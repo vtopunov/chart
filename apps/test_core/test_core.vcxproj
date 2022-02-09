@@ -99,6 +99,7 @@
     <ClCompile Include="test_buffer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test_buffer_view.cpp" />
+    <ClCompile Include="test_clamp_cast.cpp" />
     <ClCompile Include="test_color.cpp" />
     <ClCompile Include="test_null.cpp" />
     <ClCompile Include="test_point2d.cpp" />
@@ -110,10 +111,14 @@
     <ClCompile Include="test_rational.cpp" />
     <ClCompile Include="test_rect.cpp" />
     <ClCompile Include="test_size2d.cpp" />
+    <ClCompile Include="test_size_type.cpp" />
     <ClCompile Include="test_small_vector.cpp" />
+    <ClCompile Include="test_temp_swap.cpp" />
+    <ClCompile Include="test_type_traits.cpp" />
     <ClCompile Include="test_utf.cpp" />
     <ClCompile Include="test_utility.cpp" />
-    <ClCompile Include="test_vec.cpp" />
+    <ClCompile Include="test_vec2.cpp" />
+    <ClCompile Include="test_zero.cpp" />
     <ClCompile Include="test_zstring_view.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

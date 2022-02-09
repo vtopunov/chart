@@ -70,5 +70,5 @@ namespace file
     using file_mmap = unique_resource<file_mmap_resource, file_mmap_resource_deleter>;
 
     [[nodiscard]]
-    file_mmap mmap(path_string_view_t path) noexcept;
+    file_mmap mmap(path_zstring_view path) noexcept;
 }

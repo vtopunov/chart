@@ -4,14 +4,12 @@
 
 #include <core/buffer_view.h>
 
+#include <gl/color.h>
 #include <gl/shader.h>
 #include <gl/vertex.h>
 
-
 namespace gl
 {
-    using rgba_colorf_view = std::span<const GLfloat, 4_uz>;
-
     inline void clear(rgba_colorf_view color) noexcept
     {
         glClearColor(color[0], color[1], color[2], color[3]);
@@ -195,10 +193,10 @@ namespace gl
 
     using buffer_resource_t = specialized_buffer_resource<buffer_target::array_buffer>;
 
-    using buffer_t = unique_resource<buffer_resource_t, buffer_resource_deleter>;
+    using buffer = unique_resource<buffer_resource_t, buffer_resource_deleter>;
 
     [[nodiscard]]
-    buffer_t create_buffer(const_buffer_view data) noexcept;
+    buffer create_buffer(const_buffer_view data) noexcept;
 
     template<class Vertex>
     void set_vertex_buffer(std::span<const attribute_location> attributes, buffer_resource_t buffer) noexcept
@@ -272,7 +270,7 @@ namespace gl
         }
 
     private:
-        buffer_t bo_;
+        gl::buffer bo_;
         size_t size_{ 0_uz };
     };
 
@@ -284,67 +282,5 @@ namespace gl
 
     template <class Rng>
     vertex_buffer(const Rng&)->vertex_buffer<std::remove_cv_t<typename Rng::value_type>>;
-
-
-    template<class Vertex>
-    class vertex_attrib_buffer
-    {
-    public:
-        static constexpr auto vertex_count = vertex_size_v<std::decay_t<Vertex>>;
-        using attribute_location_array_type = std::array<attribute_location, vertex_count>;
-        
-        static constexpr attribute_location_array_type invalid_attributes = [] () noexcept
-        {
-            attribute_location_array_type initializer{};
-            initializer.fill(attribute_location::invalid);
-            return initializer;
-        }();
-
-        D_DEFAULT_MOVABLE_ONLY(vertex_attrib_buffer);
-
-        constexpr vertex_attrib_buffer() noexcept = default;
-
-        vertex_attrib_buffer(std::span<const Vertex> vertexes, std::span<const attribute_location> attributes) noexcept
-            : vbo_{ vertexes }
-        {
-            D_ASSERT(attributes.size() <= attributes_.size());
-            std::copy(std::cbegin(attributes), std::cend(attributes), std::begin(attributes_));
-        }
-
-        [[nodiscard]]
-        constexpr explicit operator bool() const noexcept
-        {
-            return !!vbo_;
-        }
-
-        [[nodiscard]]
-        constexpr size_t size() const noexcept
-        {
-            return vbo_.size();
-        }
-
-        vertex_buffer_user bind() const noexcept
-        {
-            return vbo_.bind(attributes_);
-        }
-
-        void draw(draw_mode mode, ptrdiff_t off = {}) const noexcept
-        {
-            bind().draw(mode, off);
-        }
-
-    private:
-        vertex_buffer<Vertex> vbo_;
-        attribute_location_array_type attributes_{ invalid_attributes };
-    };
-
-    template <class T, size_t Extent, class Attributes>
-    vertex_attrib_buffer(T(&)[Extent], Attributes)->vertex_attrib_buffer<std::remove_cv_t<T>>;
-
-    template <class Rng, class Attributes>
-    vertex_attrib_buffer(Rng&, Attributes)->vertex_attrib_buffer<std::remove_cv_t<typename Rng::value_type>>;
-
-    template <class Rng, class Attributes>
-    vertex_attrib_buffer(const Rng&, Attributes)->vertex_attrib_buffer<std::remove_cv_t<typename Rng::value_type>>;
 }
 

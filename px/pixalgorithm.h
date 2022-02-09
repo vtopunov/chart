@@ -1,8 +1,8 @@
 #pragma once
 
-#include <px/pixspan.h>
-
 #include <core/warnings.h>
+
+#include <px/pixspan.h>
 
 #undef min
 #undef max
@@ -10,7 +10,7 @@
 
 namespace px
 {
-    constexpr bool draw_antialiasing_line(const pix8line_t pixs, double_t x0, double_t y0, double_t x1, double_t y1) noexcept
+    constexpr bool draw_antialiasing_line(const pix8line pixs, double x0, double y0, double x1, double y1) noexcept
     {
         D_WARNING_PUSH;
         D_WARNING_DISABLE_MSVC(W_converting_from_floating_point_to_unsigned_integral);
@@ -19,23 +19,20 @@ namespace px
 
         constexpr auto max_color = numeric_max_v<u8tint_t>;
 
-        constexpr double_t _0_5 = 0.5;
-        constexpr double_t _256 = 256.0;
-
-        constexpr auto uz_round = [](double_t v) noexcept
+        constexpr auto uz_round = [](double v) noexcept
         {
-            return static_cast<size_t>(v + _0_5);
+            return static_cast<size_t>(v + 0.5);
         };
 
-        constexpr auto abs_distance = [](double_t v0, double_t v1) noexcept
+        constexpr auto abs_distance = [](double v0, double v1) noexcept
         {
             return std::max(v0 - v1, v1 - v0);
         };
 
-        constexpr auto _256_gradient = [](double_t dx, double_t dy) noexcept
+        constexpr auto _256_gradient = [](double dx, double dy) noexcept
         {
-            constexpr auto eps = _0_5 / _256;
-            return (eps < dx) ? (_256 * (dy / dx)) : _256;
+            constexpr auto eps = 0.5 / 256.0;
+            return (eps < dx) ? (256.0 * (dy / dx)) : 256.0;
         };
 
         const auto swap_xy = abs_distance(x0, x1) < abs_distance(y0, y1);
@@ -54,7 +51,7 @@ namespace px
 
         const auto _256_dy_by_dx = _256_gradient(x1 - x0, y1 - y0);
 
-        auto _256_yf = _256 * (y0 + _0_5);
+        auto _256_yf = 256.0 * (y0 + 0.5);
 
         if (swap_xy)
         {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/vec.h>
+#include <core/vec2.h>
 
 template<class T>
 struct num_range : vec2<T>

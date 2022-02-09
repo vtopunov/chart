@@ -1,11 +1,13 @@
 #pragma once
 
-#include <iterator>
 #include <span>
 #include <string_view>
 
-#include <core/member_detector.h>
+#include <core/type_traits.h>
+#include <core/size_type.h>
+#include <core/value_type.h>
 #include <core/narrow.h>
+
 
 template<bool immutable>
 class basic_buffer_view;
@@ -30,19 +32,14 @@ struct is_buffer_view<const T> : is_buffer_view<T>
 {};
 
 template <class T>
-inline constexpr bool is_buffer_view_v = is_buffer_view<T>::value;
-
-template<class C>
-using data_pointer_t = decltype(as_pointer(std::data(std::declval<C&>())));
+constexpr bool is_buffer_view_v = is_buffer_view<T>::value;
 
 template<class C> [[nodiscard]]
 constexpr auto size_bytes(const C& c) noexcept 
     -> decltype(as_pointer(std::data(std::declval<C&>())), std::size(std::declval<C&>()), 0_uz)
 {
-    using data_t = data_pointer_t<C>;
-    using value_t = std::remove_cvref_t<std::remove_pointer_t<data_t>>;
-    using value_with_size_t = replace_t<value_t, void, std::byte>;
-    constexpr size_t type_size = sizeof(value_with_size_t);
+    using value_t = replace_t<std::remove_cv_t<value_type_t<C>>, void, std::byte>;
+    constexpr size_t type_size = sizeof(value_t);
 
     return size_mul<type_size>(narrow_cast<size_t>(std::size(c)));
 }
@@ -54,14 +51,14 @@ template<class T>
 using is_size_bytes = is_detected<size_bytes_t, T>;
 
 template<class C>
-inline constexpr bool is_size_bytes_v = is_size_bytes<C>::value;
+constexpr bool is_size_bytes_v = is_size_bytes<C>::value;
 
 template<class C, class DataPointer>
-struct is_convertible_data : std::is_convertible<data_pointer_t<C>, DataPointer>
+struct is_convertible_data : std::is_convertible<decl_data_pointer_t<C>, DataPointer>
 {};
 
 template <class C, class Data>
-inline constexpr bool is_compatible_buffer_v = std::conjunction_v
+constexpr bool is_compatible_buffer_v = std::conjunction_v
 <
     std::negation<is_buffer_view<C>>,
     is_size_bytes<C>,
@@ -73,10 +70,13 @@ class basic_buffer_view
 {
 public:
     template<class T>
-    using switchable_const = add_const_if_t<immutable, T>;
+    using const_opt = conditional_add_const_t<immutable, T>;
+
+    template<class T>
+    using const_opt_pointer = std::add_pointer_t<const_opt<T>>;
 
     using value_type = std::byte;
-    using element_type = switchable_const<value_type>;
+    using element_type = const_opt<value_type>;
     using size_type = size_t;
     using pointer = element_type*;
     using const_pointer = const element_type*;
@@ -84,7 +84,7 @@ public:
     using const_reference = const element_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using data_pointer = switchable_const<void>*;
+    using data_pointer = const_opt_pointer<void>;
 
     template<class C>
     static constexpr bool is_compatible_v = is_compatible_buffer_v<C, data_pointer>;
@@ -159,16 +159,16 @@ public:
     }
 
     template<class T>
-    [[nodiscard]] constexpr switchable_const<T>* as_ptr() const noexcept
+    [[nodiscard]] constexpr const_opt_pointer<T> as_ptr() const noexcept
     {
-        return static_cast<switchable_const<T>*>(data());
+        return static_cast<const_opt_pointer<T>>(data());
     }
 
     template<class T>
-    using span_switchable_const = std::span<switchable_const<T>>;
+    using const_opt_span = std::span<const_opt<T>>;
 
     template<class T>
-    [[nodiscard]] constexpr span_switchable_const<T> as_span() const noexcept
+    [[nodiscard]] constexpr const_opt_span<T> as_span() const noexcept
     {
         return { as_ptr<T>(), _count<T>() };
     }
@@ -176,17 +176,17 @@ public:
     template<class T>
     [[nodiscard]] constexpr std::basic_string_view<std::remove_const_t<T>> as_str() const noexcept
     {
-        return { as_ptr<T>(), _count<T>() };
+        return { as_ptr<std::add_const_t<T>>(), _count<T>() };
     }
 
     [[nodiscard]]
-    constexpr switchable_const<std::byte>* as_bytes_ptr() const noexcept
+    constexpr const_opt_pointer<std::byte> as_bytes_ptr() const noexcept
     {
         return as_ptr<std::byte>();
     }
 
     [[nodiscard]]
-    constexpr span_switchable_const<std::byte> as_bytes() const noexcept
+    constexpr const_opt_span<std::byte> as_bytes() const noexcept
     {
         return { as_bytes_ptr(), size() };
     }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cassert>
-#include <type_traits>
+
 
 #define D_UNUSED(expression) ((void)(expression))
 

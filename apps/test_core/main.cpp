@@ -1,9 +1,13 @@
 
+extern void test_type_traits() noexcept;
+extern void test_zero() noexcept;
 extern void test_utility() noexcept;
+extern void test_clamp_cast() noexcept;
+extern void test_size_type() noexcept;
 extern void test_narrow() noexcept;
 extern void test_buffer_view() noexcept;
 extern void test_zstring_view() noexcept;
-extern void test_vec() noexcept;
+extern void test_vec2() noexcept;
 extern void test_point2d() noexcept;
 extern void test_size2d() noexcept;
 extern void test_num_range() noexcept;
@@ -20,11 +24,15 @@ extern void test_utf() noexcept;
 
 int main() noexcept
 {
+    test_type_traits();
+    test_zero();
     test_utility();
+    test_clamp_cast();
+    test_size_type();
     test_narrow();
     test_buffer_view();
     test_zstring_view();
-    test_vec();
+    test_vec2();
     test_point2d();
     test_size2d();
     test_num_range();

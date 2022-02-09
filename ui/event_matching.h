@@ -14,6 +14,11 @@ namespace ui
     struct timer_event
     {
         timer_resource timer_id;
+
+        constexpr bool is(timer_resource id) const noexcept
+        {
+            return timer_id == id;
+        }
     };
 
     template<class T>

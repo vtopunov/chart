@@ -27,7 +27,7 @@ namespace gl
         void operator () (shader_resource shader) const noexcept;
     };
 
-    using shader_t = unique_resource<shader_resource, shader_resource_deleter>;
+    using shader = unique_resource<shader_resource, shader_resource_deleter>;
 
     enum class shader_type : GLenum
     {
@@ -36,7 +36,7 @@ namespace gl
     };
 
     [[nodiscard]]
-    shader_t create_shader(shader_type type) noexcept;
+    shader create_shader(shader_type type) noexcept;
 
     enum class shaders_program_resource : GLuint
     {
@@ -59,13 +59,13 @@ namespace gl
         void operator () (shaders_program_resource program) const noexcept;
     };
 
-    using shaders_program_t = unique_resource<shaders_program_resource, shaders_program_resource_deleter>;
+    using shaders_program = unique_resource<shaders_program_resource, shaders_program_resource_deleter>;
 
     [[nodiscard]]
-    shaders_program_t create_shaders_program() noexcept;
+    shaders_program create_shaders_program() noexcept;
 
     [[nodiscard]]
-    shaders_program_t create_shaders_program(source_view vertex, source_view fragment) noexcept;
+    shaders_program create_shaders_program(source_view vertex, source_view fragment) noexcept;
 
     using location_numer_t = GLuint;
 
@@ -77,7 +77,7 @@ namespace gl
     };
 
     using invalidattribute_t = null_t<attribute_location>;   
-    inline constexpr invalidattribute_t invalidattribute{};
+    constexpr invalidattribute_t invalidattribute{};
     static_assert(attribute_location::invalid == invalidattribute);
 
     [[nodiscard]]
@@ -116,32 +116,32 @@ namespace gl
         glUniform1f(location_as_int(u), value);
     }
 
-    inline void store_uniform_value(uniform_location u, const_span2i_t value) noexcept
+    inline void store_uniform_value(uniform_location u, const_span2i value) noexcept
     {
         glUniform2iv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, const_span2f_t value) noexcept
+    inline void store_uniform_value(uniform_location u, const_span2f value) noexcept
     {
         glUniform2fv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, const_span3i_t value) noexcept
+    inline void store_uniform_value(uniform_location u, const_span3i value) noexcept
     {
         glUniform3iv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, const_span3f_t value) noexcept
+    inline void store_uniform_value(uniform_location u, const_span3f value) noexcept
     {
         glUniform3fv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, const_span4i_t value) noexcept
+    inline void store_uniform_value(uniform_location u, const_span4i value) noexcept
     {
         glUniform4iv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, const_span4f_t value) noexcept
+    inline void store_uniform_value(uniform_location u, const_span4f value) noexcept
     {
         glUniform4fv(location_as_int(u), 1, std::data(value));
     }
@@ -172,7 +172,7 @@ namespace gl
     };
 
     template<glsl_typeid id>
-    inline constexpr auto store_uniform_method_v = store_uniform_method<id>::value;
+    constexpr auto store_uniform_method_v = store_uniform_method<id>::value;
 
     [[nodiscard]]
     bool test_uniform
@@ -201,7 +201,7 @@ namespace gl
     };
 
     using invaliduniform_t = null_t<uniform_base>;
-    inline constexpr invaliduniform_t invaliduniform{};
+    constexpr invaliduniform_t invaliduniform{};
     static_assert(uniform_location::invalid == invaliduniform);
 
     template<glsl_typeid id>
@@ -235,10 +235,10 @@ namespace gl
         }
     };
 
-    using uniform_vec2f_t = uniform<glsl_typeid::vec2f>;
-    using uniform_vec4f_t = uniform<glsl_typeid::vec4f>;
+    using uniform_vec2f = uniform<glsl_typeid::vec2f>;
+    using uniform_vec4f = uniform<glsl_typeid::vec4f>;
 
-    namespace literals
+    namespace shader_literals
     {
         [[nodiscard]]
         constexpr source_view operator"" _glsl(const GLchar * source, size_t length) noexcept
@@ -248,8 +248,5 @@ namespace gl
     }
 }
 
-namespace gl_literals
-{
-    using namespace gl::literals;
-}
+using namespace gl::shader_literals;
 

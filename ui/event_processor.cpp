@@ -9,7 +9,7 @@ namespace ui
         return event_processors_global().erase(processor);
     }
 
-    event_processor_t create_event_processor(window_resource window, void* data, event_callback_t callback) noexcept
+    event_processor create_event_processor(window_resource window, void* data, event_callback_t callback) noexcept
     {
         return
         {

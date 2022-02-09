@@ -1,14 +1,13 @@
 #include <core/color.h>
-#include <core/debug.h>
+
+#include <os/debug.h>
 
 #include <ui/event_loop.h>
 #include <gl/draw.h>
+#include <gl/color.h>
 #include <egl/window.h>
 
-#include <apps/utility/png.h>
-
-using namespace std::string_view_literals;
-using namespace gl_literals;
+#include <utility/png.h>
 
 namespace
 {
@@ -48,16 +47,16 @@ namespace
         );
 
         static const auto attributes = gl::get_attribute_locations(shaders, "a_position"_zsv, "a_texture"_zsv);
-        static const auto s_base_texture = gl::texture_sampler2D_t::instance(shaders, "s_base_texture"_zsv);
-        static const auto s_mix_texture = gl::texture_sampler2D_t::instance(shaders, "s_mix_texture"_zsv);
+        static const auto s_base_texture = gl::texture_sampler2D::instance(shaders, "s_base_texture"_zsv);
+        static const auto s_mix_texture = gl::texture_sampler2D::instance(shaders, "s_mix_texture"_zsv);
 
-        gl::clear(colors::white_f);
+        gl::clear(gl::colors::white_f);
 
         gl::use(shaders);
 
         constexpr GLfloat radius{ 0.25f };
         
-        constexpr gl::vertex<gl::vec2f_t, gl::vec2f_t> vertices[]
+        constexpr gl::vertex<gl::vec2f, gl::vec2f> vertices[]
         {
             { {-radius,  radius}, {0.0f, 0.0f} },
             { {-radius, -radius}, {0.0f, 1.0f} },
@@ -78,91 +77,36 @@ namespace
         // }
     }
 
-    class main_processor
+    template<class... Paths>
+    [[nodiscard]] std::array<gl::texture2d, sizeof...(Paths)>  textures_from_file(Paths... paths) noexcept
     {
-    public:
-        constexpr main_processor() noexcept = default;
+        png_reader png;
 
-        bool initialize() noexcept
-        {
-            egl_ = egl::window_factory{}.create();
-            if (!egl_)
-            {
-                output_debug_string("create window error: window error: {}, egl error: {}\n",
-                    ui::error_code(), eglGetError());
-                return false;
-            }
-            
-            png_reader png;
-
-            base_texture_ = png.texture_from_file(_PATH("base.png"));
-            if (!base_texture_)
-            {
-                output_debug_string("create png texture error: {}\n", glGetError());
-                return false;
-            }
-
-            mix_texture_ = png.texture_from_file(_PATH("mix.png"));
-            if (!mix_texture_)
-            {
-                output_debug_string("create png texture error: {}\n", glGetError());
-                return false;
-            }
-
-            return true;
-        }
-
-        void show(int command_show) noexcept
-        {
-            ui::show(egl_, command_show);
-        }
-
-        void draw() const noexcept
-        {
-            if (const auto lock = egl::begin_painting(egl_))
-            {
-                draw_texture_mix(base_texture_, mix_texture_);
-            }
-        }
-
-        bool operator () (ui::peek_event) const noexcept
-        {
-            return need_redraw_;
-        }
-        
-        void operator () (ui::idle_event) noexcept
-        {
-            need_redraw_ = false;
-            draw();
-        }
-
-        int run() noexcept
-        {
-            return ui::run_event_loop(egl_, *this);
-        }
-
-    private:
-        egl::window_t egl_;
-        gl::texture2d_t base_texture_;
-        gl::texture2d_t mix_texture_;
-
-        bool need_redraw_{ true };
+        return { png.texture_from_file(paths)... };
     };
 }
 
+
 int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int command_show)
 {
-    main_processor processor;
-
-    if (!processor.initialize())
+    const auto egl = egl::window_factory{}.create();
+    if (!egl)
     {
-        output_debug_string("initialize fail\n");
-        return -1;
+        e_debug("create window error: window error: {}, egl error: {}\n",
+            ui::error_code(), eglGetError());
+        return EXIT_FAILURE;
     }
 
-    processor.show(command_show);
+    const auto [base_texture, mix_texture] = textures_from_file(_PATH("base.png"), _PATH("mix.png"));
 
-    return processor.run();
+    if (const auto lock = begin_painting(egl))
+    {
+        draw_texture_mix(base_texture, mix_texture);
+    }
+
+    ui::show(egl, command_show);
+
+    return ui::run_event_loop(egl);
 }
 
 

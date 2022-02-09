@@ -60,7 +60,7 @@ namespace egl
         }
     };
 
-    using painting_t = unique_resource<display_surface, painting_collector>;
+    using paint_buffer_owner = unique_resource<display_surface, painting_collector>;
 
     struct null_window_resources;
 
@@ -88,7 +88,7 @@ namespace egl
         view_type app_wnd;
         view_type renderer_wnd;
 
-        px::size2d_t sizes;
+        px::size2d sizes;
 
         display_descriptor_t display;
         surface_descriptor_t surface;
@@ -112,12 +112,19 @@ namespace egl
         void operator () (const window_resources& egl) const noexcept;
     };
 
-    using window_t = unique_resource<window_resources, window_resources_collector>;
+    using window = unique_resource<window_resources, window_resources_collector>;
 
     [[nodiscard]]
-    inline painting_t begin_painting(const window_resources& resources) noexcept
+    inline paint_buffer_owner begin_painting(const window_resources& resources) noexcept
     {
-        if (resources)
+        paint_buffer_owner lock
+        {
+            resource_construct,
+            resources.display,
+            resources.surface
+        };
+
+        if (lock)
         {
             glViewport
             (
@@ -127,18 +134,33 @@ namespace egl
             );
         }
 
-        return
-        {
-            resource_construct,
-            resources.display,
-            resources.surface
-        };
+        return lock;
     }
 
     [[nodiscard]]
-    constexpr px::size2d_t sizes(const window_resources& resources) noexcept
+    constexpr px::size2d sizes(const window_resources& resources) noexcept
     {
         return resources.sizes;
+    }
+
+    [[nodiscard]]
+    constexpr pxside_t width(const window_resources& resources) noexcept
+    {
+        return resources.sizes.width();
+    }
+
+    [[nodiscard]]
+    constexpr pxside_t height(const window_resources& resources) noexcept
+    {
+        return resources.sizes.height();
+    }
+
+    [[nodiscard]]
+    inline bool is_maximum_resolution(const window_resources& resources) noexcept
+    {
+        const auto resolution = ui::display_resolution();
+        return width(resources) >= resolution.width() 
+            && height(resources) >= resolution.height();
     }
 
     class window_factory
@@ -150,14 +172,14 @@ namespace egl
             return *this;
         }
 
-        window_factory& window_type(ui::unique_window_type_t type) noexcept
+        window_factory& window_type(ui::unique_type_window type) noexcept
         {
             app_.type(std::move(type));
             return *this;
         }
 
         [[nodiscard]]
-        window_t create() noexcept;
+        window create() noexcept;
 
     private:
         ui::window_factory app_;

@@ -19,17 +19,17 @@
     <ClInclude Include="timer.h" />
     <ClInclude Include="event_processors_container.h" />
     <ClInclude Include="timer_fwd.h" />
+    <ClInclude Include="type_window.h" />
     <ClInclude Include="window.h" />
     <ClInclude Include="window_fwd.h" />
-    <ClInclude Include="window_type.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="event_processor.cpp" />
     <ClCompile Include="timer.cpp" />
     <ClCompile Include="event_processors_container.cpp" />
+    <ClCompile Include="type_window.cpp" />
     <ClCompile Include="window.cpp" />
     <ClCompile Include="window_procedure_impl.cpp" />
-    <ClCompile Include="window_type.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

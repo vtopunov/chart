@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstdint>
-#include <compare>
 #include <numeric>
 #include <span>
 
@@ -53,36 +51,47 @@ struct rational
     [[nodiscard]]
     static constexpr rational from_string(std::span<const char> string) noexcept;
 
-    template<class U, class = std::enable_if_t<std::negation_v<std::is_same<U, T>> && is_safe_numeric_conversion_v<U, T>>>
+    template<class U, class = std::enable_if_t<is_safe_numeric_not_same_conversion_v<U, int_type>>>
     [[nodiscard]] constexpr operator rational<U>() const noexcept
     {
-        constexpr auto cast = [] (T value) noexcept
-        {
-            return safe_numeric_cast<U>(value);
-        };
-
-        return { cast(num), cast(den) };
+        return { num, den };
     }
 };
 
 template<class T>
 rational(T, T)->rational<T>;
 
+template <class T>
+struct rational_detector : std::false_type
+{
+    using removed_rational_type = T;
+};
 
 template <class T>
-struct is_rational : std::false_type
-{};
+struct rational_detector<rational<T>> : std::true_type
+{
+    using removed_rational_type = T;
+};
 
 template <class T>
-struct is_rational<rational<T>> : std::true_type
-{};
-
-template <class T>
-struct is_rational<const T> : is_rational<T>
+struct rational_detector<const T> : rational_detector<T>
 {};
 
 template<class T>
-inline constexpr bool is_rational_v = is_rational<T>::value;
+using is_rational = rational_detector<T>;
+
+template<class T>
+struct remove_rational
+{
+    using type = typename rational_detector<T>::removed_rational_type;
+};
+
+
+template<class T>
+constexpr auto is_rational_v = is_rational<T>::value;
+
+template<class T>
+using remove_rational_t = typename remove_rational<T>::type;
 
 template<class T> [[nodiscard]]
 constexpr rational<T> simplify(T num, T den) noexcept

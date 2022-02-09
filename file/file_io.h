@@ -6,7 +6,7 @@ namespace file
 {
     using offset_t = int64_t;
 
-    inline constexpr offset_t error_seek{ -1LL };
+    constexpr offset_t error_seek{ -1LL };
     
     enum class seek_mode : uint8_t
     {

@@ -1,13 +1,16 @@
 #pragma once
 
-#include <core/null.h>
-#include <core/view.h>
+#include <utility>
+
 #include <core/intrusive_list.h>
+#include <core/view.h>
+#include <core/null.h>
+
 
 struct resource_construct_t
 {};
 
-inline constexpr resource_construct_t resource_construct{};
+constexpr resource_construct_t resource_construct{};
 
 template <class T, class D>
 class unique_resource
@@ -60,16 +63,16 @@ public:
 
     constexpr void swap(unique_resource& right) noexcept
     {
-        ::swap(resource_, right.resource_);
+        std::swap(resource_, right.resource_);
     }
 
-    template<bool dummy = true, class = std::enable_if_t<(dummy) && is_nullable_v<resource_type>>>
+    template<bool dummy = true, std::enable_if_t<(dummy) && is_nullable_v<resource_type>, int> = 0>
     [[nodiscard]] constexpr explicit operator bool() const noexcept
     {
         return has_value(r());
     }
 
-    template<bool dummy = true, class = std::enable_if_t<(dummy) && is_view_v<resource_type>>>
+    template<bool dummy = true, std::enable_if_t<(dummy) && is_view_v<resource_type>, int> = 0>
     [[nodiscard]] constexpr operator view_type () const noexcept
     {
         return view(r());
@@ -94,7 +97,7 @@ public:
 
     void reset() noexcept
     {
-        [[maybe_unused]]
+        [[maybe_unused]] 
         const unique_resource temp{ std::move(*this) };
     }
 
@@ -102,6 +105,7 @@ public:
 private:
     resource_type resource_;
 };
+
 
 template<class T, class D>
 class shared_resource

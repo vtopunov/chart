@@ -107,7 +107,7 @@
     <ProjectReference Include="..\..\ui\ui.vcxproj">
       <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\utility\utility.vcxproj">
+    <ProjectReference Include="..\..\utility\utility.vcxproj">
       <Project>{1e3a33e9-c894-4513-b5e9-e2913f86f0e6}</Project>
     </ProjectReference>
   </ItemGroup>

@@ -28,12 +28,12 @@ namespace
     template<class T, class D>
     unsafe_resource<T, D>& unsafe(const shared_resource<T, D>& safe) noexcept
     {
-        using safe_t = shared_resource<T, D>;
-        using unsafe_t = unsafe_resource<T, D>;
+        using safe_type = shared_resource<T, D>;
+        using unsafe_type = unsafe_resource<T, D>;
 
-        static_assert(sizeof(safe_t) == sizeof(unsafe_t));
-        static_assert(alignof(safe_t) == alignof(unsafe_t));
-        return (unsafe_t&) safe;
+        static_assert(sizeof(safe_type) == sizeof(unsafe_type));
+        static_assert(alignof(safe_type) == alignof(unsafe_type));
+        return (unsafe_type&) safe;
     }
 
     template<class T, class D>

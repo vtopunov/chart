@@ -1,11 +1,8 @@
 #pragma once
 
-#include <type_traits>
-#include <limits>
-
-#include <core/utility.h>
+#include <core/ordered_overload.h>
 #include <core/member_detector.h>
-
+#include <core/zero.h>
 
 namespace private_detail_null_instance
 {
@@ -82,10 +79,8 @@ struct null_type<T*>
 };
 
 template<class T>
-struct null_type<null_instance<T>>
-{
-    using type = null_instance<std::remove_cvref_t<T>>;
-};
+struct null_type<null_instance<T>> : null_type<std::remove_cvref_t<T>>
+{};
 
 template<class T>
 struct null_type<T&> : null_type<T>
@@ -103,7 +98,7 @@ template<class T>
 using null_t = typename null_type<T>::type;
 
 template<class T>
-inline constexpr null_t<T> null_v{};
+constexpr null_t<T> null_v{};
 
 
 namespace private_detail_null_compare
@@ -230,7 +225,7 @@ template<class T>
 using is_null_t = decltype(is_null(std::declval<T&>()));
 
 template<class T>
-inline constexpr bool is_nullable_v = std::disjunction_v
+constexpr bool is_nullable_v = std::disjunction_v
 <
     is_detected<has_value_t, T>,
     is_detected<is_null_t, T>

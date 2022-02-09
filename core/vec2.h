@@ -1,11 +1,13 @@
 #pragma once
 
-#include <type_traits>
 #include <algorithm>
 #include <span>
 
-#include <core/narrow.h>
 #include <core/member_detector.h>
+#include <core/size_type.h>
+#include <core/value_type.h>
+#include <core/narrow.h>
+
 
 #undef min
 #undef max
@@ -238,26 +240,20 @@ constexpr vec2<T> max(const vec2<T>& a, const vec2<T>& b) noexcept
     };
 }
 
-template<class T>
-using decl_value_type_t = typename T::value_type;
-
-template<class T>
-constexpr bool is_value_type_v = is_detected_v<decl_value_type_t, T>;
-
 template<class OutT, class InT> [[nodiscard]]
-constexpr std::enable_if_t<is_value_type_v<OutT>, OutT> narrow2d_cast(InT x, InT y) noexcept
+constexpr OutT narrow2d_cast(InT x, InT y) noexcept
 {
-    using value_t = decl_value_type_t<OutT>;
+    using value_t = value_type_t<OutT>;
 
     return
     {
-        narrow_cast<value_t>(x),
-        narrow_cast<value_t>(y)
+        narrow_cast<value_t>(std::move(x)),
+        narrow_cast<value_t>(std::move(y))
     };
 }
 
 template<class OutT, class InT> [[nodiscard]]
-constexpr std::enable_if_t<is_value_type_v<OutT>, OutT> narrow2d_cast(const vec2<InT>& in) noexcept
+constexpr OutT narrow2d_cast(vec2<InT> in) noexcept
 {
-    return narrow2d_cast<OutT>(in._0, in._1);
+    return narrow2d_cast<OutT>(std::move(in._0), std::move(in._1));
 }

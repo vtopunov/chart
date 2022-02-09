@@ -11,7 +11,7 @@ void test_utf() noexcept
     decode_utf<sizeof(char32_t)>(u8s, [&u32s](char32_t ch)
         {
             D_ASSERT(u32s.front() == ch);
-            u32s.remove_prefix(1_uz);
+            u32s.remove_prefix(1u);
         }
     );
 

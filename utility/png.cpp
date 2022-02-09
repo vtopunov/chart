@@ -1,29 +1,31 @@
 #include "png.h"
 
-#include <core/debug.h>
+#include <core/temp_swap.h>
+
+#include <os/debug.h>
 
 #include <image/png.h>
 
 #include <file/file_mmap.h>
 
-gl::texture2d_t png_reader::texture_from_file(file::path_string_view_t path) noexcept
+gl::texture2d png_reader::texture_from_file(file::path_zstring_view path) noexcept
 {
     const auto map_file = file::mmap(path);
     if (!map_file)
     {
-        output_debug_string(L"can't mapping file: {}\n", path.c_str());
+        e_debug(L"can't mapping file: {}", path.c_str());
         return {};
     }
 
     return texture_from_bytes(map_file);
 }
 
-gl::texture2d_t png_reader::texture_from_bytes(const_buffer_view image) noexcept
+gl::texture2d png_reader::texture_from_bytes(const_buffer_view image) noexcept
 {
-    gl::texture2d_t result;
+    gl::texture2d result;
     
     {
-        image::rgba32_pixmap_t pixmap;
+        image::pixrgba32map pixmap;
 
         {
             [[maybe_unused]]
@@ -33,7 +35,7 @@ gl::texture2d_t png_reader::texture_from_bytes(const_buffer_view image) noexcept
 
             if (errc != image::png_errno::OK)
             {
-                output_debug_string("read png: error {}: {}\n", to_underlying(errc), image::png_error_string(errc).c_str());
+                e_debug("read png: error {}: {}", to_underlying(errc), image::png_error_string(errc).c_str());
                 return {};
             }
 

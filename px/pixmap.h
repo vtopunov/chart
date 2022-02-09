@@ -47,7 +47,7 @@ namespace px
             }
         }
 
-        pixmap(byte_buffer_t buffer, const space_type& space) noexcept
+        pixmap(byte_buffer buffer, const space_type& space) noexcept
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
@@ -61,15 +61,15 @@ namespace px
             }
         }
 
-        explicit pixmap(byte_buffer_t buffer) noexcept
+        explicit pixmap(byte_buffer buffer) noexcept
             : pixmap{ std::move(buffer), space_type{} }
         {}
 
-        explicit pixmap(size2d_t sizes) noexcept
+        explicit pixmap(size2d sizes) noexcept
             : pixmap{ space_type{ sizes } }
         {}
 
-        pixmap(byte_buffer_t buffer, size2d_t sizes) noexcept
+        pixmap(byte_buffer buffer, size2d sizes) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes } }
         {}
 
@@ -77,15 +77,15 @@ namespace px
             : pixmap{ space_type{ x, y } }
         {}
 
-        pixmap(byte_buffer_t buffer, pxside_t x, pxside_t y) noexcept
+        pixmap(byte_buffer buffer, pxside_t x, pxside_t y) noexcept
             : pixmap{ std::move(buffer), space_type{ x, y } }
         {}
 
-        pixmap(size2d_t sizes, line_size_type line_size) noexcept
+        pixmap(size2d sizes, line_size_type line_size) noexcept
             : pixmap{ space_type{ sizes, line_size } }
         {}
 
-        pixmap(byte_buffer_t buffer, size2d_t sizes, line_size_type line_size) noexcept
+        pixmap(byte_buffer buffer, size2d sizes, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes, line_size } }
         {}
 
@@ -93,7 +93,7 @@ namespace px
             : pixmap{ space_type{ x, y, line_size } }
         {}
 
-        pixmap(byte_buffer_t buffer, pxside_t x, pxside_t y, line_size_type line_size) noexcept
+        pixmap(byte_buffer buffer, pxside_t x, pxside_t y, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ x, y, line_size } }
         {}
 
@@ -116,14 +116,14 @@ namespace px
             buffer_.swap(right.buffer_);
         }
 
-        constexpr void swap(byte_buffer_t& right) noexcept
+        constexpr void swap(byte_buffer& right) noexcept
         {
             _reject_space();
             buffer_.swap(right);
         }
 
         [[nodiscard]]
-        constexpr byte_buffer_t release_buffer() noexcept
+        constexpr byte_buffer release_buffer() noexcept
         {
             _reject_space();
             return std::move(buffer_);
@@ -221,7 +221,7 @@ namespace px
 
 
         template<class T>
-        constexpr auto store(point2d_t position, const T& image) noexcept -> decltype(view().store(position, image))
+        constexpr auto store(point2d position, const T& image) noexcept -> decltype(view().store(position, image))
         {
             return view().store(position, image);
         }
@@ -256,11 +256,11 @@ namespace px
         }
 
     private:
-        byte_buffer_t buffer_;
+        byte_buffer buffer_;
     };
 
-    using pix8map_t = pixmap<u8tint_t>;
+    using pix8map = pixmap<u8tint_t>;
 }
 
 using px::pixmap;
-using px::pix8map_t;
+using px::pix8map;

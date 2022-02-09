@@ -1,6 +1,8 @@
 #include <span>
 
+#include <core/size_type.h>
 #include <core/narrow.h>
+
 #include <file/file_io.h>
 
 namespace
@@ -30,7 +32,7 @@ namespace
     bool try_remove() noexcept
     {
         std::error_code errc{};
-        const auto result = std::filesystem::remove(file_name.c_str(), errc);
+        const auto result = std::filesystem::remove(file_name, errc);
         return result && !errc;
     }
 
@@ -87,8 +89,8 @@ namespace
 
     void test_rw() noexcept
     {
-        constexpr size_t n_blocks{ 7_uz };
-        constexpr size_t file_size = size_blocks(n_blocks);
+        constexpr auto n_blocks = 7_uz;
+        constexpr auto file_size = size_blocks(n_blocks);
         constexpr auto end_offset = narrow_cast<file::offset_t>( file_size );
 
         test_write(n_blocks, file::write_mode::truncate);
@@ -158,7 +160,7 @@ namespace
 
     void test_size() noexcept
     {
-        constexpr size_t start_blocks{ 10 };
+        constexpr auto start_blocks = 10_uz;
         test_write(start_blocks, file::write_mode::truncate);
         test_read(start_blocks);
         test_size(start_blocks);

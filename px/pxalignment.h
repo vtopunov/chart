@@ -1,14 +1,20 @@
 #pragma once
 
-#include <core/utility.h>
+#include <type_traits>
+
+#include <core/size_type.h>
 
 namespace px
 {
-    inline constexpr size_t default_alignment{ 4_uz };
-    inline constexpr size_t dynamic_alignment{ numeric_max_v<size_t> };
+    constexpr size_t default_alignment{ 4_uz };
+    constexpr size_t dynamic_alignment{ numeric_max_v<size_t> };
 
     template<size_t Alignment>
-    inline constexpr bool is_dynamic_alignment_v = (Alignment == dynamic_alignment);
+    struct is_dynamic_alignment : std::bool_constant<Alignment == dynamic_alignment>
+    {};
+
+    template<size_t Alignment>
+    constexpr bool is_dynamic_alignment_v = is_dynamic_alignment<Alignment>::value;
 
 
     template<size_t PxSize, size_t Alignment>

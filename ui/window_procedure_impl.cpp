@@ -4,9 +4,9 @@
 
 namespace ui
 {
-    LRESULT CALLBACK window_procedure(HWND handle, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
+    LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
     {
-        const window_resource window{ handle };
+        const window_resource window{ window_handle };
 
         const event e
         {

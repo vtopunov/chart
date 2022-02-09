@@ -14,21 +14,34 @@
 #include <array>
 #include <cuchar>
 
-#include <core/intrusive_list.h>
-#include <core/small_vector.h>
-#include <core/point2d.h>
+// #include <core/intrusive_list.h>
+// #include <core/small_vector.h>
+// #include <core/point2d.h>
 
-
-template<class T>
-void convert(std::basic_string_view<T> sp)
+struct ps
 {
-    D_ASSERT(sp.data());
-}
+    int x{ 1 };
+
+private:
+    int y{ 0 };
+};
 
 int main() noexcept
 {
-    std::string s{"lolo"};
-    convert(s);
+    using namespace std::string_literals;
 
-    return 0;
+    std::wstring s;
+    constexpr auto sz = sizeof(s);
+
+    char xz[500] = { 1 };
+
+    double d{ 0.0 };
+    --d;
+
+    using signed_t = std::common_type_t<signed, unsigned>;
+
+    constexpr std::make_signed_t<unsigned> i{ 0 };
+
+
+    return xz[0];
 }

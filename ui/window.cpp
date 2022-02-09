@@ -6,10 +6,20 @@ namespace ui
 {
     namespace
     {
+        void post_quit_message_once() noexcept
+        {
+            static bool first{ true };
+            if (first)
+            {
+                first = false;
+                PostQuitMessage(0);
+            }
+        }
+
         void break_event_loop() noexcept
         {
             event_processors_global().reset();
-            PostQuitMessage(0);
+            post_quit_message_once();
         }
 
         [[nodiscard]]
@@ -58,12 +68,12 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr px::rect_t make_rect_from_gdi(const RECT& rect) noexcept
+        constexpr px::rect make_rect_from_gdi(const RECT& rect) noexcept
         {
             return
             {
-                narrow2d_cast<px::point2d_t>(rect.left, rect.top),
-                narrow2d_cast<px::point2d_t>(rect.right, rect.bottom)
+                narrow2d_cast<px::point2d>(rect.left, rect.top),
+                narrow2d_cast<px::point2d>(rect.right, rect.bottom)
             };
         }
 
@@ -120,14 +130,14 @@ namespace ui
         }
     }
 
-    px::rect_t rect(window_resource window) noexcept
+    px::rect rect(window_resource window) noexcept
     {
         RECT rect{ 0, 0, 0, 0 };
         D_ASSERT_WITH_SIDE_EFFECTS(GetClientRect(window.handle, &rect));
         return make_rect_from_gdi(rect);
     }
 
-    bool rect(window_resource window, px::rect_t rc) noexcept
+    bool rect(window_resource window, px::rect rc) noexcept
     {
         return !!SetWindowPos
         (
@@ -138,16 +148,16 @@ namespace ui
         );
     }
 
-    px::size2d_t desktop_sizes() noexcept
+    px::size2d desktop_sizes() noexcept
     {
         return rect(desktop_window()).sizes();
     }
 
-    px::size2d_t display_resolution() noexcept
+    px::size2d display_resolution() noexcept
     {
         DEVMODEW dev{};
         EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &dev);
-        return narrow2d_cast<px::size2d_t>(dev.dmPelsWidth, dev.dmPelsHeight);
+        return narrow2d_cast<px::size2d>(dev.dmPelsWidth, dev.dmPelsHeight);
     }
 
     bool show(window_resource window, int cmd) noexcept
@@ -203,6 +213,10 @@ namespace ui
             }
             while (window_set.size());
         }
+        else
+        {
+            break_event_loop();
+        }
     }
 
     window_childrens childrens(window_resource window) noexcept
@@ -210,20 +224,20 @@ namespace ui
         return childrens(window_container_global(), window);
     }
 
-    window_t window_factory::create() noexcept
+    window window_factory::create() noexcept
     {
-        window_t result;
+        window result;
 
         if (!type_)
         {
-            type_ = window_type_factory{}.create();
+            type_ = type_window_factory{}.create();
         }
 
         if (type_)
         {
             const auto style = (style_.has_value()) ? *style_ : select_window_style(parent_);
 
-            result = window_t
+            result = window
             {
                 resource_construct,
                 CreateWindowExW

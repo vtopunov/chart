@@ -40,21 +40,20 @@ void test_null() noexcept
     static_assert( std::is_same_v<nullint_t, null_t<const int>> );
     static_assert( std::is_same_v<null_t<nullint_t>, nullint_t> );
     static_assert( std::is_same_v<null_t<const nullint_t>, nullint_t> );
+    
+    using nulltestnull_t = null_t<test_null>;
+    static_assert( !std::is_same_v<nulltestnull_t, std::nullptr_t> );
+    static_assert( !std::is_same_v<nulltestnull_t, null_t<int>> );
+    static_assert( std::is_same_v<nulltestnull_t, null_t<const test_null>> );
+    static_assert( std::is_same_v<null_t<nulltestnull_t>, nulltestnull_t> );
+    static_assert( std::is_same_v<null_t<const nulltestnull_t>, nulltestnull_t> );
 
-    using nulltest_t = null_t<test_null>;
-    static_assert( !std::is_same_v<nulltest_t, std::nullptr_t> );
-    static_assert( !std::is_same_v<nulltest_t, null_t<int>> );
-    static_assert( std::is_same_v<nulltest_t, null_t<const test_null>> );
-    static_assert( std::is_same_v<null_t<nulltest_t>, nulltest_t> );
-    static_assert( std::is_same_v<null_t<const nulltest_t>, nulltest_t> );
-
-    test_null null = nulltest_t{};
+    test_null null = nulltestnull_t{};
     D_ASSERT(!null.b);
     D_ASSERT(!null.i);
     D_ASSERT(!null.ptr);
 
     unique_resource<test_null, skip_op> default_unique;
-
     D_ASSERT(!default_unique.r().b);
     D_ASSERT(!default_unique.r().i);
     D_ASSERT(!default_unique.r().ptr);

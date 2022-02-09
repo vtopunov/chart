@@ -19,21 +19,16 @@ namespace
     {};
 
     template<class T>
-    inline constexpr bool is_span_v = is_span<T>::value;
+    constexpr bool is_span_v = is_span<T>::value;
 
     template<bool immutable>
     bool test_impl_impl(basic_buffer_view<immutable> b, const void* data, size_t size) noexcept
     {
-        static_assert(std::is_same_v<add_const_if_t<true, void>, const void>);
-        static_assert(std::is_same_v<add_const_if_t<true, std::byte>, const std::byte>);
-        static_assert(std::is_same_v<add_const_if_t<false, void>, void>);
-        static_assert(std::is_same_v<add_const_if_t<false, std::byte>, std::byte>);
-
         using buffer_type = basic_buffer_view<immutable>;
-        using byte_type = add_const_if_t<immutable, std::byte>;
-        using void_type = add_const_if_t<immutable, void>;
+        using byte_type = conditional_add_const_t<immutable, std::byte>;
+        using void_type = conditional_add_const_t<immutable, void>;
         using word = uint16_t;
-        using word_type = add_const_if_t<immutable, word>;
+        using word_type = conditional_add_const_t<immutable, word>;
         using void_ptr = void_type*;
         using byte_ptr = byte_type*;
         using byte_cptr = const byte_type*;
@@ -269,7 +264,7 @@ namespace
     template<class T, size_t n>
     void test_span(std::span<T, n> c) noexcept
     {
-        add_const_if_t<std::is_const_v<T>, std::span<T, n>>& ref = c;
+        conditional_add_const_t<std::is_const_v<T>, std::span<T, n>>& ref = c;
 
         test(ref);
     }

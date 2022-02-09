@@ -19,8 +19,8 @@ void test_file_mmap() noexcept
     static_assert( std::is_same_v<decltype( content_generator() ), value_type> );
 
     value_type content[1024]{};
-    constexpr size_t content_size = sizeof(content);
-    constexpr size_t number_of_tests{ 256_uz };
+    constexpr auto content_size = sizeof(content);
+    constexpr auto number_of_tests = 256_uz;
     
     for ( size_t i = 0; i < number_of_tests; ++i )
     {

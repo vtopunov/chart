@@ -34,11 +34,11 @@ namespace gl
         texture_2d = GL_TEXTURE_2D
     };
 
+
     inline void bind_texture(texture_target target, texture_resource texture) noexcept
     {
         glBindTexture(to_underlying(target), texture.d);
     }
-
 
     template<texture_target Target>
     struct specialized_texture_resource : texture_resource
@@ -51,41 +51,41 @@ namespace gl
         }
     };
 
-    using specialized_target_texture2d_texture_resource_t = specialized_texture_resource<texture_target::texture_2d>;
+    using texture2d_resource = specialized_texture_resource<texture_target::texture_2d>;
 
-    struct texture2d_resource : specialized_target_texture2d_texture_resource_t
+    struct texture2d_resources : texture2d_resource
     {
-        using base_resource_type = specialized_target_texture2d_texture_resource_t;
+        using base_resource_type = texture2d_resource;
 
         using view_type = base_resource_type;
 
         struct null_type : null_t<base_resource_type>
         {
-            constexpr operator texture2d_resource () const noexcept
+            constexpr operator texture2d_resources () const noexcept
             {
                 return { static_cast<base_resource_type>(*this), {} };
             }
         };
 
-        px::size2d_t sizes;
+        px::size2d sizes;
     };
 
-    using texture2d_t = unique_resource<texture2d_resource, texture_resource_deleter>;
+    using texture2d = unique_resource<texture2d_resources, texture_resource_deleter>;
 
     [[nodiscard]]
-    constexpr px::size2d_t sizes(const texture2d_resource& tex) noexcept
+    constexpr px::size2d sizes(const texture2d_resources& tex) noexcept
     {
         return tex.sizes;
     }
 
     [[nodiscard]]
-    constexpr pxside_t width(const texture2d_resource& tex) noexcept
+    constexpr pxside_t width(const texture2d_resources& tex) noexcept
     {
         return tex.sizes.width();
     }
 
     [[nodiscard]]
-    constexpr pxside_t height(const texture2d_resource& tex) noexcept
+    constexpr pxside_t height(const texture2d_resources& tex) noexcept
     {
         return tex.sizes.height();
     }
@@ -109,13 +109,13 @@ namespace gl
         pixel_type type;
     };
 
-    inline constexpr texture_format R8G8B8A8{ pixel_format::RGBA, pixel_type::UNSIGNED_BYTE };
-    inline constexpr texture_format R8G8B8{ pixel_format::RGB, pixel_type::UNSIGNED_BYTE };
-    inline constexpr texture_format R5G6B5{ pixel_format::RGB, pixel_type::UNSIGNED_SHORT_565 };
-    inline constexpr texture_format LUMINANCE8{ pixel_format::LUMINANCE, pixel_type::UNSIGNED_BYTE };
+    constexpr texture_format R8G8B8A8{ pixel_format::RGBA, pixel_type::UNSIGNED_BYTE };
+    constexpr texture_format R8G8B8{ pixel_format::RGB, pixel_type::UNSIGNED_BYTE };
+    constexpr texture_format R5G6B5{ pixel_format::RGB, pixel_type::UNSIGNED_SHORT_565 };
+    constexpr texture_format LUMINANCE8{ pixel_format::LUMINANCE, pixel_type::UNSIGNED_BYTE };
 
     [[nodiscard]]
-    texture2d_t create_texture2d(px::size2d_t sizes, texture_format format, const void* pixels) noexcept;
+    texture2d create_texture2d(px::size2d sizes, texture_format format, const void* pixels) noexcept;
 
     template<size_t PxSize>
     struct texpix_traits 
@@ -144,19 +144,19 @@ namespace gl
     constexpr auto texpix_format_v = texpix_traits<sizeof(T)>::format;
 
     template<class T> 
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d_t> create_texture2d(px::size2d_t sizes, const T* pixels) noexcept
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> create_texture2d(px::size2d sizes, const T* pixels) noexcept
     {
         return create_texture2d(sizes, texpix_format_v<T>, pixels);
     }
 
     template<class T>
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d_t> create_texture2d(pixspan<T> image) noexcept
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> create_texture2d(pixspan<T> image) noexcept
     {
         return create_texture2d(image.sizes(), image.data());
     }
 
     template<class T>
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d_t> create_texture2d(const pixmap<T>& image) noexcept
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> create_texture2d(const pixmap<T>& image) noexcept
     {
         return create_texture2d(pixspan{image});
     }
@@ -170,7 +170,7 @@ namespace gl
     {};
 
     template<texture_target target>
-    inline constexpr auto glsl_sampler_typeid_v = select_glsl_sampler_typeid<target>::value;
+    constexpr auto glsl_sampler_typeid_v = select_glsl_sampler_typeid<target>::value;
 
     [[nodiscard]]
     std::underlying_type_t<uniform_location> get_sampler_number(shaders_program_resource program, uniform_location location) noexcept;
@@ -220,8 +220,8 @@ namespace gl
     };
 
     using nulltexsampler_t = null_tex_sampler;
-    inline constexpr nulltexsampler_t invalidtexsampler{};
+    constexpr nulltexsampler_t invalidtexsampler{};
 
-    using texture_sampler2D_t = texture_sampler<texture_target::texture_2d>;
-    static_assert(std::is_same_v<nulltexsampler_t, null_t<texture_sampler2D_t> >);
+    using texture_sampler2D = texture_sampler<texture_target::texture_2d>;
+    static_assert(std::is_same_v<nulltexsampler_t, null_t<texture_sampler2D> >);
 }

@@ -1,8 +1,4 @@
-#include <cstdio>
-#include <cstdint>
-
 #include <core/narrow.h>
-#include <core/assert.h>
 
 void test_narrow() noexcept
 {

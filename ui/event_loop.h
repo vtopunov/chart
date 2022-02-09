@@ -36,10 +36,10 @@ namespace ui
         [[nodiscard]]
         constexpr int exit_status() const noexcept
         {
-            D_WARNING_PUSH
-                D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
-                return static_cast<int>(msg.wParam);
-            D_WARNING_POP
+            D_WARNING_PUSH;
+            D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
+            return static_cast<int>(msg.wParam);
+            D_WARNING_POP;
         }
 
         MSG msg;
@@ -97,6 +97,12 @@ namespace ui
             }
         }
 
-        return 0;
+        return EXIT_SUCCESS;
     }
+
+    inline int run_event_loop(window_resource mainwindow) noexcept
+    {
+        constexpr struct {} nop;
+        return run_event_loop(mainwindow, nop);
+    };
 }

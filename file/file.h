@@ -39,7 +39,7 @@ namespace file
     };
 
     using invalidfile_t = null_t<file_resource>;
-    inline constexpr invalidfile_t invalidfile{};
+    constexpr invalidfile_t invalidfile{};
 
     struct ro_file_resource : file_resource
     {};
@@ -82,10 +82,10 @@ namespace file
         [[nodiscard]]
         constexpr operator file_resource() const noexcept
         {
-            D_WARNING_PUSH
-                D_WARNING_DISABLE_MSVC(W_do_not_slice)
-                return static_cast<file_resource>(r());
-            D_WARNING_POP
+            D_WARNING_PUSH;
+            D_WARNING_DISABLE_MSVC(W_do_not_slice);
+            return static_cast<file_resource>(r());
+            D_WARNING_POP;
         }
     };
 
@@ -96,10 +96,10 @@ namespace file
         [[nodiscard]]
         constexpr operator file_resource() const noexcept
         {
-            D_WARNING_PUSH
-                D_WARNING_DISABLE_MSVC(W_do_not_slice)
-                return static_cast<file_resource>(r());
-            D_WARNING_POP
+            D_WARNING_PUSH;
+            D_WARNING_DISABLE_MSVC(W_do_not_slice);
+            return static_cast<file_resource>(r());
+            D_WARNING_POP;
         }
     };
 
@@ -132,13 +132,13 @@ namespace file
     };
 
     [[nodiscard]]
-    ro_file ro_open(path_string_view_t path) noexcept;
+    ro_file ro_open(path_zstring_view path) noexcept;
 
     [[nodiscard]]
-    wo_file wo_open(path_string_view_t path, write_mode mode) noexcept;
+    wo_file wo_open(path_zstring_view path, write_mode mode) noexcept;
 
     [[nodiscard]]
-    rw_file rw_open(path_string_view_t path, write_mode mode) noexcept;
+    rw_file rw_open(path_zstring_view path, write_mode mode) noexcept;
 
     [[nodiscard]]
     uint64_t size(file_resource file) noexcept;

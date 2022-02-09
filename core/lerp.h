@@ -1,8 +1,9 @@
 #pragma once
 
-#include <core/point2d.h>
 #include <core/num_range.h>
+#include <core/point2d.h>
 #include <core/polynomial.h>
+
 
 template<class From, class To> [[nodiscard]]
 constexpr decltype(auto) lerp(const num_range<From>& x, const num_range<To>& y) noexcept

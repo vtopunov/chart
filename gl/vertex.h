@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/utility.h>
+#include <core/type_traits.h>
 
 namespace gl
 {
@@ -79,20 +79,5 @@ namespace gl
     }
 
     using vertex_get_ptr_detail::get_ptr;
-
-    template <class Tuple>
-    struct vertex_size : std::integral_constant<size_t, 1_uz>
-    {};
-
-    template <class... Types>
-    struct vertex_size<vertex<Types...>> : std::integral_constant<size_t, sizeof...(Types)>
-    {};
-
-    template <class Tuple>
-    struct vertex_size<const Tuple> : vertex_size<Tuple>
-    {};
-
-    template <class T>
-    inline constexpr size_t vertex_size_v = vertex_size<T>::value;
 }
 

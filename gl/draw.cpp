@@ -62,9 +62,9 @@ namespace gl
 
     }
 
-    buffer_t create_buffer(const_buffer_view data) noexcept
+    buffer create_buffer(const_buffer_view data) noexcept
     {
-        buffer_t gl_buffer
+        buffer gl_buffer
         {
             resource_construct,
             gen_buffer()
@@ -77,8 +77,8 @@ namespace gl
         return gl_buffer;
     }
 
-    void buffer_resource_deleter::operator()(buffer_resource buffer) const noexcept
+    void buffer_resource_deleter::operator()(buffer_resource gl_buffer) const noexcept
     {
-        glDeleteBuffers(1, &buffer.d);
+        glDeleteBuffers(1, &gl_buffer.d);
     }
 }

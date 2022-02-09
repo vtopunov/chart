@@ -11,16 +11,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1E3A33E9-C894-4513-B5E9-E2913F86F0E6}</ProjectGuid>
+    <ProjectGuid>{F7B9B577-0CE8-47F6-9930-24BCC4CC7723}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>utility</RootNamespace>
+    <RootNamespace>vtest_widgets</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>vtest_widget</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
     <CharacterSet>Unicode</CharacterSet>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Label="Locals">
     <PlatformToolset>v142</PlatformToolset>
@@ -50,7 +51,8 @@
       <Optimization>Disabled</Optimization>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <ExceptionHandling>false</ExceptionHandling>
-      <DisableSpecificWarnings>28251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(SolutionDir)3rdparty\freetype2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
@@ -81,6 +83,8 @@
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
+      <AdditionalIncludeDirectories>$(SolutionDir)3rdparty\freetype2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Lib>
       <TargetMachine>MachineX64</TargetMachine>
@@ -95,27 +99,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\3rdparty\angle\src\libGLESv2.vcxproj">
-      <Project>{d5d676ed-c189-2a6b-8de3-f4ca6175550f}</Project>
+    <ProjectReference Include="..\..\egl\egl.vcxproj">
+      <Project>{c68c0dc6-5bbb-4620-9132-d734195ecaa5}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\3rdparty\libspng\libspng.vcxproj">
-      <Project>{d24003c4-41bd-48e6-ae88-c076f95b61de}</Project>
+    <ProjectReference Include="..\..\gl\gl.vcxproj">
+      <Project>{24516ac3-b08d-4a84-a63c-735a50200b28}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\ui\ui.vcxproj">
       <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\file\file.vcxproj">
-      <Project>{499e20aa-8c6a-4235-a383-4e6d4c5e6aff}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\image\image.vcxproj">
-      <Project>{730d00f2-56bf-4f42-8055-a1517b0214c4}</Project>
+    <ProjectReference Include="..\..\utility\utility.vcxproj">
+      <Project>{1e3a33e9-c894-4513-b5e9-e2913f86f0e6}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="png.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="png.h" />
-    <ClInclude Include="shaders.h" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
 </Project>

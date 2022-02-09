@@ -1,26 +1,26 @@
 #pragma once
 
-#include <core/vec.h>
+#include <core/vec2.h>
 
 #include <gl/config.h>
 
 namespace gl
 {
-    using vec2i_t = vec2<GLint>;
-    using vec2f_t = vec2<GLfloat>;
-    using vec2b_t = vec2<GLboolean>;
+    using vec2i = vec2<GLint>;
+    using vec2f = vec2<GLfloat>;
+    using vec2b = vec2<GLboolean>;
 
-    using const_span2i_t = std::span<const GLint, 2_uz>;
-    using const_span2f_t = std::span<const GLfloat, 2_uz>;
-    using const_span2b_t = std::span<const GLboolean, 2_uz>;
+    using const_span2i = std::span<const GLint, 2_uz>;
+    using const_span2f = std::span<const GLfloat, 2_uz>;
+    using const_span2b = std::span<const GLboolean, 2_uz>;
 
-    using const_span3i_t = std::span<const GLint, 3_uz>;
-    using const_span3f_t = std::span<const GLfloat, 3_uz>;
-    using const_span3b_t = std::span<const GLboolean, 3_uz>;
+    using const_span3i = std::span<const GLint, 3_uz>;
+    using const_span3f = std::span<const GLfloat, 3_uz>;
+    using const_span3b = std::span<const GLboolean, 3_uz>;
 
-    using const_span4i_t = std::span<const GLint, 4_uz>;
-    using const_span4f_t = std::span<const GLfloat, 4_uz>;
-    using const_span4b_t = std::span<const GLboolean, 4_uz>;
+    using const_span4i = std::span<const GLint, 4_uz>;
+    using const_span4f = std::span<const GLfloat, 4_uz>;
+    using const_span4b = std::span<const GLboolean, 4_uz>;
 
     enum class glsl_typeid : GLenum
     {
@@ -105,19 +105,19 @@ namespace gl
     template<>
     struct select_type_for_glsl<glsl_typeid::vec2f>
     {
-        using type = vec2f_t;
+        using type = vec2f;
     };
 
     template<>
     struct select_type_for_glsl<glsl_typeid::vec2i>
     {
-        using type = vec2i_t;
+        using type = vec2i;
     };
 
     template<>
     struct select_type_for_glsl<glsl_typeid::vec2b>
     {
-        using type = vec2b_t;
+        using type = vec2b;
     };
 
 
@@ -160,15 +160,15 @@ namespace gl
     {};
 
     template<>
-    struct select_glsl_typeid<vec2f_t> : glsl_typeid_constant<glsl_typeid::vec2f>
+    struct select_glsl_typeid<vec2f> : glsl_typeid_constant<glsl_typeid::vec2f>
     {};
 
     template<>
-    struct select_glsl_typeid<vec2i_t> : glsl_typeid_constant<glsl_typeid::vec2i>
+    struct select_glsl_typeid<vec2i> : glsl_typeid_constant<glsl_typeid::vec2i>
     {};
 
     template<>
-    struct select_glsl_typeid<vec2b_t> : glsl_typeid_constant<glsl_typeid::vec2b>
+    struct select_glsl_typeid<vec2b> : glsl_typeid_constant<glsl_typeid::vec2b>
     {};
 
 
@@ -208,7 +208,7 @@ namespace gl
     };
 
     template<glsl_typeid id>
-    inline constexpr auto glsl_tuple_size_v = glsl_tuple_size(id);
+    constexpr auto glsl_tuple_size_v = glsl_tuple_size(id);
 
     [[nodiscard]]
     constexpr glsl_typeid glsl_tuple_element_typeid(glsl_typeid id) noexcept
@@ -244,7 +244,7 @@ namespace gl
     }
 
     template<glsl_typeid id>
-    inline constexpr auto glsl_tuple_element_typeid_v = glsl_tuple_element_typeid(id);
+    constexpr auto glsl_tuple_element_typeid_v = glsl_tuple_element_typeid(id);
 
     template<glsl_typeid id>
     using glsl_tuple_element_type_t = glsl_type_t<glsl_tuple_element_typeid_v<id>>;

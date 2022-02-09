@@ -1,7 +1,7 @@
 #pragma once
 
-
 #include <core/resouce.h>
+
 #include <ui/window_fwd.h>
 #include <ui/event_fwd.h>
 
@@ -13,8 +13,7 @@ namespace ui
     };
 
     using nulleventprocessor_t = null_t<event_processor_resource>;
-
-    inline constexpr nulleventprocessor_t nulleventprocessor{};
+    constexpr nulleventprocessor_t nulleventprocessor{};
 
     static_assert(nulleventprocessor == event_processor_resource::null);
 
@@ -28,8 +27,8 @@ namespace ui
         }
     };
 
-    using event_processor_t = unique_resource<event_processor_resource, event_processor_resource_deleter>;
+    using event_processor = unique_resource<event_processor_resource, event_processor_resource_deleter>;
 
     [[nodiscard]]
-    event_processor_t create_event_processor(window_resource window, void* data, event_callback_t callback) noexcept;
+    event_processor create_event_processor(window_resource window, void* data, event_callback_t callback) noexcept;
 }

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <core/null.h>
-#include <core/os.h>
+
+#include <os/os.h>
 
 namespace ui
 {    
@@ -9,5 +10,5 @@ namespace ui
     {};
 
     using nulltimer_t = null_t<timer_resource>;
-    inline constexpr nulltimer_t nulltimer{};
+    constexpr nulltimer_t nulltimer{};
 }

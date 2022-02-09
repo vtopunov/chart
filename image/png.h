@@ -10,7 +10,7 @@ struct spng_ctx;
 
 namespace image
 {
-    using rgba32_pixmap_t = pixmap<rgba_color32_t>;
+    using pixrgba32map = pixmap<rgba_color32_t>;
 
     enum class png_errno
     {
@@ -162,7 +162,7 @@ namespace image
         png_color_type color_type() const noexcept;
 
         [[nodiscard]]
-        px::size2d_t sizes() const noexcept
+        px::size2d sizes() const noexcept
         {
             return { width(), height() };
         }
@@ -193,5 +193,5 @@ namespace image
 
     png_errno png_decode_image(png_resource png, png_format format, buffer_view out) noexcept;
 
-    png_errno png_decode_image(const_buffer_view image, rgba32_pixmap_t& out) noexcept;
+    png_errno png_decode_image(const_buffer_view image, pixrgba32map& out) noexcept;
 }

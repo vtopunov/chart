@@ -6,10 +6,10 @@ namespace px
 {
     using pxside_t = unsigned int;
 
-    using vec2_t = vec2<pxside_t>;
-    using point2d_t = point2d<pxside_t>;
-    using size2d_t = size2d<pxside_t>;
-    using rect_t = rect<pxside_t>;
+    using vec2 = ::vec2<pxside_t>;
+    using point2d = ::point2d<pxside_t>;
+    using size2d = ::size2d<pxside_t>;
+    using rect = ::rect<pxside_t>;
 
     template<class T> [[nodiscard]]
     constexpr pxside_t as_pxside(const T& value) noexcept

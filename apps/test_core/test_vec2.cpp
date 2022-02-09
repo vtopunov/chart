@@ -1,4 +1,4 @@
-#include <core/vec.h>
+#include <core/vec2.h>
 
 #include <vector>
 
@@ -22,7 +22,7 @@ namespace
     }
 }
 
-void test_vec() noexcept
+void test_vec2() noexcept
 {
     {
         constexpr vec2 v0{ 1, 1 };

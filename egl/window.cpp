@@ -88,9 +88,9 @@ namespace egl
         ui::close(w.app_wnd);
     }
 
-    window_t window_factory::create() noexcept
+    window window_factory::create() noexcept
     {
-        window_t result;
+        window result;
 
         auto& w = as_mutable(result.r());
 

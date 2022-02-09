@@ -99,7 +99,7 @@ D_WARNING_POP
         return safe_numeric_cast<png_errno>(spng_decode_image(png, out.data(), out.size(), to_underlying(format), 0));
     }
 
-    png_errno png_decode_image(const_buffer_view image, rgba32_pixmap_t& out) noexcept
+    png_errno png_decode_image(const_buffer_view image, pixrgba32map& out) noexcept
     {
         constexpr auto png_format = png_format::RGBA8;
 
@@ -144,13 +144,13 @@ D_WARNING_POP
             return png_errno::SIZE;
         }
 
-        const rgba32_pixmap_t::space_type space{ png_header.sizes() };
+        const pixrgba32map::space_type space{ png_header.sizes() };
         if (space.size_bytes() != size)
         {
             return png_errno::SIZE;
         }
 
-        out = rgba32_pixmap_t{ out.release_buffer(), space };
+        out = pixrgba32map{ out.release_buffer(), space };
 
         return png_decode_image(png, png_format, out);
     }

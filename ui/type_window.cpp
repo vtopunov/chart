@@ -1,7 +1,6 @@
-#include "window_type.h"
+#include "type_window.h"
 
 #include <charconv>
-#include <array>
 
 #include <core/narrow.h>
 
@@ -31,7 +30,7 @@ namespace ui
         return static_cast<HBRUSH>( GetStockObject(to_underlying(brush)) );
     }
 
-    void window_type_resource_deleter::operator()(window_type_resource type) const noexcept
+    void window_type_resource_deleter::operator()(type_window_resource type) const noexcept
     {
         if (type)
         {
@@ -39,7 +38,7 @@ namespace ui
         }
     }
 
-    unique_window_type_t window_type_factory::create() noexcept
+    unique_type_window type_window_factory::create() noexcept
     {
         const struct collector
         {

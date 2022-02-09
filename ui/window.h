@@ -4,12 +4,11 @@
 
 #include <core/rect.h>
 #include <core/small_vector.h>
-#include <core/zstring_view.h>
 
 #include <px/pxfwd.h>
 
 #include <ui/window_fwd.h>
-#include <ui/window_type.h>
+#include <ui/type_window.h>
 
 namespace ui
 {
@@ -17,7 +16,7 @@ namespace ui
     {
         window_resource current;
         window_resource parent;
-        shared_window_type_t type;
+        shared_type_window type;
 
         constexpr operator window_resource() const noexcept
         {
@@ -109,15 +108,15 @@ namespace ui
     void quit() noexcept;
 
     [[nodiscard]]
-    px::rect_t rect(window_resource window) noexcept;
+    px::rect rect(window_resource window) noexcept;
 
-    bool rect(window_resource window, px::rect_t rc) noexcept;
-
-    [[nodiscard]]
-    px::size2d_t desktop_sizes() noexcept;
+    bool rect(window_resource window, px::rect rc) noexcept;
 
     [[nodiscard]]
-    px::size2d_t display_resolution() noexcept;
+    px::size2d desktop_sizes() noexcept;
+
+    [[nodiscard]]
+    px::size2d display_resolution() noexcept;
 
     struct window_resource_deleter
     {
@@ -127,12 +126,12 @@ namespace ui
         }
     };
 
-    using window_t = unique_resource<window_resource, window_resource_deleter>;
+    using window = unique_resource<window_resource, window_resource_deleter>;
 
     class window_factory
     {
     public:
-        window_factory& type(unique_window_type_t type) noexcept
+        window_factory& type(unique_type_window type) noexcept
         {
             type_ = std::move(type);
             return *this;
@@ -150,7 +149,7 @@ namespace ui
             return *this;
         }
 
-        constexpr window_factory& position(px::point2d_t position) noexcept
+        constexpr window_factory& position(px::point2d position) noexcept
         {
             position_ = position;
             return *this;
@@ -158,10 +157,10 @@ namespace ui
 
         constexpr window_factory& position(pxside_t x, pxside_t y) noexcept
         {
-            return position(px::point2d_t{ x, y });
+            return position(px::point2d{ x, y });
         }
 
-        constexpr window_factory& sizes(px::size2d_t sizes) noexcept
+        constexpr window_factory& sizes(px::size2d sizes) noexcept
         {
             sizes_ = sizes;
             return *this;
@@ -169,17 +168,17 @@ namespace ui
 
         constexpr window_factory& sizes(pxside_t width, pxside_t height) noexcept
         {
-            return sizes(px::size2d_t{ width, height });
+            return sizes(px::size2d{ width, height });
         }
 
-        constexpr window_factory& rect(const px::rect_t& rc) noexcept
+        constexpr window_factory& rect(const px::rect& rc) noexcept
         {
             return position(rc.p00()).sizes(rc.sizes());
         }
 
 
         [[nodiscard]]
-        window_t create() noexcept;
+        window create() noexcept;
 
     private:
         using native_pxside_t = int;
@@ -192,11 +191,11 @@ namespace ui
         }
 
     private:
-        shared_window_type_t type_;
+        shared_type_window type_;
         std::wstring title_;
         window_resource parent_ = nullwindow;
         std::optional<DWORD> style_;
-        px::point2d_t position_{ px_usedefault, 0_px };
-        px::size2d_t sizes_{ px_usedefault, 0_px };
+        px::point2d position_{ px_usedefault, 0_px };
+        px::size2d sizes_{ px_usedefault, 0_px };
     };
 }
