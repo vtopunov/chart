@@ -1,12 +1,9 @@
-﻿#include <core/color.h>
-
-#include <os/debug.h>
+﻿#include <debug/debug.h>
 
 #include <px/pixalgorithm.h>
 
-#include <ui/event_loop.h>
+#include <egl/event_loop.h>
 
-#include <egl/window.h>
 #include <utility/shaders_library.h>
 
 namespace
@@ -187,7 +184,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
         return EXIT_FAILURE;
     }
 
-    shaders_library<vert::positioned_texture, frag::gray_texture_mix_color>  shaders;
+    shaders_library<vert::positioned_texture, frag::inverted_texture>  shaders;
     if (!shaders.build())
     {
         e_debug("build shaders program error");
@@ -198,7 +195,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
     shaders.vert.u_position.store(point2d{ 30_px, 50_px });
     shaders.vert.u_size.store(sizes(texture));
     shaders.vert.u_viewport.store(sizes(egl));
-    shaders.frag.u_color.store(gl::colors::black_f);
     shaders.frag.s_texture.store(texture);
     
     if (const auto lock = begin_painting(egl))
@@ -207,9 +203,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
         shaders.vert.a_frame.draw();
     }
 
-    ui::show(egl, ui::show_command::show_maximazed);
+    show(egl, ui::show_command::show_maximazed);
 
-    return ui::run_event_loop(egl);
+    return run_event_loop(egl);
 }
 
 

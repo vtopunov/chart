@@ -31,9 +31,32 @@ namespace font
             return narrow_cast<Out>(discard_fraction());
         }
 
+        template<class Out>
+        [[nodiscard]] constexpr Out narrow_to_ceil() const noexcept
+        {
+            if constexpr (std::is_unsigned_v<Out>)
+            {
+                return narrow_cast<Out>(discard_fraction() + !!fraction());
+            }
+            else
+            {
+                static_assert(std::is_integral_v<Out>);
+                return narrow_cast<Out>(discard_fraction() + is_positive(value) && !!fraction());
+            }
+        }
+
+        [[nodiscard]]
         constexpr value_type discard_fraction() const noexcept
         {
             return value >> fract_bits;
+        }
+
+        [[nodiscard]]
+        constexpr value_type fraction() const noexcept
+        {
+            constexpr value_type one{ 1 };
+            constexpr value_type mask{ (one << fract_bits) - one };
+            return value & mask;
         }
 
         constexpr fixed& operator += (const fixed& right) noexcept

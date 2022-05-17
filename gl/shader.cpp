@@ -2,7 +2,7 @@
 
 #include <core/small_vector.h>
 
-#include <os/debug.h>
+#include <debug/debug.h>
 
 
 namespace gl
@@ -115,7 +115,7 @@ namespace gl
         constexpr auto location_detail_getter_v = location_traits<LocationType>::detail_getter;
 
         template <class LocationType>
-        bool test_location
+        [[nodiscard]] bool test_location
         (
             shaders_program_resource program,
             LocationType location,

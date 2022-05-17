@@ -162,8 +162,6 @@ namespace px
             return *this;
         }
 
-
-
         [[nodiscard]]
         constexpr pointer data() const noexcept
         {
@@ -226,13 +224,16 @@ namespace px
         };
 
         {
+            const auto in_line_size = in.line_size();
+            auto p_in = in.data();
+            const auto in_end = in.data() + crop_sizes.height() * in_line_size;
+
             const auto out_line_size = out.line_size();
             auto p_out = out.data() + y * out_line_size + x;
 
-            for (const auto p_in : in)
+            for (; p_in != in_end; p_in += in_line_size, p_out += out_line_size)
             {
                 std::copy_n(p_in, crop_sizes.width(), p_out);
-                p_out += out_line_size;
             }
         }
 

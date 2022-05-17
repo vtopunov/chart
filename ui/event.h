@@ -5,6 +5,7 @@
 #include <px/pxfwd.h>
 
 #include <ui/event_fwd.h>
+#include <ui/window_fwd.h>
 
 namespace ui
 {
@@ -18,6 +19,8 @@ namespace ui
         paint = WM_PAINT,
         close = WM_CLOSE,
         mouse_move = WM_MOUSEMOVE,
+        mouse_lbutton_down = WM_LBUTTONDOWN,
+        mouse_lbutton_up = WM_LBUTTONUP,
         mouse_lbutton_double_click = WM_LBUTTONDBLCLK,
         user = WM_USER
     };
@@ -77,13 +80,13 @@ namespace ui
         [[nodiscard]]
         constexpr pxside_t x_long_parameter() const noexcept
         {
-            return as_pxside( GET_X_LPARAM(long_parameter()) );
+            return as_pxside(GET_X_LPARAM(long_parameter()));
         }
 
         [[nodiscard]]
         constexpr pxside_t y_long_parameter() const noexcept
         {
-            return as_pxside( GET_Y_LPARAM(long_parameter()) );
+            return as_pxside(GET_Y_LPARAM(long_parameter()));
         }
 
         [[nodiscard]]
@@ -155,8 +158,7 @@ namespace ui
         }
     };
 
-    template<>
-    class specialized_event<event_style::mouse_move> : public event
+    class mouse_event : public event
     {
     public:
         [[nodiscard]]
@@ -180,9 +182,21 @@ namespace ui
         [[nodiscard]]
         constexpr mouse_keys keys() const noexcept
         {
-            return { safe_numeric_cast<mouse_keys::e_mouse_keys>( word_parameter() ) };
+            return { safe_numeric_cast<mouse_keys::e_mouse_keys>(word_parameter()) };
         }
     };
+
+    template<>
+    class specialized_event<event_style::mouse_lbutton_down> : public mouse_event
+    {};
+
+    template<>
+    class specialized_event<event_style::mouse_lbutton_up> : public mouse_event
+    {};
+
+    template<>
+    class specialized_event<event_style::mouse_move> : public mouse_event
+    {};
 
     template<>
     class specialized_event<event_style::size> : public event
@@ -211,4 +225,6 @@ namespace ui
     using paint_event = specialized_event<event_style::paint>;
     using close_event = specialized_event<event_style::close>;
     using mouse_move_event = specialized_event<event_style::mouse_move>;
+    using mouse_lbutton_down_event = specialized_event<event_style::mouse_lbutton_down>;
+    using mouse_lbutton_up_event = specialized_event<event_style::mouse_lbutton_up>;
 }

@@ -2,8 +2,8 @@
 
 #include <core/resouce.h>
 
-#include <ui/window_fwd.h>
 #include <ui/event_fwd.h>
+#include <ui/window_fwd.h>
 
 namespace ui
 {

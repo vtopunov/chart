@@ -1,7 +1,5 @@
 #include "type_window.h"
 
-#include <charconv>
-
 #include <core/narrow.h>
 
 #include <ui/window.h>
@@ -13,10 +11,37 @@ namespace ui
     namespace
     {
         [[nodiscard]]
-        uint32_t generate_unique_ui32() noexcept
+        constexpr LPCWSTR MAKEINTATOMW(ATOM atom) noexcept
         {
-            static uint32_t id{ 0u };
+#pragma push_macro("LPTSTR")
+#undef LPTSTR
+#define LPTSTR LPCWSTR
+            static_assert(std::is_same_v<decltype(MAKEINTATOM(atom)), LPCWSTR>);
+            return MAKEINTATOM(atom);
+#pragma pop_macro("LPTSTR")
+        }
+
+        [[nodiscard]]
+        constexpr LPCWSTR idc_arrow_w() noexcept
+        {
+#pragma push_macro("MAKEINTRESOURCE")
+#undef MAKEINTRESOURCE
+#define MAKEINTRESOURCE MAKEINTRESOURCEW
+            return IDC_ARROW;
+#pragma pop_macro("MAKEINTRESOURCE")
+        }
+
+        [[nodiscard]]
+        uint16_t generate_unique_ui16() noexcept
+        {
+            static uint16_t id{ 0u };
             return ++id;
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr bool is_null_or_empty(const T* string) noexcept
+        {
+            return !string || !*string;
         }
     }
 
@@ -27,7 +52,7 @@ namespace ui
 
     HBRUSH stock(stock_brush brush) noexcept
     {
-        return static_cast<HBRUSH>( GetStockObject(to_underlying(brush)) );
+        return static_cast<HBRUSH>(GetStockObject(to_underlying(brush)));
     }
 
     void window_type_resource_deleter::operator()(type_window_resource type) const noexcept
@@ -38,60 +63,42 @@ namespace ui
         }
     }
 
-    unique_type_window type_window_factory::create() noexcept
+    unique_type_window type_window_factory::create(wzstring_view name) noexcept
     {
-        const struct collector
-        {
-            WNDCLASSEXW& data_;
-
-            constexpr explicit collector(WNDCLASSEXW& data) noexcept
-               : data_{ data }
-            {}
-
-            D_DISABLE_COPY_MOVE(collector);
-
-            constexpr ~collector() noexcept
-            {
-                data_.lpszClassName = nullptr;
-            }
-        } collect{ data_ };
-
         data_.cbSize = sizeof(WNDCLASSEXW);
+        data_.lpszClassName = name.c_str();
 
-        if ( !data_.lpszClassName )
+        constexpr auto n_unique_name = 5_uz;
+        WCHAR unique_hexname[n_unique_name];
+        if (is_null_or_empty(data_.lpszClassName))
         {
+            auto unique_ui16 = generate_unique_ui16();
+
+            auto pname = unique_hexname + (n_unique_name - 1_uz);
+            *pname = L'\0';
+
+            do
             {
-                char name8bit[sizeof(uint32_t)];
+                constexpr char hexchars[] = "0123456789abcdef";
+                *--pname = hexchars[unique_ui16 & 0xf];;
+            } while (unique_ui16 >>= 4);
 
-                const auto result = std::to_chars
-                (
-                    std::begin(name8bit),
-                    std::end(name8bit),
-                    generate_unique_ui32(),
-                    16
-                );
-
-                D_ASSERT( result.ec == std::errc{} );
-
-                name_.assign(std::data(name8bit), result.ptr);
-            }
-
-            data_.lpszClassName = name_.c_str();
+            data_.lpszClassName = pname;
         }
 
-        if ( !data_.hInstance )
+        if (!data_.hInstance)
         {
             data_.hInstance = GetModuleHandleW(nullptr);
         }
 
-        if ( !data_.lpfnWndProc )
+        if (!data_.lpfnWndProc)
         {
             data_.lpfnWndProc = window_procedure;
         }
 
-        if ( !data_.hCursor )
+        if (!data_.hCursor)
         {
-            data_.hCursor = LoadCursorW(nullptr, IDC_ARROWW);
+            data_.hCursor = LoadCursorW(nullptr, idc_arrow_w());
         }
 
         if (!data_.hbrBackground)

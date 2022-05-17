@@ -1,12 +1,10 @@
-#include <core/color.h>
 #include <core/lerp.h>
 
-#include <os/debug.h>
+#include <debug/debug.h>
 
-#include <ui/event_loop.h>
 #include <ui/timer.h>
 #include <gl/draw.h>
-#include <egl/window.h>
+#include <egl/event_loop.h>
 
 using namespace std::chrono_literals;
 using namespace std::chrono;
@@ -100,19 +98,25 @@ namespace
     {
         egl::window egl;
 
-        duration_t anima_time{duration_t::zero()};
-
         ui::timer anima_wakeup_timer;
 
-        void draw() const noexcept
+        void draw(duration_t now) const noexcept
         {
             if (const auto lock = begin_painting(egl))
             {
-                draw_figure(anima_time);
+                draw_figure(now);
             }
         }
 
-        bool operator () (ui::peek_event)  noexcept
+        void operator () (ui::timer_event e)  noexcept
+        {
+            if (e.is(anima_wakeup_timer))
+            {
+                anima_wakeup_timer.reset();
+            }
+        }
+
+        bool operator () (ui::idle_event)  noexcept
         {
             constexpr auto period = anima_working_time + anima_paused_time;
 
@@ -126,8 +130,7 @@ namespace
 
             if (is_anima)
             {
-                anima_wakeup_timer.reset();
-                anima_time = duration_now;
+                draw(duration_now);
             }
             else
             {
@@ -136,17 +139,11 @@ namespace
                     const auto anima_wakeup_time = period - duration_now;
                     anima_wakeup_timer = ui::create_timer(anima_wakeup_time);
                     D_ASSERT(anima_wakeup_timer);
-
-                    anima_time = duration_t::zero();
+                    draw(anima_working_time);
                 }
             }
 
             return is_anima;
-        }
-
-        void operator () (ui::idle_event) noexcept
-        {
-            draw();
         }
     };
 }
@@ -176,8 +173,8 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
         return EXIT_FAILURE;
     }
 
-    ui::show(processor.egl, command_show);
+    show(processor.egl, command_show);
 
-    return ui::run_event_loop(processor.egl, processor);
+    return run_event_loop(processor.egl, processor);
 }
 

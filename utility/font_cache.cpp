@@ -1,8 +1,10 @@
 #include "font_cache.h"
 
+#include <filesystem>
+
 #include <utility/cache_storage.h>
 
-#include <os/debug.h>
+#include <debug/debug.h>
 
 #include <file/file_mmap.h>
 
@@ -10,6 +12,47 @@ namespace font_cache
 {
     namespace
     {
+        std::filesystem::path& directory() noexcept
+        {
+            static std::filesystem::path path{};
+            return path;
+        }
+
+        file::file_mmap cd_and_mmap(file::path_zstring_view path) noexcept
+        {
+            struct currnet_directory_restorer
+            {
+                std::filesystem::path path{};
+
+                ~currnet_directory_restorer() noexcept
+                {
+                    if (!path.empty())
+                    {
+                        std::error_code errc{};
+                        std::filesystem::current_path(path, errc);
+                        D_ASSERT(!errc);
+                    }
+                }
+            } saved_cd;
+
+            if (!directory().empty())
+            {
+                std::error_code errc{};
+                auto cd = std::filesystem::current_path(errc);
+                D_ASSERT(!errc);
+
+                if (cd != directory())
+                {
+                    saved_cd.path = std::move(cd);
+
+                    std::filesystem::current_path(directory(), errc);
+                    D_ASSERT(!errc);
+                }
+            }
+
+            return file::mmap(path);
+        }
+
         struct mmap_item
         {
             file::path_string name;
@@ -101,6 +144,21 @@ namespace font_cache
         }
     }
     
+    void set_directory(file::path path) noexcept
+    {
+        [[maybe_unused]] std::error_code errc{};
+
+        if (!path.is_absolute())
+        {
+            path = std::filesystem::absolute(path, errc);
+            D_ASSERT(!errc); 
+        }
+
+        D_ASSERT(std::filesystem::is_directory(path, errc));
+
+        directory() = std::move(path);
+    }
+
     font_cache::face load_font(file::path_string_view name, const px::pxside_t size) noexcept
     {
         auto& mmaps = global_mmaps_cache();
@@ -145,12 +203,14 @@ namespace font_cache
             else
             {
                 file_name = name;
-                file_mmap = file::mmap(file_name);
+
+                file_mmap = cd_and_mmap(file_name);
                 if (!file_mmap)
                 {
                     e_debug(_PATH("can't open font file: {}"), file_name);
                     return {};
                 }
+
                 font_storage = file_mmap;
             }
 

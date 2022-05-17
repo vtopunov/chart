@@ -1,11 +1,17 @@
 #pragma once
 
 #include <core/buffer.h>
+#include <core/buffer_view.h>
 
 #include <px/pixspan.h>
 
 namespace px
 {
+    struct pixmap_construct_t
+    {};
+
+    constexpr pixmap_construct_t pixmap_construct{};
+
     template<class T, size_t Alignment = default_alignment>
     class pixmap : public pixspace<sizeof(T), Alignment>
     {
@@ -28,8 +34,15 @@ namespace px
         
         constexpr pixmap(const pixmap&) noexcept = delete;
 
+        constexpr pixmap(pixmap_construct_t, buffer_t& buffer, const space_type& space) noexcept
+            : space_type{ space }
+            , buffer_{ std::move(buffer) }
+        {
+            D_ASSERT(space.size_bytes() <= buffer_.size());
+        }
+
         constexpr pixmap(pixmap&& right) noexcept 
-            : space_type{ std::exchange(right._ref_space(), {}) }
+            : space_type{ std::exchange(right._space_ref(), {}) }
             , buffer_{ std::move(right.buffer_) }
         {}
 
@@ -39,7 +52,7 @@ namespace px
         {
             if (buffer_)
             {
-                _zero_memory();
+                zero_memory(*this);
             }
             else
             {
@@ -47,13 +60,13 @@ namespace px
             }
         }
 
-        pixmap(byte_buffer buffer, const space_type& space) noexcept
+        pixmap(buffer_t buffer, const space_type& space) noexcept
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
             if (buffer_.try_resize(space.size_bytes()))
             {
-                _zero_memory();
+                zero_memory(*this);
             }
             else
             {
@@ -61,7 +74,7 @@ namespace px
             }
         }
 
-        explicit pixmap(byte_buffer buffer) noexcept
+        explicit pixmap(buffer_t buffer) noexcept
             : pixmap{ std::move(buffer), space_type{} }
         {}
 
@@ -69,7 +82,7 @@ namespace px
             : pixmap{ space_type{ sizes } }
         {}
 
-        pixmap(byte_buffer buffer, size2d sizes) noexcept
+        pixmap(buffer_t buffer, size2d sizes) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes } }
         {}
 
@@ -77,7 +90,7 @@ namespace px
             : pixmap{ space_type{ x, y } }
         {}
 
-        pixmap(byte_buffer buffer, pxside_t x, pxside_t y) noexcept
+        pixmap(buffer_t buffer, pxside_t x, pxside_t y) noexcept
             : pixmap{ std::move(buffer), space_type{ x, y } }
         {}
 
@@ -85,7 +98,7 @@ namespace px
             : pixmap{ space_type{ sizes, line_size } }
         {}
 
-        pixmap(byte_buffer buffer, size2d sizes, line_size_type line_size) noexcept
+        pixmap(buffer_t buffer, size2d sizes, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes, line_size } }
         {}
 
@@ -93,7 +106,7 @@ namespace px
             : pixmap{ space_type{ x, y, line_size } }
         {}
 
-        pixmap(byte_buffer buffer, pxside_t x, pxside_t y, line_size_type line_size) noexcept
+        pixmap(buffer_t buffer, pxside_t x, pxside_t y, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ x, y, line_size } }
         {}
 
@@ -112,18 +125,18 @@ namespace px
 
         constexpr void swap(pixmap& right) noexcept
         {
-            std::swap(_ref_space(), right._ref_space());
+            std::swap(_space_ref(), right._space_ref());
             buffer_.swap(right.buffer_);
         }
 
-        constexpr void swap(byte_buffer& right) noexcept
+        constexpr void swap(buffer_t& right) noexcept
         {
             _reject_space();
             buffer_.swap(right);
         }
 
         [[nodiscard]]
-        constexpr byte_buffer release_buffer() noexcept
+        constexpr buffer_t release_buffer() noexcept
         {
             _reject_space();
             return std::move(buffer_);
@@ -132,7 +145,7 @@ namespace px
         [[nodiscard]]
         constexpr pointer data() noexcept
         {
-            return static_cast<pointer>(buffer_.void_data());
+            return buffer_.as_ptr<pixel_type>();
         }
 
         [[nodiscard]]
@@ -144,7 +157,7 @@ namespace px
         [[nodiscard]]
         constexpr const_pointer cdata() const noexcept
         {
-            return static_cast<const_pointer>(buffer_.cvoid_data());
+            return buffer_.as_ptr<pixel_type>();
         }
 
         [[nodiscard]]
@@ -239,24 +252,19 @@ namespace px
         }
 
     private:
-        void _zero_memory() noexcept
-        {
-            memset(buffer_.data(), 0, space_type::size_bytes());
-        }
-
         [[nodiscard]]
-        constexpr space_type& _ref_space() noexcept
+        constexpr space_type& _space_ref() noexcept
         {
             return *this;
         }
 
         constexpr void _reject_space() noexcept
         {
-            _ref_space() = {};
+            _space_ref() = {};
         }
 
     private:
-        byte_buffer buffer_;
+        buffer_t buffer_;
     };
 
     using pix8map = pixmap<u8tint_t>;

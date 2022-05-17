@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <span>
 
 #include <core/utility.h>
 #include <core/narrow.h>
@@ -574,7 +575,7 @@ private:
 
             D_DISABLE_COPY_MOVE(collector);
 
-            void uninitialized_move_to_static() const noexcept
+            void uninitialized_move_to_static() noexcept
             {
                 D_ASSERT(size_ <= static_size);
                 static_assert(std::is_same_v<decltype(data_.data()), pointer>);
@@ -589,11 +590,11 @@ private:
 
         private:
             small_vector& store_;
-            const buffer_type data_;
-            const size_type size_;
+            buffer_type data_;
+            size_type size_;
         };
 
-        const collector temp{ *this };
+        collector temp{ *this };
         temp.uninitialized_move_to_static();
     }
 

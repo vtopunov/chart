@@ -1,28 +1,13 @@
 #pragma once
 
-#include <core/buffer_view.h>
+#include <utility>
+
+#include <core/warnings.h>
+#include <core/size_type.h>
 
 
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_avoid_malloc_and_free)
-
-template<class T> [[nodiscard]]
-T* typed_memory_allocation(size_t size) noexcept
-{
-    constexpr size_t type_size = sizeof(T);
-    constexpr size_t overflow = numeric_max_v<size_t> / type_size;
-
-    T* result{ nullptr };
-
-    if (size <= overflow)
-    {
-        using std::malloc;
-
-        result = static_cast<T*>(malloc(type_size * size));
-    }
-
-    return result;
-}
 
 struct buffer_construct_t
 {};
@@ -34,51 +19,34 @@ struct buffer_attach_construct_t
 
 constexpr buffer_attach_construct_t buffer_attach_construct{};
 
-template<class T>
-class buffer
+class buffer_void
 {
 public:
-    using size_type = size_t;
-    using value_type = T;
-    using pointer = value_type*;
-    using void_pointer = copy_const_t<value_type, void>*;
-    using const_pointer = const value_type*;
-    using reference = value_type&;
-    using const_reference = const value_type&;
-    using iterator = pointer;
-    using const_iterator = const_pointer;
-    using buffer_view_type = basic_buffer_view<std::is_const_v<T>>;
+    constexpr buffer_void() noexcept = default;
 
-    constexpr buffer() noexcept = default;
-
-    constexpr buffer(buffer&& right) noexcept
-        : data_{ std::exchange(right.data_, nullptr) }
-        , size_{ std::exchange(right.size_, 0_uz) }
-    {}
-
-    constexpr buffer(buffer_attach_construct_t, pointer mem, size_t size) noexcept
+    constexpr buffer_void(buffer_attach_construct_t, void* mem, size_t count) noexcept
         : data_{ mem }
-        , size_{ (mem) ? size : 0_uz }
+        , count_{ (mem) ? count : 0_uz }
     {}
 
-    buffer(buffer_construct_t, size_t size) noexcept
-        : buffer{ buffer_attach_construct, typed_memory_allocation<T>(size), size }
+    constexpr buffer_void(buffer_void&& right) noexcept
+        : data_{ std::exchange(right.data_, nullptr) }
+        , count_{ std::exchange(right.count_, 0_uz) }
     {}
 
-    buffer(const buffer&) noexcept = delete;
+    buffer_void(const buffer_void&) noexcept = delete;
 
-    buffer& operator = (const buffer&) noexcept = delete;
+    buffer_void& operator = (const buffer_void&) noexcept = delete;
 
-    constexpr buffer& operator = (buffer&& right) noexcept
+    constexpr buffer_void& operator = (buffer_void&& right) noexcept
     {
         swap(right);
         return *this;
     }
 
-    ~buffer() noexcept
+    ~buffer_void() noexcept
     {
         using std::free;
-
         free(data_);
     }
 
@@ -88,34 +56,16 @@ public:
         return !!data_;
     }
 
-    constexpr void swap(buffer& right) noexcept
+    constexpr void swap(buffer_void& right) noexcept
     {
         std::swap(data_, right.data_);
-        std::swap(size_, right.size_);
+        std::swap(count_, right.count_);
     }
 
     void reset() noexcept
     {
         [[maybe_unused]]
-        const buffer temp{ std::move(*this) };
-    }
-
-    [[nodiscard]]
-    constexpr size_type size() const noexcept
-    {
-        return size_;
-    }
-
-    [[nodiscard]]
-    constexpr pointer data() const noexcept
-    {
-        return data_;
-    }
-
-    [[nodiscard]]
-    constexpr void_pointer void_data() const noexcept
-    {
-        return data_;
+        const buffer_void temp{ std::move(*this) };
     }
 
     [[nodiscard]]
@@ -125,21 +75,177 @@ public:
     }
 
     [[nodiscard]]
-    constexpr buffer_view_type as_void_view() const noexcept
+    constexpr const void* void_data() const noexcept
     {
-        return *this;
+        return cvoid_data();
     }
 
     [[nodiscard]]
-    constexpr const_buffer_view as_cvoid_view() const noexcept
+    constexpr void* void_data() noexcept
     {
-        return *this;
+        return data_;
+    }
+
+protected:
+    [[nodiscard]]
+    constexpr size_t _count() const noexcept
+    {
+        return count_;
+    }
+
+private:
+    void* data_{ nullptr };
+    size_t count_{ 0_uz };
+};
+
+template<size_t ElementSize>
+class buffer_void_collection : public buffer_void
+{
+    using base_type = buffer_void;
+
+public:
+    static constexpr auto element_size = ElementSize;
+
+    constexpr buffer_void_collection() noexcept = default;
+
+    buffer_void_collection(const buffer_void_collection&) noexcept = delete;
+
+    buffer_void_collection& operator = (const buffer_void_collection&) noexcept = delete;
+
+    constexpr buffer_void_collection(buffer_void_collection&& right) noexcept = default;
+
+    constexpr buffer_void_collection& operator = (buffer_void_collection&& right) noexcept = default;
+
+    constexpr buffer_void_collection(buffer_attach_construct_t, const void* mem, size_t count) noexcept
+        : base_type{ buffer_attach_construct, mem, count }
+    {}
+
+    template<class T>
+    constexpr buffer_void_collection(buffer_attach_construct_t, const T* mem, size_t count) noexcept
+        : base_type{ buffer_attach_construct, mem, count }
+    {
+        static_assert(element_size == sizeof(T));
+    }
+
+    buffer_void_collection(buffer_construct_t, size_t count) noexcept
+        : base_type{ buffer_attach_construct, _alloc(count), count }
+    {}
+
+    template<class T>
+    [[nodiscard]] constexpr const T* as_ptr() const noexcept
+    {
+        static_assert(_is_compatible_element_size(sizeof(T)));
+        return static_cast<const T*>(cvoid_data());
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr T* as_ptr() noexcept
+    {
+        static_assert(_is_compatible_element_size(sizeof(T)));
+        return static_cast<T*>(void_data());
+    }
+
+    [[nodiscard]] constexpr size_t size_bytes() const noexcept
+    {
+        return size_mul<element_size>(_count());
+    }
+
+    [[nodiscard]]
+    bool try_resize(size_t new_count) noexcept
+    {
+        if (_count() < new_count)
+        {
+            buffer_void_collection new_buffer{ buffer_construct, new_count };
+            if (!new_buffer)
+            {
+                return false;
+            }
+
+            swap(new_buffer);
+        }
+
+        return true;
+    }
+
+private:
+    [[nodiscard]]
+    static constexpr bool _is_compatible_element_size(size_t testing_size) noexcept
+    {
+        return (testing_size >= element_size) && !(testing_size % element_size);
+    }
+
+    static void* _alloc(size_t size) noexcept
+    {
+        constexpr size_t overflow = numeric_max_v<size_t> / element_size;
+
+        void* result{ nullptr };
+
+        if (size <= overflow)
+        {
+            using std::malloc;
+
+            result = malloc(element_size * size);
+        }
+
+        return result;
+    }
+};
+
+template<class T>
+class buffer : public buffer_void_collection<sizeof(T)>
+{
+    using base_type = buffer_void_collection<sizeof(T)>;
+
+public:
+    using size_type = size_t;
+    using value_type = T;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+
+    constexpr buffer() noexcept = default;
+
+    buffer(const buffer&) noexcept = delete;
+
+    buffer& operator = (const buffer&) noexcept = delete;
+
+    constexpr buffer(buffer&& right) noexcept = default;
+
+    constexpr buffer& operator = (buffer&& right) noexcept = default;
+
+    constexpr buffer(buffer_attach_construct_t, pointer mem, size_t size) noexcept
+        : base_type{ buffer_attach_construct, mem, size }
+    {}
+
+    buffer(buffer_construct_t, size_t size) noexcept
+        : base_type{ buffer_construct, size }
+    {}
+
+    [[nodiscard]]
+    constexpr size_type size() const noexcept
+    {
+        return buffer_void::_count();
+    }
+
+    [[nodiscard]]
+    constexpr const_pointer data() const noexcept
+    {
+        return static_cast<const_pointer>(buffer_void::cvoid_data());
+    }
+
+    [[nodiscard]]
+    constexpr pointer data() noexcept
+    {
+        return static_cast<pointer>(buffer_void::void_data());
     }
 
     [[nodiscard]]
     constexpr const_iterator cbegin() const noexcept
     {
-        return data_;
+        return data();
     }
 
     [[nodiscard]]
@@ -163,7 +269,7 @@ public:
     [[nodiscard]]
     constexpr iterator begin() noexcept
     {
-        return data_;
+        return data();
     }
 
     [[nodiscard]]
@@ -175,7 +281,7 @@ public:
     [[nodiscard]]
     constexpr const_reference cfront() const noexcept
     {
-        return *data_;
+        return *data();
     }
 
     [[nodiscard]]
@@ -223,7 +329,7 @@ public:
     [[nodiscard]]
     constexpr const_reference cvalue(size_type index) const noexcept
     {
-        return data_[index];
+        return data()[index];
     }
 
     [[nodiscard]]
@@ -238,36 +344,15 @@ public:
         return const_cast<reference>(cvalue(index));
     }
 
-    [[nodiscard]]
-    bool try_resize(size_t size) noexcept
-    {
-        if (size_ < size)
-        {
-            buffer<T> new_buffer{ buffer_construct, size };
-            if (!new_buffer)
-            {
-                return false;
-            }
-
-            swap(new_buffer);
-        }
-
-        return true;
-    }
-
 private:
     [[nodiscard]]
     constexpr const_pointer _end() const noexcept
     {
-        return data_ + size_;
+        return data() + size();
     }
-
-private:
-    pointer data_{ nullptr };
-    size_type size_{ 0_uz };
 };
 
-using byte_buffer = buffer<std::byte>;
-static_assert(1_uz == sizeof(byte_buffer::value_type));
+using buffer_t = buffer<std::byte>;
+static_assert(1_uz == sizeof(buffer_t::value_type));
 
 D_WARNING_POP

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <core/zstring_view.h>
 
 #include <core/resouce.h>
 
@@ -61,13 +61,6 @@ namespace ui
             return *this;
         }
 
-        type_window_factory& name(std::wstring name) noexcept
-        {
-            name_ = std::move(name);
-            data_.lpszClassName = name_.c_str();
-            return *this;
-        }
-
         constexpr type_window_factory& module_instance(HMODULE instance) noexcept
         {
             data_.hInstance = instance;
@@ -80,11 +73,10 @@ namespace ui
             return *this;
         }
 
-        [[nodiscard]]
-        unique_type_window create() noexcept;
+        [[nodiscard]] 
+        unique_type_window create(wzstring_view name = nullptr) noexcept;
 
     private:
         WNDCLASSEXW data_{};
-        std::wstring name_;
     };
 }

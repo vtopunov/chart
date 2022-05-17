@@ -14,6 +14,9 @@
     <ProjectReference Include="..\3rdparty\freetype2\freetype2.vcxproj">
       <Project>{78b079bd-9fc7-4b9e-b4a6-96da0f00248b}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\debug\debug.vcxproj">
+      <Project>{fc7a4ffb-fa58-4f42-a821-a1967b253843}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fixed.h" />

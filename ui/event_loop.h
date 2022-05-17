@@ -70,7 +70,7 @@ namespace ui
 
         for (native_event msg{};;)
         {
-            if (call_event(processor_ptr, peek_event{}))
+            if (call_event(processor_ptr, idle_event{}))
             {
                 while (msg.try_receive())
                 {
@@ -81,8 +81,6 @@ namespace ui
                         return msg.exit_status();
                     }
                 }
-
-                call_event(processor_ptr, idle_event{});
             }
             else
             {

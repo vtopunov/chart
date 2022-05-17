@@ -62,6 +62,13 @@ namespace egl
 
             D_WARNING_POP
         };
+
+        void gl_enable_transparent() noexcept
+        {
+            glEnable(GL_BLEND);
+            glBlendColor(1.0f, 1.0f, 1.0f, 1.0f);
+            glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        }
     }
 
     void window_resources_collector::operator()(const window_resources& w) const noexcept
@@ -115,22 +122,22 @@ namespace egl
 
         if (w.renderer_wnd)
         {
-            D_WARNING_PUSH
-                D_WARNING_DISABLE_MSVC(W_do_not_use_reinterpret_cast)
+            D_WARNING_PUSH;
+            D_WARNING_DISABLE_MSVC(W_do_not_use_reinterpret_cast);
 
-                if (const auto eglGetPlatformDisplayEXT
-                    = reinterpret_cast<PFNEGLGETPLATFORMDISPLAYEXTPROC>(eglGetProcAddress("eglGetPlatformDisplayEXT")))
+            if (const auto eglGetPlatformDisplayEXT
+                = reinterpret_cast<PFNEGLGETPLATFORMDISPLAYEXTPROC>(eglGetProcAddress("eglGetPlatformDisplayEXT")))
+            {
+                constexpr EGLint display_attributes[] =
                 {
-                    constexpr EGLint display_attributes[] =
-                    {
-                        EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_DEFAULT_ANGLE,
-                        egl_none
-                    };
+                    EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_DEFAULT_ANGLE,
+                    egl_none
+                };
 
-                    w.display = static_cast<display_descriptor_t>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
-                }
+                w.display = static_cast<display_descriptor_t>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
+            }
 
-            D_WARNING_POP
+            D_WARNING_POP;
         }
 
 
@@ -213,6 +220,8 @@ namespace egl
                 result.reset();
             }
         }
+
+        gl_enable_transparent();
 
         return result;
     }

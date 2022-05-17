@@ -1,6 +1,6 @@
 #include "font.h"
 
-#include <os/debug.h>
+#include <debug/debug.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

@@ -2,44 +2,45 @@
 
 #include <iterator>
 
-#include <core/member_detector.h>
 #include <core/utility.h>
 
-template<class C>
-using decl_data_pointer_t = decltype(as_pointer(std::data(std::declval<C&>())));
-
-template<class T>
-using decl_value_type_t = typename T::value_type;
-
-template<class C>
-struct decl_value_data_pointer
+namespace private_detail_value_type
 {
-    using type = std::remove_pointer_t<decl_data_pointer_t<C>>;
-};
+    template<class C>
+    using decl_data_pointer_t = decltype(as_pointer(std::data(std::declval<C&>())));
 
-template<class C>
-struct decl_value_type
-{
-    using type = decl_value_type_t<C>;
-};
+    template<class C>
+    using decl_value_type_t = typename C::value_type;
 
-template<class C>
-struct value_type_type0
-{
-    using method_type = std::conditional_t<
-        is_detected_v<decl_value_type_t, C>,
-        decl_value_type<C>,
-        decl_value_data_pointer<C>
-    >;
+    template <class C, class = void>
+    struct value_type_detector1
+    {};
 
-    using type = typename method_type::type;
-};
+    template <class C>
+    struct value_type_detector1<C, std::void_t<decl_data_pointer_t<C>>>
+    {
+        using type = std::remove_pointer_t<decl_data_pointer_t<C>>;
+    };
 
-template<class C>
-struct value_type_type
-{
-    using type = typename value_type_type0<std::remove_cvref_t<C>>::type;
-};
+    template <class C, class = void>
+    struct value_type_detector0 : value_type_detector1<C>
+    {};
 
-template<class C>
-using value_type_t = typename value_type_type<C>::type;
+    template <class C>
+    struct value_type_detector0<C, std::void_t<decl_value_type_t<C>>>
+    {
+        using type = decl_value_type_t<C>;
+    };
+
+    template <class C>
+    struct value_type_type : value_type_detector0<C>
+    {};
+
+    template<class C>
+    using value_type_t = typename value_type_type<C>::type;
+}
+
+using private_detail_value_type::decl_data_pointer_t;
+using private_detail_value_type::decl_value_type_t;
+using private_detail_value_type::value_type_type;
+using private_detail_value_type::value_type_t;

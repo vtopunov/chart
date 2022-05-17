@@ -1,9 +1,11 @@
+#include <file/file_io.h>
+
+
 #include <span>
 
 #include <core/size_type.h>
 #include <core/narrow.h>
 
-#include <file/file_io.h>
 
 namespace
 {

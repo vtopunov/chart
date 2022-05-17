@@ -47,8 +47,8 @@ namespace font
 
     struct cursor : point2d<fixed_t>
     {
-        template<class T>
-        [[nodiscard]] static constexpr cursor instance(T x, T y) noexcept
+        template<class X, class Y>
+        [[nodiscard]] static constexpr cursor instance(X x, Y y) noexcept
         {
             return
             {
@@ -100,8 +100,8 @@ namespace font
         return draw_text(image, cursor::instance(std::move(position)), face, text);
     }
 
-    template<class Px, class String>
-    cursor draw_text(pix8span image, Px x, Px y, face_descriptor_t face, const String& text) noexcept
+    template<class X, class Y, class String>
+    cursor draw_text(pix8span image, X x, Y y, face_descriptor_t face, const String& text) noexcept
     {
         return draw_text(image, cursor::instance(std::move(x), std::move(y)), face, text);
     }
@@ -163,6 +163,4 @@ namespace font
     {
         return text_metrics(initial_metrics, face, text);
     }
-
-
 }

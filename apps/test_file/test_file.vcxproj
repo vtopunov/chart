@@ -99,6 +99,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test_file_mmap.cpp" />
     <ClCompile Include="test_file_io.cpp" />
+    <ClCompile Include="test_path.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\file\file.vcxproj">

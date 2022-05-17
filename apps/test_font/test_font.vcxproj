@@ -104,6 +104,9 @@
     <ProjectReference Include="..\..\3rdparty\freetype2\freetype2.vcxproj">
       <Project>{78b079bd-9fc7-4b9e-b4a6-96da0f00248b}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\debug\debug.vcxproj">
+      <Project>{fc7a4ffb-fa58-4f42-a821-a1967b253843}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\file\file.vcxproj">
       <Project>{499e20aa-8c6a-4235-a383-4e6d4c5e6aff}</Project>
     </ProjectReference>

@@ -6,22 +6,6 @@ namespace ui
 {
     namespace
     {
-        void post_quit_message_once() noexcept
-        {
-            static bool first{ true };
-            if (first)
-            {
-                first = false;
-                PostQuitMessage(0);
-            }
-        }
-
-        void break_event_loop() noexcept
-        {
-            event_processors_global().reset();
-            post_quit_message_once();
-        }
-
         [[nodiscard]]
         window_container& window_container_global() noexcept
         {
@@ -91,53 +75,69 @@ namespace ui
             return (parent) ? child_window_style : main_window_style;
         }
 
-        bool destroy_window(window_container& window_set, window_resource window) noexcept
+
+        bool close(window_container& window_set, window_resource window) noexcept
         {
-            if (const auto it = std::find(window_set.cbegin(), window_set.cend(), window); it != window_set.cend())
+            static window_resource in_process_of_destruction = nullwindow;
+
+            if (window != in_process_of_destruction)
             {
-                const auto lock_type = it->type;
+                event_processors_global().erase(window);
 
-                window_set.erase(it);
+                while (const auto children_opt = childrens(window_set, window))
+                {
+                    close(window_set, *children_opt);
+                }
 
-                const bool ok = !!DestroyWindow(window.handle);
-                D_ASSERT(ok);
-                return ok;
+                if (const auto it = std::find(window_set.cbegin(), window_set.cend(), window); it != window_set.cend())
+                {
+                    class destruction_locker
+                    {
+                    public:
+                        explicit destruction_locker(const window_dependency& window) noexcept
+                            : window_type_holder_{ window.type }
+                        {
+                            in_process_of_destruction = window.current;
+                        }
+
+                        D_DISABLE_COPY_MOVE(destruction_locker);
+
+                        ~destruction_locker() noexcept
+                        {
+                            in_process_of_destruction = nullwindow;
+                        }
+
+                    private:
+                        shared_type_window window_type_holder_;
+                    };
+
+                    const destruction_locker lock{ *it };
+
+                    window_set.erase(it);
+
+                    if (!window_set.size())
+                    {
+                        quit();
+                    }
+
+                    const auto ok = !!DestroyWindow(window.handle);
+                    D_ASSERT(ok);
+                    return ok;
+                }
             }
 
             return false;
         }
-
-        bool close(window_container& window_set, window_resource window) noexcept
-        {
-            event_processors_global().erase(window);
-
-            while (const auto children_opt = childrens(window_set, window))
-            {
-                close(window_set, *children_opt);
-            }
-
-            return destroy_window(window_set, window);
-        }
-
-        bool destroy_window_tree(window_container& window_set, window_resource window) noexcept
-        {
-            while (const auto children_opt = childrens(window_set, window))
-            {
-                destroy_window_tree(window_set, *children_opt);
-            }
-
-            return destroy_window(window_set, window);
-        }
     }
 
-    px::rect rect(window_resource window) noexcept
+    px::rect geometry(window_resource window) noexcept
     {
         RECT rect{ 0, 0, 0, 0 };
         D_ASSERT_WITH_SIDE_EFFECTS(GetClientRect(window.handle, &rect));
         return make_rect_from_gdi(rect);
     }
 
-    bool rect(window_resource window, px::rect rc) noexcept
+    bool geometry(window_resource window, px::rect rc) noexcept
     {
         return !!SetWindowPos
         (
@@ -150,7 +150,7 @@ namespace ui
 
     px::size2d desktop_sizes() noexcept
     {
-        return rect(desktop_window()).sizes();
+        return geometry(desktop_window()).sizes();
     }
 
     px::size2d display_resolution() noexcept
@@ -172,51 +172,12 @@ namespace ui
 
     bool close(window_resource window) noexcept
     {
-        if (window)
-        {
-            struct collector
-            {
-                constexpr collector() noexcept = default;
-
-                D_DISABLE_COPY_MOVE(collector);
-
-                ~collector() noexcept
-                {
-                    if (!window_container_global().size())
-                    {
-                        break_event_loop();
-                    }
-                }
-            };
-
-            [[maybe_unused]]
-            const collector temp;
-
-            return close(window_container_global(), window);
-        }
-
-        return false;
+        return window && close(window_container_global(), window);
     }
 
     void quit() noexcept
     {
-        auto& g_window_set = window_container_global();
-        if (g_window_set.size())
-        {
-            window_container window_set{ attach_construct, g_window_set };
-
-            break_event_loop();
-
-            do
-            {
-                destroy_window_tree(window_set, window_set.cfront());
-            }
-            while (window_set.size());
-        }
-        else
-        {
-            break_event_loop();
-        }
+        PostQuitMessage(0);
     }
 
     window_childrens childrens(window_resource window) noexcept

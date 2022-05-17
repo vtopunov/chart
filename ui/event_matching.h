@@ -5,9 +5,6 @@
 
 namespace ui
 {
-    struct peek_event
-    {};
-
     struct idle_event
     {};
 
@@ -43,18 +40,9 @@ namespace ui
     }
 
     template<class T>
-    auto call_event(T* function, peek_event e) noexcept
-        -> decltype( std::declval<T&>()( std::declval<peek_event>() ) )
+    auto call_event(T* function, idle_event e) noexcept -> decltype( std::declval<T&>()( std::declval<idle_event>() ) )
     {
         return ( *function )( e );
-    }
-
-    template<class T>
-    auto call_event(T* function, idle_event e) noexcept
-        -> decltype( ( std::declval<T&>()( std::declval<idle_event>() ), 0 ) )
-    {
-        ( *function )( e );
-        return 0;
     }
 
     template<class T>
@@ -76,14 +64,9 @@ namespace ui
     }
 
     template<class T>
-    constexpr bool call_event(T*, ignore_event<peek_event>) noexcept
+    constexpr bool call_event(T*, ignore_event<idle_event>) noexcept
     {
         return false;
-    }
-
-    template<class T>
-    constexpr void call_event(T*, ignore_event<idle_event>) noexcept
-    {
     }
 
     template<class T>
@@ -100,10 +83,12 @@ namespace ui
 
             switch ( e.style() )
             {
-                case event_style::size:       return call_event(tdata, e.as<event_style::size>());
-                case event_style::paint:      return call_event(tdata, e.as<event_style::paint>());
-                case event_style::close:      return call_event(tdata, e.as<event_style::close>());
-                case event_style::mouse_move: return call_event(tdata, e.as<event_style::mouse_move>());
+                case event_style::size:               return call_event(tdata, e.as<event_style::size>());
+                case event_style::paint:              return call_event(tdata, e.as<event_style::paint>());
+                case event_style::close:              return call_event(tdata, e.as<event_style::close>());
+                case event_style::mouse_move:         return call_event(tdata, e.as<event_style::mouse_move>());
+                case event_style::mouse_lbutton_down: return call_event(tdata, e.as<event_style::mouse_lbutton_down>());
+                case event_style::mouse_lbutton_up:   return call_event(tdata, e.as<event_style::mouse_lbutton_up>());
             }
 
             return call_event(tdata, e);

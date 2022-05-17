@@ -37,7 +37,7 @@ namespace gl
         A3 a3;
     };
 
-    namespace vertex_get_ptr_detail
+    namespace private_detail_vertex_get_ptr
     {
         template<size_t i>
         struct index
@@ -78,6 +78,6 @@ namespace gl
         }
     }
 
-    using vertex_get_ptr_detail::get_ptr;
+    using private_detail_vertex_get_ptr::get_ptr;
 }
 

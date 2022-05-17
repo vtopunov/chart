@@ -1,4 +1,4 @@
-#include <os/debug.h>
+#include <debug/debug.h>
 
 #include <ui/window.h>
 #include <ui/timer.h>
@@ -8,7 +8,7 @@ using namespace std::chrono_literals;
 
 namespace
 {
-    constexpr px::rect make_subwindow_rect(px::size2d sizes) noexcept
+    constexpr px::rect subwindow_geometry(px::size2d sizes) noexcept
     {
         return
         {
@@ -20,16 +20,15 @@ namespace
     struct main_processor
     {
         static constexpr auto standby_time{ 15s };
-
         ui::timer quit_timer{ ui::create_timer(standby_time) };
 
         ui::event_result_t operator () (const ui::size_event& e) const noexcept
         {
-            const auto rc = make_subwindow_rect(e.sizes());
+            const auto rc = subwindow_geometry(e.sizes());
 
             for ( const auto& children : childrens(e.window()) )
             {
-                ui::rect(children, rc);
+                ui::geometry(children, rc);
             }
 
             return 0L;
@@ -77,7 +76,7 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
         ui::window_factory{}
         .type(type_factory.background(ui::stock_brush::light_gray).create())
         .parent(mainwindow)
-        .rect(make_subwindow_rect(ui::rect(mainwindow).sizes()))
+        .geometry(subwindow_geometry(ui::geometry(mainwindow).sizes()))
         .create();
 
     if ( !subwindow )

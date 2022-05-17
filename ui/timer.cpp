@@ -2,12 +2,28 @@
 
 #include <core/narrow.h>
 
+#include <os/os.h>
+
 using namespace std::chrono_literals;
 
 namespace ui
 {
     namespace
     {
+        using native_timer_id_t = UINT_PTR;
+
+        constexpr native_timer_id_t to_native(timer_resource id) noexcept
+        {
+            static_assert(std::is_same_v<std::underlying_type_t<timer_resource>, native_timer_id_t>);
+            return static_cast<native_timer_id_t>(id);
+        }
+
+        constexpr timer_resource from_native(native_timer_id_t id) noexcept
+        {
+            static_assert(std::is_same_v<std::underlying_type_t<timer_resource>, native_timer_id_t>);
+            return static_cast<timer_resource>(id);
+        }
+
         timer_resource create_or_set_timer(timer_resource id, timer_duration interval) noexcept
         {
             constexpr timer_duration min_duration{ USER_TIMER_MINIMUM };
@@ -18,12 +34,12 @@ namespace ui
             const auto timer_id = SetTimer
             (
                 nullptr,
-                to_underlying(id),
+                to_native(id),
                 elapse,
                 nullptr
             );
 
-            return safe_numeric_cast<timer_resource>(timer_id);
+            return from_native(timer_id);
         }
     }
 
@@ -31,7 +47,7 @@ namespace ui
     {
         if ( has_value(id) )
         {
-            D_ASSERT_WITH_SIDE_EFFECTS(KillTimer(nullptr, to_underlying(id)));
+            D_ASSERT_WITH_SIDE_EFFECTS(KillTimer(nullptr, to_native(id)));
         }
     }
 

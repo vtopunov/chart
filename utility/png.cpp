@@ -2,13 +2,13 @@
 
 #include <core/temp_swap.h>
 
-#include <os/debug.h>
+#include <debug/debug.h>
 
 #include <image/png.h>
 
 #include <file/file_mmap.h>
 
-gl::texture2d png_reader::texture_from_file(file::path_zstring_view path) noexcept
+gl::texture2d png_texture_from_file(file::path_zstring_view path, buffer_t& temp) noexcept
 {
     const auto map_file = file::mmap(path);
     if (!map_file)
@@ -17,31 +17,19 @@ gl::texture2d png_reader::texture_from_file(file::path_zstring_view path) noexce
         return {};
     }
 
-    return texture_from_bytes(map_file);
+    return png_texture_from_bytes(map_file, temp);
 }
 
-gl::texture2d png_reader::texture_from_bytes(const_buffer_view image) noexcept
+gl::texture2d png_texture_from_bytes(const_buffer_view image, buffer_t& temp) noexcept
 {
-    gl::texture2d result;
-    
+    const auto space = image::png_decode_to_r8g8b8a8(image, temp);
+
+    if (!space)
     {
-        image::pixrgba32map pixmap;
-
-        {
-            [[maybe_unused]]
-            const temp_swap swap{ pixmap, buffer };
-
-            const auto errc = image::png_decode_image(image, pixmap);
-
-            if (errc != image::png_errno::OK)
-            {
-                e_debug("read png: error {}: {}", to_underlying(errc), image::png_error_string(errc).c_str());
-                return {};
-            }
-
-            result = gl::create_texture2d(pixmap);
-        }
+        const auto errc = space.error_code();
+        e_debug("read png: error {}: {}", to_underlying(errc), image::png_error_string(errc).c_str());
+        return {};
     }
 
-    return result;
+    return gl::create_texture2d(space.sizes(), gl::R8G8B8A8, std::as_const(temp).data());
 }

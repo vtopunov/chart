@@ -42,10 +42,10 @@ namespace image
     }
 
 
-D_WARNING_PUSH
-D_WARNING_DISABLE_MSVC(W_do_not_use_reinterpret_cast)
+    D_WARNING_PUSH
+        D_WARNING_DISABLE_MSVC(W_do_not_use_reinterpret_cast)
 
-    png_header::png_header(png_resource png) noexcept
+        png_header::png_header(png_resource png) noexcept
         : storage_{}
         , errno_{ png_errno::NOIHDR }
     {
@@ -80,10 +80,10 @@ D_WARNING_DISABLE_MSVC(W_do_not_use_reinterpret_cast)
         return safe_numeric_cast<png_color_type>(reinterpret_cast<const spng_ihdr&>(storage_).color_type);
     }
 
-D_WARNING_POP
+    D_WARNING_POP
 
 
-    static_assert(to_underlying(png_format::RGBA8) == spng_format::SPNG_FMT_RGBA8);
+        static_assert(to_underlying(png_format::RGBA8) == spng_format::SPNG_FMT_RGBA8);
     static_assert(to_underlying(png_format::RGBA16) == spng_format::SPNG_FMT_RGBA16);
     static_assert(to_underlying(png_format::RGB8) == spng_format::SPNG_FMT_RGB8);
     static_assert(to_underlying(png_format::PNG) == spng_format::SPNG_FMT_PNG);
@@ -99,7 +99,7 @@ D_WARNING_POP
         return safe_numeric_cast<png_errno>(spng_decode_image(png, out.data(), out.size(), to_underlying(format), 0));
     }
 
-    png_errno png_decode_image(const_buffer_view image, pixrgba32map& out) noexcept
+    pix32result png_decode_to_r8g8b8a8(const_buffer_view image, buffer_t& temp) noexcept
     {
         constexpr auto png_format = png_format::RGBA8;
 
@@ -144,14 +144,22 @@ D_WARNING_POP
             return png_errno::SIZE;
         }
 
-        const pixrgba32map::space_type space{ png_header.sizes() };
+        const pix32space space{ png_header.sizes() };
         if (space.size_bytes() != size)
         {
             return png_errno::SIZE;
         }
 
-        out = pixrgba32map{ out.release_buffer(), space };
+        if (!temp.try_resize(size))
+        {
+            return png_errno::MEM;
+        }
 
-        return png_decode_image(png, png_format, out);
+        if (accept_errc(png_decode_image(png, png_format, temp)))
+        {
+            return errc;
+        }
+
+        return space;
     }
 }

@@ -10,7 +10,7 @@ struct spng_ctx;
 
 namespace image
 {
-    using pixrgba32map = pixmap<rgba_color32_t>;
+    using r8g8b8a8pixmap = pixmap<rgba_color32_t>;
 
     enum class png_errno
     {
@@ -120,7 +120,7 @@ namespace image
     enum class png_context_flags
     {
         DEFAULT = 0,
-        IGNORE_ADLER32 = 1, 
+        IGNORE_ADLER32 = 1,
         ENCODER = 2
     };
 
@@ -140,7 +140,7 @@ namespace image
 
     class png_header
     {
-    public:    
+    public:
         explicit png_header(png_resource png) noexcept;
 
         [[nodiscard]]
@@ -193,5 +193,76 @@ namespace image
 
     png_errno png_decode_image(png_resource png, png_format format, buffer_view out) noexcept;
 
-    png_errno png_decode_image(const_buffer_view image, pixrgba32map& out) noexcept;
+    class pix32result : public pix32space
+    {
+        using base_type = pix32space;
+
+    public:
+        constexpr pix32result(const base_type& space) noexcept
+            : base_type{ space }
+        {}
+
+        constexpr pix32result(png_errno error_code) noexcept
+            : errno_{ error_code }
+        {}
+
+        [[nodiscard]]
+        constexpr png_errno error_code() const noexcept
+        {
+            return errno_;
+        }
+
+        [[nodiscard]]
+        constexpr explicit operator bool() const noexcept
+        {
+            return errno_ == png_errno::OK;
+        }
+
+    private:
+        png_errno errno_{ png_errno::OK };
+    };
+
+    pix32result png_decode_to_r8g8b8a8(const_buffer_view image, buffer_t& temp) noexcept;
+
+    class r8g8b8a8pixmap_result : public r8g8b8a8pixmap
+    {
+        using base_type = r8g8b8a8pixmap;
+
+    public:
+        constexpr r8g8b8a8pixmap_result(buffer_t& mem, const space_type& space) noexcept
+            : base_type{ px::pixmap_construct, mem, space }
+        {}
+
+        constexpr r8g8b8a8pixmap_result(png_errno error_code) noexcept
+            : errno_{ error_code }
+        {}
+
+        [[nodiscard]]
+        constexpr png_errno error_code() const noexcept
+        {
+            return errno_;
+        }
+
+        [[nodiscard]]
+        constexpr explicit operator bool() const noexcept
+        {
+            return errno_ == png_errno::OK;
+        }
+
+    private:
+        png_errno errno_{ png_errno::OK };
+    };
+
+    inline r8g8b8a8pixmap_result png_decode_to_r8g8b8a8(const_buffer_view image) noexcept
+    {
+        buffer_t temp;
+
+        const auto space = png_decode_to_r8g8b8a8(image, temp);
+        if (!space)
+        {
+            return space.error_code();
+        }
+
+        return { temp, space };
+    }
 }

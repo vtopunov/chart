@@ -66,8 +66,6 @@ namespace egl
 
     struct window_resources
     {
-        using view_type = ui::window_resource;
-
         struct null_type
         {
             [[nodiscard]]
@@ -85,8 +83,8 @@ namespace egl
             }
         };
 
-        view_type app_wnd;
-        view_type renderer_wnd;
+        ui::window_resource app_wnd;
+        ui::window_resource renderer_wnd;
 
         px::size2d sizes;
 
@@ -98,12 +96,6 @@ namespace egl
         constexpr explicit operator bool() const noexcept
         {
             return !!context;
-        }
-
-        [[nodiscard]]
-        constexpr operator view_type () const noexcept
-        {
-            return app_wnd;
         }
     };
 
@@ -161,6 +153,21 @@ namespace egl
         const auto resolution = ui::display_resolution();
         return width(resources) >= resolution.width() 
             && height(resources) >= resolution.height();
+    }
+
+    inline bool show(const window_resources& resources, int cmd) noexcept
+    {
+        return ui::show(resources.app_wnd, cmd);
+    }
+
+    inline bool show(const window_resources& resources, ui::show_command cmd) noexcept
+    {
+        return ui::show(resources.app_wnd, cmd);
+    }
+
+    inline bool show(const window_resources& resources) noexcept
+    {
+        return ui::show(resources.app_wnd);
     }
 
     class window_factory

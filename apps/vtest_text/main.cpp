@@ -1,11 +1,8 @@
-﻿#include <core/color.h>
-#include <core/lerp.h>
+﻿#include <core/lerp.h>
 
-#include <os/debug.h>
+#include <debug/debug.h>
 
-#include <ui/event_loop.h>
-
-#include <egl/window.h>
+#include <egl/event_loop.h>
 
 #include <file/file_mmap.h>
 
@@ -154,7 +151,7 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 
     if (const auto lock = begin_painting(egl))
     {
-        gl::clear(gl::colors::red_f);
+        gl::clear(gl::colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();
 
@@ -178,9 +175,9 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
         }
     }
 
-    ui::show(egl, ui::show_command::show_maximazed);
+    show(egl, ui::show_command::show_maximazed);
 
-    return ui::run_event_loop(egl);
+    return run_event_loop(egl);
 }
 
 

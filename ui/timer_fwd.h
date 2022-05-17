@@ -2,11 +2,9 @@
 
 #include <core/null.h>
 
-#include <os/os.h>
-
 namespace ui
 {    
-    enum class timer_resource : UINT_PTR
+    enum class timer_resource : size_t
     {};
 
     using nulltimer_t = null_t<timer_resource>;

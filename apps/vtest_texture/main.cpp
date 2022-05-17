@@ -1,11 +1,8 @@
-#include <core/color.h>
-
-#include <os/debug.h>
-
-#include <ui/event_loop.h>
 #include <gl/draw.h>
-#include <gl/color.h>
-#include <egl/window.h>
+
+#include <debug/debug.h>
+
+#include <egl/event_loop.h>
 
 #include <utility/png.h>
 
@@ -78,11 +75,11 @@ namespace
     }
 
     template<class... Paths>
-    [[nodiscard]] std::array<gl::texture2d, sizeof...(Paths)>  textures_from_file(Paths... paths) noexcept
+    [[nodiscard]] std::array<gl::texture2d, sizeof...(Paths)>  png_textures_from_file(Paths... paths) noexcept
     {
-        png_reader png;
+        buffer_t temp;
 
-        return { png.texture_from_file(paths)... };
+        return { png_texture_from_file(paths, temp)... };
     };
 }
 
@@ -97,16 +94,16 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int command_show)
         return EXIT_FAILURE;
     }
 
-    const auto [base_texture, mix_texture] = textures_from_file(_PATH("base.png"), _PATH("mix.png"));
+    const auto [base_texture, mix_texture] = png_textures_from_file(_PATH("base.png"), _PATH("mix.png"));
 
     if (const auto lock = begin_painting(egl))
     {
         draw_texture_mix(base_texture, mix_texture);
     }
 
-    ui::show(egl, command_show);
+    egl::show(egl, command_show);
 
-    return ui::run_event_loop(egl);
+    return egl::run_event_loop(egl);
 }
 
 

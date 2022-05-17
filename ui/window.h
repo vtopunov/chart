@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <optional>
 
 #include <core/rect.h>
@@ -108,9 +109,9 @@ namespace ui
     void quit() noexcept;
 
     [[nodiscard]]
-    px::rect rect(window_resource window) noexcept;
+    px::rect geometry(window_resource window) noexcept;
 
-    bool rect(window_resource window, px::rect rc) noexcept;
+    bool geometry(window_resource window, px::rect rc) noexcept;
 
     [[nodiscard]]
     px::size2d desktop_sizes() noexcept;
@@ -171,7 +172,7 @@ namespace ui
             return sizes(px::size2d{ width, height });
         }
 
-        constexpr window_factory& rect(const px::rect& rc) noexcept
+        constexpr window_factory& geometry(const px::rect& rc) noexcept
         {
             return position(rc.p00()).sizes(rc.sizes());
         }

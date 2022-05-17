@@ -117,6 +117,7 @@
     <ClCompile Include="test_type_traits.cpp" />
     <ClCompile Include="test_utf.cpp" />
     <ClCompile Include="test_utility.cpp" />
+    <ClCompile Include="test_value_type.cpp" />
     <ClCompile Include="test_vec2.cpp" />
     <ClCompile Include="test_zero.cpp" />
     <ClCompile Include="test_zstring_view.cpp" />

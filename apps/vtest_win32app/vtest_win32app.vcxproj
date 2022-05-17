@@ -90,6 +90,9 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\debug\debug.vcxproj">
+      <Project>{fc7a4ffb-fa58-4f42-a821-a1967b253843}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\ui\ui.vcxproj">
       <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>
     </ProjectReference>

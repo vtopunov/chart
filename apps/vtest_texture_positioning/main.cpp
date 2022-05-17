@@ -1,7 +1,6 @@
-#include <os/debug.h>
+#include <debug/debug.h>
 
-#include <ui/event_loop.h>
-#include <egl/window.h>
+#include <egl/event_loop.h>
 
 #include <utility/png.h>
 #include <utility/shaders_library.h>
@@ -22,7 +21,8 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
         return EXIT_FAILURE;
     }
 
-    const auto texture = png_reader{}.texture_from_file(_PATH("grid_9x9.png"));
+
+    const auto texture = png_texture_from_file(_PATH("grid_9x9.png"));
     if (!texture)
     {
         e_debug("create png texture error: {}", glGetError());
@@ -60,9 +60,9 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
         }
     }
 
-    ui::show(egl, ui::show_command::show_maximazed);
+    show(egl, ui::show_command::show_maximazed);
 
-    return ui::run_event_loop(egl);
+    return run_event_loop(egl);
 }
 
 

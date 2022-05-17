@@ -3,6 +3,8 @@
 #include <span>
 #include <string_view>
 
+#include <core/ordered_overload.h>
+#include <core/member_detector.h>
 #include <core/type_traits.h>
 #include <core/size_type.h>
 #include <core/value_type.h>
@@ -34,15 +36,53 @@ struct is_buffer_view<const T> : is_buffer_view<T>
 template <class T>
 constexpr bool is_buffer_view_v = is_buffer_view<T>::value;
 
-template<class C> [[nodiscard]]
-constexpr auto size_bytes(const C& c) noexcept 
-    -> decltype(as_pointer(std::data(std::declval<C&>())), std::size(std::declval<C&>()), 0_uz)
+namespace private_detail_size_bytes
 {
-    using value_t = replace_t<std::remove_cv_t<value_type_t<C>>, void, std::byte>;
-    constexpr size_t type_size = sizeof(value_t);
+    using namespace ordered_overload;
 
-    return size_mul<type_size>(narrow_cast<size_t>(std::size(c)));
+    template<class T>
+    constexpr size_t size_of() noexcept
+    {
+        using type_t = std::remove_cvref_t<T>;
+
+        if constexpr (std::is_same_v<type_t, void>)
+        {
+            return 1_uz;
+        }
+        else
+        {
+            return sizeof(type_t);
+        }
+    }
+
+    template<class C>
+    constexpr auto value_type_size() -> decltype(size_of<value_type_t<C>>())
+    {
+        return size_of<value_type_t<C>>();
+    }
+
+    template<class C>
+    [[nodiscard]] constexpr auto size_bytes_impl(const C& c, _order<_1>) noexcept 
+        -> decltype(value_type_size<C>(), std::size(c), 0_uz)
+    {
+        constexpr auto type_size = value_type_size<C>();
+        return size_mul<type_size>(narrow_cast<size_t>(std::size(c)));
+    }
+
+    template<class C>
+    [[nodiscard]] constexpr auto size_bytes_impl(const C& c, _order<_0>) noexcept -> decltype(c.size_bytes())
+    {
+        return c.size_bytes();
+    }
+
+    template<class C>
+    [[nodiscard]] constexpr auto size_bytes(const C& c) noexcept -> decltype(size_bytes_impl(c, _start))
+    {
+        return size_bytes_impl(c, _start);
+    }
 }
+
+using private_detail_size_bytes::size_bytes;
 
 template<class T>
 using size_bytes_t = decltype(size_bytes(std::declval<T&>()));
@@ -110,7 +150,7 @@ public:
         , size_{ size_bytes(container) }
     {}
 
-    template<class T, size_t n, std::enable_if_t<is_compatible_v<std::span<T, n>>, int> = 0>
+    template<class T, size_t n, std::enable_if_t<std::is_convertible_v<T*, data_pointer>, int> = 0>
     constexpr basic_buffer_view(std::span<T, n> span) noexcept
         : data_{ std::data(span) }
         , size_{ size_bytes(span) }
@@ -268,3 +308,8 @@ private:
     data_pointer data_{ nullptr };
     size_type size_{ 0_uz };
 };
+
+inline void* zero_memory(buffer_view buffer) noexcept
+{
+    return memset(buffer.data(), 0, buffer.size());
+}

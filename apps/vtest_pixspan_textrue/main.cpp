@@ -1,11 +1,8 @@
-#include <core/color.h>
 #include <core/lerp.h>
 
-#include <os/debug.h>
+#include <debug/debug.h>
 
-#include <ui/event_loop.h>
-
-#include <egl/window.h>
+#include <egl/event_loop.h>
 
 #include <file/file_mmap.h>
 
@@ -18,35 +15,34 @@ namespace
 {
     gl::texture2d image_gallery_rendering() noexcept
     {
-        gl::texture2d result_texture;
-
-        image::pixrgba32map image;
-        if (const auto errc = image::png_decode_image(file::mmap(_PATH("grid_9x9.png")), image); image::png_errno::OK != errc)
+        const auto png = image::png_decode_to_r8g8b8a8(file::mmap(_PATH("grid_9x9.png")));
+        if (!png)
         {
+            const auto errc = png.error_code();
             e_debug("png error {}:{}\n", to_underlying(errc), image::png_error_string(errc).c_str());
-            return result_texture;
+            return {};
         }
 
         constexpr auto sep = 1_px;
-        const auto w_image_space = image.width() + sep;
-        const auto h_image_space = image.height() + sep;
+        const auto w_image_space = png.width() + sep;
+        const auto h_image_space = png.height() + sep;
 
-        image::pixrgba32map gallery{ 3u * w_image_space + sep, 3u * h_image_space + sep };
+        pixmap<rgba_color32_t> gallery{ 3u * w_image_space + sep, 3u * h_image_space + sep };
         if (!gallery)
         {
             e_debug("out of memory\n");
-            return result_texture;
+            return {};
         }
 
         for (pxside_t y = sep; y < gallery.height(); y += h_image_space)
         {
             for (pxside_t x = sep; x < gallery.width(); x += w_image_space)
             {
-                gallery.store(x, y, image);
+                gallery.store(x, y, png);
             }
         }
 
-        result_texture = gl::create_texture2d(gallery);
+        auto result_texture = gl::create_texture2d(gallery);
         if (!result_texture)
         {
             e_debug("create texture error: {}\n", glGetError());
@@ -94,13 +90,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 
     if (const auto lock = begin_painting(egl))
     {
-        gl::clear(gl::colors::blue_f);
+        gl::clear(gl::colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();
 
         const auto surface_sizes = sizes(egl);
-        const auto dx = width(texture) + 2_px;
-        const auto dy = height(texture) + 2_px;
+        const auto dx = width(texture) + 1_px;
+        const auto dy = height(texture) + 1_px;
 
         for (pxside_t y = 0; y < surface_sizes.height(); y += dy)
         {
@@ -112,9 +108,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
         }
     }
 
-    ui::show(egl, ui::show_command::show_maximazed);
+    egl::show(egl, ui::show_command::show_maximazed);
 
-    return ui::run_event_loop(egl);
+    return egl::run_event_loop(egl);
 }
 
 

@@ -1,60 +1,115 @@
 #include <array>
-/*
-#include <core/span.h>
-#include <core/lerp.h>
-#include <core/num_range.h>
-#include <core/point.h>
-#include <core/math_constants.h>
+
 #include <core/buffer.h>
-
-#pragma warning(push, 0)
-#pragma warning(disable: 26451)
-#include <3rdparty/gcem/include/gcem.hpp>
-#pragma warning(pop)
-
-#include <core/assert.h>
-
-constexpr double sinc( double x ) noexcept
-{
-    return ( gcem::abs( x ) > std::numeric_limits<double>::epsilon() ) ? ( gcem::sin( x ) / x ) : ( 1.0 );
-};
-
-constexpr span<point_t> fn_generate( span<point_t> points, double ( *fn ) ( double ) ) noexcept
-{
-    D_ASSERT( fn );
-
-    const size_t size = points.size();
-    constexpr auto abscissa_max = 5 * pi_v<real_t>;
-    constexpr auto abscissa_range = make_num_range( -abscissa_max, abscissa_max );
-    constexpr auto index_range = make_num_range( 0_z, size - 1_z );
-    constexpr auto abscissa = lerp( index_range, abscissa_range );
-
-    for ( size_t i = index_range.front(); i <= index_range.back(); ++i )
-    {
-        const auto x = abscissa( i );
-        points[i] = point_t{ x, fn( x ) };
-    }
-
-    return points;
-};
-
-constexpr auto sinc_tbl = [] ()
-{
-    std::array<point_t, 100_z> temp{};
-    fn_generate( temp, sinc );
-    return temp;
-}();*/
-
+#include <core/buffer_view.h>
 
 void test_buffer() noexcept
 {
-   /* const auto points = buffer::default_instance().get<point_t>( sinc_tbl.size() );
+    using type_t = int32_t;
+    constexpr auto size = 10_uz;
+    buffer<type_t> b{ buffer_construct, size };
+    zero_memory(b);
+    D_ASSERT(size == b.size());
+    D_ASSERT(size * sizeof(type_t) == b.size_bytes());
+    
+    static_assert(std::is_same_v<decltype(b.void_data()), void*>);
+    static_assert(std::is_same_v<decltype(b.cvoid_data()), const void*>);
+    D_ASSERT(b.cvoid_data() == b.void_data());
 
-    D_ASSERT( points.size() == sinc_tbl.size() );
-    for ( size_t i = 0; i < sinc_tbl.size(); ++i )
+    static_assert(std::is_same_v<decltype(std::as_const(b).void_data()), const void*>);
+    D_ASSERT(std::as_const(b).void_data() == b.void_data());
+    
+    static_assert(std::is_same_v<decltype(b.data()), type_t*>);
+    D_ASSERT(b.data() == b.void_data());
+
+    static_assert(std::is_same_v<decltype(std::as_const(b).data()), const type_t*>);
+    D_ASSERT(std::as_const(b).data() == b.void_data());
+
+    static_assert(std::is_same_v<decltype(b.front()), type_t&>);
+    D_ASSERT(std::addressof(b.front()) == b.data());
+
+    static_assert(std::is_same_v<decltype(std::as_const(b).front()), const type_t&>);
+    D_ASSERT(std::addressof(std::as_const(b).front()) == b.data());
+
+    static_assert(std::is_same_v<decltype(b.cfront()), const type_t&>);
+    D_ASSERT(std::addressof(b.cfront()) == b.data());
+
+    static_assert(std::is_same_v<decltype(b.back()), type_t&>);
+    D_ASSERT(std::addressof(b.back()) == (b.data() + size - 1));
+
+    static_assert(std::is_same_v<decltype(std::as_const(b).back()), const type_t&>);
+    D_ASSERT(std::addressof(std::as_const(b).back()) == (b.data() + size - 1));
+
+    static_assert(std::is_same_v<decltype(b.cback()), const type_t&>);
+    D_ASSERT(std::addressof(b.cback()) == (b.data() + size - 1));
+
+    D_ASSERT(!b.front());
+    D_ASSERT(!b.back());
+
     {
-        points[i] = sinc_tbl[i];
+        constexpr type_t c{ 123 };
+        b.front() = c;
+        D_ASSERT(c == b.front());
     }
 
-    D_ASSERT( !memcmp( points.data(), sinc_tbl.data(), sinc_tbl.size() ) );*/
+    {
+        constexpr type_t c{ 321 };
+        b.front() = c;
+        D_ASSERT(c == b.front());
+    }
+
+    {
+        constexpr type_t c{ 231 };
+        constexpr auto pos = size >> 1;
+        D_ASSERT(!b[pos]);
+        b[pos] = c;
+        D_ASSERT(c == b[pos]);
+        D_ASSERT(c == std::as_const(b)[pos]);
+        D_ASSERT(c == b.value(pos));
+        D_ASSERT(c == std::as_const(b).value(pos));
+        D_ASSERT(c == b.cvalue(pos));
+    }
+
+    {
+        const auto data = b.data();
+        D_ASSERT(data);
+        buffer<type_t> new_b{ std::move(b) };
+        D_ASSERT(data == new_b.data());
+        D_ASSERT(size == new_b.size());
+        D_ASSERT(!b.data());
+        D_ASSERT(!b.size());
+        b = std::move(new_b);
+    }
+
+    {
+        buffer_view bv{ b };
+        D_ASSERT(bv.data());
+        D_ASSERT(bv.data() == b.data());
+        D_ASSERT(bv.size());
+        D_ASSERT(bv.size() == b.size_bytes());
+        bv = {};
+        D_ASSERT(!bv.data());
+        D_ASSERT(!bv.size());
+        bv = b;
+        D_ASSERT(bv.data());
+        D_ASSERT(bv.data() == b.data());
+        D_ASSERT(bv.size());
+        D_ASSERT(bv.size() == b.size_bytes());
+    }
+
+    {
+        const_buffer_view bv{ b };
+        D_ASSERT(bv.data());
+        D_ASSERT(bv.data() == b.data());
+        D_ASSERT(bv.size());
+        D_ASSERT(bv.size() == b.size_bytes());
+        bv = {};
+        D_ASSERT(!bv.data());
+        D_ASSERT(!bv.size());
+        bv = b;
+        D_ASSERT(bv.data());
+        D_ASSERT(bv.data() == b.data());
+        D_ASSERT(bv.size());
+        D_ASSERT(bv.size() == b.size_bytes());
+    }
 }

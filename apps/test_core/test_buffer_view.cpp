@@ -185,6 +185,20 @@ namespace
     using remove_const_span_t = typename remove_const_span<T>::type;
 
     template<class C>
+    constexpr size_t value_type_size_testimpl(const C& c) noexcept
+    {
+        using decayed_value_type = std::decay_t<std::remove_pointer_t<std::decay_t<decltype(std::data(c))>>>;
+        if constexpr (std::is_same_v<decayed_value_type, void>)
+        {
+            return 1_uz;
+        }
+        else
+        {
+            return sizeof(decayed_value_type);
+        }
+    }
+
+    template<class C>
     constexpr void test_static_asserts() noexcept
     {
         static_assert(!is_buffer_view_v<C>);
@@ -202,7 +216,7 @@ namespace
         
         const void* data{ std::data(c) };
         size_t size{ size_bytes(c) };
-        D_ASSERT(size / sizeof(*std::data(c)) == std::size(c));
+        D_ASSERT(size == std::size(c) * value_type_size_testimpl(c));
 
         {
             const auto success_overload_and_select_immutable = test_impl(c, data, size);
@@ -229,7 +243,7 @@ namespace
         
         const void* data{ std::data(c) };
         size_t size{ size_bytes(c) };
-        D_ASSERT(size / sizeof(*std::data(c)) == std::size(c));
+        D_ASSERT(size == std::size(c) * value_type_size_testimpl(c));
 
         {
             const auto immutable = test_mut_impl(c, data, size);
@@ -268,6 +282,41 @@ namespace
 
         test(ref);
     }
+
+    struct my_buffer
+    {
+        uint8_t bytes[5]{ 1, 2, 3, 4, 5 };
+
+        constexpr const void* data() const noexcept
+        {
+            return bytes;
+        }
+
+        constexpr void* data() noexcept
+        {
+            return bytes;
+        }
+
+        constexpr size_t size() const noexcept
+        {
+            return std::size(bytes);
+        }
+    };
+
+    struct cmy_buffer
+    {
+        static constexpr uint8_t bytes[5]{ 1, 2, 3, 4, 5 };
+
+        constexpr const void* data() const noexcept
+        {
+            return bytes;
+        }
+
+        constexpr size_t size() const noexcept
+        {
+            return std::size(bytes);
+        }
+    };
 }
 
 void test_buffer_view() noexcept
@@ -275,10 +324,76 @@ void test_buffer_view() noexcept
     static_assert(!std::is_same_v<buffer_view, const_buffer_view>);
 
     {
+        using private_detail_size_bytes::size_of;
+
+        static_assert(1_uz == size_of<void>());
+        static_assert(1_uz == size_of<std::byte>());
+        static_assert(4_uz == size_of<std::int32_t>());
+    }
+
+    {
+        using private_detail_size_bytes::value_type_size;
+
+        static_assert(1_uz == value_type_size<my_buffer>());
+        static_assert(1_uz == value_type_size<const my_buffer>());
+        static_assert(1_uz == value_type_size<cmy_buffer>());
+        static_assert(1_uz == value_type_size<const cmy_buffer>());
+        static_assert(1_uz == value_type_size<std::vector<char>>());
+        static_assert(4_uz == value_type_size<std::vector<int32_t>>());
+        static_assert(4_uz == value_type_size<std::array<int32_t, 1_uz>>());
+        static_assert(4_uz == value_type_size<const std::array<int32_t, 1_uz>>());
+        static_assert(4_uz == value_type_size<std::array<const int32_t, 1_uz>>());
+        static_assert(4_uz == value_type_size<const std::array<const int32_t, 1_uz>>());
+        static_assert(sizeof(ptrdiff_t) == value_type_size<const std::array<const int32_t*, 1_uz>>());
+        static_assert(sizeof(ptrdiff_t) == value_type_size<const std::array<const int32_t*const, 1_uz>>());
+    }
+
+    {
+        struct sbv
+        {
+            size_t size_bytes() const noexcept { return 321_uz; }
+        };
+
+        struct sv
+        {
+            size_t size() const noexcept { return 123_uz; }
+        };
+
+        struct dv
+        {
+            using value_type = std::array<char, 11_uz>;
+        };
+
+        struct ddv
+        {
+            using v_t = std::array<char, 15_uz>;
+            const v_t* data() const noexcept { return nullptr; }
+        };
+
+        struct sdv : sv, dv
+        {};
+
+        struct sddv : sv, ddv
+        {};
+
+        struct sbsdddv : sbv, sv, dv, ddv
+        {};
+
+        static_assert(is_size_bytes<sbv>::value);
+        static_assert(!is_size_bytes<sv>::value);
+        static_assert(!is_size_bytes<dv>::value);
+        static_assert(!is_size_bytes<ddv>::value);
+        static_assert(is_size_bytes<sdv>::value);
+        static_assert(is_size_bytes<sddv>::value);
+        static_assert(is_size_bytes<sbsdddv>::value);
+    }
+
+    {
         std::vector v{ 1, 2, 3, 4, 5 };
         std::array a{ 1, 2, 3, 4, 5 };
         std::u16string s{ u"12345" };
         int m[]{ 1, 2, 3, 4, 5 };
+        my_buffer my{};
         std::span ispm{ m };
         std::span ispv{ v };
 
@@ -286,6 +401,7 @@ void test_buffer_view() noexcept
         test(a);
         test(s);
         test(m);
+        test(my);
         test_span(ispm);
         test_span(ispv);
     }
@@ -295,6 +411,7 @@ void test_buffer_view() noexcept
         constexpr std::array ca{ 1, 2, 3, 4, 5 };
         const std::u16string cs{ u"12345" };
         constexpr int cm[]{ 1, 2, 3, 4, 5 };
+        constexpr my_buffer cmy{};
         constexpr std::span cispm{ cm };
         const std::span cispv{ cv };
     
@@ -302,6 +419,7 @@ void test_buffer_view() noexcept
         test(ca);
         test(cs);
         test(cm);
+        test(cmy);
         test_span(cispm);
         test_span(cispv);
     }

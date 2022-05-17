@@ -2,7 +2,6 @@
 
 #include <gl/texture.h>
 #include <gl/draw.h>
-#include <gl/color.h>
 
 namespace px
 {
@@ -101,7 +100,24 @@ struct shader_initializer
 
 namespace vert
 {
-    struct positioned_texture
+    struct positioned_figure
+    {
+        px::uniform_point2d      u_position{ gl::invaliduniform };
+        px::uniform_size2d       u_size{ gl::invaliduniform };
+        px::uniform_size2d       u_viewport{ gl::invaliduniform };
+        figures::frame_attribute a_frame{ gl::invalidattribute };
+
+        bool initialize(shader_initializer ini) noexcept
+        {
+            ini(u_position, "u_position"_zsv);
+            ini(u_size, "u_size"_zsv);
+            ini(u_viewport, "u_viewport"_zsv);
+            ini(a_frame, "a_frame"_zsv);
+            return true;
+        }
+    };
+
+    struct positioned_texture : positioned_figure
     {
         static constexpr auto shader_text = R"(
             uniform vec2 u_position;
@@ -119,23 +135,9 @@ namespace vert
                 v_texture = a_frame;
             }
         )"_glsl;
-
-        px::uniform_point2d      u_position{ gl::invaliduniform };
-        px::uniform_size2d       u_size{ gl::invaliduniform };
-        px::uniform_size2d       u_viewport{ gl::invaliduniform };
-        figures::frame_attribute a_frame{ gl::invalidattribute };
-
-        bool initialize(shader_initializer ini) noexcept
-        {
-            ini(u_position, "u_position"_zsv);
-            ini(u_size, "u_size"_zsv);
-            ini(u_viewport, "u_viewport"_zsv);
-            ini(a_frame, "a_frame"_zsv);
-            return true;
-        }
     };
 
-    struct positioned_rect
+    struct positioned_rectangle : positioned_figure
     {
         static constexpr auto shader_text = R"(
             uniform vec2 u_position;
@@ -150,20 +152,6 @@ namespace vert
                 gl_Position = vec4(px_position.x - 1.0, 1.0 - px_position.y, 0.0, 1.0);
             }
         )"_glsl;
-
-        px::uniform_point2d      u_position{ gl::invaliduniform };
-        px::uniform_size2d       u_size{ gl::invaliduniform };
-        px::uniform_size2d       u_viewport{ gl::invaliduniform };
-        figures::frame_attribute a_frame{ gl::invalidattribute };
-
-        bool initialize(shader_initializer ini) noexcept
-        {
-            ini(u_position, "u_position"_zsv);
-            ini(u_size, "u_size"_zsv);
-            ini(u_viewport, "u_viewport"_zsv);
-            ini(a_frame, "a_frame"_zsv);
-            return true;
-        }
     };
 }
 
@@ -214,6 +202,30 @@ namespace frag
         }
     };
 
+    struct inverted_texture
+    {
+        static constexpr auto shader_text = R"(
+            precision mediump float;
+
+            uniform sampler2D s_texture;
+            varying vec2 v_texture;
+
+            void main()
+            {
+                vec4 tex =  texture2D(s_texture, v_texture);
+                gl_FragColor = vec4(1.0 - tex.rgb, tex.a);
+            }
+        )"_glsl;
+
+        gl::texture_sampler2D s_texture = gl::invalidtexsampler;
+
+        bool initialize(shader_initializer ini) noexcept
+        {
+            ini(s_texture, "s_texture"_zsv);
+            return true;
+        }
+    };
+
     struct gray_texture_mix_color
     {
         static constexpr auto shader_text = R"(
@@ -226,8 +238,8 @@ namespace frag
 
             void main()
             {
-                vec4 rgb_gray = texture2D(s_texture, v_texture);
-                gl_FragColor = vec4(u_color.rgb, u_color.a * rgb_gray.r);
+                vec4 tex = texture2D(s_texture, v_texture);
+                gl_FragColor = vec4(u_color.rgb, u_color.a * tex.r);
             }
         )"_glsl;
 
@@ -252,14 +264,13 @@ struct shaders_library
 
     gl::shaders_program program{};
 
+    explicit constexpr operator bool() const noexcept
+    {
+        return !!program;
+    }
 
     bool build() noexcept
     {
-        if (program)
-        {
-            return true;
-        }
-
         if (auto new_program = gl::create_shaders_program(vert.shader_text, frag.shader_text))
         {
             const shader_initializer ini

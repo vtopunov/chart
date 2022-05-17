@@ -97,6 +97,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_font", "apps\test_font
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_font_cache", "apps\test_font_cache\test_font_cache.vcxproj", "{E6E1CD6A-09CB-4F54-A707-D3DD287292EB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "widget", "widget\widget.vcxproj", "{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "debug", "debug\debug.vcxproj", "{FC7A4FFB-FA58-4F42-A821-A1967B253843}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libfmt", "3rdparty\fmt\libfmt.vcxproj", "{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -565,6 +571,36 @@ Global
 		{E6E1CD6A-09CB-4F54-A707-D3DD287292EB}.ReleaseWithoutAsm|x64.Build.0 = Release|x64
 		{E6E1CD6A-09CB-4F54-A707-D3DD287292EB}.ReleaseWithoutAsm|x86.ActiveCfg = Debug|x64
 		{E6E1CD6A-09CB-4F54-A707-D3DD287292EB}.ReleaseWithoutAsm|x86.Build.0 = Debug|x64
+		{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}.Debug|x64.ActiveCfg = Debug|x64
+		{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}.Debug|x64.Build.0 = Debug|x64
+		{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}.Debug|x86.ActiveCfg = Debug|x64
+		{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}.Release|x64.ActiveCfg = Release|x64
+		{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}.Release|x64.Build.0 = Release|x64
+		{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}.Release|x86.ActiveCfg = Release|x64
+		{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}.ReleaseWithoutAsm|x64.ActiveCfg = Release|x64
+		{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}.ReleaseWithoutAsm|x64.Build.0 = Release|x64
+		{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}.ReleaseWithoutAsm|x86.ActiveCfg = Debug|x64
+		{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}.ReleaseWithoutAsm|x86.Build.0 = Debug|x64
+		{FC7A4FFB-FA58-4F42-A821-A1967B253843}.Debug|x64.ActiveCfg = Debug|x64
+		{FC7A4FFB-FA58-4F42-A821-A1967B253843}.Debug|x64.Build.0 = Debug|x64
+		{FC7A4FFB-FA58-4F42-A821-A1967B253843}.Debug|x86.ActiveCfg = Debug|x64
+		{FC7A4FFB-FA58-4F42-A821-A1967B253843}.Release|x64.ActiveCfg = Release|x64
+		{FC7A4FFB-FA58-4F42-A821-A1967B253843}.Release|x64.Build.0 = Release|x64
+		{FC7A4FFB-FA58-4F42-A821-A1967B253843}.Release|x86.ActiveCfg = Release|x64
+		{FC7A4FFB-FA58-4F42-A821-A1967B253843}.ReleaseWithoutAsm|x64.ActiveCfg = Release|x64
+		{FC7A4FFB-FA58-4F42-A821-A1967B253843}.ReleaseWithoutAsm|x64.Build.0 = Release|x64
+		{FC7A4FFB-FA58-4F42-A821-A1967B253843}.ReleaseWithoutAsm|x86.ActiveCfg = Debug|x64
+		{FC7A4FFB-FA58-4F42-A821-A1967B253843}.ReleaseWithoutAsm|x86.Build.0 = Debug|x64
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}.Debug|x64.ActiveCfg = Debug|x64
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}.Debug|x64.Build.0 = Debug|x64
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}.Debug|x86.ActiveCfg = Debug|x64
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}.Release|x64.ActiveCfg = Release|x64
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}.Release|x64.Build.0 = Release|x64
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}.Release|x86.ActiveCfg = Release|x64
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}.ReleaseWithoutAsm|x64.ActiveCfg = Release|x64
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}.ReleaseWithoutAsm|x64.Build.0 = Release|x64
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}.ReleaseWithoutAsm|x86.ActiveCfg = Debug|x64
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4}.ReleaseWithoutAsm|x86.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -605,6 +641,7 @@ Global
 		{F7B9B577-0CE8-47F6-9930-24BCC4CC7723} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{F8C9BBAD-762B-490B-82FF-1BACB5C5D99C} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{E6E1CD6A-09CB-4F54-A707-D3DD287292EB} = {522D351D-0C5D-40A1-A856-3C94167BA347}
+		{F95326C0-9959-4AB4-AD57-A369A4B6C2E4} = {84B9E53F-704C-4892-B718-EF1321217A22}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA32F6CD-3CF1-41D1-9B1C-B19E96B2EE6A}

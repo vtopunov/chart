@@ -1,13 +1,10 @@
-#include <core/color.h>
 #include <core/lerp.h>
 
-#include <os/debug.h>
+#include <debug/debug.h>
 
 #include <px/pixspan.h>
 
-#include <ui/event_loop.h>
-
-#include <egl/window.h>
+#include <egl/event_loop.h>
 
 #include <utility/shaders_library.h>
 
@@ -126,9 +123,9 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
         }
     }
 
-    ui::show(egl, ui::show_command::show_maximazed);
+    show(egl, ui::show_command::show_maximazed);
 
-    return ui::run_event_loop(egl);
+    return run_event_loop(egl);
 }
 
 

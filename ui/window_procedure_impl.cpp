@@ -6,6 +6,8 @@ namespace ui
 {
     LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
     {
+        static_assert(std::is_same_v<event_result_t, LRESULT>);
+
         const window_resource window{ window_handle };
 
         const event e
@@ -18,15 +20,11 @@ namespace ui
 
         switch ( message )
         {
+            case WM_QUIT: break;
+
             case WM_DESTROY:
             {
                 close(window);
-            }
-            break;
-
-            case WM_QUIT:
-            {
-                quit();
             }
             break;
 
@@ -51,6 +49,8 @@ namespace ui
 
     event_result_t event::do_default_process() const noexcept
     {
+        static_assert(std::is_same_v<event_result_t, LRESULT>);
+
         return DefWindowProcW(window_.handle, to_underlying(style_), word_parameter_, long_parameter_);
     }
 }

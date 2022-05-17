@@ -1,5 +1,6 @@
 
 extern void test_type_traits() noexcept;
+extern void test_value_type() noexcept;
 extern void test_zero() noexcept;
 extern void test_utility() noexcept;
 extern void test_clamp_cast() noexcept;
@@ -25,6 +26,7 @@ extern void test_utf() noexcept;
 int main() noexcept
 {
     test_type_traits();
+    test_value_type();
     test_zero();
     test_utility();
     test_clamp_cast();
@@ -42,9 +44,9 @@ int main() noexcept
     test_color();
     test_lerp_color();
     test_null();
-    test_resource();
-    test_small_vector();
+    test_resource();    
     test_buffer();
+    test_small_vector();
     test_utf();
 
     return 0;
