@@ -30,13 +30,14 @@ namespace egl
 
         constexpr EGLint egl_none = EGL_NONE;
 
+
+        D_WARNING_PUSH;
+        D_WARNING_DISABLE_MSVC(W_unchecked_subscript_operator);
+        D_WARNING_DISABLE_MSVC(W_variable_is_uninitialized);
+
         template<size_t max_num_of_attributes>
         class attributes_builder
         {
-            D_WARNING_PUSH
-                D_WARNING_DISABLE_MSVC(W_unchecked_subscript_operator)
-                D_WARNING_DISABLE_MSVC(W_variable_is_uninitialized)
-
         public:
             static constexpr size_t size = 2_uz * max_num_of_attributes + 1_uz;
 
@@ -60,8 +61,11 @@ namespace egl
             EGLint data[size];
             size_t position{ 0_uz };
 
-            D_WARNING_POP
+
         };
+
+        D_WARNING_POP;
+
 
         void gl_enable_transparent() noexcept
         {
@@ -95,13 +99,13 @@ namespace egl
         ui::close(w.app_wnd);
     }
 
-    window window_factory::create() noexcept
+    window window_builder::build() noexcept
     {
         window result;
 
         auto& w = as_mutable(result.r());
 
-        w.app_wnd = app_.create().release();
+        w.app_wnd = app_.build().release();
 
         if (w.app_wnd)
         {
@@ -111,12 +115,12 @@ namespace egl
         if (w.sizes)
         {
             w.renderer_wnd
-                = ui::window_factory{ app_ }
+                = ui::window_builder{ app_ }
                 .title({})
                 .parent(w.app_wnd)
                 .position(0, 0)
                 .sizes(w.sizes)
-                .create()
+                .build()
                 .release();
         }
 
@@ -139,7 +143,6 @@ namespace egl
 
             D_WARNING_POP;
         }
-
 
         if (w.display)
         {
@@ -189,7 +192,7 @@ namespace egl
             (
                 w.display,
                 config,
-                w.renderer_wnd.handle,
+                w.renderer_wnd,
                 surface_attributes.take()
             ));
         }

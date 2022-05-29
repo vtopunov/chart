@@ -59,32 +59,15 @@ namespace ui
     {
         if (type)
         {
-            D_ASSERT_WITH_SIDE_EFFECTS(UnregisterClassW(type.name_id, type.module_instance));
+            D_ASSERT_WITH_SIDE_EFFECTS(UnregisterClassW(type.name_id, type.module));
         }
     }
 
-    unique_type_window type_window_factory::create(wzstring_view name) noexcept
+    unique_type_window type_window_builder::build_as(wzstring_view name) noexcept
     {
-        data_.cbSize = sizeof(WNDCLASSEXW);
+        data_.cbSize = sizeof(data_);
         data_.lpszClassName = name.c_str();
-
-        constexpr auto n_unique_name = 5_uz;
-        WCHAR unique_hexname[n_unique_name];
-        if (is_null_or_empty(data_.lpszClassName))
-        {
-            auto unique_ui16 = generate_unique_ui16();
-
-            auto pname = unique_hexname + (n_unique_name - 1_uz);
-            *pname = L'\0';
-
-            do
-            {
-                constexpr char hexchars[] = "0123456789abcdef";
-                *--pname = hexchars[unique_ui16 & 0xf];;
-            } while (unique_ui16 >>= 4);
-
-            data_.lpszClassName = pname;
-        }
+        D_ASSERT(!is_null_or_empty(data_.lpszClassName));
 
         if (!data_.hInstance)
         {
@@ -112,5 +95,24 @@ namespace ui
             data_.hInstance,
             MAKEINTATOMW(RegisterClassExW(&data_))
         };
+    }
+    
+    unique_type_window type_window_builder::build() noexcept
+    {
+        constexpr auto n_unique_name = 5_uz;
+        WCHAR unique_hexname[n_unique_name];
+
+        auto unique_ui16 = generate_unique_ui16();
+
+        auto pname = unique_hexname + (n_unique_name - 1_uz);
+        *pname = L'\0';
+
+        do
+        {
+            constexpr char hexchars[] = "0123456789abcdef";
+            *--pname = hexchars[unique_ui16 & 0xf];;
+        } while (unique_ui16 >>= 4);
+
+        return build_as(pname);
     }
 }

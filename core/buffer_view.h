@@ -1,14 +1,11 @@
 #pragma once
 
-#include <span>
 #include <string_view>
 
 #include <core/ordered_overload.h>
 #include <core/member_detector.h>
-#include <core/type_traits.h>
 #include <core/size_type.h>
-#include <core/value_type.h>
-#include <core/narrow.h>
+#include <core/span.h>
 
 
 template<bool immutable>
@@ -93,10 +90,6 @@ using is_size_bytes = is_detected<size_bytes_t, T>;
 template<class C>
 constexpr bool is_size_bytes_v = is_size_bytes<C>::value;
 
-template<class C, class DataPointer>
-struct is_convertible_data : std::is_convertible<decl_data_pointer_t<C>, DataPointer>
-{};
-
 template <class C, class Data>
 constexpr bool is_compatible_buffer_v = std::conjunction_v
 <
@@ -104,6 +97,7 @@ constexpr bool is_compatible_buffer_v = std::conjunction_v
     is_size_bytes<C>,
     is_convertible_data<C, Data>
 >;
+
 
 template<bool immutable>
 class basic_buffer_view
@@ -173,6 +167,15 @@ public:
         size_ = size_bytes(container);
         return *this;
     }
+
+    template<class T, size_t n>
+    constexpr std::enable_if_t<std::is_convertible_v<T*, data_pointer>, basic_buffer_view&> operator = (std::span<T, n> span) noexcept
+    {
+        data_ = std::data(span);
+        size_ = size_bytes(span);
+        return *this;
+    }
+
 
     [[nodiscard]]
     constexpr explicit operator bool() const noexcept

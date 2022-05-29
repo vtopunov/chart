@@ -8,7 +8,7 @@ namespace ui
 {
     struct event_processor_note
     {
-        static constexpr window_resource garbage_mark = nullwindow;
+        static constexpr window_handle_t garbage_mark{ nullptr };
 
         [[nodiscard]]
         std::optional<event_result_t> operator () (const event& e) const noexcept
@@ -21,7 +21,7 @@ namespace ui
             window = garbage_mark;
         }
 
-        window_resource window;
+        window_handle_t window;
         event_processor_resource processor;
         void* data;
         event_callback_t callback;
@@ -36,12 +36,12 @@ namespace ui
 
         bool erase(event_processor_resource processor) noexcept;
 
-        size_t erase(window_resource window) noexcept;
+        size_t erase(window_handle_t window) noexcept;
 
         void reset() noexcept;
 
         [[nodiscard]]
-        event_processor_resource insert(window_resource window, void* data, event_callback_t callback) noexcept;
+        event_processor_resource insert(window_handle_t window, void* data, event_callback_t callback) noexcept;
 
         class locked_container
         {
@@ -105,7 +105,7 @@ namespace ui
         }
 
     private:
-        size_t unlock_erase(window_resource window) noexcept;
+        size_t unlock_erase(window_handle_t window) noexcept;
 
         void unlock_and_collecting() noexcept
         {

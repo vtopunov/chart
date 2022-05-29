@@ -16,6 +16,7 @@
 
 #define W_incorrect_logical_or                                         6285
 #define W_redundant_code__left_and_right_subexpressions_are_identical  6287
+#define W_potential_comparison_of_a_constant_with_another_constant     6326
 #define W_avoid_malloc_and_free                                        26408
 #define W_do_not_slice                                                 26437
 #define W_use_not_null                                                 26429
@@ -26,3 +27,4 @@
 #define W_do_not_use_pointer_arithmetic                                26481
 #define W_do_not_use_reinterpret_cast                                  26490
 #define W_variable_is_uninitialized                                    26495
+#define W_enum_is_unscoped__prefer_enum_class                          26812

@@ -30,18 +30,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
-  <Import Project="$(SolutionDir)\core\core.props" />
-  <Import Project="$(SolutionDir)\3rdparty\angle\angle.props" />
-  <PropertyGroup>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
+  <Import Project="..\..\build\egl_ui_app.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
@@ -85,7 +74,6 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
     <Link>
-      <AdditionalOptions>/guard:cf %(AdditionalOptions)</AdditionalOptions>
       <FixedBaseAddress>false</FixedBaseAddress>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -94,20 +82,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\egl\egl.vcxproj">
-      <Project>{c68c0dc6-5bbb-4620-9132-d734195ecaa5}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\file\file.vcxproj">
       <Project>{499e20aa-8c6a-4235-a383-4e6d4c5e6aff}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\gl\gl.vcxproj">
-      <Project>{24516ac3-b08d-4a84-a63c-735a50200b28}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\image\image.vcxproj">
       <Project>{730d00f2-56bf-4f42-8055-a1517b0214c4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ui\ui.vcxproj">
-      <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

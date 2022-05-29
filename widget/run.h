@@ -47,12 +47,10 @@ namespace widget
                 return apply_event(e);
             }
 
-
             std::nullopt_t operator () (const ui::mouse_lbutton_up_event& e) noexcept
             {
                 return apply_event(e);
             }
-
 
             std::nullopt_t operator () (const ui::mouse_move_event& e) noexcept
             {
@@ -89,7 +87,7 @@ namespace widget
             {
                 if (!egl_)
                 {
-                    egl_ = egl::window_factory{}.create();
+                    egl_ = egl::window_builder{}.build();
                 }
 
                 if (!egl_)
@@ -106,9 +104,7 @@ namespace widget
 
                 draw();
 
-                show(egl_, ui::show_command::show_maximazed);
-
-                return run_event_loop(egl_, *this);
+                return egl::run(egl_, *this);
             }
 
             egl::window egl_{};

@@ -2,8 +2,7 @@
 
 #include <core/resouce.h>
 
-#include <ui/event_fwd.h>
-#include <ui/window_fwd.h>
+#include <ui/ufwd.h>
 
 namespace ui
 {
@@ -30,5 +29,5 @@ namespace ui
     using event_processor = unique_resource<event_processor_resource, event_processor_resource_deleter>;
 
     [[nodiscard]]
-    event_processor create_event_processor(window_resource window, void* data, event_callback_t callback) noexcept;
+    event_processor create_event_processor(window_handle_t window, void* data, event_callback_t callback) noexcept;
 }

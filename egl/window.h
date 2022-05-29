@@ -60,7 +60,7 @@ namespace egl
         }
     };
 
-    using paint_buffer_owner = unique_resource<display_surface, painting_collector>;
+    using painting_owner = unique_resource<display_surface, painting_collector>;
 
     struct null_window_resources;
 
@@ -73,8 +73,8 @@ namespace egl
             {
                 return window_resources
                 {
-                    .app_wnd = ui::nullwindow,
-                    .renderer_wnd = ui::nullwindow,
+                    .app_wnd{ nullptr },
+                    .renderer_wnd{ nullptr },
                     .sizes{ 0_px, 0_px },
                     .display{ nullptr },
                     .surface{ nullptr },
@@ -83,8 +83,8 @@ namespace egl
             }
         };
 
-        ui::window_resource app_wnd;
-        ui::window_resource renderer_wnd;
+        ui::window_handle_t app_wnd;
+        ui::window_handle_t renderer_wnd;
 
         px::size2d sizes;
 
@@ -107,9 +107,9 @@ namespace egl
     using window = unique_resource<window_resources, window_resources_collector>;
 
     [[nodiscard]]
-    inline paint_buffer_owner begin_painting(const window_resources& resources) noexcept
+    inline painting_owner begin_painting(const window_resources& resources) noexcept
     {
-        paint_buffer_owner lock
+        painting_owner lock
         {
             resource_construct,
             resources.display,
@@ -170,25 +170,31 @@ namespace egl
         return ui::show(resources.app_wnd);
     }
 
-    class window_factory
+    class window_builder
     {
     public:
-        window_factory& title(std::wstring title) noexcept
+        window_builder& title(std::wstring title) noexcept
         {
             app_.title(std::move(title));
             return *this;
         }
 
-        window_factory& window_type(ui::unique_type_window type) noexcept
+        window_builder& window_type(ui::unique_type_window type) noexcept
         {
             app_.type(std::move(type));
             return *this;
         }
 
+        constexpr window_builder& module(os::module_handle_t module) noexcept
+        {
+            app_.module(module);
+            return *this;
+        }
+
         [[nodiscard]]
-        window create() noexcept;
+        window build() noexcept;
 
     private:
-        ui::window_factory app_;
+        ui::window_builder app_;
     };
 }

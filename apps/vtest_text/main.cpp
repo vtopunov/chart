@@ -116,7 +116,7 @@ namespace
 
 int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
-    const auto egl = egl::window_factory{}.create();
+    const auto egl = egl::window_builder{}.build();
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -175,9 +175,7 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
         }
     }
 
-    show(egl, ui::show_command::show_maximazed);
-
-    return run_event_loop(egl);
+    return run(egl);
 }
 
 

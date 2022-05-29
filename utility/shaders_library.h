@@ -18,7 +18,7 @@ namespace px
 
         static uniform_point2d instance(gl::shaders_program_resource program, zstring_view name) noexcept
         {
-            return { glsl_uniform_type::instance(program, name) };
+            return { .uniform{ glsl_uniform_type::instance(program, name) } };
         }
     };
 

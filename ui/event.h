@@ -4,8 +4,9 @@
 
 #include <px/pxfwd.h>
 
-#include <ui/event_fwd.h>
-#include <ui/window_fwd.h>
+#include <ui/ufwd.h>
+
+#include <os/os.h>
 
 namespace ui
 {
@@ -32,7 +33,7 @@ namespace ui
     {
     public:
         constexpr event(
-            window_resource window,
+            window_handle_t window,
             word_parameter_t word_parameter,
             long_parameter_t long_parameter,
             event_style style
@@ -50,7 +51,7 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr window_resource window() const noexcept
+        constexpr window_handle_t window() const noexcept
         {
             return window_;
         }
@@ -96,7 +97,7 @@ namespace ui
         }
 
     private:
-        window_resource window_;
+        window_handle_t window_;
         word_parameter_t word_parameter_;
         long_parameter_t long_parameter_;
         event_style style_;

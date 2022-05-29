@@ -2,25 +2,23 @@
 
 #include <debug/debug.h>
 
-#include <ui/timer.h>
 #include <gl/draw.h>
 #include <egl/event_loop.h>
 
-using namespace std::chrono_literals;
 using namespace std::chrono;
+using namespace std::chrono_literals;
 
 namespace
 {
     constexpr auto anima_start_color = colors::yellow;
     constexpr auto anima_end_color = colors::black;
-    constexpr auto anima_pause_color = anima_start_color;
 
-    using duration_t = milliseconds;
+    using duration_t = ui::milliseconds_t;
     using duration_rep_t = duration_t::rep;
 
-    constexpr duration_t anima_period{2s};
-    constexpr duration_t anima_working_time{6 * anima_period};
-    constexpr duration_t anima_paused_time{anima_working_time};
+    constexpr duration_t anima_lerp_period{2s};
+    constexpr duration_t anima_working_period{6 * anima_lerp_period};
+    constexpr duration_t anima_paused_period{anima_working_period};
 
     constexpr duration_rep_t oscillating_time(duration_rep_t time, duration_rep_t period) noexcept
     {
@@ -33,15 +31,15 @@ namespace
 
     constexpr rgba_colorf_t anima_color(duration_t now) noexcept
     {
-        constexpr auto anima_period_rep = anima_period.count();
+        constexpr auto period = anima_lerp_period.count();
 
         constexpr auto anima_lerp = lerp
         (
-            num_range{duration_t::zero().count(), anima_period_rep},
+            num_range{duration_t::zero().count(), period},
             num_range{anima_start_color, anima_end_color}
         );
 
-        return color_cast<rgba_colorf_t>(anima_lerp(oscillating_time(now.count(), anima_period_rep)));
+        return color_cast<rgba_colorf_t>(anima_lerp(oscillating_time(now.count(), period)));
     }
 
     void draw_figure(duration_t now) noexcept
@@ -74,7 +72,7 @@ namespace
 
         gl::use(shaders);
 
-        u_color.store(anima_color(now + anima_period));
+        u_color.store(anima_color(now + anima_lerp_period));
 
         constexpr GLfloat radius{ 0.25f };
         constexpr GLfloat dia{ 2 * radius };
@@ -98,8 +96,6 @@ namespace
     {
         egl::window egl;
 
-        ui::timer anima_wakeup_timer;
-
         void draw(duration_t now) const noexcept
         {
             if (const auto lock = begin_painting(egl))
@@ -108,42 +104,24 @@ namespace
             }
         }
 
-        void operator () (ui::timer_event e)  noexcept
+        ui::milliseconds_t operator () (ui::idle_event) noexcept
         {
-            if (e.is(anima_wakeup_timer))
-            {
-                anima_wakeup_timer.reset();
-            }
-        }
-
-        bool operator () (ui::idle_event)  noexcept
-        {
-            constexpr auto period = anima_working_time + anima_paused_time;
+            constexpr auto anima_period = anima_working_period + anima_paused_period;
 
             const auto now = steady_clock::now();
 
-            static const auto start_time = now;
+            static const auto anima_start_time = now;
 
-            const auto duration_now = duration_cast<duration_t>(now - start_time) % period;
+            const auto anima_time = duration_cast<duration_t>(now - anima_start_time) % anima_period;
 
-            const auto is_anima = duration_now <= anima_working_time;
+            const auto is_anima = anima_time <= anima_working_period;
 
             if (is_anima)
             {
-                draw(duration_now);
-            }
-            else
-            {
-                if (!anima_wakeup_timer)
-                {
-                    const auto anima_wakeup_time = period - duration_now;
-                    anima_wakeup_timer = ui::create_timer(anima_wakeup_time);
-                    D_ASSERT(anima_wakeup_timer);
-                    draw(anima_working_time);
-                }
+                draw(anima_time);
             }
 
-            return is_anima;
+            return (is_anima) ? 0ms : (anima_period - anima_time);
         }
     };
 }
@@ -154,15 +132,15 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
     {
         .egl
         {
-            egl::window_factory{}
+            egl::window_builder{}
             .title(L"hello triangle")
             .window_type
             (
-                ui::type_window_factory{}
-                .module_instance(instance)
-                .create()
+                ui::type_window_builder{}
+                .module(instance)
+                .build()
             )
-            .create()
+            .build()
         }
     };
 

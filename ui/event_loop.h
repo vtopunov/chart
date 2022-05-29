@@ -7,14 +7,23 @@
 
 namespace ui
 {
+    inline void sleep_or_reñeive_event(milliseconds_t timeout) noexcept
+    {
+        if (timeout > zero_v<ui::milliseconds_t>)
+        {
+            MsgWaitForMultipleObjectsEx
+            (
+                0u, 
+                nullptr, 
+                narrow_cast<DWORD>(std::min(infinite, timeout).count()), 
+                QS_ALLEVENTS, 
+                MWMO_ALERTABLE
+            );
+        }
+    }
+
     struct native_event
     {
-        [[nodiscard]]
-        bool receive() noexcept
-        {
-            return !!GetMessageW(&msg, nullptr, 0u, 0u);
-        }
-
         [[nodiscard]]
         bool try_receive() noexcept
         {
@@ -46,7 +55,7 @@ namespace ui
     };
 
     template<class T>
-    int run_event_loop(window_resource mainwindow, T&& processor) noexcept
+    int run_event_loop(window_handle_t mainwindow, T&& processor) noexcept
     {
         const auto processor_ptr = std::addressof(as_mutable(processor));
 
@@ -62,35 +71,17 @@ namespace ui
             callback
         );
 
-        const auto translate_and_dispatch = [processor_ptr](const native_event& msg) noexcept
-        {
-            call_event(processor_ptr, msg.msg);
-            msg.translate_and_dispatch();
-        };
-
         for (native_event msg{};;)
         {
-            if (call_event(processor_ptr, idle_event{}))
-            {
-                while (msg.try_receive())
-                {
-                    translate_and_dispatch(msg);
+            sleep_or_reñeive_event(call_event(processor_ptr, idle_event{}));
 
-                    if (msg.is_quit())
-                    {
-                        return msg.exit_status();
-                    }
-                }
-            }
-            else
+            while (msg.try_receive())
             {
-                if (msg.receive())
+                msg.translate_and_dispatch();
+
+                if (msg.is_quit()) 
                 {
-                    translate_and_dispatch(msg);
-                }
-                else
-                {
-                    break;
+                    return msg.exit_status();
                 }
             }
         }
@@ -98,7 +89,7 @@ namespace ui
         return EXIT_SUCCESS;
     }
 
-    inline int run_event_loop(window_resource mainwindow) noexcept
+    inline int run_event_loop(window_handle_t mainwindow) noexcept
     {
         constexpr struct {} nop;
         return run_event_loop(mainwindow, nop);

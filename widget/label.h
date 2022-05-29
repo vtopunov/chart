@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <ui/event_fwd.h>
+#include <ui/ufwd.h>
 
 #include <gl/texture.h>
 

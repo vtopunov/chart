@@ -58,7 +58,7 @@ constexpr T& as_mutable(const T& value) noexcept
     return const_cast<T&>(value);
 }
 
-template <class T> [[nodiscard]]
+template <class T>
 void as_mutable(const T&&) = delete;
 
 D_WARNING_POP

@@ -4,11 +4,9 @@
 
 namespace ui
 {
-    LRESULT CALLBACK window_procedure(HWND window_handle, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
+    LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
     {
         static_assert(std::is_same_v<event_result_t, LRESULT>);
-
-        const window_resource window{ window_handle };
 
         const event e
         {
@@ -51,6 +49,6 @@ namespace ui
     {
         static_assert(std::is_same_v<event_result_t, LRESULT>);
 
-        return DefWindowProcW(window_.handle, to_underlying(style_), word_parameter_, long_parameter_);
+        return DefWindowProcW(window_, to_underlying(style_), word_parameter_, long_parameter_);
     }
 }

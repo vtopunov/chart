@@ -11,21 +11,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="event_fwd.h" />
+    <ClInclude Include="ufwd.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="event_processor.h" />
     <ClInclude Include="event_loop.h" />
     <ClInclude Include="event_matching.h" />
-    <ClInclude Include="timer.h" />
     <ClInclude Include="event_processors_container.h" />
-    <ClInclude Include="timer_fwd.h" />
     <ClInclude Include="type_window.h" />
     <ClInclude Include="window.h" />
-    <ClInclude Include="window_fwd.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="event_processor.cpp" />
-    <ClCompile Include="timer.cpp" />
     <ClCompile Include="event_processors_container.cpp" />
     <ClCompile Include="type_window.cpp" />
     <ClCompile Include="window.cpp" />
@@ -39,7 +35,6 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <Import Project="$(SolutionDir)\core\core.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -56,21 +51,7 @@
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
+  <Import Project="..\build\static_library.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>

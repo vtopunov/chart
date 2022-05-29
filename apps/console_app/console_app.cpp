@@ -1,9 +1,11 @@
-﻿#include <charconv>
+﻿#include <thread>
+
+using namespace std::chrono_literals;
 
 int main() noexcept
 {
-    constexpr uint16_t xz{ 0x123 };
-    char bytes[5];
-    std::to_chars(std::begin(bytes), std::end(bytes), xz, 16);
+    const auto now = std::chrono::steady_clock::now();
+    std::this_thread::sleep_for(200s);
+    std::this_thread::sleep_until(now + 250s);
     return 0;
 }

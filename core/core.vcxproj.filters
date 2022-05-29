@@ -34,5 +34,6 @@
     <ClInclude Include="limits.h" />
     <ClInclude Include="type_traits.h" />
     <ClInclude Include="string_char.h" />
+    <ClInclude Include="span.h" />
   </ItemGroup>
 </Project>

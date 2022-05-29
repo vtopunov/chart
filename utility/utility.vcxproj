@@ -29,18 +29,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
-  <Import Project="$(SolutionDir)\core\core.props" />
-  <Import Project="$(SolutionDir)\3rdparty\angle\angle.props" />
-  <PropertyGroup>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
+  <Import Project="..\build\gl_static_library.props" />  
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
@@ -56,7 +45,6 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
     <Link>
-      <AdditionalOptions>/guard:cf %(AdditionalOptions)</AdditionalOptions>
       <FixedBaseAddress>false</FixedBaseAddress>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -86,7 +74,6 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Lib>
     <Link>
-      <AdditionalOptions>/guard:cf %(AdditionalOptions)</AdditionalOptions>
       <FixedBaseAddress>false</FixedBaseAddress>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -95,17 +82,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\file\file.vcxproj">
+    <ProjectReference Include="..\file\file.vcxproj">
       <Project>{499e20aa-8c6a-4235-a383-4e6d4c5e6aff}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\image\image.vcxproj">
+    <ProjectReference Include="..\image\image.vcxproj">
       <Project>{730d00f2-56bf-4f42-8055-a1517b0214c4}</Project>
     </ProjectReference>
     <ProjectReference Include="..\font\font.vcxproj">
       <Project>{db064cd6-ada3-458e-9d97-b203abf7fe69}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\gl\gl.vcxproj">
-      <Project>{24516ac3-b08d-4a84-a63c-735a50200b28}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

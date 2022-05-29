@@ -163,7 +163,7 @@ namespace
 
 int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 {
-    const auto egl = egl::window_factory{}.create();
+    const auto egl = egl::window_builder{}.build();
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -203,9 +203,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
         shaders.vert.a_frame.draw();
     }
 
-    show(egl, ui::show_command::show_maximazed);
-
-    return run_event_loop(egl);
+    return run(egl);
 }
 
 

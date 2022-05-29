@@ -41,7 +41,7 @@ namespace ui
         return false;
     }
 
-    size_t event_processors_container::erase(window_resource window) noexcept
+    size_t event_processors_container::erase(window_handle_t window) noexcept
     {
         size_t count{ 0_uz };
 
@@ -80,7 +80,7 @@ namespace ui
     }
 
 
-    event_processor_resource event_processors_container::insert(window_resource window, void* data, event_callback_t callback) noexcept
+    event_processor_resource event_processors_container::insert(window_handle_t window, void* data, event_callback_t callback) noexcept
     {
         if ((event_processor_note::garbage_mark == window) || !callback)
         {
@@ -107,7 +107,7 @@ namespace ui
 
     }
 
-    size_t event_processors_container::unlock_erase(window_resource window) noexcept
+    size_t event_processors_container::unlock_erase(window_handle_t window) noexcept
     {
         D_ASSERT(!lock_);
 

@@ -1,10 +1,11 @@
 #pragma once
 
 #include <core/zstring_view.h>
-
 #include <core/resouce.h>
 
 #include <os/os.h>
+
+#include <ui/ufwd.h>
 
 namespace ui
 {
@@ -29,7 +30,7 @@ namespace ui
 
     struct type_window_resource
     {
-        HMODULE module_instance;
+        module_handle_t module;
         LPCWSTR name_id;
 
         [[nodiscard]]
@@ -52,29 +53,32 @@ namespace ui
 
     using shared_type_window = shared_resource<type_window_resource, window_type_resource_deleter>;
 
-    class type_window_factory
+    class type_window_builder
     {
     public:
-        constexpr type_window_factory& style(UINT style) noexcept
+        constexpr type_window_builder& style(UINT style) noexcept
         {
             data_.style = style;
             return *this;
         }
 
-        constexpr type_window_factory& module_instance(HMODULE instance) noexcept
+        constexpr type_window_builder& module(module_handle_t module) noexcept
         {
-            data_.hInstance = instance;
+            data_.hInstance = module;
             return *this;
         }
 
-        type_window_factory& background(stock_brush brush) noexcept
+        type_window_builder& background(stock_brush brush) noexcept
         {
             data_.hbrBackground = stock(brush);
             return *this;
         }
 
+        [[nodiscard]]
+        unique_type_window build_as(wzstring_view name) noexcept;
+
         [[nodiscard]] 
-        unique_type_window create(wzstring_view name = nullptr) noexcept;
+        unique_type_window build() noexcept;
 
     private:
         WNDCLASSEXW data_{};

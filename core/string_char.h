@@ -9,7 +9,7 @@ namespace private_detail_string_char
     {
         using method_type = std::conditional_t<
             std::is_pointer_v<C>,
-            std::remove_cvref<std::remove_pointer_t<C>>,
+            std::decay<std::remove_pointer_t<C>>,
             value_type_type<C>
         >;
 

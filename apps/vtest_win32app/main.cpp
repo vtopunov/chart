@@ -1,7 +1,6 @@
 #include <debug/debug.h>
 
 #include <ui/window.h>
-#include <ui/timer.h>
 #include <ui/event_loop.h>
 
 using namespace std::chrono_literals;
@@ -17,16 +16,19 @@ namespace
         };
     }
 
+    using clock_t = std::chrono::steady_clock;
+    using time_point_t = clock_t::time_point;
+
     struct main_processor
     {
         static constexpr auto standby_time{ 15s };
-        ui::timer quit_timer{ ui::create_timer(standby_time) };
+        time_point_t last_time{ time_point_t::min() };
 
         ui::event_result_t operator () (const ui::size_event& e) const noexcept
         {
             const auto rc = subwindow_geometry(e.sizes());
 
-            for ( const auto& children : childrens(e.window()) )
+            for ( const auto& children : ui::childrens(e.window()) )
             {
                 ui::geometry(children, rc);
             }
@@ -34,20 +36,18 @@ namespace
             return 0L;
         }
 
-        ui::event_result_t operator () (const ui::mouse_move_event& e) noexcept
+        ui::milliseconds_t operator () (ui::idle_event) noexcept
         {
-            debug("mouse move: {} {}", e.x(), e.y());
-            quit_timer = set_timer(std::move(quit_timer), standby_time);
-            D_ASSERT(quit_timer);
-            return 0L;
-        }
+            const auto now = clock_t::now();
 
-        void operator () (const ui::timer_event& e) const noexcept
-        {
-            if ( e.is(quit_timer) )
+            if ( (last_time > last_time.min()) && (now - last_time) > standby_time)
             {
                 ui::quit();
             }
+
+            last_time = now;
+
+            return standby_time;
         }
     };
 }
@@ -55,14 +55,14 @@ namespace
 int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
 {
     debug("create main window");
-    ui::type_window_factory type_factory;
-    type_factory.module_instance(instance);
+    ui::type_window_builder type_builder;
+    type_builder.module(instance);
 
     const auto mainwindow =
-        ui::window_factory{}
-        .type(type_factory.background(ui::stock_brush::dark_gray).create())
+        ui::window_builder{}
+        .type(type_builder.background(ui::stock_brush::dark_gray).build())
         .title(L"vtest_win32app")
-        .create();
+        .build();
 
     if ( !mainwindow )
     {
@@ -73,11 +73,11 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
 
     debug("create subwindow");
     const auto subwindow =
-        ui::window_factory{}
-        .type(type_factory.background(ui::stock_brush::light_gray).create())
+        ui::window_builder{}
+        .type(type_builder.background(ui::stock_brush::light_gray).build())
         .parent(mainwindow)
         .geometry(subwindow_geometry(ui::geometry(mainwindow).sizes()))
-        .create();
+        .build();
 
     if ( !subwindow )
     {

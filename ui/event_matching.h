@@ -1,22 +1,18 @@
 #pragma once
 
+#include <chrono>
+
 #include <ui/event.h>
-#include <ui/timer_fwd.h>
 
 namespace ui
 {
+    using milliseconds_t = std::chrono::milliseconds;
+
+    constexpr auto infinite = milliseconds_t{ INFINITE };
+   
+
     struct idle_event
     {};
-
-    struct timer_event
-    {
-        timer_resource timer_id;
-
-        constexpr bool is(timer_resource id) const noexcept
-        {
-            return timer_id == id;
-        }
-    };
 
     template<class T>
     struct ignore_event
@@ -45,17 +41,6 @@ namespace ui
         return ( *function )( e );
     }
 
-    template<class T>
-    auto call_event(T* function, const MSG& msg) noexcept
-        -> decltype( (std::declval<T&>()( std::declval<timer_event>() ), 0) )
-    {
-        if ( msg.message == WM_TIMER )
-        {
-            ( *function )( timer_event{ narrow_cast<timer_resource>( msg.wParam ) } );
-        }
-
-        return 0;
-    }
 
     template<class T>
     constexpr std::nullopt_t call_event(T*, ignore_event<event>) noexcept
@@ -64,15 +49,11 @@ namespace ui
     }
 
     template<class T>
-    constexpr bool call_event(T*, ignore_event<idle_event>) noexcept
+    constexpr milliseconds_t call_event(T*, ignore_event<idle_event>) noexcept
     {
-        return false;
+        return infinite;
     }
 
-    template<class T>
-    constexpr void call_event(T*, ignore_event<MSG>) noexcept
-    {
-    }
 
     template<class T>
     struct event_callback_instance

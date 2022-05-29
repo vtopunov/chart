@@ -13,39 +13,31 @@ namespace ui
             return map;
         }
 
-        struct parent_construct_t
-        {};
-
-        struct parent_selector
+        struct by_parent
         {
-            constexpr parent_selector(window_resource parent, parent_construct_t) noexcept
-                : parent{ parent }
-            {}
-
-            constexpr parent_selector(const window_dependency& window) noexcept
-                : parent{ window.parent }
-            {}
-
-            [[nodiscard]]
-            constexpr auto operator <=> (const parent_selector&) const noexcept = default;
-
-            window_resource parent;
+            window_handle_t parent;
         };
 
         [[nodiscard]]
-        constexpr parent_selector as_parent(window_resource parent) noexcept
+        constexpr bool operator < (const window_dependency& left, const by_parent& right) noexcept
         {
-            return { parent, parent_construct_t{} };
+            return left.parent < right.parent;
         }
 
         [[nodiscard]]
-        constexpr window_childrens childrens(const window_container& c, window_resource parent) noexcept
+        constexpr bool operator < (const by_parent& left, const window_dependency& right) noexcept
+        {
+            return left.parent < right.parent;
+        }
+
+        [[nodiscard]]
+        constexpr window_childrens childrens(const window_container& c, window_handle_t parent) noexcept
         {
             const auto first = c.cbegin();
 
             return
             {
-                narrow_cast<size_t>(std::lower_bound(first, c.cend(), as_parent(parent)) - first),
+                narrow_cast<size_t>(std::lower_bound(first, c.cend(), by_parent{parent}) - first),
                 &c,
                 parent
             };
@@ -62,23 +54,17 @@ namespace ui
         }
 
         [[nodiscard]]
-        window_resource desktop_window() noexcept
-        {
-            return { ::GetDesktopWindow() };
-        }
-
-        [[nodiscard]]
-        constexpr DWORD select_window_style(window_resource parent) noexcept
+        constexpr DWORD select_window_style(bool has_parent) noexcept
         {
             constexpr DWORD main_window_style{ WS_OVERLAPPED | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX };
             constexpr DWORD child_window_style{ WS_VISIBLE | WS_CHILD };
-            return (parent) ? child_window_style : main_window_style;
+            return (has_parent) ? child_window_style : main_window_style;
         }
 
 
-        bool close(window_container& window_set, window_resource window) noexcept
+        bool close(window_container& window_set, window_handle_t window) noexcept
         {
-            static window_resource in_process_of_destruction = nullwindow;
+            static window_handle_t in_process_of_destruction{ nullptr };
 
             if (window != in_process_of_destruction)
             {
@@ -104,7 +90,7 @@ namespace ui
 
                         ~destruction_locker() noexcept
                         {
-                            in_process_of_destruction = nullwindow;
+                            in_process_of_destruction = nullptr;
                         }
 
                     private:
@@ -120,7 +106,7 @@ namespace ui
                         quit();
                     }
 
-                    const auto ok = !!DestroyWindow(window.handle);
+                    const auto ok = !!DestroyWindow(window);
                     D_ASSERT(ok);
                     return ok;
                 }
@@ -130,27 +116,22 @@ namespace ui
         }
     }
 
-    px::rect geometry(window_resource window) noexcept
+    px::rect geometry(window_handle_t window) noexcept
     {
         RECT rect{ 0, 0, 0, 0 };
-        D_ASSERT_WITH_SIDE_EFFECTS(GetClientRect(window.handle, &rect));
+        D_ASSERT_WITH_SIDE_EFFECTS(GetClientRect(window, &rect));
         return make_rect_from_gdi(rect);
     }
 
-    bool geometry(window_resource window, px::rect rc) noexcept
+    bool geometry(window_handle_t window, px::rect rc) noexcept
     {
         return !!SetWindowPos
         (
-            window.handle, nullptr,
+            window, nullptr,
             rc.x0(), rc.y0(),
             rc.width(), rc.height(),
             SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOSENDCHANGING
         );
-    }
-
-    px::size2d desktop_sizes() noexcept
-    {
-        return geometry(desktop_window()).sizes();
     }
 
     px::size2d display_resolution() noexcept
@@ -160,43 +141,30 @@ namespace ui
         return narrow2d_cast<px::size2d>(dev.dmPelsWidth, dev.dmPelsHeight);
     }
 
-    bool show(window_resource window, int cmd) noexcept
-    {
-        return !!ShowWindow(window.handle, cmd);
-    }
-
-    bool update(window_resource window) noexcept
-    {
-        return !!UpdateWindow(window.handle);
-    }
-
-    bool close(window_resource window) noexcept
+    bool close(window_handle_t window) noexcept
     {
         return window && close(window_container_global(), window);
     }
 
-    void quit() noexcept
-    {
-        PostQuitMessage(0);
-    }
-
-    window_childrens childrens(window_resource window) noexcept
+    window_childrens childrens(window_handle_t window) noexcept
     {
         return childrens(window_container_global(), window);
     }
 
-    window window_factory::create() noexcept
+    window window_builder::build() noexcept
     {
         window result;
 
         if (!type_)
         {
-            type_ = type_window_factory{}.create();
+            type_ = type_window_builder{}
+                .module(module_)
+                .build();
         }
 
         if (type_)
         {
-            const auto style = (style_.has_value()) ? *style_ : select_window_style(parent_);
+            const auto style = (style_.has_value()) ? *style_ : select_window_style(!!parent_);
 
             result = window
             {
@@ -211,9 +179,9 @@ namespace ui
                     px_to_native(position_.y()),
                     px_to_native(sizes_.width()),
                     px_to_native(sizes_.height()),
-                    parent_.handle,
+                    parent_,
                     nullptr,
-                    type_.r().module_instance,
+                    type_.r().module,
                     nullptr
                 )
             };
@@ -228,7 +196,7 @@ namespace ui
                     (
                         window_set.cbegin(),
                         window_set.cend(),
-                        as_parent(parent_)
+                        by_parent{ parent_ }
                     ),
                     result.r(),
                     parent_,

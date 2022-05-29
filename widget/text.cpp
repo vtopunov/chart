@@ -19,7 +19,7 @@ namespace widget
             const auto size_bytes = space.size_bytes();
             if (!temp_buffer.try_resize(size_bytes))
             {
-                e_debug("out of memory\n");
+                e_debug("out of memory");
                 return {};
             }
 

@@ -1,25 +1,25 @@
 #pragma once
 
 #include <string>
-#include <optional>
 
 #include <core/rect.h>
 #include <core/small_vector.h>
 
 #include <px/pxfwd.h>
 
-#include <ui/window_fwd.h>
 #include <ui/type_window.h>
 
 namespace ui
 {
+    static_assert(std::is_same_v<window_handle_t, HWND>);
+
     struct window_dependency
     {
-        window_resource current;
-        window_resource parent;
+        window_handle_t current;
+        window_handle_t parent;
         shared_type_window type;
 
-        constexpr operator window_resource() const noexcept
+        constexpr operator window_handle_t() const noexcept
         {
             return current;
         }
@@ -34,7 +34,7 @@ namespace ui
 
         size_t position;
         const container_type* contaner;
-        window_resource parent;
+        window_handle_t parent;
 
         [[nodiscard]]
         constexpr window_childrens begin() const noexcept
@@ -77,9 +77,12 @@ namespace ui
     };
 
     [[nodiscard]]
-    window_childrens childrens(window_resource parent) noexcept;
+    window_childrens childrens(window_handle_t parent) noexcept;
 
-    bool show(window_resource window, int cmd) noexcept;
+    inline bool show(window_handle_t window, int cmd) noexcept
+    {
+        return !!::ShowWindow(window, cmd);
+    }
 
     enum class show_command
     {
@@ -92,94 +95,109 @@ namespace ui
         restore = SW_RESTORE
     };
 
-    inline bool show(window_resource window, show_command cmd) noexcept
+    inline bool show(window_handle_t  window, show_command cmd) noexcept
     {
         return show(window, to_underlying(cmd));
     }
 
-    inline bool show(window_resource window) noexcept
+    inline bool show(window_handle_t window) noexcept
     {
         return show(window, show_command::show);
     }
 
-    bool update(window_resource window) noexcept;
+    bool close(window_handle_t window) noexcept;
 
-    bool close(window_resource window) noexcept;
-
-    void quit() noexcept;
-
-    [[nodiscard]]
-    px::rect geometry(window_resource window) noexcept;
-
-    bool geometry(window_resource window, px::rect rc) noexcept;
+    inline void quit() noexcept
+    {
+        ::PostQuitMessage(0);
+    }
 
     [[nodiscard]]
-    px::size2d desktop_sizes() noexcept;
+    px::rect geometry(window_handle_t window) noexcept;
+
+    bool geometry(window_handle_t window, px::rect rc) noexcept;
+
+    [[nodiscard]]
+    inline window_handle_t desktop_window() noexcept
+    {
+        return ::GetDesktopWindow();
+    }
+
+    [[nodiscard]]
+    inline px::size2d desktop_sizes() noexcept
+    {
+        return geometry(desktop_window()).sizes();
+    }
 
     [[nodiscard]]
     px::size2d display_resolution() noexcept;
 
     struct window_resource_deleter
     {
-        void operator () (window_resource window) const noexcept
+        void operator () (window_handle_t window) const noexcept
         {
             close(window);
         }
     };
 
-    using window = unique_resource<window_resource, window_resource_deleter>;
+    using window = unique_resource<window_handle_t, window_resource_deleter>;
 
-    class window_factory
+    class window_builder
     {
     public:
-        window_factory& type(unique_type_window type) noexcept
+        window_builder& type(unique_type_window type) noexcept
         {
             type_ = std::move(type);
             return *this;
         }
 
-        window_factory& title(std::wstring title) noexcept
+        window_builder& title(std::wstring title) noexcept
         {
             title_ = std::move(title);
             return *this;
         }
 
-        constexpr window_factory& parent(window_resource window) noexcept
+        constexpr window_builder& parent(window_handle_t window) noexcept
         {
             parent_ = window;
             return *this;
         }
 
-        constexpr window_factory& position(px::point2d position) noexcept
+        constexpr window_builder& position(px::point2d position) noexcept
         {
             position_ = position;
             return *this;
         }
 
-        constexpr window_factory& position(pxside_t x, pxside_t y) noexcept
+        constexpr window_builder& position(pxside_t x, pxside_t y) noexcept
         {
             return position(px::point2d{ x, y });
         }
 
-        constexpr window_factory& sizes(px::size2d sizes) noexcept
+        constexpr window_builder& sizes(px::size2d sizes) noexcept
         {
             sizes_ = sizes;
             return *this;
         }
 
-        constexpr window_factory& sizes(pxside_t width, pxside_t height) noexcept
+        constexpr window_builder& sizes(pxside_t width, pxside_t height) noexcept
         {
             return sizes(px::size2d{ width, height });
         }
 
-        constexpr window_factory& geometry(const px::rect& rc) noexcept
+        constexpr window_builder& geometry(const px::rect& rc) noexcept
         {
             return position(rc.p00()).sizes(rc.sizes());
         }
 
+        constexpr window_builder& module(module_handle_t module) noexcept
+        {
+            module_ = module;
+            return *this;
+        }
 
         [[nodiscard]]
-        window create() noexcept;
+        window build() noexcept;
 
     private:
         using native_pxside_t = int;
@@ -194,9 +212,10 @@ namespace ui
     private:
         shared_type_window type_;
         std::wstring title_;
-        window_resource parent_ = nullwindow;
         std::optional<DWORD> style_;
         px::point2d position_{ px_usedefault, 0_px };
         px::size2d sizes_{ px_usedefault, 0_px };
+        window_handle_t parent_{ nullptr };
+        module_handle_t module_{ nullptr };
     };
 }

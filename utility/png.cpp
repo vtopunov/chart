@@ -13,7 +13,7 @@ gl::texture2d png_texture_from_file(file::path_zstring_view path, buffer_t& temp
     const auto map_file = file::mmap(path);
     if (!map_file)
     {
-        e_debug(L"can't mapping file: {}", path.c_str());
+        e_debug(_PATH("can't mapping file: {}"), path.c_str());
         return {};
     }
 

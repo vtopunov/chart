@@ -19,7 +19,7 @@ namespace
         if (!png)
         {
             const auto errc = png.error_code();
-            e_debug("png error {}:{}\n", to_underlying(errc), image::png_error_string(errc).c_str());
+            e_debug("png error {}:{}", to_underlying(errc), image::png_error_string(errc).c_str());
             return {};
         }
 
@@ -30,7 +30,7 @@ namespace
         pixmap<rgba_color32_t> gallery{ 3u * w_image_space + sep, 3u * h_image_space + sep };
         if (!gallery)
         {
-            e_debug("out of memory\n");
+            e_debug("out of memory");
             return {};
         }
 
@@ -45,7 +45,7 @@ namespace
         auto result_texture = gl::create_texture2d(gallery);
         if (!result_texture)
         {
-            e_debug("create texture error: {}\n", glGetError());
+            e_debug("create texture error: {}", glGetError());
             return {};
         }
 
@@ -55,7 +55,7 @@ namespace
 
 int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 {
-    const auto egl = egl::window_factory{}.create();
+    const auto egl = egl::window_builder{}.build();
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -108,9 +108,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
         }
     }
 
-    egl::show(egl, ui::show_command::show_maximazed);
-
-    return egl::run_event_loop(egl);
+    return run(egl);
 }
 
 

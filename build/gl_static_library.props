@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="angle_static_library.props" />
+  
+  <ItemGroup>
+    <ProjectReference Include="$(RepoDir)\gl\gl.vcxproj">
+      <Project>{24516ac3-b08d-4a84-a63c-735a50200b28}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

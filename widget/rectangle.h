@@ -11,13 +11,13 @@ namespace widget
 
         constexpr bool contains(const px::point2d& p) const noexcept
         {
-            return contains(p.x(), position.x(), sizes.width())
-                && contains(p.y(), position.y(), sizes.height());
-        }
+            constexpr auto contains1d = [](pxside_t p, pxside_t p0, pxside_t dp) noexcept
+            {
+                return p >= p0 && p < (p0 + dp);
+            };
 
-        static constexpr bool contains(pxside_t e_pos, pxside_t w_pos, pxside_t w_size) noexcept
-        {
-            return e_pos >= w_pos && e_pos < (w_size + w_pos);
+            return contains1d(p.x(), position.x(), sizes.width())
+                && contains1d(p.y(), position.y(), sizes.height());
         }
     };
 }

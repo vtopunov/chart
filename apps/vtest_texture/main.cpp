@@ -86,7 +86,7 @@ namespace
 
 int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int command_show)
 {
-    const auto egl = egl::window_factory{}.create();
+    const auto egl = egl::window_builder{}.build();
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}\n",

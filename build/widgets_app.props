@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="app.props" />
+  <Import Project="$(ThirdPartyDir)\angle\angle.props" />
+  
+  <ItemGroup>
+    <ProjectReference Include="$(RepoDir)\widget\widget.vcxproj">
+      <Project>{b40aa82a-1cab-4743-ade5-3ae8a9a4470b}</Project>
+    </ProjectReference>
+	<ProjectReference Include="$(RepoDir)\egl\egl.vcxproj">
+      <Project>{c68c0dc6-5bbb-4620-9132-d734195ecaa5}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>
