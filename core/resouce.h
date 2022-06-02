@@ -207,18 +207,18 @@ public:
         return resource_;
     }
 
-    template<class T>
-    void deattach_and_reset(T&& new_resource) noexcept
+    template<class U>
+    void deattach_and_reset(U&& new_resource) noexcept
     {
         if (has_copies())
         {
             unlink();
-            resource_ = std::forward<T>(new_resource);
+            resource_ = std::forward<U>(new_resource);
         }
         else
         {
             copies_ = self_linked();
-            close_(std::exchange(resource_, std::forward<T>(new_resource)));
+            close_(std::exchange(resource_, std::forward<U>(new_resource)));
         }
     }
 

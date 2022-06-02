@@ -98,7 +98,6 @@ constexpr bool is_compatible_buffer_v = std::conjunction_v
     is_convertible_data<C, Data>
 >;
 
-
 template<bool immutable>
 class basic_buffer_view
 {
@@ -107,7 +106,10 @@ public:
     using const_opt = conditional_add_const_t<immutable, T>;
 
     template<class T>
-    using const_opt_pointer = std::add_pointer_t<const_opt<T>>;
+    using const_opt_pointer = std::add_pointer_t<const_opt<T>>;;
+
+    template<class T>
+    using const_opt_span = span<const_opt<T>>;
 
     using value_type = std::byte;
     using element_type = const_opt<value_type>;
@@ -145,7 +147,7 @@ public:
     {}
 
     template<class T, size_t n, std::enable_if_t<std::is_convertible_v<T*, data_pointer>, int> = 0>
-    constexpr basic_buffer_view(std::span<T, n> span) noexcept
+    constexpr basic_buffer_view(span<T, n> span) noexcept
         : data_{ std::data(span) }
         , size_{ size_bytes(span) }
     {}
@@ -169,7 +171,7 @@ public:
     }
 
     template<class T, size_t n>
-    constexpr std::enable_if_t<std::is_convertible_v<T*, data_pointer>, basic_buffer_view&> operator = (std::span<T, n> span) noexcept
+    constexpr std::enable_if_t<std::is_convertible_v<T*, data_pointer>, basic_buffer_view&> operator = (span<T, n> span) noexcept
     {
         data_ = std::data(span);
         size_ = size_bytes(span);
@@ -208,16 +210,13 @@ public:
     }
 
     template<class T>
-    using const_opt_span = std::span<const_opt<T>>;
-
-    template<class T>
     [[nodiscard]] constexpr const_opt_span<T> as_span() const noexcept
     {
         return { as_ptr<T>(), _count<T>() };
     }
 
     template<class T>
-    [[nodiscard]] constexpr std::basic_string_view<std::remove_const_t<T>> as_str() const noexcept
+    [[nodiscard]] constexpr std::basic_string_view<T> as_str() const noexcept
     {
         return { as_ptr<std::add_const_t<T>>(), _count<T>() };
     }
@@ -311,6 +310,36 @@ private:
     data_pointer data_{ nullptr };
     size_type size_{ 0_uz };
 };
+
+template<class T> [[nodiscard]]
+constexpr span<const T> to_span(const const_buffer_view buffer) noexcept
+{
+    return buffer.template as_span<T>();
+}
+
+template<class T> [[nodiscard]]
+constexpr const T* to_ptr(const const_buffer_view buffer) noexcept
+{
+    return buffer.template as_ptr<T>();
+}
+
+template<class T> [[nodiscard]]
+constexpr span<T> to_span(const buffer_view buffer) noexcept
+{
+    return buffer.template as_span<T>();
+}
+
+template<class T> [[nodiscard]]
+constexpr T* to_ptr(const buffer_view buffer) noexcept
+{
+    return buffer.template as_ptr<T>();
+}
+
+template<class T> [[nodiscard]]
+constexpr std::basic_string_view<T> to_string_view(const const_buffer_view buffer) noexcept
+{
+    return buffer.template as_str<T>();
+}
 
 inline void* zero_memory(buffer_view buffer) noexcept
 {

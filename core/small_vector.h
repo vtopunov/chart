@@ -1,11 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <span>
 
-#include <core/utility.h>
-#include <core/narrow.h>
 #include <core/buffer.h>
+#include <core/span.h>
 
 #undef min
 #undef max
@@ -76,8 +74,8 @@ public:
     using const_reference = const value_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using span_type = std::span<value_type>;
-    using const_span_type = std::span<std::add_const_t<value_type>>;
+    using span_type = span<value_type>;
+    using const_span_type = span<std::add_const_t<value_type>>;
     using buffer_type = buffer<value_type>;
     using size_type = typename buffer_type::size_type;
 
@@ -310,7 +308,7 @@ public:
         if (_try_indeterminate_reserve(size() + 1_uz))
         {
             const auto last = data_ + size_;
-            std::construct_at(last, std::forward<Args>(args)...);
+            new (last) value_type(std::forward<Args>(args)...);
             ++size_;
             return last;
         }
@@ -527,7 +525,7 @@ private:
 
     constexpr void _dynamic_construct(buffer_type& dynamic) noexcept
     {
-        std::construct_at(std::addressof(dynamic_), std::move(dynamic));
+        new (std::addressof(dynamic_)) buffer_type(std::move(dynamic));
     }
 
     constexpr void _dynamic_attach(buffer_type& dynamic) noexcept

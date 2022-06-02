@@ -10,17 +10,17 @@ namespace gl
     using vec2f = vec2<GLfloat>;
     using vec2b = vec2<GLboolean>;
 
-    using const_span2i = std::span<const GLint, 2_uz>;
-    using const_span2f = std::span<const GLfloat, 2_uz>;
-    using const_span2b = std::span<const GLboolean, 2_uz>;
+    using const_span2i = span<const GLint, 2_uz>;
+    using const_span2f = span<const GLfloat, 2_uz>;
+    using const_span2b = span<const GLboolean, 2_uz>;
 
-    using const_span3i = std::span<const GLint, 3_uz>;
-    using const_span3f = std::span<const GLfloat, 3_uz>;
-    using const_span3b = std::span<const GLboolean, 3_uz>;
+    using const_span3i = span<const GLint, 3_uz>;
+    using const_span3f = span<const GLfloat, 3_uz>;
+    using const_span3b = span<const GLboolean, 3_uz>;
 
-    using const_span4i = std::span<const GLint, 4_uz>;
-    using const_span4f = std::span<const GLfloat, 4_uz>;
-    using const_span4b = std::span<const GLboolean, 4_uz>;
+    using const_span4i = span<const GLint, 4_uz>;
+    using const_span4f = span<const GLfloat, 4_uz>;
+    using const_span4b = span<const GLboolean, 4_uz>;
 
     enum class glsl_typeid : GLenum
     {
@@ -252,7 +252,7 @@ namespace gl
     template<glsl_typeid id, size_t tuple_size>
     struct select_glsl_view3
     {
-        using type = std::span<std::add_const_t<glsl_tuple_element_type_t<id>>, tuple_size>;
+        using type = span<std::add_const_t<glsl_tuple_element_type_t<id>>, tuple_size>;
     };
 
     template<glsl_typeid id, size_t tuple_size, class T, class ViewT>

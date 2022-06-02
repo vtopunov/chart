@@ -6,6 +6,8 @@ template<class T>
 struct size2d : vec2<T>
 {
     using vec2_type = vec2<T>;
+    using vec2_type::_0;
+    using vec2_type::_1;
     using reference = T&;
     using const_reference = const T&;
 
@@ -48,13 +50,13 @@ struct size2d : vec2<T>
     [[nodiscard]]
     constexpr const_reference cref_width() const noexcept
     {
-        return vec2_type::_0;
+        return _0;
     }
 
     [[nodiscard]]
     constexpr const_reference cref_height() const noexcept
     {
-        return vec2_type::_1;
+        return _1;
     }
 
     [[nodiscard]]

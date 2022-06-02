@@ -5,10 +5,10 @@
 namespace
 {
     template<class T>
-    void test_view0(std::span<const T, 2_uz> view, const vec2<T>& vec) noexcept
+    void test_view0(span<const T, 2_uz> view, const vec2<T>& vec) noexcept
     {
         static_assert( std::is_same_v<decltype(view), typename std::decay_t<decltype(vec)>::view_type> );
-        static_assert(std::is_same_v<vec2<T>::value_type, T>);
+        static_assert(std::is_same_v<typename vec2<T>::value_type, T>);
         static_assert(std::is_same_v<decltype(vec2<T>::_0), T>);
         static_assert(vec2<T>{}.size() == 2_uz);
 

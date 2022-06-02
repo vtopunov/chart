@@ -1,15 +1,20 @@
 #pragma once
 
+#include <type_traits>
+
 #include <core/warnings.h>
 #include <core/limits.h>
-#include <core/zero.h>
 
 
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
 
 template<class Target, class Source>
-constexpr bool is_unsigned2_v = std::is_unsigned_v<Source> && std::is_unsigned_v<Target>;
+constexpr bool is_unsigned2_v = std::conjunction_v
+<
+    std::is_unsigned<Source>,
+    std::is_unsigned<Target>
+>;
 
 template<class word, class dword> [[nodiscard]]
 constexpr std::enable_if_t<is_unsigned2_v<word, dword>, word> hi_cast(dword dw) noexcept
@@ -22,7 +27,7 @@ constexpr std::enable_if_t<is_unsigned2_v<word, dword>, word> hi_cast(dword dw) 
     }
     else
     {
-        return zero_v<word>;
+        return {};
     }
 }
 

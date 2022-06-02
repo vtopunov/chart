@@ -2,6 +2,8 @@
 
 #include <core/assert.h>
 
+#include <cerrno>
+
 void test_value_type() noexcept
 {
     {

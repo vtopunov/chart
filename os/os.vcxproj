@@ -18,6 +18,7 @@
     <ClInclude Include="os_android.h" />
     <ClInclude Include="os_detection.h" />
     <ClInclude Include="os_windows.h" />
+    <ClInclude Include="undef.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

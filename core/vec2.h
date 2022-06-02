@@ -1,12 +1,10 @@
 #pragma once
 
 #include <algorithm>
-#include <span>
 
 #include <core/member_detector.h>
 #include <core/size_type.h>
-#include <core/value_type.h>
-#include <core/narrow.h>
+#include <core/span.h>
 
 
 #undef min
@@ -17,7 +15,7 @@ struct vec2
 {
     static constexpr size_t tuple_size{ 2_uz };
     using value_type = T;
-    using view_type = std::span<const T, tuple_size>;
+    using view_type = span<const T, tuple_size>;
 
     T _0;
     T _1;

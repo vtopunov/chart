@@ -16,15 +16,41 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <ClCompile>
-      <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\debug\debug.vcxproj">
-      <Project>{6fcb1ca4-9a18-4ecf-a118-154ebf517d91}</Project>
-    </ProjectReference>
+    <ClInclude Include="..\..\core\assert.h" />
+    <ClInclude Include="..\..\core\buffer.h" />
+    <ClInclude Include="..\..\core\buffer_view.h" />
+    <ClInclude Include="..\..\core\clamp_cast.h" />
+    <ClInclude Include="..\..\core\color.h" />
+    <ClInclude Include="..\..\core\colorfwd.h" />
+    <ClInclude Include="..\..\core\coordinate.h" />
+    <ClInclude Include="..\..\core\intrusive_list.h" />
+    <ClInclude Include="..\..\core\lerp.h" />
+    <ClInclude Include="..\..\core\limits.h" />
+    <ClInclude Include="..\..\core\member_detector.h" />
+    <ClInclude Include="..\..\core\narrow.h" />
+    <ClInclude Include="..\..\core\null.h" />
+    <ClInclude Include="..\..\core\num_range.h" />
+    <ClInclude Include="..\..\core\ordered_overload.h" />
+    <ClInclude Include="..\..\core\point2d.h" />
+    <ClInclude Include="..\..\core\polynomial.h" />
+    <ClInclude Include="..\..\core\rational.h" />
+    <ClInclude Include="..\..\core\rect.h" />
+    <ClInclude Include="..\..\core\resouce.h" />
+    <ClInclude Include="..\..\core\size2d.h" />
+    <ClInclude Include="..\..\core\size_type.h" />
+    <ClInclude Include="..\..\core\small_vector.h" />
+    <ClInclude Include="..\..\core\span.h" />
+    <ClInclude Include="..\..\core\string_char.h" />
+    <ClInclude Include="..\..\core\type_traits.h" />
+    <ClInclude Include="..\..\core\utf.h" />
+    <ClInclude Include="..\..\core\utility.h" />
+    <ClInclude Include="..\..\core\value_type.h" />
+    <ClInclude Include="..\..\core\vec2.h" />
+    <ClInclude Include="..\..\core\view.h" />
+    <ClInclude Include="..\..\core\warnings.h" />
+    <ClInclude Include="..\..\core\zero.h" />
+    <ClInclude Include="..\..\core\zstring_view.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <Keyword>Android</Keyword>
@@ -32,7 +58,7 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
-    <ProjectGuid>{8F08613C-D40B-4589-AA40-E4EC8F39632A}</ProjectGuid>
+    <ProjectGuid>{94D9E76D-253D-4C79-9960-5A75FDBF1E1D}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
@@ -48,6 +74,6 @@
     <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="entry_point.props" />
+  <Import Project="..\build\static_library.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

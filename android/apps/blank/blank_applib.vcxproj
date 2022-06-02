@@ -23,13 +23,13 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
-    <AndroidAPILevel>android-27</AndroidAPILevel>
+    <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
-    <AndroidAPILevel>android-27</AndroidAPILevel>
+    <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -43,6 +43,7 @@
       <CppLanguageStandard>c++1z</CppLanguageStandard>
       <CLanguageStandard>c11</CLanguageStandard>
       <AdditionalIncludeDirectories>$(VS_NdkRoot)\sources\android\native_app_glue;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <AdditionalOptions>-u ANativeActivity_onCreate %(AdditionalOptions)</AdditionalOptions>
@@ -53,6 +54,7 @@
       <CppLanguageStandard>c++1z</CppLanguageStandard>
       <CLanguageStandard>c11</CLanguageStandard>
       <DebugInformationFormat>None</DebugInformationFormat>
+      <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <LibraryDependencies>GLESv2;EGL;%(LibraryDependencies)</LibraryDependencies>

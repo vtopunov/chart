@@ -1,9 +1,8 @@
 #pragma once
 
 #include <numeric>
-#include <span>
 
-#include <core/narrow.h>
+#include <core/span.h>
 
 template<class T>
 struct rational
@@ -49,7 +48,7 @@ struct rational
     }
 
     [[nodiscard]]
-    static constexpr rational from_string(std::span<const char> string) noexcept;
+    static constexpr rational from_string(span<const char> string) noexcept;
 
     template<class U, class = std::enable_if_t<is_safe_numeric_not_same_conversion_v<U, int_type>>>
     [[nodiscard]] constexpr operator rational<U>() const noexcept
@@ -361,7 +360,7 @@ constexpr bool operator >= (const rational<T> left, const rational<T> right) noe
 }
 
 template<class T> [[nodiscard]]
-constexpr rational<T> rational<T>::from_string(std::span<const char> string) noexcept
+constexpr rational<T> rational<T>::from_string(span<const char> string) noexcept
 {
     constexpr T max_v = numeric_max_v<T>;
 

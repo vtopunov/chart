@@ -4,5 +4,6 @@
   	<RepoDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoDir>
 	<ThirdPartyDir>$(RepoDir)\3rdparty</ThirdPartyDir>
 	<RepoBuildDir>$(RepoDir)\build</RepoBuildDir>
+	<RepoAppsDir>$(RepoDir)\apps</RepoAppsDir>
   </PropertyGroup>
 </Project>

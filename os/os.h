@@ -7,3 +7,5 @@
 #elif defined(D_OS_ANDROID)
 #include <os/os_android.h>
 #endif
+
+#include <os/undef.h>

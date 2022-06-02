@@ -25,7 +25,7 @@ namespace gl
             return narrow_cast<size_t>(size);
         }
 
-        size_t compile_log_read(shader_resource shader, std::span<GLchar> chars) noexcept
+        size_t compile_log_read(shader_resource shader, span<GLchar> chars) noexcept
         {
             auto size = narrow_cast<GLsizei>(chars.size());
             glGetShaderInfoLog(to_underlying(shader), size, &size, chars.data());

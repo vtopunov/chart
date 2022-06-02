@@ -10,13 +10,27 @@
       <Platform>ARM</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <ClCompile>
+      <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\3rdparty\native_app_glue\native_app_glue.vcxproj">
-      <Project>{f6e5bb2f-0c95-4914-ab39-0f2c69471055}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\debug\debug.vcxproj">
       <Project>{6fcb1ca4-9a18-4ecf-a118-154ebf517d91}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="entry_point_console.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="entry_point_console.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <Keyword>Android</Keyword>
@@ -24,23 +38,22 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
-    <ProjectGuid>{8F08613C-D40B-4589-AA40-E4EC8F39632A}</ProjectGuid>
+    <ProjectGuid>{89189AE4-8ECD-4BAE-B09F-CE8C6B9F0246}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
+    <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
+    <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\build\static_library.props" />
-  <ItemGroup>
-     <ClCompile Include="$(RepoDir)\entry_point\entry_point.cpp" />
-  </ItemGroup>  
+  <Import Project="entry_point.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

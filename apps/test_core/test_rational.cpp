@@ -12,10 +12,10 @@ void test_rational() noexcept
     static_assert(is_rational_v< rational<int>>);
     static_assert(is_rational_v< const rational<int> >);
     static_assert(!is_rational_v< int >);
-    static_assert(!is_rational_v< std::span<int> >);
-    static_assert(!is_rational_v< std::span<int, 2_uz> >);
-    static_assert(!is_rational_v< std::span<const int> >);
-    static_assert(!is_rational_v< std::span<const int, 2_uz> >);
+    static_assert(!is_rational_v< span<int> >);
+    static_assert(!is_rational_v< span<int, 2_uz> >);
+    static_assert(!is_rational_v< span<const int> >);
+    static_assert(!is_rational_v< span<const int, 2_uz> >);
     static_assert(sizeof(rational<char>) == 2);
 
     constexpr rational r0{ 2, 3 };

@@ -22,10 +22,10 @@ void test_color() noexcept
     static_assert( !is_rgba_color_v< u8tint_t > );
     static_assert( !is_rgba_color_v< u32argb_t > );
     static_assert( !is_rgba_color_v< float > );
-    static_assert( !is_rgba_color_v< std::span<u8tint_t> > );
-    static_assert( !is_rgba_color_v< std::span<u8tint_t, 4_uz> > );
-    static_assert( !is_rgba_color_v< std::span<const u8tint_t> > );
-    static_assert( !is_rgba_color_v< std::span<const u8tint_t, 4_uz> > );
+    static_assert( !is_rgba_color_v< span<u8tint_t> > );
+    static_assert( !is_rgba_color_v< span<u8tint_t, 4_uz> > );
+    static_assert( !is_rgba_color_v< span<const u8tint_t> > );
+    static_assert( !is_rgba_color_v< span<const u8tint_t, 4_uz> > );
     static_assert( sizeof(rgba_color32_t) == 4 );
 
     {

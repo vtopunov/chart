@@ -2,6 +2,9 @@
 
 #include <core/assert.h>
 
+#include <cerrno>
+#include <cinttypes>
+
 void test_clamp_cast() noexcept
 {
     {

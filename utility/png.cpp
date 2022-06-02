@@ -1,7 +1,5 @@
 #include "png.h"
 
-#include <core/temp_swap.h>
-
 #include <debug/debug.h>
 
 #include <image/png.h>

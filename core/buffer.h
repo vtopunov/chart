@@ -1,10 +1,9 @@
 #pragma once
 
-#include <utility>
 
 #include <core/warnings.h>
+#include <core/utility.h>
 #include <core/size_type.h>
-
 
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_avoid_malloc_and_free)
@@ -23,6 +22,8 @@ class buffer_void
 {
 public:
     constexpr buffer_void() noexcept = default;
+    
+    D_DISABLE_COPY(buffer_void);
 
     constexpr buffer_void(buffer_attach_construct_t, void* mem, size_t count) noexcept
         : data_{ mem }
@@ -33,10 +34,6 @@ public:
         : data_{ std::exchange(right.data_, nullptr) }
         , count_{ std::exchange(right.count_, 0_uz) }
     {}
-
-    buffer_void(const buffer_void&) noexcept = delete;
-
-    buffer_void& operator = (const buffer_void&) noexcept = delete;
 
     constexpr buffer_void& operator = (buffer_void&& right) noexcept
     {
@@ -108,20 +105,14 @@ public:
 
     constexpr buffer_void_collection() noexcept = default;
 
-    buffer_void_collection(const buffer_void_collection&) noexcept = delete;
+    D_DEFAULT_MOVABLE_ONLY(buffer_void_collection);
 
-    buffer_void_collection& operator = (const buffer_void_collection&) noexcept = delete;
-
-    constexpr buffer_void_collection(buffer_void_collection&& right) noexcept = default;
-
-    constexpr buffer_void_collection& operator = (buffer_void_collection&& right) noexcept = default;
-
-    constexpr buffer_void_collection(buffer_attach_construct_t, const void* mem, size_t count) noexcept
+    constexpr buffer_void_collection(buffer_attach_construct_t, void* mem, size_t count) noexcept
         : base_type{ buffer_attach_construct, mem, count }
     {}
 
     template<class T>
-    constexpr buffer_void_collection(buffer_attach_construct_t, const T* mem, size_t count) noexcept
+    constexpr buffer_void_collection(buffer_attach_construct_t, T* mem, size_t count) noexcept
         : base_type{ buffer_attach_construct, mem, count }
     {
         static_assert(element_size == sizeof(T));
@@ -208,13 +199,7 @@ public:
 
     constexpr buffer() noexcept = default;
 
-    buffer(const buffer&) noexcept = delete;
-
-    buffer& operator = (const buffer&) noexcept = delete;
-
-    constexpr buffer(buffer&& right) noexcept = default;
-
-    constexpr buffer& operator = (buffer&& right) noexcept = default;
+    D_DEFAULT_MOVABLE_ONLY(buffer);
 
     constexpr buffer(buffer_attach_construct_t, pointer mem, size_t size) noexcept
         : base_type{ buffer_attach_construct, mem, size }

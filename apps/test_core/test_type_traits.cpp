@@ -1,5 +1,8 @@
 #include <core/type_traits.h>
 
+#include <cerrno>
+#include <cinttypes>
+
 #include <core/assert.h>
 
 namespace

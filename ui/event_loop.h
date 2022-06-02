@@ -9,7 +9,7 @@ namespace ui
 {
     inline void sleep_or_reñeive_event(milliseconds_t timeout) noexcept
     {
-        if (timeout > zero_v<ui::milliseconds_t>)
+        if (timeout > timeout.zero())
         {
             MsgWaitForMultipleObjectsEx
             (

@@ -1,5 +1,8 @@
 #include <core/narrow.h>
 
+#include <cerrno>
+#include <cstdint> 
+
 void test_narrow() noexcept
 {
     enum class u16_enum : uint16_t

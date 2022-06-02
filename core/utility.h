@@ -14,12 +14,12 @@
     Class &operator=(Class &&) = delete
 
 #define D_DEFAULT_COPY(Class) \
-    Class(const Class &) = default;\
-    Class &operator=(const Class &) = default
+    constexpr Class(const Class &) noexcept = default;\
+    constexpr Class &operator=(const Class &) noexcept = default
 
 #define D_DEFAULT_MOVE(Class) \
-    Class(Class &&) = default; \
-    Class &operator=(Class &&) = default
+    constexpr Class(Class &&) noexcept = default; \
+    constexpr Class &operator=(Class &&) noexcept = default
 
 #define D_DISABLE_COPY_MOVE(Class) \
     D_DISABLE_COPY(Class); \

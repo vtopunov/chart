@@ -29,8 +29,8 @@ namespace gl
 
     void set_vertex_pointer
     (
-        std::span<const attribute_location> attributes,
-        std::span<const vertex_attribute_profile> attribute_profiles,
+        span<const attribute_location> attributes,
+        span<const vertex_attribute_profile> attribute_profiles,
         size_t stride,
         const void* p
     ) noexcept

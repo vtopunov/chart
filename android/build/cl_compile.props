@@ -4,8 +4,9 @@
   
   <ItemDefinitionGroup>
 	<ClCompile>
-      <CppLanguageStandard>c++1z</CppLanguageStandard>
       <CLanguageStandard>c11</CLanguageStandard>
+	  <CppLanguageStandard>c++1z</CppLanguageStandard>
+	  <PreprocessorDefinitions>_LIBCPP_STD_VER=18;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   

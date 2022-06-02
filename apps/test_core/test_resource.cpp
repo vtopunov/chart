@@ -83,10 +83,10 @@ namespace
     };
 
     using tested_unique = unique_resource<tested_resouce, tested_resouce_deleter>;
-    using tested_linked = shared_resource<tested_resouce, tested_resouce_deleter>;
+    using tested_shared = shared_resource<tested_resouce, tested_resouce_deleter>;
 
     static_assert(std::is_same_v<null_t<tested_unique>, null_t<tested_resouce>>);
-    static_assert(std::is_same_v<null_t<tested_linked>, null_t<tested_resouce>>);
+    static_assert(std::is_same_v<null_t<tested_shared>, null_t<tested_resouce>>);
 
     struct verifiable_resource
     {
@@ -110,14 +110,14 @@ void test_resource() noexcept
 {
     constexpr struct
     {
-        bool operator () (const tested_linked& h1, int value) const noexcept
+        bool operator () (const tested_shared& h1, int value) const noexcept
         {
             D_ASSERT(next(h1) == node(h1) && prev(h1) == node(h1));
             D_ASSERT(h1.r().value == value);
             return true;
         }
 
-        bool operator () (const tested_linked& h1, const tested_linked& h2, int value) const noexcept
+        bool operator () (const tested_shared& h1, const tested_shared& h2, int value) const noexcept
         {
             D_ASSERT(next(h1) == node(h2) && prev(h1) == node(h2));
             D_ASSERT(next(h2) == node(h1) && prev(h2) == node(h1));
@@ -125,7 +125,7 @@ void test_resource() noexcept
             return true;
         }
 
-        bool operator () (const tested_linked& h1, const tested_linked& h2, const tested_linked& h3, int value) const noexcept
+        bool operator () (const tested_shared& h1, const tested_shared& h2, const tested_shared& h3, int value) const noexcept
         {
             D_ASSERT(next(h1) == node(h2) && prev(h1) == node(h3));
             D_ASSERT(next(h2) == node(h3) && prev(h2) == node(h1));
@@ -157,7 +157,7 @@ void test_resource() noexcept
         }
     }
 
-    tested_linked h1{ resource_construct, 1 };
+    tested_shared h1{ resource_construct, 1 };
     check(h1, 1);
 
     { // self assignment
@@ -168,7 +168,7 @@ void test_resource() noexcept
     {   // smart resouce closure
         int closed_value = 0;
         {
-            tested_linked h2{ resource_construct, 2 };
+            tested_shared h2{ resource_construct, 2 };
             unsafe(h2).h.check_close = [&closed_value] (const tested_resouce& closing_handle) noexcept
             {
                 D_ASSERT(closed_value != 2 && closing_handle.value == 2);
@@ -179,14 +179,14 @@ void test_resource() noexcept
     }
 
     { // copy constructor
-        tested_linked h2{ h1 };
+        tested_shared h2{ h1 };
         check(h1, h2, 1);
     }
     check(h1, 1);
 
     { // assignment initialization 
         int h2_closed_value = 0;
-        tested_linked h2{ resource_construct, 2 };
+        tested_shared h2{ resource_construct, 2 };
         unsafe(h2).h.check_close = [&h2_closed_value] (const tested_resouce& closing_handle) noexcept
         {
             D_ASSERT(h2_closed_value != 2 && closing_handle.value == 2);
@@ -199,7 +199,7 @@ void test_resource() noexcept
     check(h1, 1);
 
     {   // assignment
-        tested_linked h2{ resource_construct, 2 };
+        tested_shared h2{ resource_construct, 2 };
 
         int h1_closed_value = 0;
         unsafe(h1).h.check_close = [&h1_closed_value] (const tested_resouce& closing_handle) noexcept
@@ -217,7 +217,7 @@ void test_resource() noexcept
     unsafe(h1).h.value = 1;
 
     {   // cyclic assignment
-        tested_linked h2{ h1 };
+        tested_shared h2{ h1 };
         check(h1, h2, 1);
         h1 = h2;
         check(h1, h2, 1);
@@ -227,8 +227,8 @@ void test_resource() noexcept
     check(h1, 1);
 
     {   // cyclic assignment (ref count > 2)
-        tested_linked h2{ h1 };
-        tested_linked h3{ h2 };
+        tested_shared h2{ h1 };
+        tested_shared h3{ h2 };
         check(h1, h2, h3, 1);
         h2 = h3;
         check(h3, h2, h1, 1);
@@ -243,11 +243,11 @@ void test_resource() noexcept
 
         int h2_closed_value = 0;
         {
-            tested_linked ch1{ h1 };
+            tested_shared ch1{ h1 };
             check(h1, ch1, 1);
 
-            tested_linked h2{ resource_construct, 2 };
-            tested_linked ch2{ h2 };
+            tested_shared h2{ resource_construct, 2 };
+            tested_shared ch2{ h2 };
             check(h2, ch2, 2);
 
             h2 = h1;

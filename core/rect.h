@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/type_traits.h>
 #include <core/num_range.h>
 #include <core/point2d.h>
 #include <core/size2d.h>

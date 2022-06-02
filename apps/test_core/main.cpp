@@ -6,6 +6,7 @@ extern void test_utility() noexcept;
 extern void test_clamp_cast() noexcept;
 extern void test_size_type() noexcept;
 extern void test_narrow() noexcept;
+extern void test_span() noexcept;
 extern void test_buffer_view() noexcept;
 extern void test_zstring_view() noexcept;
 extern void test_vec2() noexcept;
@@ -23,6 +24,7 @@ extern void test_small_vector() noexcept;
 extern void test_buffer() noexcept;
 extern void test_utf() noexcept;
 
+
 int main() noexcept
 {
     test_type_traits();
@@ -32,6 +34,7 @@ int main() noexcept
     test_clamp_cast();
     test_size_type();
     test_narrow();
+    test_span();
     test_buffer_view();
     test_zstring_view();
     test_vec2();

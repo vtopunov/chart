@@ -1,9 +1,9 @@
 #pragma once
 
-#include <core/colorfwd.h>
-#include <core/utility.h>
-#include <core/rational.h>
+#include <compare>
 
+#include <core/colorfwd.h>
+#include <core/rational.h>
 
 template<class T> [[nodiscard]]
 constexpr T tint_max() noexcept
@@ -35,7 +35,7 @@ template<class T>
 struct rgba_color
 {
     using tint_type = T;
-    using view_type = std::span<const tint_type, 4_uz>;
+    using view_type = span<const tint_type, 4_uz>;
 
     tint_type r;
     tint_type g;

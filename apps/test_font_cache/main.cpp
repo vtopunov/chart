@@ -30,10 +30,10 @@ namespace
         return std::tuple{ names[name_px_i.rem], pxs[name_px_i.quot] };
     };
 
-    using const_faces_span = std::span<const font_cache::face, names_pxs_size>;
-    using faces_span = std::span<font_cache::face, names_pxs_size>;
+    using const_faces_span = span<const font_cache::face, names_pxs_size>;
+    using faces_span = span<font_cache::face, names_pxs_size>;
     using face_d_array = std::array<font::face_descriptor_t, names_pxs_size>;
-    using const_face_d_span = std::span<const font::face_descriptor_t, names_pxs_size>;
+    using const_face_d_span = span<const font::face_descriptor_t, names_pxs_size>;
 
     constexpr face_d_array make_face_d_array(const_faces_span fonts) noexcept
     {

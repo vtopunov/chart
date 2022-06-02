@@ -129,8 +129,8 @@ namespace gl
 
     void set_vertex_pointer
     (
-        std::span<const attribute_location> attributes,
-        std::span<const vertex_attribute_profile> attribute_profiles,
+        span<const attribute_location> attributes,
+        span<const vertex_attribute_profile> attribute_profiles,
         size_t stride,
         const void* p
     ) noexcept;
@@ -139,7 +139,7 @@ namespace gl
     constexpr auto& vertex_profiles_v = vertex_selector<std::decay_t<Vertex>>::profiles;
 
     template<class Vertex>
-    void set_vertex_pointer(std::span<const attribute_location> attributes, const Vertex* data) noexcept
+    void set_vertex_pointer(span<const attribute_location> attributes, const Vertex* data) noexcept
     {
         constexpr auto& profiles = vertex_profiles_v<Vertex>;
         set_vertex_pointer(attributes, profiles, sizeof(Vertex), data);
@@ -148,7 +148,7 @@ namespace gl
     template<class Vertex>
     void set_vertex_pointer(attribute_location attribute, const Vertex* data) noexcept
     {
-        set_vertex_pointer(std::span<attribute_location>{std::addressof(attribute), 1_uz}, data);
+        set_vertex_pointer(span<attribute_location>{std::addressof(attribute), 1_uz}, data);
     }
 
     using buffer_descriptor_t = GLuint;
@@ -199,7 +199,7 @@ namespace gl
     buffer create_buffer(const_buffer_view data) noexcept;
 
     template<class Vertex>
-    void set_vertex_buffer(std::span<const attribute_location> attributes, buffer_resource_t buffer) noexcept
+    void set_vertex_buffer(span<const attribute_location> attributes, buffer_resource_t buffer) noexcept
     {
         buffer.bind();
         gl::set_vertex_pointer<Vertex>(attributes, nullptr);
@@ -221,7 +221,7 @@ namespace gl
     public:
         constexpr vertex_buffer() noexcept = default;
 
-        vertex_buffer(std::span<const Vertex> vertexes) noexcept
+        vertex_buffer(span<const Vertex> vertexes) noexcept
             : bo_{ create_buffer(vertexes) }
             , size_{ vertexes.size() }
         {}
@@ -257,7 +257,7 @@ namespace gl
             return size_;
         }
 
-        vertex_buffer_user bind(std::span<const attribute_location> attributes) const noexcept
+        vertex_buffer_user bind(span<const attribute_location> attributes) const noexcept
         {
             gl::set_vertex_buffer<Vertex>(attributes, bo_);
             return { size_ };
@@ -265,7 +265,7 @@ namespace gl
 
         vertex_buffer_user bind(attribute_location attribute) const noexcept
         {
-            bind(std::span<attribute_location>{std::addressof(attribute), 1_uz});
+            bind(span<attribute_location>{std::addressof(attribute), 1_uz});
             return { size_ };
         }
 

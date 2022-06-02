@@ -6,21 +6,6 @@
 
 namespace
 {
-    template<class T>
-    struct is_span : std::false_type
-    {};
-
-    template<class T, size_t n>
-    struct is_span<std::span<T, n>> : std::true_type
-    {};
-    
-    template<class T>
-    struct is_span<const T> : is_span<T>
-    {};
-
-    template<class T>
-    constexpr bool is_span_v = is_span<T>::value;
-
     template<bool immutable>
     bool test_impl_impl(basic_buffer_view<immutable> b, const void* data, size_t size) noexcept
     {
@@ -47,17 +32,17 @@ namespace
         static_assert(std::is_same_v<typename buffer_type::const_iterator, byte_cptr>);
 
         static_assert(std::is_same_v<decltype(b.data()), void_ptr>);
-        static_assert(std::is_same_v<decltype(b.as_bytes()), std::span<byte_type>>);
+        static_assert(std::is_same_v<decltype(b.as_bytes()), span<byte_type>>);
         static_assert(std::is_same_v<decltype(b.as_bytes_ptr()), byte_ptr>);
-        static_assert(std::is_same_v<decltype(b.as_span<word>()), std::span<word_type>>);
-        static_assert(std::is_same_v<decltype(b.as_ptr<word>()), word_ptr>);
+        static_assert(std::is_same_v<decltype(to_span<word>(b)), span<word_type>>);
+        static_assert(std::is_same_v<decltype(to_ptr<word>(b)), word_ptr>);
 
         const auto bdata = b.data();
         const auto bsize = b.size();
         const auto bytes = b.as_bytes();
         const auto pbytes = b.as_bytes_ptr();
-        const auto words = b.as_span<word>();
-        const auto pwords = b.as_ptr<word>();
+        const auto words = to_span<word>(b);
+        const auto pwords = to_ptr<word>(b);
         const auto test_pbytes = static_cast<byte_cptr>(data);
         const auto test_pwords = static_cast<word_cptr>(data);
 
@@ -153,9 +138,9 @@ namespace
     };
 
     template<class T, size_t N>
-    struct add_const_span<std::span<T, N>>
+    struct add_const_span<span<T, N>>
     {
-        using type = const std::span<const T, N>;
+        using type = const span<const T, N>;
     };
    
     template<class T>
@@ -172,9 +157,9 @@ namespace
     };
 
     template<class T, size_t N>
-    struct remove_const_span<std::span<T, N>>
+    struct remove_const_span<span<T, N>>
     {
-        using type = std::span<std::remove_const_t<T>, N>;
+        using type = span<std::remove_const_t<T>, N>;
     };
 
     template<class T>
@@ -276,9 +261,9 @@ namespace
     }
 
     template<class T, size_t n>
-    void test_span(std::span<T, n> c) noexcept
+    void test_span(span<T, n> c) noexcept
     {
-        conditional_add_const_t<std::is_const_v<T>, std::span<T, n>>& ref = c;
+        conditional_add_const_t<std::is_const_v<T>, span<T, n>>& ref = c;
 
         test(ref);
     }
@@ -394,8 +379,8 @@ void test_buffer_view() noexcept
         std::u16string s{ u"12345" };
         int m[]{ 1, 2, 3, 4, 5 };
         my_buffer my{};
-        std::span ispm{ m };
-        std::span ispv{ v };
+        span ispm{ m };
+        span ispv{ v };
 
         test(v);
         test(a);
@@ -411,15 +396,15 @@ void test_buffer_view() noexcept
         constexpr std::array ca{ 1, 2, 3, 4, 5 };
         const std::u16string cs{ u"12345" };
         constexpr int cm[]{ 1, 2, 3, 4, 5 };
-        constexpr my_buffer cmy{};
-        constexpr std::span cispm{ cm };
-        const std::span cispv{ cv };
-    
+        constexpr my_buffer c_my{};
+        const span cispm{ cm };
+        const span cispv{ cv };
+
         test(cv);
         test(ca);
         test(cs);
         test(cm);
-        test(cmy);
+        test(c_my);
         test_span(cispm);
         test_span(cispv);
     }

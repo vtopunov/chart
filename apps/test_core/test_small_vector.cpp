@@ -59,7 +59,7 @@ namespace
                 !memcmp(all_copies, right.all_copies, (max_id + 1_uz) * sizeof(counter_t));
         }
 
-        constexpr ~collector() noexcept
+        ~collector() noexcept
         {
             for (ptrdiff_t i = 0; i <= max_id; ++i)
             {
@@ -121,7 +121,7 @@ namespace
             std::swap(value_, right.value_);
         }
 
-        constexpr ~test_int() noexcept
+        ~test_int() noexcept
         {
             if (value_ != invalid)
             {
@@ -161,6 +161,14 @@ namespace
             D_ASSERT(collect.equal(test_collect));
         }
     };
+
+    template<class T, class... Args>
+    void reconstuct(T& ref, Args&&... args) noexcept
+    {
+        const auto pref = std::addressof(ref);
+        std::destroy_at(pref);
+        new (pref) T(std::forward<Args>(args)...);
+    }
 
     template<class T, class TestT, size_t N>
     struct vector_test
@@ -292,8 +300,6 @@ namespace
 
         void fill(size_t count) noexcept
         {
-            const auto size0 = small_v_.size();
-
             small_v_.reserve(small_v_.size() + count);
             test_.reserve(test_.size() + count);
 
@@ -347,10 +353,8 @@ namespace
 
         void test_copy_constuctor(const vector_test& v) noexcept
         {
-            std::destroy_at(&small_v_);
-            std::construct_at(&small_v_, v.small_v_);
-            std::destroy_at(&test_);
-            std::construct_at(&test_, v.test_);
+            reconstuct(small_v_, v.small_v_);
+            reconstuct(test_, v.test_);
             v.test_state();
             test_state();
         }
@@ -397,13 +401,11 @@ namespace
 
         static void move_constuctor(small_vector_type& left, small_vector_type& right) noexcept
         {
-            std::destroy_at(&left);
-            std::construct_at(&left, std::move(right));
+            reconstuct(left, std::move(right));
         }
 
         void test_move(vector_test& v, void (*move_op) (small_vector_type&, small_vector_type&)) noexcept
         {
-            const auto size = small_v_.size();
             const auto data = small_v_.data();
             const auto is_static = small_v_.is_static();
 
@@ -474,8 +476,7 @@ namespace
 
         void test_move_constuctor(vector_test& v) noexcept
         {
-            std::destroy_at(&small_v_);
-            std::construct_at(&small_v_);
+            reconstuct(small_v_);
 
             test_move(v, move_constuctor);
         }
@@ -687,7 +688,7 @@ namespace
             left.test_move_constuctor(right);
         };
 
-        static void test_Òopy_assigment(test_type& left, test_type& right) noexcept
+        static void test_—Åopy_assigment(test_type& left, test_type& right) noexcept
         {
             left.test_copy_assignment(std::as_const(right));
         };
@@ -734,12 +735,10 @@ namespace
 
                 for (const auto left_init : inits)
                 {
-                    const auto stop = left_init == dynamic_medium_init;
-
                     {
                         constexpr op2_t assignment_op_tests[]
                         {
-                            test_Òopy_assigment,
+                            test_—Åopy_assigment,
                             test_move_assignment
                         };
 
@@ -829,25 +828,27 @@ namespace
 
             for (size_t max_index = 0_uz; max_index < dynamic_big_size; ++max_index)
             {
-                const std::uniform_int_distribution<size_t> position_distribution(0_uz, max_index);
-                const auto position = position_distribution(random_engine);
+                const auto position = std::uniform_int_distribution<size_t>{ 0_uz, max_index }(random_engine);
                 test.test_emplace(position);
             }
         }
 
         static void test_erase_random() noexcept
         {
+            using distribution_t = std::uniform_int_distribution<size_t>;
+
             test_type test;
             dynamic_big_init(test);
 
-            std::mt19937_64 random_engine{ std::random_device{}() };
-            const std::uniform_int_distribution<size_t> count_distribution{ 1_uz, 3_uz };
+            std::random_device rd{};
+            std::mt19937_64 count_random_engine{ rd() };
+            std::mt19937_64 position_random_engine{ rd() };
+            distribution_t count_distribution{ 1_uz, 3_uz };
 
             while (const auto size = test.small_v_.size())
             {
-                const auto count = std::min(count_distribution(random_engine), size);
-                const std::uniform_int_distribution<size_t> position_distribution{ 0_uz, size - count };
-                const auto position = position_distribution(random_engine);
+                const auto count = std::min(count_distribution(count_random_engine), size);
+                const auto position = distribution_t{ 0_uz, size - count }(position_random_engine);
                 test.test_erase(position, count);
             }
         }
