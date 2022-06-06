@@ -42,17 +42,11 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl::window_builder{}.module(app).build();
+    const auto egl = egl::create_window(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
             ui::error_code(), eglGetError());
-        return EXIT_FAILURE;
-    }
-
-    if (!is_maximum_resolution(egl))
-    {
-        e_debug("Instance of window is not high dpi. Add <dpiAware>true</dpiAware> in manifest");
         return EXIT_FAILURE;
     }
 
@@ -75,8 +69,8 @@ int app_main(os::module_handle_t app) noexcept
     shaders.vert.u_viewport.store(sizes(egl));
     shaders.frag.s_texture.store(texture);
 
-    if (const auto lock = begin_painting(egl))
     {
+        egl::painting_owner painting_lock{ egl };
         gl::clear(gl::colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();

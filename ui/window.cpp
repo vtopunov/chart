@@ -134,13 +134,6 @@ namespace ui
         );
     }
 
-    px::size2d display_resolution() noexcept
-    {
-        DEVMODEW dev{};
-        EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &dev);
-        return narrow2d_cast<px::size2d>(dev.dmPelsWidth, dev.dmPelsHeight);
-    }
-
     bool close(window_handle_t window) noexcept
     {
         return window && close(window_container_global(), window);
@@ -151,18 +144,18 @@ namespace ui
         return childrens(window_container_global(), window);
     }
 
-    window window_builder::build() noexcept
+    window window_builder::build() const noexcept
     {
         window result;
 
-        if (!type_)
+        if (!cached_type_)
         {
-            type_ = type_window_builder{}
+            cached_type_ = type_window_builder{}
                 .module(module_)
                 .build();
         }
 
-        if (type_)
+        if (cached_type_)
         {
             const auto style = (style_.has_value()) ? *style_ : select_window_style(!!parent_);
 
@@ -172,7 +165,7 @@ namespace ui
                 CreateWindowExW
                 (
                     0,
-                    type_.r().name_id,
+                    cached_type_.r().name_id,
                     title_.c_str(),
                     style,
                     px_to_native(position_.x()),
@@ -181,7 +174,7 @@ namespace ui
                     px_to_native(sizes_.height()),
                     parent_,
                     nullptr,
-                    type_.r().module,
+                    cached_type_.r().module,
                     nullptr
                 )
             };
@@ -200,7 +193,7 @@ namespace ui
                     ),
                     result.r(),
                     parent_,
-                    type_
+                    cached_type_
                 );
 
                 D_ASSERT(ok);

@@ -9,7 +9,7 @@ namespace ui
 {
     inline void sleep_or_reñeive_event(milliseconds_t timeout) noexcept
     {
-        if (timeout > timeout.zero())
+        if (timeout > timeout.zero()) [[unlikely]]
         {
             MsgWaitForMultipleObjectsEx
             (
@@ -71,15 +71,15 @@ namespace ui
             callback
         );
 
-        for (native_event msg{};;)
+        for (native_event msg{};;) [[likely]]
         {
             sleep_or_reñeive_event(call_event(processor_ptr, idle_event{}));
 
-            while (msg.try_receive())
+            while (msg.try_receive()) [[unlikely]]
             {
                 msg.translate_and_dispatch();
 
-                if (msg.is_quit()) 
+                if (msg.is_quit()) [[unlikely]]
                 {
                     return msg.exit_status();
                 }

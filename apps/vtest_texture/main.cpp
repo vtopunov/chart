@@ -84,9 +84,9 @@ namespace
 }
 
 
-int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int command_show)
+int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl::window_builder{}.build();
+    const auto egl = egl::create_window(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}\n",
@@ -96,14 +96,12 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int command_show)
 
     const auto [base_texture, mix_texture] = png_textures_from_file(_PATH("base.png"), _PATH("mix.png"));
 
-    if (const auto lock = begin_painting(egl))
     {
+        egl::painting_owner painting_lock{ egl };
         draw_texture_mix(base_texture, mix_texture);
     }
 
-    egl::show(egl, command_show);
-
-    return egl::run_event_loop(egl);
+    return egl::run(egl);
 }
 
 

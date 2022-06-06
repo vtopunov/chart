@@ -60,12 +60,6 @@ struct size2d : vec2<T>
     }
 
     [[nodiscard]]
-    constexpr explicit operator bool() const noexcept
-    {
-        return is_positive(width()) && is_positive(height());
-    }
-
-    [[nodiscard]]
     constexpr bool operator == (const size2d&) const noexcept = default;
 
     [[nodiscard]]

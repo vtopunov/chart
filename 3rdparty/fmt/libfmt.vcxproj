@@ -28,7 +28,7 @@
   <ImportGroup Label="Shared">
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <Import Project="$(SolutionDir)\build\static_library.props" />
+  <Import Project="$(SolutionDir)\build\windows\static_library.props" />
   <Import Project="files.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

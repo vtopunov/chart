@@ -35,7 +35,7 @@
   <ImportGroup Label="Shared">
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <Import Project="..\..\build\console_app.props" />  
+  <Import Project="..\..\build\windows\console_app.props" />  
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>

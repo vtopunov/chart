@@ -59,20 +59,19 @@ namespace widget
 
             void draw() noexcept
             {
-                if (const auto lock = egl::begin_painting(egl_))
-                {
-                    constexpr auto dialog_color = 0xf0f0f0_glrgb;
+                egl::painting_owner painting_lock{ egl_ };
 
-                    gl::clear(dialog_color);
+                constexpr auto dialog_color = 0xf0f0f0_glrgb;
 
-                    widgets_ref_.apply
-                    (
-                        [this](auto&... widget) noexcept
-                        {
-                            (..., widget.draw(this->temp_buffer_));
-                        }
-                    );
-                }
+                gl::clear(dialog_color);
+
+                widgets_ref_.apply
+                (
+                    [this](auto&... widget) noexcept
+                    {
+                        (..., widget.draw(this->temp_buffer_));
+                    }
+                );
             }
 
             bool initialize() noexcept
@@ -87,7 +86,7 @@ namespace widget
             {
                 if (!egl_)
                 {
-                    egl_ = egl::window_builder{}.build();
+                    egl_ = egl::create_window();
                 }
 
                 if (!egl_)

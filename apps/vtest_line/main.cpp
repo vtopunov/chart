@@ -161,19 +161,13 @@ namespace
 }
 
 
-int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
+int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl::window_builder{}.build();
+    const auto egl = egl::create_window(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
             ui::error_code(), eglGetError());
-        return EXIT_FAILURE;
-    }
-
-    if (!is_maximum_resolution(egl))
-    {
-        e_debug("Instance of window is not high dpi. Add <dpiAware>true</dpiAware> in manifest");
         return EXIT_FAILURE;
     }
 
@@ -197,8 +191,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
     shaders.vert.u_viewport.store(sizes(egl));
     shaders.frag.s_texture.store(texture);
     
-    if (const auto lock = begin_painting(egl))
     {
+        egl::painting_owner painting_lock{ egl };
         gl::clear(gl::colors::gray_f);
         shaders.vert.a_frame.draw();
     }

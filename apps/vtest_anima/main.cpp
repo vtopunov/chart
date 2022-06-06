@@ -16,9 +16,9 @@ namespace
     using duration_t = ui::milliseconds_t;
     using duration_rep_t = duration_t::rep;
 
-    constexpr duration_t anima_lerp_period{2s};
-    constexpr duration_t anima_working_period{6 * anima_lerp_period};
-    constexpr duration_t anima_paused_period{anima_working_period};
+    constexpr duration_t anima_lerp_period{ 2s };
+    constexpr duration_t anima_working_period{ 6 * anima_lerp_period };
+    constexpr duration_t anima_paused_period{ anima_working_period };
 
     constexpr duration_rep_t oscillating_time(duration_rep_t time, duration_rep_t period) noexcept
     {
@@ -35,8 +35,8 @@ namespace
 
         constexpr auto anima_lerp = lerp
         (
-            num_range{duration_t::zero().count(), period},
-            num_range{anima_start_color, anima_end_color}
+            num_range{ duration_t::zero().count(), period },
+            num_range{ anima_start_color, anima_end_color }
         );
 
         return color_cast<rgba_colorf_t>(anima_lerp(oscillating_time(now.count(), period)));
@@ -98,10 +98,8 @@ namespace
 
         void draw(duration_t now) const noexcept
         {
-            if (const auto lock = begin_painting(egl))
-            {
-                draw_figure(now);
-            }
+            egl::painting_owner painting_lock{ egl };
+            draw_figure(now);
         }
 
         ui::milliseconds_t operator () (ui::idle_event) noexcept
@@ -126,33 +124,20 @@ namespace
     };
 }
 
-int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
+int app_main(os::module_handle_t app) noexcept
 {
     main_processor processor
     {
-        .egl
-        {
-            egl::window_builder{}
-            .title(L"hello triangle")
-            .window_type
-            (
-                ui::type_window_builder{}
-                .module(instance)
-                .build()
-            )
-            .build()
-        }
+        .egl{ egl::create_window(app) }
     };
 
     if (!processor.egl)
     {
-        e_debug("create window error: window error: {}, egl error: {}", 
+        e_debug("create window error: window error: {}, egl error: {}",
             ui::error_code(), eglGetError());
         return EXIT_FAILURE;
     }
 
-    show(processor.egl, command_show);
-
-    return run_event_loop(processor.egl, processor);
+    return run(processor.egl, processor);
 }
 

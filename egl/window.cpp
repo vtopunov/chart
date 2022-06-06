@@ -1,5 +1,7 @@
 #include "window.h"
 
+#include <string_view>
+
 using namespace std::string_view_literals;
 
 namespace egl
@@ -60,12 +62,9 @@ namespace egl
         private:
             EGLint data[size];
             size_t position{ 0_uz };
-
-
         };
 
         D_WARNING_POP;
-
 
         void gl_enable_transparent() noexcept
         {
@@ -95,53 +94,35 @@ namespace egl
             }
         }
 
-        ui::close(w.renderer_wnd);
-        ui::close(w.app_wnd);
+        close(w.ui);
     }
 
-    window window_builder::build() noexcept
+    window create_window(os::module_handle_t module) noexcept
     {
         window result;
 
         auto& w = as_mutable(result.r());
 
-        w.app_wnd = app_.build().release();
+        w.ui = ui_intance(module).release();
 
-        if (w.app_wnd)
+        if (w.ui)
         {
-            w.sizes = ui::desktop_sizes();
-        }
-
-        if (w.sizes)
-        {
-            w.renderer_wnd
-                = ui::window_builder{ app_ }
-                .title({})
-                .parent(w.app_wnd)
-                .position(0, 0)
-                .sizes(w.sizes)
-                .build()
-                .release();
-        }
-
-        if (w.renderer_wnd)
-        {
+#if defined(D_OS_WINDOWS)
             D_WARNING_PUSH;
             D_WARNING_DISABLE_MSVC(W_do_not_use_reinterpret_cast);
 
-            if (const auto eglGetPlatformDisplayEXT
-                = reinterpret_cast<PFNEGLGETPLATFORMDISPLAYEXTPROC>(eglGetProcAddress("eglGetPlatformDisplayEXT")))
+            constexpr EGLint display_attributes[] =
             {
-                constexpr EGLint display_attributes[] =
-                {
-                    EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_DEFAULT_ANGLE,
-                    egl_none
-                };
+                EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_DEFAULT_ANGLE,
+                egl_none
+            };
 
-                w.display = static_cast<display_descriptor_t>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
-            }
+            w.display = static_cast<display_descriptor_t>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
 
             D_WARNING_POP;
+#else
+            w.display = static_cast<display_descriptor_t>(eglGetDisplay(EGL_DEFAULT_DISPLAY));
+#endif
         }
 
         if (w.display)
@@ -179,9 +160,11 @@ namespace egl
 
         if (config)
         {
-            attributes_builder<2_uz> surface_attributes;
+            attributes_builder<D_CONDITIONAL_OS_WINDOWS(2_uz, 1_uz)> surface_attributes;
 
+#if defined(D_OS_WINDOWS)
             surface_attributes.add(EGL_DIRECT_COMPOSITION_ANGLE, EGL_TRUE);
+#endif
 
             if (extensions.has("EGL_NV_post_sub_buffer"sv))
             {
@@ -192,26 +175,28 @@ namespace egl
             (
                 w.display,
                 config,
-                w.renderer_wnd,
+                render_window(w.ui),
                 surface_attributes.take()
             ));
         }
 
         if (w.surface)
         {
-            attributes_builder<5_uz> context_attributes;
+            attributes_builder<D_CONDITIONAL_OS_WINDOWS(3_uz, 2_uz)> context_attributes;
 
             if (extensions.has("EGL_KHR_create_context"sv))
             {
                 context_attributes.add(EGL_CONTEXT_MAJOR_VERSION_KHR, 2);
                 context_attributes.add(EGL_CONTEXT_MINOR_VERSION_KHR, 0);
-                context_attributes.add(EGL_CONTEXT_OPENGL_DEBUG, EGL_FALSE);
-
-                if (extensions.has("EGL_ANGLE_create_context_client_arrays"sv))
-                {
-                    context_attributes.add(EGL_CONTEXT_CLIENT_ARRAYS_ENABLED_ANGLE, EGL_TRUE);
-                }
             }
+
+#if defined(D_OS_WINDOWS)
+            if (extensions.has("EGL_ANGLE_create_context_client_arrays"sv))
+            {
+                context_attributes.add(EGL_CONTEXT_CLIENT_ARRAYS_ENABLED_ANGLE, EGL_TRUE);
+            }
+
+#endif
 
             w.context = static_cast<context_descriptor_t>(eglCreateContext(w.display, config, nullptr, context_attributes.take()));
         }
@@ -224,7 +209,10 @@ namespace egl
             }
         }
 
-        gl_enable_transparent();
+        if (result)
+        {
+            gl_enable_transparent();
+        }
 
         return result;
     }

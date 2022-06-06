@@ -52,7 +52,7 @@
     </ImportGroup>
     <ImportGroup Label="Shared">
     </ImportGroup>
-    <Import Project="..\build\static_library.props" />
+    <Import Project="..\build\windows\static_library.props" />
     <PropertyGroup Label="UserMacros" />
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
         <ClCompile>

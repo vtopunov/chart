@@ -118,19 +118,10 @@ namespace ui
     bool geometry(window_handle_t window, px::rect rc) noexcept;
 
     [[nodiscard]]
-    inline window_handle_t desktop_window() noexcept
-    {
-        return ::GetDesktopWindow();
-    }
-
-    [[nodiscard]]
     inline px::size2d desktop_sizes() noexcept
     {
-        return geometry(desktop_window()).sizes();
+        return geometry(::GetDesktopWindow()).sizes();
     }
-
-    [[nodiscard]]
-    px::size2d display_resolution() noexcept;
 
     struct window_resource_deleter
     {
@@ -147,7 +138,7 @@ namespace ui
     public:
         window_builder& type(unique_type_window type) noexcept
         {
-            type_ = std::move(type);
+            cached_type_ = std::move(type);
             return *this;
         }
 
@@ -197,7 +188,7 @@ namespace ui
         }
 
         [[nodiscard]]
-        window build() noexcept;
+        window build() const noexcept;
 
     private:
         using native_pxside_t = int;
@@ -210,7 +201,7 @@ namespace ui
         }
 
     private:
-        shared_type_window type_;
+        mutable shared_type_window cached_type_;
         std::wstring title_;
         std::optional<DWORD> style_;
         px::point2d position_{ px_usedefault, 0_px };

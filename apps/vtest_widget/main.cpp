@@ -87,7 +87,7 @@ namespace
     };
 }
 
-int APIENTRY wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
+int app_main(os::module_handle_t app) noexcept
 {
     font_cache::set_directory(_PATH("..\\fonts"));
 
