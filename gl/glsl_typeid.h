@@ -202,6 +202,8 @@ namespace gl
             case glsl_typeid::mat3f:
                 return 3_uz * 3_uz;
 
+            default:
+                break;
         }
 
         return 1_uz;
@@ -222,16 +224,21 @@ namespace gl
             case glsl_typeid::mat3f:
             case glsl_typeid::mat4f:
                 return glsl_typeid::real;
+
             case glsl_typeid::vec2i:
             case glsl_typeid::vec3i:
             case glsl_typeid::vec4i:
             case glsl_typeid::sampler2D:
             case glsl_typeid::samplerCube:
                 return glsl_typeid::sint;
+
             case glsl_typeid::vec2b:
             case glsl_typeid::vec3b:
             case glsl_typeid::vec4b:
                 return glsl_typeid::boolean;
+
+            default:
+                break;
         }
 
         return id;

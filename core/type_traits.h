@@ -2,6 +2,7 @@
 
 #include <type_traits>
 
+
 template<bool test, template<class> class Op, class T>
 struct conditional_op 
 { 
@@ -56,3 +57,6 @@ using remove_enum = conditional_op<std::is_enum_v<T>, std::underlying_type_t, T>
 
 template <class T>
 using remove_enum_t = typename remove_enum<T>::type;
+
+template<class T>
+using remove_cve_t = std::remove_cv_t<remove_enum_t<T>>;

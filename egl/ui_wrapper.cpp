@@ -18,7 +18,7 @@ namespace egl
         }
     }
 
-    void close(const ui_resources& ui) noexcept
+    void ui_resources_collector::operator () (const ui_resources& ui) const noexcept
     {
         ui::close(ui.render_wnd);
         ui::close(ui.app_wnd);

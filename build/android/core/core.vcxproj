@@ -16,42 +16,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
   </PropertyGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\core\assert.h" />
-    <ClInclude Include="..\..\core\buffer.h" />
-    <ClInclude Include="..\..\core\buffer_view.h" />
-    <ClInclude Include="..\..\core\clamp_cast.h" />
-    <ClInclude Include="..\..\core\color.h" />
-    <ClInclude Include="..\..\core\colorfwd.h" />
-    <ClInclude Include="..\..\core\coordinate.h" />
-    <ClInclude Include="..\..\core\intrusive_list.h" />
-    <ClInclude Include="..\..\core\lerp.h" />
-    <ClInclude Include="..\..\core\limits.h" />
-    <ClInclude Include="..\..\core\member_detector.h" />
-    <ClInclude Include="..\..\core\narrow.h" />
-    <ClInclude Include="..\..\core\null.h" />
-    <ClInclude Include="..\..\core\num_range.h" />
-    <ClInclude Include="..\..\core\ordered_overload.h" />
-    <ClInclude Include="..\..\core\point2d.h" />
-    <ClInclude Include="..\..\core\polynomial.h" />
-    <ClInclude Include="..\..\core\rational.h" />
-    <ClInclude Include="..\..\core\rect.h" />
-    <ClInclude Include="..\..\core\resouce.h" />
-    <ClInclude Include="..\..\core\size2d.h" />
-    <ClInclude Include="..\..\core\size_type.h" />
-    <ClInclude Include="..\..\core\small_vector.h" />
-    <ClInclude Include="..\..\core\span.h" />
-    <ClInclude Include="..\..\core\string_char.h" />
-    <ClInclude Include="..\..\core\type_traits.h" />
-    <ClInclude Include="..\..\core\utf.h" />
-    <ClInclude Include="..\..\core\utility.h" />
-    <ClInclude Include="..\..\core\value_type.h" />
-    <ClInclude Include="..\..\core\vec2.h" />
-    <ClInclude Include="..\..\core\view.h" />
-    <ClInclude Include="..\..\core\warnings.h" />
-    <ClInclude Include="..\..\core\zero.h" />
-    <ClInclude Include="..\..\core\zstring_view.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <Keyword>Android</Keyword>
     <DefaultLanguage>en-US</DefaultLanguage>
@@ -75,5 +39,41 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\static_library.props" />
+  <ItemGroup>
+    <ClInclude Include="$(RepoDir)\core\assert.h" />
+    <ClInclude Include="$(RepoDir)\core\buffer.h" />
+    <ClInclude Include="$(RepoDir)\core\buffer_view.h" />
+    <ClInclude Include="$(RepoDir)\core\clamp_cast.h" />
+    <ClInclude Include="$(RepoDir)\core\color.h" />
+    <ClInclude Include="$(RepoDir)\core\colorfwd.h" />
+    <ClInclude Include="$(RepoDir)\core\coordinate.h" />
+    <ClInclude Include="$(RepoDir)\core\intrusive_list.h" />
+    <ClInclude Include="$(RepoDir)\core\lerp.h" />
+    <ClInclude Include="$(RepoDir)\core\limits.h" />
+    <ClInclude Include="$(RepoDir)\core\member_detector.h" />
+    <ClInclude Include="$(RepoDir)\core\narrow.h" />
+    <ClInclude Include="$(RepoDir)\core\null.h" />
+    <ClInclude Include="$(RepoDir)\core\num_range.h" />
+    <ClInclude Include="$(RepoDir)\core\ordered_overload.h" />
+    <ClInclude Include="$(RepoDir)\core\point2d.h" />
+    <ClInclude Include="$(RepoDir)\core\polynomial.h" />
+    <ClInclude Include="$(RepoDir)\core\rational.h" />
+    <ClInclude Include="$(RepoDir)\core\rect.h" />
+    <ClInclude Include="$(RepoDir)\core\resouce.h" />
+    <ClInclude Include="$(RepoDir)\core\size2d.h" />
+    <ClInclude Include="$(RepoDir)\core\size_type.h" />
+    <ClInclude Include="$(RepoDir)\core\small_vector.h" />
+    <ClInclude Include="$(RepoDir)\core\span.h" />
+    <ClInclude Include="$(RepoDir)\core\string_char.h" />
+    <ClInclude Include="$(RepoDir)\core\type_traits.h" />
+    <ClInclude Include="$(RepoDir)\core\utf.h" />
+    <ClInclude Include="$(RepoDir)\core\utility.h" />
+    <ClInclude Include="$(RepoDir)\core\value_type.h" />
+    <ClInclude Include="$(RepoDir)\core\vec2.h" />
+    <ClInclude Include="$(RepoDir)\core\view.h" />
+    <ClInclude Include="$(RepoDir)\core\warnings.h" />
+    <ClInclude Include="$(RepoDir)\core\zero.h" />
+    <ClInclude Include="$(RepoDir)\core\zstring_view.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

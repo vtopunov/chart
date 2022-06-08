@@ -35,5 +35,6 @@
     <ClInclude Include="type_traits.h" />
     <ClInclude Include="string_char.h" />
     <ClInclude Include="span.h" />
+    <ClInclude Include="underlying.h" />
   </ItemGroup>
 </Project>

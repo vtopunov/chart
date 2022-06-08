@@ -40,6 +40,12 @@ namespace egl
         os::sensor_manager_handle_t sensor_manager;
         os::sensor_event_queue_handle_t sensor_event_queue;
 
+        using view_type = os::module_handle_t;
+
+        constexpr operator view_type () const noexcept
+        {
+            return app;
+        }
 #endif
 
         px::size2d sizes;
@@ -61,27 +67,27 @@ namespace egl
     constexpr nullui_t nullui = null_v<ui_resources>;
 
 #if defined(D_OS_WINDOWS)
+    [[nodiscard]]
     constexpr os::window_handle_t render_window(const ui_resources& ui) noexcept
     {
         return ui.render_wnd;
     }
 
 #elif defined(D_OS_ANDROID)
+    [[nodiscard]]
     os::window_handle_t render_window(const ui_resources& ui) noexcept;
+
+    void quit(os::module_handle_t app) noexcept;
 
 #endif
 
-    void close(const ui_resources& ui) noexcept;
-
     struct ui_resources_collector
     {
-        void operator () (const ui_resources& ui) const noexcept
-        {
-            close(ui);
-        }
+        void operator () (const ui_resources& ui) const noexcept;
     };
 
     using ui_wrapper = unique_resource<ui_resources, ui_resources_collector>;
 
+    [[nodiscard]]
     ui_wrapper ui_intance(os::module_handle_t module) noexcept;
 }

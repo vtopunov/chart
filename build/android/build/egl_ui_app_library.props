@@ -9,7 +9,7 @@
   </ItemDefinitionGroup>
   
   <ItemGroup>
-    <ProjectReference Include="$(RepoAndroidDir)\entry_point\entry_point.vcxproj">
+    <ProjectReference Include="$(AndroidRepoDir)\entry_point\entry_point.vcxproj">
       <Project>{8f08613c-d40b-4589-aa40-e4ec8f39632a}</Project>
     </ProjectReference>
   </ItemGroup>

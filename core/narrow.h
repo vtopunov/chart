@@ -1,20 +1,12 @@
 #pragma once
 
-#include <core/warnings.h>
 #include <core/assert.h>
 #include <core/limits.h>
-#include <core/type_traits.h>
+#include <core/underlying.h>
 #include <core/zero.h>
 
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
-
-template <class E> [[nodiscard]]
-constexpr std::underlying_type_t<E> to_underlying(E e) noexcept
-{
-    return static_cast<std::underlying_type_t<E>>(e);
-}
-
 
 namespace private_detail_narrow
 {

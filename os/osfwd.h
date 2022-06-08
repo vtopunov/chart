@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 #include <os/os_detection.h>
 
 
@@ -24,7 +26,6 @@ D_OS_WINDOWS_FWD_HANDLE(HINSTANCE);
 D_OS_WINDOWS_FWD_HANDLE(HWND);
 #undef D_OS_WINDOWS_FWD_HANDLE
 
-
 #elif defined(D_OS_ANDROID)
 struct android_app;
 struct ANativeWindow;
@@ -48,3 +49,5 @@ namespace os
 
 #endif
 }
+
+static_assert(std::is_class_v<std::remove_pointer_t<os::module_handle_t>>);

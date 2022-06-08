@@ -86,7 +86,7 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl::create_window(app);
+    const auto egl = egl::instance(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}\n",

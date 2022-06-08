@@ -3,8 +3,8 @@
 	<Import Project="..\..\dirs.props" />
 	
 	<PropertyGroup>
-	  <RepoAndroidDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</RepoAndroidDir>
-      <AndroidThirdPartyDir>$(RepoAndroidDir)\3rdparty</AndroidThirdPartyDir>
-	  <AndroidBuildDir>$(RepoAndroidDir)\build</AndroidBuildDir>
+	  <AndroidRepoDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..'))</AndroidRepoDir>
+      <AndroidThirdPartyDir>$(AndroidRepoDir)\3rdparty</AndroidThirdPartyDir>
+	  <AndroidBuildDir>$(AndroidRepoDir)\build</AndroidBuildDir>
 	</PropertyGroup>
 </Project>

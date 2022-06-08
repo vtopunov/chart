@@ -75,6 +75,9 @@ namespace file
         void operator () (file_resource file) const noexcept;
     };
 
+    D_WARNING_PUSH;
+    D_WARNING_DISABLE_MSVC(W_do_not_slice);
+
     struct ro_file : unique_resource<ro_file_resource, file_resource_deleter>
     {
         using unique_resource::unique_resource;
@@ -82,10 +85,7 @@ namespace file
         [[nodiscard]]
         constexpr operator file_resource() const noexcept
         {
-            D_WARNING_PUSH;
-            D_WARNING_DISABLE_MSVC(W_do_not_slice);
             return static_cast<file_resource>(r());
-            D_WARNING_POP;
         }
     };
 
@@ -96,21 +96,17 @@ namespace file
         [[nodiscard]]
         constexpr operator file_resource() const noexcept
         {
-            D_WARNING_PUSH;
-            D_WARNING_DISABLE_MSVC(W_do_not_slice);
             return static_cast<file_resource>(r());
-            D_WARNING_POP;
         }
     };
+
+
 
     struct rw_file : unique_resource<rw_file_resource, file_resource_deleter>
     {
         using unique_resource::unique_resource;
 
-        D_WARNING_PUSH
-            D_WARNING_DISABLE_MSVC(W_do_not_slice)
-
-            [[nodiscard]]
+        [[nodiscard]]
         constexpr operator file_resource() const noexcept
         {
             return static_cast<file_resource>(r());
@@ -127,9 +123,9 @@ namespace file
         {
             return static_cast<wo_file_resource>(r());
         }
-
-        D_WARNING_POP
     };
+
+    D_WARNING_POP
 
     [[nodiscard]]
     ro_file ro_open(path_zstring_view path) noexcept;

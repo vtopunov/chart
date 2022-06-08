@@ -87,7 +87,7 @@ namespace
     };
 }
 
-int app_main(os::module_handle_t app) noexcept
+int app_main(os::module_handle_t) noexcept
 {
     font_cache::set_directory(_PATH("..\\fonts"));
 

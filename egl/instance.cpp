@@ -1,4 +1,4 @@
-#include "window.h"
+#include "instance.h"
 
 #include <string_view>
 
@@ -74,38 +74,37 @@ namespace egl
         }
     }
 
-    void window_resources_collector::operator()(const window_resources& w) const noexcept
+    void resources_collector::operator()(const egl_resources& r) const noexcept
     {
+        if (r.surface)
         {
-            if (w.surface)
-            {
-                D_ASSERT_WITH_SIDE_EFFECTS(eglDestroySurface(w.display, w.surface));
-            }
-
-            if (w.context)
-            {
-                D_ASSERT_WITH_SIDE_EFFECTS(eglDestroyContext(w.display, w.context));
-            }
-
-            if (w.display)
-            {
-                eglMakeCurrent(w.display, nullptr, nullptr, nullptr);
-                D_ASSERT_WITH_SIDE_EFFECTS(eglTerminate(w.display));
-            }
+            D_ASSERT_WITH_SIDE_EFFECTS(eglDestroySurface(r.display, r.surface));
         }
 
-        close(w.ui);
+        if (r.context)
+        {
+            D_ASSERT_WITH_SIDE_EFFECTS(eglDestroyContext(r.display, r.context));
+        }
+
+        if (r.display)
+        {
+            eglMakeCurrent(r.display, nullptr, nullptr, nullptr);
+            D_ASSERT_WITH_SIDE_EFFECTS(eglTerminate(r.display));
+        }
+
+        constexpr ui_resources_collector close{};
+        close(r.ui);
     }
 
-    window create_window(os::module_handle_t module) noexcept
+    egl_t instance(os::module_handle_t module) noexcept
     {
-        window result;
+        egl_t result;
 
-        auto& w = as_mutable(result.r());
+        auto& r = as_mutable(result.r());
 
-        w.ui = ui_intance(module).release();
+        r.ui = ui_intance(module).release();
 
-        if (w.ui)
+        if (r.ui)
         {
 #if defined(D_OS_WINDOWS)
             D_WARNING_PUSH;
@@ -117,24 +116,24 @@ namespace egl
                 egl_none
             };
 
-            w.display = static_cast<display_descriptor_t>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
+            r.display = static_cast<display_descriptor_t>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
 
             D_WARNING_POP;
 #else
-            w.display = static_cast<display_descriptor_t>(eglGetDisplay(EGL_DEFAULT_DISPLAY));
+            r.display = static_cast<display_descriptor_t>(eglGetDisplay(EGL_DEFAULT_DISPLAY));
 #endif
         }
 
-        if (w.display)
+        if (r.display)
         {
-            if (!eglInitialize(w.display, nullptr, nullptr) || !eglBindAPI(EGL_OPENGL_ES_API))
+            if (!eglInitialize(r.display, nullptr, nullptr) || !eglBindAPI(EGL_OPENGL_ES_API))
             {
                 result.reset();
             }
         }
 
         EGLConfig config{ nullptr };
-        if (w.display)
+        if (r.display)
         {
             constexpr EGLint config_attributes[] =
             {
@@ -148,7 +147,7 @@ namespace egl
             };
 
             EGLint config_count{ 0 };
-            const auto choose_ok = eglChooseConfig(w.display, config_attributes, &config, 1, &config_count);
+            const auto choose_ok = eglChooseConfig(r.display, config_attributes, &config, 1, &config_count);
 
             if (!choose_ok || (config_count != 1))
             {
@@ -156,7 +155,7 @@ namespace egl
             }
         }
 
-        const auto extensions = query_extensions(w.display);
+        const auto extensions = query_extensions(r.display);
 
         if (config)
         {
@@ -171,16 +170,16 @@ namespace egl
                 surface_attributes.add(EGL_POST_SUB_BUFFER_SUPPORTED_NV, EGL_TRUE);
             }
 
-            w.surface = static_cast<surface_descriptor_t>(eglCreateWindowSurface
+            r.surface = static_cast<surface_descriptor_t>(eglCreateWindowSurface
             (
-                w.display,
+                r.display,
                 config,
-                render_window(w.ui),
+                render_window(r.ui),
                 surface_attributes.take()
             ));
         }
 
-        if (w.surface)
+        if (r.surface)
         {
             attributes_builder<D_CONDITIONAL_OS_WINDOWS(3_uz, 2_uz)> context_attributes;
 
@@ -198,12 +197,12 @@ namespace egl
 
 #endif
 
-            w.context = static_cast<context_descriptor_t>(eglCreateContext(w.display, config, nullptr, context_attributes.take()));
+            r.context = static_cast<context_descriptor_t>(eglCreateContext(r.display, config, nullptr, context_attributes.take()));
         }
 
-        if (w.context)
+        if (r.context)
         {
-            if (!eglMakeCurrent(w.display, w.surface, w.surface, w.context))
+            if (!eglMakeCurrent(r.display, r.surface, r.surface, r.context))
             {
                 result.reset();
             }

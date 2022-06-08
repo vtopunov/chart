@@ -10,10 +10,21 @@
 
 namespace gl
 {
+    inline void clear(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) noexcept
+    {
+        glClearColor(red, green, blue, alpha);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    inline void clear(GLfloat red, GLfloat green, GLfloat blue) noexcept
+    {
+        clear(red, green, blue, 1.0f);
+    }
+
     inline void clear(rgba_colorf_view color) noexcept
     {
-        glClearColor(color[0], color[1], color[2], color[3]);
-        glClear(GL_COLOR_BUFFER_BIT);
+        static_assert(rgba_colorf_view::extent == 4_uz);
+        clear(color[0], color[1], color[2], color[3]);
     }
 
     enum class draw_mode : GLenum

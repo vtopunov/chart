@@ -223,9 +223,10 @@ static void* android_app_entry(void* param) {
     pthread_cond_broadcast(&android_app->cond);
     pthread_mutex_unlock(&android_app->mutex);
 
-    android_main(android_app);
-
+    int exit_status = android_main(android_app);
     android_app_destroy(android_app);
+    exit(exit_status);
+
     return NULL;
 }
 
@@ -266,7 +267,7 @@ static struct android_app* android_app_create(ANativeActivity* activity,
         pthread_cond_wait(&android_app->cond, &android_app->mutex);
     }
     pthread_mutex_unlock(&android_app->mutex);
-
+    
     return android_app;
 }
 

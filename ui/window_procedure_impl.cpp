@@ -13,7 +13,7 @@ namespace ui
             window,
             word_parameter,
             long_parameter,
-            safe_numeric_cast<event_style>( message )
+            underlying_cast<event_style>( message )
         };
 
         switch ( message )

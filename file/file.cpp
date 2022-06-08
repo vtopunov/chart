@@ -2,7 +2,8 @@
 
 #include <bit>
 
-#include <core/narrow.h>
+#include <core/assert.h>
+#include <core/underlying.h>
 
 #include <os/os.h>
 
@@ -21,7 +22,7 @@ namespace file
         [[nodiscard]]
         constexpr access_flags operator | (access_flags left, access_flags right) noexcept
         {
-            return safe_numeric_cast<access_flags>( to_underlying(left) | to_underlying(right) );
+            return underlying_cast<access_flags>( to_underlying(left) | to_underlying(right) );
         }
 
         enum class share_flags : DWORD
@@ -33,7 +34,7 @@ namespace file
         [[nodiscard]]
         constexpr share_flags operator | (share_flags left, share_flags right) noexcept
         {
-            return safe_numeric_cast<share_flags>( to_underlying(left) | to_underlying(right) );
+            return underlying_cast<share_flags>( to_underlying(left) | to_underlying(right) );
         }
 
         enum class creation_mode : DWORD

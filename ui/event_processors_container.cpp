@@ -7,7 +7,7 @@ namespace ui
         event_processor_resource new_event_processor_description() noexcept
         {
             static auto current = to_underlying(event_processor_resource::null);
-            return safe_numeric_cast<event_processor_resource>(++current);
+            return underlying_cast<event_processor_resource>(++current);
         }
     }
 

@@ -3,7 +3,8 @@
 #include <egl/ui_wrapper.h>
 
 #include <android/sensor.h>
-#include <android_native_app_glue.h>
+
+#include <entry_point/android_native_app_glue.h>
 
 namespace egl
 {
@@ -64,7 +65,7 @@ namespace egl
 
             const app_cmd_callback_instance app_cmd{ app };
 
-            while(!(app->destroyRequested))
+            while (!(app->destroyRequested))
             {
                 int events{};
                 android_poll_source* source{ nullptr };
@@ -82,9 +83,6 @@ namespace egl
                             return app->window;
 
                         case APP_CMD_TERM_WINDOW:
-                        case APP_CMD_PAUSE:
-                        case APP_CMD_STOP:
-                        case APP_CMD_DESTROY:
                             return nullptr;
 
                         default:
@@ -105,7 +103,7 @@ namespace egl
                     }
                 }
             }
-            
+
             return nullptr;
         }
 
@@ -114,7 +112,28 @@ namespace egl
         {
             constexpr T zero{};
             return narrow_cast<pxside_t>(std::max(zero, value));
-        }  
+        }
+
+        void waiting_for_finish(os::module_handle_t app) noexcept
+        {
+            constexpr size_t max_number_of_checks{ 255 };
+            constexpr int retry_check_timeout_ms{ 500 };
+
+            for (size_t loop_limit{ max_number_of_checks }; loop_limit && !(app->destroyRequested); --loop_limit)
+            {
+                int events{};
+                android_poll_source* source{ nullptr };
+                if (const auto ident = ALooper_pollAll(retry_check_timeout_ms, nullptr, &events, (void**)&source); ident >= 0)
+                {
+                    if (source && source->process)
+                    {
+                        source->process(app, source);
+                    }
+                }
+            }
+
+            D_ASSERT(app->destroyRequested);
+        }
     }
 
     os::window_handle_t render_window(const ui_resources& ui) noexcept
@@ -122,16 +141,27 @@ namespace egl
         return (ui.app) ? ui.app->window : nullptr;
     }
 
-    void close(const ui_resources& ui) noexcept
+    void quit(os::module_handle_t app) noexcept
+    {
+        if (app)
+        {
+            app->onAppCmd = nullptr;
+            app->onInputEvent = nullptr;
+
+            if (app->activity)
+            {
+                ANativeActivity_finish(app->activity);
+            }
+
+            waiting_for_finish(app);
+        }
+    }
+
+    void ui_resources_collector::operator()(const ui_resources& ui) const noexcept
     {
         if (ui.sensor_event_queue)
         {
             ASensorManager_destroyEventQueue(ui.sensor_manager, ui.sensor_event_queue);
-        }
-
-        if (ui.app && ui.app->activity)
-        {
-            ANativeActivity_finish(ui.app->activity);
         }
     }
 
@@ -140,6 +170,7 @@ namespace egl
         ui_wrapper result;
 
         auto& ui = as_mutable(result.r());
+
         ui.app = app;
 
         if (app)

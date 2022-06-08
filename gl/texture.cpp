@@ -69,7 +69,7 @@ namespace gl
             GLint size{ 0 };
             glGetActiveUniform(to_underlying(program), locaion, 0, nullptr, &size, &type_id, nullptr);
 
-            if (is_sampler(safe_numeric_cast<glsl_typeid>(type_id)))
+            if (is_sampler(underlying_cast<glsl_typeid>(type_id)))
             {
                 ++number;
             }

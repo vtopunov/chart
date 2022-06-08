@@ -38,7 +38,7 @@ namespace image
 
     png_errno png_set_buffer(png_resource png, const_buffer_view buffer) noexcept
     {
-        return safe_numeric_cast<png_errno>(spng_set_png_buffer(png, buffer.data(), buffer.size()));
+        return underlying_cast<png_errno>(spng_set_png_buffer(png, buffer.data(), buffer.size()));
     }
 
 
@@ -50,7 +50,7 @@ namespace image
         , errno_{ png_errno::NOIHDR }
     {
         static_assert(png_header_len >= sizeof(spng_ihdr));
-        errno_ = safe_numeric_cast<png_errno>(spng_get_ihdr(png, reinterpret_cast<spng_ihdr*>(&storage_)));
+        errno_ = underlying_cast<png_errno>(spng_get_ihdr(png, reinterpret_cast<spng_ihdr*>(&storage_)));
     }
 
     pxside_t png_header::width() const noexcept
@@ -77,7 +77,7 @@ namespace image
         static_assert(to_underlying(png_color_type::INDEXED) == SPNG_COLOR_TYPE_INDEXED);
         static_assert(to_underlying(png_color_type::GRAYSCALE_ALPHA) == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA);
         static_assert(to_underlying(png_color_type::TRUECOLOR_ALPHA) == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA);
-        return safe_numeric_cast<png_color_type>(reinterpret_cast<const spng_ihdr&>(storage_).color_type);
+        return underlying_cast<png_color_type>(reinterpret_cast<const spng_ihdr&>(storage_).color_type);
     }
 
     D_WARNING_POP
@@ -91,12 +91,12 @@ namespace image
 
     png_errno png_decoded_image_size(png_resource png, png_format format, size_t* size) noexcept
     {
-        return safe_numeric_cast<png_errno>(spng_decoded_image_size(png, to_underlying(format), size));
+        return underlying_cast<png_errno>(spng_decoded_image_size(png, to_underlying(format), size));
     }
 
     png_errno png_decode_image(png_resource png, png_format format, buffer_view out) noexcept
     {
-        return safe_numeric_cast<png_errno>(spng_decode_image(png, out.data(), out.size(), to_underlying(format), 0));
+        return underlying_cast<png_errno>(spng_decode_image(png, out.data(), out.size(), to_underlying(format), 0));
     }
 
     pix32result png_decode_to_r8g8b8a8(const_buffer_view image, buffer_t& temp) noexcept

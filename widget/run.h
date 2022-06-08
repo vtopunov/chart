@@ -86,7 +86,7 @@ namespace widget
             {
                 if (!egl_)
                 {
-                    egl_ = egl::create_window();
+                    egl_ = egl::instance();
                 }
 
                 if (!egl_)
@@ -106,7 +106,7 @@ namespace widget
                 return egl::run(egl_, *this);
             }
 
-            egl::window egl_{};
+            egl_t egl_{};
             buffer_t temp_buffer_{};
             Group& widgets_ref_;
         };

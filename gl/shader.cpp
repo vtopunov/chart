@@ -171,7 +171,7 @@ namespace gl
         return
         {
             resource_construct,
-            safe_numeric_cast<shader_resource>(glCreateShader(to_underlying(type)))
+            underlying_cast<shader_resource>(glCreateShader(to_underlying(type)))
         };
     }
 
@@ -226,7 +226,7 @@ namespace gl
         return
         {
             resource_construct,
-            safe_numeric_cast<shaders_program_resource>(glCreateProgram())
+            underlying_cast<shaders_program_resource>(glCreateProgram())
         };
     }
 

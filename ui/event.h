@@ -1,7 +1,5 @@
 #pragma once
 
-#include <core/narrow.h>
-
 #include <px/pxfwd.h>
 
 #include <ui/ufwd.h>
@@ -183,7 +181,7 @@ namespace ui
         [[nodiscard]]
         constexpr mouse_keys keys() const noexcept
         {
-            return { safe_numeric_cast<mouse_keys::e_mouse_keys>(word_parameter()) };
+            return { underlying_cast<mouse_keys::e_mouse_keys>(word_parameter()) };
         }
     };
 

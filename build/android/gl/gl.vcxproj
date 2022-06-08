@@ -16,7 +16,7 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
-    <ProjectGuid>{C0808F2E-6821-487F-B347-6AE09A529F59}</ProjectGuid>
+    <ProjectGuid>{40EAF3CF-7215-4353-9A89-883B91118195}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
@@ -33,25 +33,17 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\static_library.props" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(RepoDir)\egl\instance.cpp" />
-    <ClCompile Include="ui_wrapper.cpp" />
+    <ClCompile Include="$(RepoDir)\gl\shader.cpp" />
+    <ClCompile Include="..\..\..\gl\draw.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(RepoDir)\egl\config.h" />
-    <ClInclude Include="$(RepoDir)\egl\instance.h" />
-    <ClInclude Include="$(RepoDir)\egl\ui_wrapper.h" />
-    <ClInclude Include="$(RepoDir)\egl\event_loop.h" />
+    <ClInclude Include="$(RepoDir)\gl\config.h" />
+    <ClInclude Include="$(RepoDir)\gl\glsl_typeid.h" />
+    <ClInclude Include="$(RepoDir)\gl\shader.h" />
+    <ClInclude Include="..\..\..\gl\color.h" />
+    <ClInclude Include="..\..\..\gl\draw.h" />
+    <ClInclude Include="..\..\..\gl\vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(AndroidThirdPartyDir)\fmt\libfmt.vcxproj">

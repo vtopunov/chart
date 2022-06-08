@@ -26,6 +26,7 @@
     <ClInclude Include="string_char.h" />
     <ClInclude Include="temp_swap.h" />
     <ClInclude Include="type_traits.h" />
+    <ClInclude Include="underlying.h" />
     <ClInclude Include="utf.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="intrusive_list.h" />

@@ -40,16 +40,14 @@ namespace egl
     using private_detail_egl_descriptor::surface_descriptor_t;
     using private_detail_egl_descriptor::context_descriptor_t;
 
-    struct null_window_resources;
-
-    struct window_resources
+    struct egl_resources
     {
         struct null_type
         {
             [[nodiscard]]
-            constexpr operator window_resources() const noexcept
+            constexpr operator egl_resources() const noexcept
             {
-                return window_resources
+                return egl_resources
                 {
                     .ui = nullui,
                     .display{ nullptr },
@@ -73,40 +71,48 @@ namespace egl
     };
 
     [[nodiscard]]
-    constexpr px::size2d sizes(const window_resources& resources) noexcept
+    constexpr px::size2d sizes(const egl_resources& egl) noexcept
     {
-        return resources.ui.sizes;
+        return egl.ui.sizes;
     }
 
     [[nodiscard]]
-    constexpr pxside_t width(const window_resources& resources) noexcept
+    constexpr pxside_t width(const egl_resources& egl) noexcept
     {
-        return resources.ui.sizes.width();
+        return egl.ui.sizes.width();
     }
 
     [[nodiscard]]
-    constexpr pxside_t height(const window_resources& resources) noexcept
+    constexpr pxside_t height(const egl_resources& egl) noexcept
     {
-        return resources.ui.sizes.height();
+        return egl.ui.sizes.height();
     }
 
-    struct window_resources_collector
+#ifdef D_OS_ANDROID
+    inline void quit(const egl_resources& egl) noexcept
     {
-        void operator () (const window_resources& egl) const noexcept;
-    };
-
-    using window = unique_resource<window_resources, window_resources_collector>;
-
-    window create_window(os::module_handle_t module) noexcept;
-
-#ifdef D_OS_WINDOWS
-    inline window create_window() noexcept
-    {
-        return create_window(nullptr);
+        return quit(egl.ui);
     }
 
 #endif
 
+    struct resources_collector
+    {
+        void operator () (const egl_resources& egl) const noexcept;
+    };
+
+    using egl_t = unique_resource<egl_resources, resources_collector>;
+
+    [[nodiscard]]
+    egl_t instance(os::module_handle_t module) noexcept;
+
+#ifdef D_OS_WINDOWS
+    inline egl_t instance() noexcept
+    {
+        return instance(nullptr);
+    }
+
+#endif
 
     struct display_surface
     {
@@ -131,14 +137,14 @@ namespace egl
     class painting_owner
     {
     public:
-        painting_owner(const window_resources& resources) noexcept
-            : lock_{ resource_construct, resources.display, resources.surface }
+        painting_owner(const egl_resources& egl) noexcept
+            : lock_{ resource_construct, egl.display, egl.surface }
         {
             glViewport
             (
                 0, 0,
-                narrow_cast<GLsizei>(width(resources)),
-                narrow_cast<GLsizei>(height(resources))
+                narrow_cast<GLsizei>(width(egl)),
+                narrow_cast<GLsizei>(height(egl))
             );
         }
 
@@ -146,3 +152,6 @@ namespace egl
         unique_resource<display_surface, painting_collector> lock_;
     };
 }
+
+using egl::egl_resources;
+using egl::egl_t;
