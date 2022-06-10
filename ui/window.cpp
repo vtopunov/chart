@@ -53,15 +53,6 @@ namespace ui
             };
         }
 
-        [[nodiscard]]
-        constexpr DWORD select_window_style(bool has_parent) noexcept
-        {
-            constexpr DWORD main_window_style{ WS_OVERLAPPED | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX };
-            constexpr DWORD child_window_style{ WS_VISIBLE | WS_CHILD };
-            return (has_parent) ? child_window_style : main_window_style;
-        }
-
-
         bool close(window_container& window_set, window_handle_t window) noexcept
         {
             static window_handle_t in_process_of_destruction{ nullptr };
@@ -146,6 +137,9 @@ namespace ui
 
     window window_builder::build() const noexcept
     {
+        constexpr dword_t main_window_style{ WS_OVERLAPPED | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX };
+        constexpr dword_t child_window_style{ WS_VISIBLE | WS_CHILD };
+
         window result;
 
         if (!cached_type_)
@@ -157,7 +151,7 @@ namespace ui
 
         if (cached_type_)
         {
-            const auto style = (style_.has_value()) ? *style_ : select_window_style(!!parent_);
+            const auto style = (parent_) ? child_window_style : main_window_style;
 
             result = window
             {

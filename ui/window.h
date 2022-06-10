@@ -11,8 +11,6 @@
 
 namespace ui
 {
-    static_assert(std::is_same_v<window_handle_t, HWND>);
-
     struct window_dependency
     {
         window_handle_t current;
@@ -63,10 +61,10 @@ namespace ui
         [[nodiscard]]
         constexpr reference value() const noexcept
         {
-            D_WARNING_PUSH
-                D_WARNING_DISABLE_MSVC(W_unchecked_subscript_operator)
-                return (*contaner)[position];
-            D_WARNING_POP
+            D_WARNING_PUSH;
+            D_WARNING_DISABLE_MSVC(W_unchecked_subscript_operator);
+            return (*contaner)[position];
+            D_WARNING_POP;
         }
 
         [[nodiscard]]
@@ -203,7 +201,6 @@ namespace ui
     private:
         mutable shared_type_window cached_type_;
         std::wstring title_;
-        std::optional<DWORD> style_;
         px::point2d position_{ px_usedefault, 0_px };
         px::size2d sizes_{ px_usedefault, 0_px };
         window_handle_t parent_{ nullptr };

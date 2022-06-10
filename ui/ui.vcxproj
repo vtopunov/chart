@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="app.h" />
+    <ClInclude Include="event_fwd.h" />
     <ClInclude Include="ufwd.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="event_processor.h" />
@@ -21,6 +23,8 @@
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="app.cpp" />
+    <ClCompile Include="event_loop.cpp" />
     <ClCompile Include="event_processor.cpp" />
     <ClCompile Include="event_processors_container.cpp" />
     <ClCompile Include="type_window.cpp" />

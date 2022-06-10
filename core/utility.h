@@ -4,6 +4,15 @@
 
 #include <core/warnings.h>
 
+#ifdef _MSC_VER
+#define D_FORCE_INLINE inline __forceinline
+
+#else
+#define D_FORCE_INLINE inline __attribute__((always_inline))
+#define D_LIKELY(expr)    __builtin_expect(!!(expr), 1L)
+#define D_UNLIKELY(expr)  __builtin_expect(!!(expr), 0L)
+
+#endif
 
 #define D_DISABLE_COPY(Class) \
     Class(const Class &) = delete;\
@@ -41,6 +50,12 @@ template<class T> [[nodiscard]]
 constexpr const T*const as_const_pointer(const T* ptr) noexcept
 {
     return ptr;
+}
+
+template<class T> [[nodiscard]]
+constexpr T* as_mutable_pointer(const T* ptr) noexcept
+{
+    return const_cast<T*>(ptr);
 }
 
 template <class T> [[nodiscard]]

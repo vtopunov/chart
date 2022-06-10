@@ -8,9 +8,8 @@ namespace ui
 {
     using milliseconds_t = std::chrono::milliseconds;
 
-    constexpr auto infinite = milliseconds_t{ INFINITE };
+    constexpr auto infinite = milliseconds_t{ D_CONDITIONAL_OS_WINDOWS(0xffffffff, -1) };
    
-
     struct idle_event
     {};
 
@@ -55,17 +54,19 @@ namespace ui
     }
 
 
-    template<class T>
+    template<class TDataPtr>
     struct event_callback_instance
     {
-        static std::optional<event_result_t> callback(void* data, const event& e) noexcept
+        static event_result_opt_t callback(void* data, const event& e) noexcept
         {
-            const auto tdata = static_cast<T*>( data );
+            D_ASSERT(data);
+
+#if defined(D_OS_WINDOWS)
+            const auto tdata = static_cast<TDataPtr>( data );
 
             switch ( e.style() )
             {
                 case event_style::size:               return call_event(tdata, e.as<event_style::size>());
-                case event_style::paint:              return call_event(tdata, e.as<event_style::paint>());
                 case event_style::close:              return call_event(tdata, e.as<event_style::close>());
                 case event_style::mouse_move:         return call_event(tdata, e.as<event_style::mouse_move>());
                 case event_style::mouse_lbutton_down: return call_event(tdata, e.as<event_style::mouse_lbutton_down>());
@@ -73,6 +74,11 @@ namespace ui
             }
 
             return call_event(tdata, e);
+
+#elif defined(D_OS_ANDROID)
+            return std::nullopt;
+
+#endif
         }
     };
 }

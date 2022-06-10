@@ -1,32 +1,42 @@
 #pragma once
 
-#include <ui/window.h>
 #include <ui/event_loop.h>
+
+#if defined(D_OS_WINDOWS)
+#include <ui/window.h>
+#endif
 
 #include <egl/instance.h>
 
+
 namespace egl
 {
-    namespace private_detail_run_initialize
+    namespace private_detail_run
     {
-        inline void run_initialize(const egl_resources& egl) noexcept
-        {
 #if defined(D_OS_WINDOWS)
+        inline ui::window_handle_t prepare(const egl_resources& egl) noexcept
+        {
             ui::show(egl.ui.app_wnd, ui::show_command::show_maximazed);
-#endif
+            return render_window(egl.ui);
         }
+
+#elif defined(D_OS_ANDROID)
+        inline ui::module_handle_t prepare(const egl_resources& egl) noexcept
+        {
+            return egl.ui.app;
+        }
+
+#endif
     }
 
     template<class T>
     int run(const egl_resources& egl, T&& processor) noexcept
     {
-        private_detail_run_initialize::run_initialize(egl);
-        return ui::run_event_loop(render_window(egl.ui), std::forward<T>(processor));
+        return ui::run_event_loop(private_detail_run::prepare(egl), std::forward<T>(processor));
     }
 
     inline int run(const egl_resources& egl) noexcept
     {
-        private_detail_run_initialize::run_initialize(egl);
-        return ui::run_event_loop(render_window(egl.ui));
+        return ui::run_event_loop(private_detail_run::prepare(egl));
     };
 }

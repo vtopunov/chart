@@ -5,15 +5,10 @@
 
 #include <os/os.h>
 
-#include <ui/ufwd.h>
+#include <ui/app.h>
 
 namespace ui
-{
-    using error_code_t = DWORD;
-
-    [[nodiscard]]
-    error_code_t error_code() noexcept;
-    
+{    
     enum class stock_brush : int
     {
         white = WHITE_BRUSH,

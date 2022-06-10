@@ -28,3 +28,4 @@
 #define W_do_not_use_reinterpret_cast                                  26490
 #define W_variable_is_uninitialized                                    26495
 #define W_enum_is_unscoped__prefer_enum_class                          26812
+#define W_inconsistent_annotation                                      28251

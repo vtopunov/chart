@@ -45,6 +45,7 @@ namespace egl
             w.render_wnd
                 = builder
                 .parent(w.app_wnd)
+                .position(0_px, 0_px)
                 .sizes(w.sizes)
                 .build()
                 .release();

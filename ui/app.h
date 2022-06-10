@@ -1,0 +1,28 @@
+#pragma once
+
+#include <ui/ufwd.h>
+
+namespace ui
+{
+    namespace app
+    {
+#ifdef D_OS_ANDROID
+        window_handle_t window(module_handle_t app) noexcept;
+
+        using cmd_callback_t = void (*)(os::module_handle_t, int32_t);
+        using input_event_callback_t = int32_t(*)(os::module_handle_t, AInputEvent*);
+
+        void set_user_data(module_handle_t app, void* data) noexcept;
+        void* user_data(module_handle_t app) noexcept;
+        void set_cmd_callback(module_handle_t app, cmd_callback_t callback) noexcept;
+        void set_input_event_callback(module_handle_t app, input_event_callback_t callback) noexcept;
+
+        void quit(module_handle_t app) noexcept;
+#endif
+    }
+
+    using error_code_t = D_CONDITIONAL_OS_WINDOWS(dword_t, int);
+
+    [[nodiscard]]
+    error_code_t error_code() noexcept;
+}

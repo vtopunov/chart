@@ -1,9 +1,6 @@
 #include "file.h"
 
-#include <bit>
-
-#include <core/assert.h>
-#include <core/underlying.h>
+#include <core/narrow.h>
 
 #include <os/os.h>
 
@@ -159,7 +156,7 @@ namespace file
     uint64_t size(file_resource file) noexcept
     {
         LARGE_INTEGER result{};
-        GetFileSizeEx(file.fd, &result);
-        return std::bit_cast<uint64_t>(result);
+        const auto is_success = GetFileSizeEx(file.fd, &result);
+        return is_success ? narrow_cast<uint64_t>(result.QuadPart) : 0ull;
     }
 }

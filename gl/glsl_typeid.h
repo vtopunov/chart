@@ -48,132 +48,139 @@ namespace gl
         samplerCube = GL_SAMPLER_CUBE
     };
 
+
+    namespace private_detail_glsl_type_by_id
+    {
+        template<glsl_typeid id>
+        struct select_type_for_glsl
+        {
+            using type = void;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::byte>
+        {
+            using type = GLbyte;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::ubyte>
+        {
+            using type = GLubyte;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::sshort>
+        {
+            using type = GLshort;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::ushort>
+        {
+            using type = GLushort;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::sint>
+        {
+            using type = GLint;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::uint>
+        {
+            using type = GLuint;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::real>
+        {
+            using type = GLfloat;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::boolean>
+        {
+            using type = GLboolean;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::vec2f>
+        {
+            using type = vec2f;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::vec2i>
+        {
+            using type = vec2i;
+        };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::vec2b>
+        {
+            using type = vec2b;
+        };
+    }
+
     template<glsl_typeid id>
-    struct select_type_for_glsl
-    {
-        using type = void;
-    };
+    using glsl_type_t = typename private_detail_glsl_type_by_id::select_type_for_glsl<id>::type;
 
-    template<>
-    struct select_type_for_glsl<glsl_typeid::byte>
-    {
-        using type = GLbyte;
-    };
-
-    template<>
-    struct select_type_for_glsl<glsl_typeid::ubyte>
-    {
-        using type = GLubyte;
-    };
-
-    template<>
-    struct select_type_for_glsl<glsl_typeid::sshort>
-    {
-        using type = GLshort;
-    };
-
-    template<>
-    struct select_type_for_glsl<glsl_typeid::ushort>
-    {
-        using type = GLushort;
-    };
-
-    template<>
-    struct select_type_for_glsl<glsl_typeid::sint>
-    {
-        using type = GLint;
-    };
-
-    template<>
-    struct select_type_for_glsl<glsl_typeid::uint>
-    {
-        using type = GLuint;
-    };
-
-    template<>
-    struct select_type_for_glsl<glsl_typeid::real>
-    {
-        using type = GLfloat;
-    };
-
-    template<>
-    struct select_type_for_glsl<glsl_typeid::boolean>
-    {
-        using type = GLboolean;
-    };
-
-    template<>
-    struct select_type_for_glsl<glsl_typeid::vec2f>
-    {
-        using type = vec2f;
-    };
-
-    template<>
-    struct select_type_for_glsl<glsl_typeid::vec2i>
-    {
-        using type = vec2i;
-    };
-
-    template<>
-    struct select_type_for_glsl<glsl_typeid::vec2b>
-    {
-        using type = vec2b;
-    };
-
-
-    template<glsl_typeid id>
-    using glsl_type_t = typename select_type_for_glsl<id>::type;
 
     template <glsl_typeid Value>
     using glsl_typeid_constant = std::integral_constant<glsl_typeid, Value>;
 
+    namespace private_detail_glsl_typeid_by_type
+    {
+        template<class T>
+        struct select_glsl_typeid
+        {};
+
+        template<>
+        struct select_glsl_typeid<GLbyte> : glsl_typeid_constant<glsl_typeid::byte>
+        {};
+
+        template<>
+        struct select_glsl_typeid<GLubyte> : glsl_typeid_constant<glsl_typeid::ubyte>
+        {};
+
+        template<>
+        struct select_glsl_typeid<GLshort> : glsl_typeid_constant<glsl_typeid::sshort>
+        {};
+
+        template<>
+        struct select_glsl_typeid<GLushort> : glsl_typeid_constant<glsl_typeid::ushort>
+        {};
+
+        template<>
+        struct select_glsl_typeid<GLint> : glsl_typeid_constant<glsl_typeid::sint>
+        {};
+
+        template<>
+        struct select_glsl_typeid<GLuint> : glsl_typeid_constant<glsl_typeid::uint>
+        {};
+
+        template<>
+        struct select_glsl_typeid<GLfloat> : glsl_typeid_constant<glsl_typeid::real>
+        {};
+
+        template<>
+        struct select_glsl_typeid<vec2f> : glsl_typeid_constant<glsl_typeid::vec2f>
+        {};
+
+        template<>
+        struct select_glsl_typeid<vec2i> : glsl_typeid_constant<glsl_typeid::vec2i>
+        {};
+
+        template<>
+        struct select_glsl_typeid<vec2b> : glsl_typeid_constant<glsl_typeid::vec2b>
+        {};
+    }
+
     template<class T>
-    struct select_glsl_typeid
-    {};
+    constexpr auto glsl_typeid_v = private_detail_glsl_typeid_by_type::select_glsl_typeid<T>::value;
 
-    template<>
-    struct select_glsl_typeid<GLbyte> : glsl_typeid_constant<glsl_typeid::byte>
-    {};
-
-    template<>
-    struct select_glsl_typeid<GLubyte> : glsl_typeid_constant<glsl_typeid::ubyte>
-    {};
-
-    template<>
-    struct select_glsl_typeid<GLshort> : glsl_typeid_constant<glsl_typeid::sshort>
-    {};
-
-    template<>
-    struct select_glsl_typeid<GLushort> : glsl_typeid_constant<glsl_typeid::ushort>
-    {};
-
-    template<>
-    struct select_glsl_typeid<GLint> : glsl_typeid_constant<glsl_typeid::sint>
-    {};
-
-    template<>
-    struct select_glsl_typeid<GLuint> : glsl_typeid_constant<glsl_typeid::uint>
-    {};
-
-    template<>
-    struct select_glsl_typeid<GLfloat> : glsl_typeid_constant<glsl_typeid::real>
-    {};
-
-    template<>
-    struct select_glsl_typeid<vec2f> : glsl_typeid_constant<glsl_typeid::vec2f>
-    {};
-
-    template<>
-    struct select_glsl_typeid<vec2i> : glsl_typeid_constant<glsl_typeid::vec2i>
-    {};
-
-    template<>
-    struct select_glsl_typeid<vec2b> : glsl_typeid_constant<glsl_typeid::vec2b>
-    {};
-
-
-    template<class T>
-    constexpr auto glsl_typeid_v = select_glsl_typeid<T>::value;
 
     [[nodiscard]]
     constexpr size_t glsl_tuple_size(glsl_typeid id) noexcept
@@ -256,42 +263,46 @@ namespace gl
     template<glsl_typeid id>
     using glsl_tuple_element_type_t = glsl_type_t<glsl_tuple_element_typeid_v<id>>;
 
-    template<glsl_typeid id, size_t tuple_size>
-    struct select_glsl_view3
+
+    namespace private_detail_glsl_view
     {
-        using type = span<std::add_const_t<glsl_tuple_element_type_t<id>>, tuple_size>;
-    };
+        template<glsl_typeid id, size_t tuple_size>
+        struct select_glsl_view3
+        {
+            using type = span<std::add_const_t<glsl_tuple_element_type_t<id>>, tuple_size>;
+        };
 
-    template<glsl_typeid id, size_t tuple_size, class T, class ViewT>
-    struct select_glsl_view2
-    {
-        using type = ViewT;
-    };
+        template<glsl_typeid id, size_t tuple_size, class T, class ViewT>
+        struct select_glsl_view2
+        {
+            using type = ViewT;
+        };
 
-    template<glsl_typeid id, size_t tuple_size, class T>
-    struct select_glsl_view2<id, tuple_size, T, T> : select_glsl_view3<id, tuple_size>
-    {};
+        template<glsl_typeid id, size_t tuple_size, class T>
+        struct select_glsl_view2<id, tuple_size, T, T> : select_glsl_view3<id, tuple_size>
+        {};
 
-    template<glsl_typeid id, size_t tuple_size, class T>
-    struct select_glsl_view1 : select_glsl_view2<id, tuple_size, T, std::remove_cvref_t<typename T::view_type>>
-    {};
+        template<glsl_typeid id, size_t tuple_size, class T>
+        struct select_glsl_view1 : select_glsl_view2<id, tuple_size, T, std::remove_cvref_t<typename T::view_type>>
+        {};
 
-    template<glsl_typeid id, size_t tuple_size>
-    struct select_glsl_view1<id, tuple_size, void> : select_glsl_view3<id, tuple_size>
-    {};
+        template<glsl_typeid id, size_t tuple_size>
+        struct select_glsl_view1<id, tuple_size, void> : select_glsl_view3<id, tuple_size>
+        {};
 
-    template<glsl_typeid id, size_t tuple_size>
-    struct select_glsl_view0 : select_glsl_view1<id, tuple_size, glsl_type_t<id>>
-    {};
+        template<glsl_typeid id, size_t tuple_size>
+        struct select_glsl_view0 : select_glsl_view1<id, tuple_size, glsl_type_t<id>>
+        {};
+
+        template<glsl_typeid id>
+        struct select_glsl_view0<id, 1_uz>
+        {
+            static constexpr auto base_id = is_sampler(id) ? glsl_tuple_element_typeid(id) : id;
+
+            using type = glsl_type_t<base_id>;
+        };
+    }
 
     template<glsl_typeid id>
-    struct select_glsl_view0<id, 1_uz>
-    {
-        static constexpr auto base_id = is_sampler(id) ? glsl_tuple_element_typeid(id) : id;
-
-        using type = glsl_type_t<base_id>;
-    };
-
-    template<glsl_typeid id>
-    using glsl_view_t = typename select_glsl_view0<id, glsl_tuple_size_v<id>>::type;
+    using glsl_view_t = typename private_detail_glsl_view::select_glsl_view0<id, glsl_tuple_size_v<id>>::type;
 }

@@ -1,35 +1,35 @@
 #pragma once
 
+#include <core/clamp_cast.h>
+
 #include <px/pxfwd.h>
 
-#include <ui/ufwd.h>
-
-#include <os/os.h>
+#include <ui/event_fwd.h>
 
 namespace ui
 {
-    using word_parameter_t = WPARAM;
-    using long_parameter_t = LPARAM;
-
-    enum class event_style : UINT
-    {
-        null = WM_NULL,
-        size = WM_SIZE,
-        paint = WM_PAINT,
-        close = WM_CLOSE,
-        mouse_move = WM_MOUSEMOVE,
-        mouse_lbutton_down = WM_LBUTTONDOWN,
-        mouse_lbutton_up = WM_LBUTTONUP,
-        mouse_lbutton_double_click = WM_LBUTTONDBLCLK,
-        user = WM_USER
-    };
-
-    template<event_style>
-    class specialized_event;
+#ifdef D_OS_WINDOWS
+    using word_parameter_t = size_t;
+    using long_parameter_t = ptrdiff_t;
+#endif
 
     class event
     {
     public:
+        template<event_style style> 
+        [[nodiscard]] constexpr const specialized_event<style>& as() const noexcept
+        {
+            D_ASSERT(style == style_);
+            return static_cast<const specialized_event<style>&>(*this);
+        }
+
+        [[nodiscard]]
+        constexpr event_style style() const noexcept
+        {
+            return style_;
+        }
+
+#if defined(D_OS_WINDOWS)
         constexpr event(
             window_handle_t window,
             word_parameter_t word_parameter,
@@ -43,22 +43,9 @@ namespace ui
         {}
 
         [[nodiscard]]
-        constexpr event_style style() const noexcept
-        {
-            return style_;
-        }
-
-        [[nodiscard]]
         constexpr window_handle_t window() const noexcept
         {
             return window_;
-        }
-
-        template<event_style style> [[nodiscard]]
-        constexpr const specialized_event<style>& as() const noexcept
-        {
-            D_ASSERT(style == style_);
-            return static_cast<const specialized_event<style>&>(*this);
         }
 
         event_result_t do_default_process() const noexcept;
@@ -79,13 +66,19 @@ namespace ui
         [[nodiscard]]
         constexpr pxside_t x_long_parameter() const noexcept
         {
-            return as_pxside(GET_X_LPARAM(long_parameter()));
+            D_WARNING_PUSH;
+            D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
+            return as_pxside(lo_cast<word_t>(static_cast<dword_t>(long_parameter())));
+            D_WARNING_POP;
         }
 
         [[nodiscard]]
         constexpr pxside_t y_long_parameter() const noexcept
         {
-            return as_pxside(GET_Y_LPARAM(long_parameter()));
+            D_WARNING_PUSH;
+            D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
+            return as_pxside(hi_cast<word_t>(static_cast<dword_t>(long_parameter())));
+            D_WARNING_POP;
         }
 
         [[nodiscard]]
@@ -94,10 +87,20 @@ namespace ui
             return { x_long_parameter(), y_long_parameter() };
         }
 
+#elif defined(D_OS_ANDROID)
+        constexpr explicit event(event_style style) noexcept
+            : style_{ style }
+        {}
+
+#endif
+
     private:
+#ifdef D_OS_WINDOWS
         window_handle_t window_;
         word_parameter_t word_parameter_;
         long_parameter_t long_parameter_;
+#endif
+
         event_style style_;
     };
 
@@ -105,17 +108,19 @@ namespace ui
     class specialized_event : public event
     {};
 
+#if defined(D_OS_WINDOWS)
+    D_WARNING_PUSH;
+    D_WARNING_DISABLE_MSVC(W_enum_is_unscoped__prefer_enum_class);
+
     struct mouse_keys
     {
         enum e_mouse_keys : word_parameter_t
         {
-            control = MK_CONTROL,
-            lbutton = MK_LBUTTON,
-            mbutton = MK_MBUTTON,
-            rbutton = MK_RBUTTON,
-            shift = MK_SHIFT,
-            xbutton1 = MK_XBUTTON1,
-            xbutton2 = MK_XBUTTON2
+            lbutton = 0x0001, // MK_LBUTTON,
+            rbutton = 0x0002, // MK_RBUTTON,
+            shift   = 0x0004, // MK_SHIFT,
+            control = 0x0008, // MK_CONTROL,
+            mbutton = 0x0010  // MK_MBUTTON
         };
         
         e_mouse_keys keys;
@@ -156,6 +161,8 @@ namespace ui
             return is(control);
         }
     };
+
+    D_WARNING_POP;
 
     class mouse_event : public event
     {
@@ -220,10 +227,15 @@ namespace ui
         }
     };
 
-    using size_event = specialized_event<event_style::size>;
-    using paint_event = specialized_event<event_style::paint>;
-    using close_event = specialized_event<event_style::close>;
-    using mouse_move_event = specialized_event<event_style::mouse_move>;
-    using mouse_lbutton_down_event = specialized_event<event_style::mouse_lbutton_down>;
-    using mouse_lbutton_up_event = specialized_event<event_style::mouse_lbutton_up>;
+#elif defined(D_OS_ANDROID)
+    struct input_event : public event
+    {
+        constexpr input_event(const AInputEvent* e) noexcept
+            : event{ event_style::null }
+        {
+            D_ASSERT(e);
+        }
+    };
+
+#endif
 }

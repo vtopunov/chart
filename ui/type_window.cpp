@@ -45,10 +45,6 @@ namespace ui
         }
     }
 
-    error_code_t error_code() noexcept
-    {
-        return GetLastError();
-    }
 
     HBRUSH stock(stock_brush brush) noexcept
     {

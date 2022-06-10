@@ -3,7 +3,8 @@
 #include <core/resouce.h>
 
 #include <px/pxfwd.h>
-#include <os/osfwd.h>
+#include <ui/app.h>
+
 
 namespace egl
 {
@@ -75,9 +76,10 @@ namespace egl
 
 #elif defined(D_OS_ANDROID)
     [[nodiscard]]
-    os::window_handle_t render_window(const ui_resources& ui) noexcept;
-
-    void quit(os::module_handle_t app) noexcept;
+    inline os::window_handle_t render_window(const ui_resources& ui) noexcept
+    {
+        return  ui::app::window(ui.app);
+    }
 
 #endif
 

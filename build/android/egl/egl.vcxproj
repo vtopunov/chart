@@ -57,6 +57,9 @@
     <ProjectReference Include="$(AndroidThirdPartyDir)\fmt\libfmt.vcxproj">
       <Project>{9c883076-1fce-4950-b4e8-d40a0fff03b5}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\ui\ui.vcxproj">
+      <Project>{c36c7b4a-2ef3-4d1c-8d38-9061545b3a30}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

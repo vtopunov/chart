@@ -88,14 +88,6 @@ namespace egl
         return egl.ui.sizes.height();
     }
 
-#ifdef D_OS_ANDROID
-    inline void quit(const egl_resources& egl) noexcept
-    {
-        return quit(egl.ui);
-    }
-
-#endif
-
     struct resources_collector
     {
         void operator () (const egl_resources& egl) const noexcept;

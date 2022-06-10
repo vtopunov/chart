@@ -102,7 +102,7 @@ namespace
             draw_figure(now);
         }
 
-        ui::milliseconds_t operator () (ui::idle_event) noexcept
+        ui::milliseconds_t operator () (ui::idle_event) const noexcept
         {
             constexpr auto anima_period = anima_working_period + anima_paused_period;
 
@@ -126,14 +126,14 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    main_processor processor
+    const main_processor processor
     {
         .egl{ egl::instance(app) }
     };
 
     if (!processor.egl)
     {
-        e_debug("create window error: window error: {}, egl error: {}",
+        e_debug("create window error: ui error: {}, egl error: {}",
             ui::error_code(), eglGetError());
         return EXIT_FAILURE;
     }

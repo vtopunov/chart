@@ -13,11 +13,11 @@ constexpr std::underlying_type_t<E> to_underlying(E e) noexcept
     return static_cast<std::underlying_type_t<E>>(e);
 }
 
-template<class Out, class In> [[nodiscard]]
-constexpr Out underlying_cast(const In& in) noexcept
+template<class Target, class Source> [[nodiscard]]
+constexpr Target underlying_cast(const Source& source) noexcept
 {
-    static_assert(std::is_same_v<remove_cve_t<Out>, remove_cve_t<In>>);
-    return static_cast<Out>(in);
+    static_assert(std::is_same_v<remove_cve_t<Target>, remove_cve_t<Source>>);
+    return static_cast<Target>(source);
 }
 
 D_WARNING_POP;

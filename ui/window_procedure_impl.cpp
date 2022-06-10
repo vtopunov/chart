@@ -1,19 +1,45 @@
+#include <ui/event.h>
 #include <ui/window.h>
 #include <ui/event_processors_container.h>
-#include <ui/event.h>
 
 namespace ui
 {
+    namespace
+    {
+        constexpr event_style to_event_style(UINT message) noexcept
+        {
+            return underlying_cast<event_style>(message);
+        }
+    }
+
     LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
     {
+        static_assert(std::is_same_v<window_handle_t, HWND>);
+        static_assert(std::is_same_v<word_parameter_t, WPARAM>);
+        static_assert(std::is_same_v<long_parameter_t, LPARAM>);
         static_assert(std::is_same_v<event_result_t, LRESULT>);
+
+        static_assert(event_style::null                       == to_event_style(WM_NULL));
+        static_assert(event_style::size                       == to_event_style(WM_SIZE));
+        static_assert(event_style::close                      == to_event_style(WM_CLOSE));
+        static_assert(event_style::mouse_move                 == to_event_style(WM_MOUSEMOVE));
+        static_assert(event_style::mouse_lbutton_down         == to_event_style(WM_LBUTTONDOWN));
+        static_assert(event_style::mouse_lbutton_up           == to_event_style(WM_LBUTTONUP));
+        static_assert(event_style::mouse_lbutton_double_click == to_event_style(WM_LBUTTONDBLCLK));
+
+        static_assert(mouse_keys::lbutton == MK_LBUTTON);
+        static_assert(mouse_keys::rbutton == MK_RBUTTON);
+        static_assert(mouse_keys::shift   == MK_SHIFT);
+        static_assert(mouse_keys::control == MK_CONTROL);
+        static_assert(mouse_keys::mbutton == MK_MBUTTON);
+
 
         const event e
         {
             window,
             word_parameter,
             long_parameter,
-            underlying_cast<event_style>( message )
+            to_event_style( message )
         };
 
         switch ( message )

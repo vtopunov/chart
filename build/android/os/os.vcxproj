@@ -10,48 +10,42 @@
       <Platform>ARM</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{284131BB-937B-4B1C-8FEE-AFBD23E35675}</ProjectGuid>
     <Keyword>Android</Keyword>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
+    <ProjectGuid>{7E7EE92B-4932-49C8-A53D-6806754BC399}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
     <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
     <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\..\build\egl_ui_app_library.props" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(AndroidRepoDir)\entry_point;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
+  <Import Project="..\build\static_library.props" />
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\apps\vtest_anima\main.cpp" />
-    <ClCompile Include="main.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\egl\egl.vcxproj">
-      <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\gl\gl.vcxproj">
-      <Project>{40eaf3cf-7215-4353-9a89-883b91118195}</Project>
-    </ProjectReference>
+    <ClInclude Include="..\..\..\os\log.h" />
+    <ClInclude Include="..\..\..\os\os.h" />
+    <ClInclude Include="..\..\..\os\osfwd.h" />
+    <ClInclude Include="..\..\..\os\os_android.h" />
+    <ClInclude Include="..\..\..\os\os_detection.h" />
+    <ClInclude Include="..\..\..\os\undef.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

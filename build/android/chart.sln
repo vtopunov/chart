@@ -53,6 +53,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "egl", "egl\egl.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gl", "gl\gl.vcxproj", "{40EAF3CF-7215-4353-9A89-883B91118195}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "os", "os\os.vcxproj", "{7E7EE92B-4932-49C8-A53D-6806754BC399}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ui", "ui\ui.vcxproj", "{C36C7B4A-2EF3-4D1C-8D38-9061545B3A30}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -141,6 +145,14 @@ Global
 		{40EAF3CF-7215-4353-9A89-883B91118195}.Debug|ARM.Build.0 = Debug|ARM
 		{40EAF3CF-7215-4353-9A89-883B91118195}.Release|ARM.ActiveCfg = Release|ARM
 		{40EAF3CF-7215-4353-9A89-883B91118195}.Release|ARM.Build.0 = Release|ARM
+		{7E7EE92B-4932-49C8-A53D-6806754BC399}.Debug|ARM.ActiveCfg = Debug|ARM
+		{7E7EE92B-4932-49C8-A53D-6806754BC399}.Debug|ARM.Build.0 = Debug|ARM
+		{7E7EE92B-4932-49C8-A53D-6806754BC399}.Release|ARM.ActiveCfg = Release|ARM
+		{7E7EE92B-4932-49C8-A53D-6806754BC399}.Release|ARM.Build.0 = Release|ARM
+		{C36C7B4A-2EF3-4D1C-8D38-9061545B3A30}.Debug|ARM.ActiveCfg = Debug|ARM
+		{C36C7B4A-2EF3-4D1C-8D38-9061545B3A30}.Debug|ARM.Build.0 = Debug|ARM
+		{C36C7B4A-2EF3-4D1C-8D38-9061545B3A30}.Release|ARM.ActiveCfg = Release|ARM
+		{C36C7B4A-2EF3-4D1C-8D38-9061545B3A30}.Release|ARM.Build.0 = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
