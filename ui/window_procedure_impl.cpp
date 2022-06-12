@@ -14,7 +14,6 @@ namespace ui
 
     LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
     {
-        static_assert(std::is_same_v<window_handle_t, HWND>);
         static_assert(std::is_same_v<word_parameter_t, WPARAM>);
         static_assert(std::is_same_v<long_parameter_t, LPARAM>);
         static_assert(std::is_same_v<event_result_t, LRESULT>);

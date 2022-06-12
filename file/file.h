@@ -3,22 +3,43 @@
 #include <compare>
 
 #include <core/resouce.h>
+
+#include <os/osfwd.h>
+
 #include <file/path.h>
+
 
 namespace file
 {
-    enum class write_mode
+    enum class w_open_mode
     {
-        create,
-        rewrite,
+        open,
         truncate,
         append
     };
 
-    struct _file_descriptor
-    {};
+    namespace private_detail_file_descriptor
+    {
+        constexpr auto file_descriptor_is_integral_v = std::is_integral_v<os::file_descriptor_t>;
 
-    using file_descriptor = _file_descriptor*;
+        struct s_file_descriptor
+        {};
+
+        using file_descriptor_int_t = std::conditional_t<file_descriptor_is_integral_v, os::file_descriptor_t, int>;
+
+        enum class e_file_descriptor : file_descriptor_int_t
+        {
+            invalid = -1,
+            stdin_fileno = 0,
+            stdout_fileno = 1,
+            stderr_fileno = 2
+        };
+
+        using file_resource_descriptor_t = std::conditional_t<file_descriptor_is_integral_v, e_file_descriptor, s_file_descriptor*>;
+
+    }
+
+    using private_detail_file_descriptor::file_resource_descriptor_t;
 
     struct file_resource
     {
@@ -28,11 +49,19 @@ namespace file
             constexpr operator N () const noexcept
             {
                 static_assert(std::is_base_of_v<file_resource, N>);
-                return { file_descriptor(-1) };
+
+                if constexpr (private_detail_file_descriptor::file_descriptor_is_integral_v)
+                {
+                    return { file_resource_descriptor_t::invalid };
+                }
+                else
+                {
+                    return { file_resource_descriptor_t(-1) };
+                }
             }
         };
 
-        file_descriptor fd;
+        file_resource_descriptor_t fd;
 
         [[nodiscard]]
         constexpr auto operator<=>(const file_resource&) const noexcept = default;
@@ -63,11 +92,36 @@ namespace file
     };
 
 
-    ro_file_resource in() noexcept;
+#ifdef D_OS_WINDOWS
+    struct stdin_file_resource
+    {
+        operator ro_file_resource() const noexcept;
+    };
 
-    wo_file_resource out() noexcept;
+    constexpr stdin_file_resource stdin_fd{};
 
-    wo_file_resource err() noexcept;
+    struct stdout_file_resource
+    {
+        operator wo_file_resource() const noexcept;
+    };
+
+    constexpr stdout_file_resource stdout_fd{};
+
+    struct stderr_file_resource
+    {
+        operator wo_file_resource() const noexcept;
+    };
+
+    constexpr stderr_file_resource stderr_fd{};
+
+#else
+    constexpr ro_file_resource stdin_fd{ file_resource_descriptor_t::stdin_fileno };
+
+    constexpr wo_file_resource stdout_fd{ file_resource_descriptor_t::stdout_fileno };
+
+    constexpr wo_file_resource stderr_fd{ file_resource_descriptor_t::stderr_fileno };
+
+#endif
 
 
     struct file_resource_deleter
@@ -100,8 +154,6 @@ namespace file
         }
     };
 
-
-
     struct rw_file : unique_resource<rw_file_resource, file_resource_deleter>
     {
         using unique_resource::unique_resource;
@@ -127,14 +179,15 @@ namespace file
 
     D_WARNING_POP
 
+
     [[nodiscard]]
     ro_file ro_open(path_zstring_view path) noexcept;
 
     [[nodiscard]]
-    wo_file wo_open(path_zstring_view path, write_mode mode) noexcept;
+    wo_file wo_open(path_zstring_view path, w_open_mode mode) noexcept;
 
     [[nodiscard]]
-    rw_file rw_open(path_zstring_view path, write_mode mode) noexcept;
+    rw_file rw_open(path_zstring_view path, w_open_mode mode) noexcept;
 
     [[nodiscard]]
     uint64_t size(file_resource file) noexcept;

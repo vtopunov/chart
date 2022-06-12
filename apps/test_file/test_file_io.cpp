@@ -13,7 +13,7 @@ namespace
     constexpr std::string_view test_data{ "0123456789" };
 
     constexpr auto block_size = test_data.size() * sizeof(*test_data.data());
-    constexpr auto block_offset = narrow_cast<file::offset_t>( block_size );
+    constexpr auto block_offset = narrow_cast<file::off_t>( block_size );
 
     constexpr size_t size_blocks(size_t n_blocks) noexcept
     {
@@ -38,7 +38,12 @@ namespace
         return result && !errc;
     }
 
-    void test_write(size_t n_blocks, file::write_mode mode) noexcept
+    bool try_open() noexcept
+    {
+        return !!file::ro_open(file_name);
+    }
+
+    void test_write(size_t n_blocks, file::w_open_mode mode) noexcept
     {
         const auto wof = file::wo_open(file_name, mode);
         D_ASSERT(wof);
@@ -70,35 +75,32 @@ namespace
 
     void test_write_mode() noexcept
     {
-        test_write(3_uz, file::write_mode::truncate);
+        test_write(3_uz, file::w_open_mode::truncate);
         test_read(3_uz);
-        test_write(4_uz, file::write_mode::rewrite);
+        test_write(4_uz, file::w_open_mode::open);
         test_read(4_uz);
-        test_write(2_uz, file::write_mode::append);
+        test_write(2_uz, file::w_open_mode::append);
         test_read(6_uz);
-        test_write(5_uz, file::write_mode::rewrite);
+        test_write(5_uz, file::w_open_mode::open);
         test_read(6_uz);
-        test_write(0_uz, file::write_mode::truncate);
+        test_write(0_uz, file::w_open_mode::truncate);
         test_read(0_uz);
 
-        D_ASSERT(!file::wo_open(file_name, file::write_mode::create));
+        D_ASSERT(try_open());
         D_ASSERT(try_remove());
-        D_ASSERT(!file::ro_open(file_name));
-        
-        test_write(5_uz, file::write_mode::create);
-        test_read(5_uz);
+        D_ASSERT(!try_open());
     }
 
     void test_rw() noexcept
     {
         constexpr auto n_blocks = 7_uz;
         constexpr auto file_size = size_blocks(n_blocks);
-        constexpr auto end_offset = narrow_cast<file::offset_t>( file_size );
+        constexpr auto end_offset = narrow_cast<file::off_t>( file_size );
 
-        test_write(n_blocks, file::write_mode::truncate);
+        test_write(n_blocks, file::w_open_mode::truncate);
         test_read(n_blocks);
 
-        const auto rwf = file::rw_open(file_name, file::write_mode::rewrite);
+        const auto rwf = file::rw_open(file_name, file::w_open_mode::open);
         D_ASSERT(rwf);
 
         auto test_read_block = [&rwf] (std::span<const char> test) noexcept
@@ -150,37 +152,69 @@ namespace
         }
     }
 
+    template<class OpenMethod, class... OpenArgs>
+    size_t open_and_size(OpenMethod open, OpenArgs... o_args) noexcept
+    {
+        return file::size(open(o_args...));
+    }
+
     void test_size(size_t n_blocks) noexcept
     {
         const auto test_size = size_blocks(n_blocks);
-        D_ASSERT(size(file::ro_open(file_name)) == test_size);
-        D_ASSERT(size(file::wo_open(file_name, file::write_mode::rewrite)) == test_size);
-        D_ASSERT(size(file::wo_open(file_name, file::write_mode::append)) == test_size);
-        D_ASSERT(size(file::rw_open(file_name, file::write_mode::rewrite)) == test_size);
-        D_ASSERT(size(file::rw_open(file_name, file::write_mode::append)) == test_size);
+        D_ASSERT(open_and_size(file::ro_open, file_name) == test_size);
+        D_ASSERT(open_and_size(file::wo_open, file_name, file::w_open_mode::open) == test_size);
+        D_ASSERT(open_and_size(file::wo_open, file_name, file::w_open_mode::append) == test_size);
+        D_ASSERT(open_and_size(file::rw_open, file_name, file::w_open_mode::open) == test_size);
+        D_ASSERT(open_and_size(file::rw_open, file_name, file::w_open_mode::append) == test_size);
     }
 
     void test_size() noexcept
     {
         constexpr auto start_blocks = 10_uz;
-        test_write(start_blocks, file::write_mode::truncate);
+        test_write(start_blocks, file::w_open_mode::truncate);
         test_read(start_blocks);
         test_size(start_blocks);
 
         for ( size_t blocks = start_blocks; blocks <= 20; )
         {
-            test_write(1_uz, file::write_mode::append);
+            test_write(1_uz, file::w_open_mode::append);
             ++blocks;
             test_read(blocks);
             test_size(blocks);
         }
     }
+
+    template<class T>
+    constexpr bool is_void_ptr_v = std::is_pointer_v<T> && std::is_void_v<std::remove_pointer_t<T>>;
 }
 
 void test_file_io() noexcept
 {
-    static_assert(!std::is_same_v<std::remove_cv_t<file::file_descriptor>, void*>);
-    static_assert(std::is_trivial_v<file::file_descriptor> && std::is_standard_layout_v<file::file_descriptor>);
+    {
+        using fd_t = os::file_descriptor_t;
+        static_assert(std::is_integral_v<fd_t> || is_void_ptr_v<fd_t>);
+
+        using frd_t = file::file_resource_descriptor_t;
+        static_assert(!std::is_same_v<std::remove_cv_t<frd_t>, void*>);
+
+        static_assert(std::is_enum_v<frd_t> || std::is_pointer_v<frd_t>);
+        static_assert(std::is_enum_v<frd_t> || std::is_class_v<std::remove_pointer_t<frd_t>>);
+
+        {
+            using ifd_t = std::conditional_t<std::is_integral_v<fd_t>, fd_t, int>;
+            constexpr ifd_t invalid_fd{ -1 };
+            constexpr frd_t invalid_frd{ null_v<frd_t> };
+            using ifrd_t = remove_enum_t<frd_t>;
+            constexpr auto invalid_ifrd = underlying_cast<ifrd_t>(invalid_frd);
+            using invalid_fd_constant = std::integral_constant<ifd_t, invalid_fd>;
+            using invalid_frd_constant = std::integral_constant<ifrd_t, invalid_ifrd>;
+            static_assert(std::disjunction_v<std::negation<std::is_enum<frd_t>>, std::is_same<invalid_fd_constant, invalid_frd_constant>>);
+        }
+
+        static_assert(std::is_trivial_v<frd_t> && std::is_standard_layout_v<frd_t>);
+    }
+
+
     static_assert(std::is_trivial_v<file::file_resource> && std::is_standard_layout_v<file::file_resource>);
     static_assert(std::is_trivial_v<file::ro_file_resource> && std::is_standard_layout_v<file::ro_file_resource>);
     static_assert(std::is_trivial_v<file::rw_file_resource> && std::is_standard_layout_v<file::rw_file_resource>);
@@ -188,5 +222,4 @@ void test_file_io() noexcept
     test_write_mode();
     test_size();
     test_rw();
-    D_ASSERT(!errno);
 }

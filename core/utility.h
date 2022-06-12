@@ -77,3 +77,9 @@ template <class T>
 void as_mutable(const T&&) = delete;
 
 D_WARNING_POP
+
+template<class T> [[nodiscard]] 
+constexpr bool is_null_or_empty(const T* string) noexcept
+{
+    return !string || !*string;
+}

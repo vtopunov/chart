@@ -5,6 +5,8 @@
 
 #include <core/zstring_view.h>
 
+#include <os/osfwd.h>
+
 
 namespace file
 {
@@ -70,4 +72,9 @@ namespace file
 
 using namespace file::literals;
 
-#define _PATH(x) L##x##_path
+
+#ifdef D_OS_WINDOWS
+#define _PATH(x)  L##x##_path
+#else
+#define _PATH(x)  x##_path
+#endif

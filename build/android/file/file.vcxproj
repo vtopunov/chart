@@ -10,37 +10,13 @@
       <Platform>ARM</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <ClCompile>
-      <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <ClCompile>
-      <CppLanguageStandard>c++1z</CppLanguageStandard>
-      <CompileAs>CompileAsCpp</CompileAs>
-      <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\debug\debug.vcxproj">
-      <Project>{6fcb1ca4-9a18-4ecf-a118-154ebf517d91}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <Keyword>Android</Keyword>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
-    <ProjectGuid>{8F08613C-D40B-4589-AA40-E4EC8F39632A}</ProjectGuid>
+    <ProjectGuid>{41A1FAE5-2CD8-4894-A1B8-AF520FBF3239}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
@@ -56,6 +32,23 @@
     <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="entry_point.props" />
+  <Import Project="..\build\static_library.props" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\file\file.h" />
+    <ClInclude Include="..\..\..\file\file_io.h" />
+    <ClInclude Include="..\..\..\file\file_mmap.h" />
+    <ClInclude Include="..\..\..\file\path.h" />
+    <ClInclude Include="private\file.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="file.cpp" />
+    <ClCompile Include="file_io.cpp" />
+    <ClCompile Include="file_mmap.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

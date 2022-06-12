@@ -119,8 +119,10 @@ namespace egl
             r.display = static_cast<display_descriptor_t>(eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, nullptr, display_attributes));
 
             D_WARNING_POP;
+
 #else
             r.display = static_cast<display_descriptor_t>(eglGetDisplay(EGL_DEFAULT_DISPLAY));
+
 #endif
         }
 

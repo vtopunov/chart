@@ -13,7 +13,9 @@ namespace file
         struct _private_detail
         {
             ro_file_resource file_;
+#ifdef D_OS_WINDOWS
             void* fmmd_;
+#endif
             const void* data_;
             size_t size_;
         }
@@ -26,10 +28,13 @@ namespace file
             {
                 return
                 {
+
                     _private_detail
                     {
                         invalidfile,
+#ifdef D_OS_WINDOWS
                         nullptr,
+#endif
                         nullptr,
                         0_uz
                     }

@@ -19,7 +19,7 @@ namespace file
         [[nodiscard]]
         constexpr access_flags operator | (access_flags left, access_flags right) noexcept
         {
-            return underlying_cast<access_flags>( to_underlying(left) | to_underlying(right) );
+            return e_or(left, right);
         }
 
         enum class share_flags : DWORD
@@ -31,42 +31,34 @@ namespace file
         [[nodiscard]]
         constexpr share_flags operator | (share_flags left, share_flags right) noexcept
         {
-            return underlying_cast<share_flags>( to_underlying(left) | to_underlying(right) );
+            return e_or(left, right);
         }
 
         enum class creation_mode : DWORD
         {
-            only_new = CREATE_NEW,
             new_or_trucate = CREATE_ALWAYS,
             open_existing = OPEN_EXISTING,
-            new_or_open = OPEN_ALWAYS,
-            trucate_existin = TRUNCATE_EXISTING
+            new_or_open = OPEN_ALWAYS
         };
 
         [[nodiscard]]
-        constexpr file_descriptor as_file_descriptor(const HANDLE sys) noexcept
+        constexpr file_resource_descriptor_t as_resource_descriptor(os::file_descriptor_t sys) noexcept
         {
-            return static_cast<file_descriptor>( sys );
+            return static_cast<file_resource_descriptor_t>( sys );
         }
 
         [[nodiscard]]
-        constexpr creation_mode select_creation_mode(write_mode write_mode) noexcept
+        constexpr creation_mode select_creation_mode(w_open_mode mode) noexcept
         {
-            switch ( write_mode )
-            {
-                case write_mode::create: return creation_mode::only_new;
-                case write_mode::truncate: return creation_mode::new_or_trucate;
-            };
-
-            return creation_mode::new_or_open;
+            return (w_open_mode::truncate == mode) ? creation_mode::new_or_trucate : creation_mode::new_or_open;
         }
 
         [[nodiscard]]
-        file_descriptor create_file(path_zstring_view path, access_flags access, creation_mode create) noexcept
+        file_resource_descriptor_t create_file(path_zstring_view path, access_flags access, creation_mode create) noexcept
         {
             constexpr auto share = share_flags::read | share_flags::write;
 
-            return as_file_descriptor
+            return as_resource_descriptor
             (
                 CreateFileW
                 (
@@ -81,15 +73,17 @@ namespace file
             );
         }
 
-        void set_write_mode(file_resource file, write_mode mode) noexcept
+        void seekend_if_need(file_resource file, w_open_mode mode) noexcept
         {
-            if (invalidfile != file)
+            if ((w_open_mode::append == mode) && (invalidfile != file))
             {
-                if (write_mode::append == mode)
-                {
-                    seek(file, 0LL, seek_mode::end);
-                }
+                seek(file, 0LL, seek_mode::end);
             }
+        }
+
+        file_resource_descriptor_t std_handle(DWORD no) noexcept
+        {
+            return as_resource_descriptor(GetStdHandle(no));
         }
     }
 
@@ -101,19 +95,19 @@ namespace file
         }
     }
 
-    ro_file_resource in() noexcept
+    stdin_file_resource::operator ro_file_resource() const noexcept
     {
-        return { as_file_descriptor(GetStdHandle(STD_INPUT_HANDLE)) };
+        return { std_handle(STD_INPUT_HANDLE) };
     }
 
-    wo_file_resource out() noexcept
+    stdout_file_resource::operator wo_file_resource() const noexcept
     {
-        return { as_file_descriptor(GetStdHandle(STD_OUTPUT_HANDLE)) };
+        return { std_handle(STD_OUTPUT_HANDLE) };
     }
 
-    wo_file_resource err() noexcept
+    stderr_file_resource::operator wo_file_resource() const noexcept
     {
-        return { as_file_descriptor(GetStdHandle(STD_ERROR_HANDLE)) };
+        return { std_handle(STD_ERROR_HANDLE) };
     }
 
     ro_file ro_open(path_zstring_view path) noexcept
@@ -125,7 +119,7 @@ namespace file
         };
     }
 
-    wo_file wo_open(path_zstring_view path, write_mode mode) noexcept
+    wo_file wo_open(path_zstring_view path, w_open_mode mode) noexcept
     {
         wo_file result
         {
@@ -133,12 +127,12 @@ namespace file
             create_file(path, access_flags::write, select_creation_mode(mode))
         };
 
-        set_write_mode(result, mode);
+        seekend_if_need(result, mode);
 
         return result;
     }
 
-    rw_file rw_open(path_zstring_view path, write_mode mode) noexcept
+    rw_file rw_open(path_zstring_view path, w_open_mode mode) noexcept
     {
         constexpr auto access = access_flags::read | access_flags::write;
 
@@ -148,7 +142,7 @@ namespace file
             create_file(path, access, select_creation_mode(mode))
         };
 
-        set_write_mode(result, mode);
+        seekend_if_need(result, mode);
 
         return result;
     }
@@ -156,7 +150,7 @@ namespace file
     uint64_t size(file_resource file) noexcept
     {
         LARGE_INTEGER result{};
-        const auto is_success = GetFileSizeEx(file.fd, &result);
+        const auto is_success = !!GetFileSizeEx(file.fd, &result);
         return is_success ? narrow_cast<uint64_t>(result.QuadPart) : 0ull;
     }
 }

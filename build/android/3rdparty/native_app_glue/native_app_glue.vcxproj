@@ -42,8 +42,6 @@
     <ClCompile>
       <CppLanguageStandard>c++1z</CppLanguageStandard>
       <CLanguageStandard>c11</CLanguageStandard>
-      <CompileAs>CompileAsCpp</CompileAs>
-      <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -51,15 +49,13 @@
       <CppLanguageStandard>c++1z</CppLanguageStandard>
       <CLanguageStandard>c11</CLanguageStandard>
       <DebugInformationFormat>None</DebugInformationFormat>
-      <CompileAs>CompileAsCpp</CompileAs>
-      <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-     <ClInclude Include="$(VS_NdkRoot)\sources\android\native_app_glue\android_native_app_glue.h" />
+    <ClInclude Include="$(VS_NdkRoot)\sources\android\native_app_glue\android_native_app_glue.h" />
   </ItemGroup>
   <ItemGroup>
-     <ClCompile Include="$(VS_NdkRoot)\sources\android\native_app_glue\android_native_app_glue.c" />
+    <ClCompile Include="$(VS_NdkRoot)\sources\android\native_app_glue\android_native_app_glue.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

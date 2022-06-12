@@ -112,9 +112,7 @@ namespace ui
 
             constexpr app_manager(module_handle_t app) noexcept
                 : app_{ app }
-            {
-                D_ASSERT(app);
-            }
+            {}
 
             template<class ProcessorPtr>
             int run(ProcessorPtr processor_ptr) const noexcept

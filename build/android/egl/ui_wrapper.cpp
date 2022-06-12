@@ -54,7 +54,6 @@ namespace egl
 
     os::window_handle_t render_window(os::module_handle_t app) noexcept
     {
-        D_ASSERT(app);
         return app->window;
     }
 
@@ -73,11 +72,7 @@ namespace egl
         auto& ui = as_mutable(result.r());
 
         ui.app = app;
-
-        if (app)
-        {
-            ui.sensor_manager = ASensorManager_getInstance();
-        }
+        ui.sensor_manager = ASensorManager_getInstance();
 
         if (ui.sensor_manager)
         {

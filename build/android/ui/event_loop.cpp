@@ -8,8 +8,6 @@ namespace ui
     {
         std::optional<int> message::process(module_handle_t app) const noexcept
         {
-            D_ASSERT(app);
-
             if (source_)
             {
                 D_ASSERT(source_->process);
@@ -25,4 +23,3 @@ namespace ui
         }
     }
 }
-

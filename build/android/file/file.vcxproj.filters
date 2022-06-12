@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="private">
+      <UniqueIdentifier>{8159e3ab-d92d-49bf-b12e-9ef529eda8bd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\file\file.h" />
+    <ClInclude Include="..\..\..\file\file_io.h" />
+    <ClInclude Include="..\..\..\file\file_mmap.h" />
+    <ClInclude Include="..\..\..\file\path.h" />
+    <ClInclude Include="private\file.h">
+      <Filter>private</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="file.cpp" />
+    <ClCompile Include="file_io.cpp" />
+    <ClCompile Include="file_mmap.cpp" />
+  </ItemGroup>
+</Project>

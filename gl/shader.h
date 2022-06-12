@@ -68,7 +68,7 @@ namespace gl
     shaders_program create_shaders_program(source_view vertex, source_view fragment) noexcept;
 
     using location_numer_t = GLuint;
-
+    static_assert(std::is_unsigned_v<location_numer_t>);
     constexpr auto invalid_location_number = numeric_max_v<location_numer_t>;
 
     enum class attribute_location : location_numer_t

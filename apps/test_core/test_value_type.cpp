@@ -29,8 +29,6 @@ void test_value_type() noexcept
             }
         };
 
-        using type = value_type_t<my_vector1>;
-
         static_assert(std::is_same_v<decl_data_pointer_t<my_vector1>, const typename my_vector1::value_type_impl*>);
         static_assert(std::is_same_v<value_type_t<my_vector1>, const typename my_vector1::value_type_impl>);
     }

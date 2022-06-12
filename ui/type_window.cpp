@@ -37,12 +37,6 @@ namespace ui
             static uint16_t id{ 0u };
             return ++id;
         }
-
-        template<class T>
-        [[nodiscard]] constexpr bool is_null_or_empty(const T* string) noexcept
-        {
-            return !string || !*string;
-        }
     }
 
 

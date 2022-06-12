@@ -4,18 +4,18 @@
 
 namespace file
 {
-    using offset_t = int64_t;
+    using off_t = int64_t;
 
-    constexpr offset_t error_seek{ -1LL };
+    constexpr off_t invalid_offset{ -1LL };
     
-    enum class seek_mode : uint8_t
+    enum class seek_mode : D_CONDITIONAL_OS_WINDOWS(os::dword_t, int)
     {
-        begin,
-        current,
-        end
+        begin = 0,
+        current = 1,
+        end = 2
     };
 
-    offset_t seek(file_resource file, offset_t offset, seek_mode mode) noexcept;
+    off_t seek(file_resource file, off_t offset, seek_mode mode) noexcept;
 
     size_t write(wo_file_resource file, const void* data, size_t size) noexcept;
 

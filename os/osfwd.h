@@ -63,6 +63,7 @@ extern "C" int ALooper_pollAll(int timeoutMillis, int* outFd, int* outEvents, vo
 namespace os
 {
 #if defined(D_OS_WINDOWS)
+    using handle_t = void*;
     using module_handle_t = private_detail_osfwd::HINSTANCE;
     using window_handle_t = private_detail_osfwd::HWND;
     using message_t = tagMSG;
@@ -79,6 +80,8 @@ namespace os
     using sensor_event_queue_handle_t = ASensorEventQueue*;
 
 #endif
+
+    using file_descriptor_t = D_CONDITIONAL_OS_WINDOWS(handle_t, int);
 }
 
 

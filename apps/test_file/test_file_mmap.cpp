@@ -9,7 +9,6 @@
 #include <file/file_io.h>
 
 
-
 void test_file_mmap() noexcept
 {
     static_assert(std::is_trivial_v<file::file_mmap_resource> && std::is_standard_layout_v<file::file_mmap_resource>);
@@ -36,7 +35,7 @@ void test_file_mmap() noexcept
             
             const auto w_size = write
             (
-                file::wo_open(file_name, file::write_mode::rewrite), 
+                file::wo_open(file_name, file::w_open_mode::open), 
                 content, 
                 content_size
             );
@@ -58,6 +57,4 @@ void test_file_mmap() noexcept
             D_ASSERT(!memcmp(mmap.r().data(), content, content_size));
         }
     }
-
-    D_ASSERT(!errno);
 }

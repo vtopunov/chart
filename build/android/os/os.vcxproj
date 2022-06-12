@@ -40,6 +40,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\static_library.props" />
   <ItemGroup>
+    <ClInclude Include="..\..\..\os\file.h" />
     <ClInclude Include="..\..\..\os\log.h" />
     <ClInclude Include="..\..\..\os\os.h" />
     <ClInclude Include="..\..\..\os\osfwd.h" />

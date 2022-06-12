@@ -1,24 +1,36 @@
 #include <entry_point/entry_point.h>
 
+#include <unistd.h>
+
 #include <debug/debug.h>
 
 #include "android_native_app_glue.h"
 
 
-int android_main(android_app* app)
+namespace
 {
-    static_assert(std::is_same_v<os::module_handle_t, android_app*>);
-
-    const auto exit_status = app_main(app);
-
-    if (exit_status)
+    void set_current_directory(const char* path) noexcept
     {
-        e_debug("EXIT FAILURE status: {}, errno: {}", exit_status, errno);
-    }
-    else
-    {
-        debug("exit success");
-    }
+        if (D_UNLIKELY(is_null_or_empty(path)))
+        {
+            e_debug("{}: set_current_directory: path is null or empty", __FILE__);
+            return;
+        }
 
-    return exit_status;
+        if (D_UNLIKELY(chdir(path)))
+        {
+            e_debug("chdir: path: {}, errno: {}", path, errno);
+            return;
+        }
+    }
+}
+
+extern "C" int android_main(android_app* app)
+{
+    D_ASSERT(app);
+    D_ASSERT(app->activity);
+
+    set_current_directory(app->activity->internalDataPath);
+
+    return app_main(app);
 }
