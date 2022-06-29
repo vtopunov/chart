@@ -11,45 +11,44 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <ProjectGuid>{1BAFE2DA-C641-4B88-A6F1-12C7E5137BBA}</ProjectGuid>
     <Keyword>Android</Keyword>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
-    <ProjectGuid>{47C90779-22F4-49A5-8B9F-B5D799E5D3B5}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
     <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
     <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\build\static_library.props" />
+  <Import Project="..\..\build\egl_ui_app_library.props" />
+  <ItemDefinitionGroup>
+    <Link>
+      <LibraryDependencies>m;%(LibraryDependencies)</LibraryDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">-u ANativeActivity_onCreate %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="$(RepoDir)\utility\png.h" />
-    <ClInclude Include="$(RepoDir)\utility\shaders_library.h" />
+    <ProjectReference Include="..\..\egl\egl.vcxproj">
+      <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\utility\utility.vcxproj">
+      <Project>{47c90779-22f4-49a5-8b9f-b5d799e5d3b5}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(RepoDir)\utility\png.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\file\file.vcxproj">
-      <Project>{41a1fae5-2cd8-4894-a1b8-af520fbf3239}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\gl\gl.vcxproj">
-      <Project>{40eaf3cf-7215-4353-9a89-883b91118195}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\image\image.vcxproj">
-      <Project>{b4d4fce8-f38b-4752-94ed-603589c35f76}</Project>
-    </ProjectReference>
+    <ClCompile Include="..\..\..\..\apps\vtest_texture_positioning\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>
