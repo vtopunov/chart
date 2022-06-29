@@ -28,7 +28,6 @@ namespace file
             {
                 return
                 {
-
                     _private_detail
                     {
                         invalidfile,

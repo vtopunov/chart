@@ -4,7 +4,7 @@
 
 #include <core/narrow.h>
 
-#include "private/file.h"
+#include "private/private_file.h"
 
 namespace file
 {

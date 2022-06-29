@@ -137,11 +137,11 @@ namespace px
 
         constexpr pixspan(const pixspan&) noexcept = default;
 
-        template<class TestT, size_t TestAlign>
-        static constexpr bool is_compatible_pixspan_v = px::is_compatible_pixspan_v<TestT, TestAlign, pixel_type, alignment>;
+        template<class TestPxType, size_t TestAlign>
+        static constexpr bool is_compatible_pixspan_v = px::is_compatible_pixspan_v<TestPxType, TestAlign, pixel_type, alignment>;
 
-        template<class T, size_t Align, std::enable_if_t<is_compatible_pixspan_v<T, Align>, int> = 0>
-        constexpr pixspan(const pixspan<T, Align>& span) noexcept
+        template<class OtherPxType, size_t Align, std::enable_if_t<is_compatible_pixspan_v<OtherPxType, Align>, int> = 0>
+        constexpr pixspan(const pixspan<OtherPxType, Align>& span) noexcept
             : space_type{ span }
             , data_{ span.data() }
         {}
@@ -154,8 +154,8 @@ namespace px
 
         constexpr pixspan& operator = (const pixspan&) noexcept = default;
 
-        template<class T, size_t Align>
-        constexpr std::enable_if_t <is_compatible_pixspan_v<T, Align>, pixspan&> operator = (const pixspan<T, Align>& span) noexcept
+        template<class OtherPxType, size_t Align>
+        constexpr std::enable_if_t <is_compatible_pixspan_v<OtherPxType, Align>, pixspan&> operator = (const pixspan<OtherPxType, Align>& span) noexcept
         {
             space_type::operator = (span);
             data_ = span.data_;
@@ -186,23 +186,23 @@ namespace px
             return data_ + space_type::size();
         }
 
-        template<class T>
-        static constexpr bool is_compatible_for_store_v = is_compatible_for_write_v<T, pixel_type>;
+        template<class C>
+        static constexpr bool is_compatible_for_store_v = is_compatible_for_write_v<C, pixel_type>;
 
-        template<class T>
-        constexpr std::enable_if_t<is_compatible_for_store_v<T>, size2d> store(point2d position, const T& image) const noexcept
+        template<class C>
+        constexpr std::enable_if_t<is_compatible_for_store_v<C>, size2d> store(point2d position, const C& image) const noexcept
         {
             return write(*this, position, as_const_pixspan(image));
         }
 
-        template<class T>
-        constexpr std::enable_if_t<is_compatible_for_store_v<T>, size2d> store(pxside_t x, pxside_t y, const T& image) const noexcept
+        template<class C>
+        constexpr std::enable_if_t<is_compatible_for_store_v<C>, size2d> store(pxside_t x, pxside_t y, const C& image) const noexcept
         {
             return store(point2d{ x, y }, image);
         }
 
-        template<class T>
-        constexpr std::enable_if_t<is_compatible_for_store_v<T>, size2d> store(const T& image) const noexcept
+        template<class C>
+        constexpr std::enable_if_t<is_compatible_for_store_v<C>, size2d> store(const C& image) const noexcept
         {
             return store(0_px, 0_px, image);
         }

@@ -22,6 +22,12 @@
 #endif
 
 
+#if defined(D_OS_ANDROID)
+#define D_OS_ANDROID_ONLY(A) A
+#else
+#define D_OS_ANDROID_ONLY(A)
+#endif
+
 #if defined(D_OS_WINDOWS)
 namespace private_detail_osfwd
 {

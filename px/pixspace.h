@@ -78,7 +78,7 @@ namespace px
         }
 
         constexpr pixspace(size2d sizes) noexcept
-            : pixspace{ sizes, line_size_type::instance_from_width<px_size>(sizes.width()) }
+            : pixspace{ sizes, line_size_type::template instance_from_width<px_size>(sizes.width()) }
         {}
 
         constexpr pixspace(pxside_t w, pxside_t h) noexcept

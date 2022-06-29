@@ -8,6 +8,19 @@ namespace image
     static_assert(to_underlying(png_errno::OK) == SPNG_OK);
     static_assert(to_underlying(png_errno::NOTFINAL) == SPNG_ENOTFINAL);
 
+    namespace
+    {
+        const spng_ihdr* as_spng_ihdr(const std::byte* storage) noexcept
+        {
+            return reinterpret_cast<const spng_ihdr*>(storage);
+        }
+
+        spng_ihdr* as_spng_ihdr(std::byte* storage) noexcept
+        {
+            return reinterpret_cast<spng_ihdr*>(storage);
+        }
+    }
+
     zstring_view png_error_string(png_errno e) noexcept
     {
         if (e == png_errno::SIZE)
@@ -42,31 +55,30 @@ namespace image
     }
 
 
-    D_WARNING_PUSH
-        D_WARNING_DISABLE_MSVC(W_do_not_use_reinterpret_cast)
+    D_WARNING_PUSH;
+    D_WARNING_DISABLE_MSVC(W_do_not_use_reinterpret_cast);
 
-        png_header::png_header(png_resource png) noexcept
-        : storage_{}
-        , errno_{ png_errno::NOIHDR }
+    png_header::png_header(png_resource png) noexcept
     {
         static_assert(png_header_len >= sizeof(spng_ihdr));
-        errno_ = underlying_cast<png_errno>(spng_get_ihdr(png, reinterpret_cast<spng_ihdr*>(&storage_)));
+        static_assert(png_header_align >= alignof(spng_ihdr));
+        errno_ = underlying_cast<png_errno>(spng_get_ihdr(png, as_spng_ihdr(storage_)));
     }
 
     pxside_t png_header::width() const noexcept
     {
-        return as_pxside(reinterpret_cast<const spng_ihdr&>(storage_).width);
+        return as_pxside(as_spng_ihdr(storage_)->width);
     }
 
     pxside_t png_header::height() const noexcept
     {
-        return as_pxside(reinterpret_cast<const spng_ihdr&>(storage_).height);
+        return as_pxside(as_spng_ihdr(storage_)->height);
     }
 
     uint8_t png_header::bit_depth() const noexcept
     {
         static_assert(std::is_same_v<decltype(spng_ihdr::bit_depth), uint8_t>);
-        return reinterpret_cast<const spng_ihdr&>(storage_).bit_depth;
+        return as_spng_ihdr(storage_)->bit_depth;
     }
 
     png_color_type png_header::color_type() const noexcept
@@ -77,13 +89,13 @@ namespace image
         static_assert(to_underlying(png_color_type::INDEXED) == SPNG_COLOR_TYPE_INDEXED);
         static_assert(to_underlying(png_color_type::GRAYSCALE_ALPHA) == SPNG_COLOR_TYPE_GRAYSCALE_ALPHA);
         static_assert(to_underlying(png_color_type::TRUECOLOR_ALPHA) == SPNG_COLOR_TYPE_TRUECOLOR_ALPHA);
-        return underlying_cast<png_color_type>(reinterpret_cast<const spng_ihdr&>(storage_).color_type);
+        return underlying_cast<png_color_type>(as_spng_ihdr(storage_)->color_type);
     }
 
-    D_WARNING_POP
+    D_WARNING_POP;
 
 
-        static_assert(to_underlying(png_format::RGBA8) == spng_format::SPNG_FMT_RGBA8);
+    static_assert(to_underlying(png_format::RGBA8) == spng_format::SPNG_FMT_RGBA8);
     static_assert(to_underlying(png_format::RGBA16) == spng_format::SPNG_FMT_RGBA16);
     static_assert(to_underlying(png_format::RGB8) == spng_format::SPNG_FMT_RGB8);
     static_assert(to_underlying(png_format::PNG) == spng_format::SPNG_FMT_PNG);

@@ -136,13 +136,6 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr buffer_t release_buffer() noexcept
-        {
-            _reject_space();
-            return std::move(buffer_);
-        }
-
-        [[nodiscard]]
         constexpr pointer data() noexcept
         {
             return buffer_.as_ptr<pixel_type>();
@@ -233,20 +226,20 @@ namespace px
         }
 
 
-        template<class T>
-        constexpr auto store(point2d position, const T& image) noexcept -> decltype(view().store(position, image))
+        template<class C>
+        constexpr auto store(point2d position, const C& image) noexcept -> decltype(view().store(position, image))
         {
             return view().store(position, image);
         }
 
-        template<class T>
-        constexpr auto store(pxside_t x, pxside_t y, const T& image) noexcept -> decltype(view().store(x, y, image))
+        template<class C>
+        constexpr auto store(pxside_t x, pxside_t y, const C& image) noexcept -> decltype(view().store(x, y, image))
         {
             return view().store(x, y, image);
         }
 
-        template<class T>
-        constexpr auto store(const T& image) noexcept -> decltype(view().store(image))
+        template<class C>
+        constexpr auto store(const C& image) noexcept -> decltype(view().store(image))
         {
             return view().store(image);
         }

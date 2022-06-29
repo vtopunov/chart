@@ -35,15 +35,17 @@
   <Import Project="..\build\static_library.props" />
   <ItemGroup>
     <ClCompile Include="$(RepoDir)\gl\shader.cpp" />
-    <ClCompile Include="..\..\..\gl\draw.cpp" />
+    <ClCompile Include="$(RepoDir)\gl\draw.cpp" />
+    <ClCompile Include="$(RepoDir)\gl\texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(RepoDir)\gl\config.h" />
     <ClInclude Include="$(RepoDir)\gl\glsl_typeid.h" />
     <ClInclude Include="$(RepoDir)\gl\shader.h" />
-    <ClInclude Include="..\..\..\gl\color.h" />
-    <ClInclude Include="..\..\..\gl\draw.h" />
-    <ClInclude Include="..\..\..\gl\vertex.h" />
+    <ClInclude Include="$(RepoDir)\gl\color.h" />
+    <ClInclude Include="$(RepoDir)\gl\draw.h" />
+    <ClInclude Include="$(RepoDir)\gl\texture.h" />
+    <ClInclude Include="$(RepoDir)\gl\vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(AndroidThirdPartyDir)\fmt\libfmt.vcxproj">

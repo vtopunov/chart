@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <debug/debug.h>
+#include <common/asset_manager.h>
 
 #include "android_native_app_glue.h"
 
@@ -29,6 +30,8 @@ extern "C" int android_main(android_app* app)
 {
     D_ASSERT(app);
     D_ASSERT(app->activity);
+
+    const common::asset_manager_own asset_manager_own{ app->activity->assetManager };
 
     set_current_directory(app->activity->internalDataPath);
 

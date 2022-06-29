@@ -4,7 +4,7 @@
 
 #include <core/clamp_cast.h>
 
-#include "private/file.h"
+#include "private/private_file.h"
 
 namespace file
 {

@@ -174,9 +174,10 @@ namespace image
         }
 
     private:
-        static constexpr auto png_header_len = 16_uz; // fast pimpl constant
-        std::aligned_storage_t<png_header_len> storage_;
-        png_errno errno_;
+        static constexpr auto png_header_len = 16_uz;
+        static constexpr auto png_header_align = 8_uz;
+        alignas(png_header_align) std::byte storage_[png_header_len]{};
+        png_errno errno_{ png_errno::NOIHDR };
     };
 
 

@@ -29,7 +29,7 @@ struct is_zstring_view<const T> : is_zstring_view<T>
 template <class T>
 constexpr bool is_zstring_view_compatible_v = std::conjunction_v
 <
-    std::negation<is_zstring_view<std::remove_cvref_t<T>>>, 
+    std::negation<is_zstring_view<T>>, 
     has_c_str<T>
 >;
 

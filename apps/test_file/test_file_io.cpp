@@ -1,5 +1,8 @@
 #include <file/file_io.h>
 
+#ifdef D_OS_ANDROID
+#include <file/private/private_path.h>
+#endif
 
 #include <span>
 
@@ -54,12 +57,12 @@ namespace
         }
     }
 
-    void test_read(size_t n_blocks) noexcept
+    void test_read(file::path_zstring_view path, size_t n_blocks) noexcept
     {
-        const auto rof = file::ro_open(file_name);
+        const auto rof = file::ro_open(path);
         D_ASSERT(rof);
 
-        for ( size_t i = 0_uz; i < n_blocks; ++i )
+        for (size_t i = 0_uz; i < n_blocks; ++i)
         {
             char buffer[block_size]{};
             check_block_size(read(rof, buffer, block_size));
@@ -71,6 +74,11 @@ namespace
             D_ASSERT(!read(rof, ch, sizeof(ch)));
             D_ASSERT(size(rof) == size_blocks(n_blocks));
         }
+    }
+
+    void test_read(size_t n_blocks) noexcept
+    {
+        test_read(file_name, n_blocks);
     }
 
     void test_write_mode() noexcept
@@ -184,6 +192,56 @@ namespace
         }
     }
 
+#ifdef D_OS_ANDROID
+    void test_assets() noexcept
+    {
+        {
+            std::error_code errc{};
+            file::create_file_directories("a/"); 
+            D_ASSERT(std::filesystem::exists("./a", errc)); D_ASSERT(!errc);
+            
+            file::create_file_directories("/b");
+            D_ASSERT(!std::filesystem::exists("./b", errc)); D_ASSERT(!errc);
+            
+            file::create_file_directories("/c/"); 
+            D_ASSERT(!std::filesystem::exists("c", errc)); D_ASSERT(!errc);
+            
+            file::create_file_directories("d/e");  
+            D_ASSERT(std::filesystem::exists("./d", errc)); D_ASSERT(!errc);
+            D_ASSERT(!std::filesystem::exists("./d/e", errc)); D_ASSERT(!errc);
+
+            file::create_file_directories("f/g/");
+            D_ASSERT(std::filesystem::exists("./f/g", errc)); D_ASSERT(!errc);
+
+            file::create_file_directories("k/l/m"); 
+            D_ASSERT(std::filesystem::exists("./k/l", errc)); D_ASSERT(!errc);
+            D_ASSERT(!std::filesystem::exists("./k/l/m", errc)); D_ASSERT(!errc);
+
+            file::create_file_directories("o/p/q//");
+            D_ASSERT(std::filesystem::exists("./o/p/q", errc)); D_ASSERT(!errc);
+
+            file::create_file_directories("");
+            file::create_file_directories("/");
+        }
+
+        test_read(_PATH("asset/test0_asset.txt"), 1_uz);
+        test_read(_PATH("asset/test0_asset.txt"), 1_uz);
+        test_read(_PATH("asset/test1_asset.txt"), 1_uz);
+        test_read(_PATH("test0_asset.txt"), 1_uz);
+        test_read(_PATH("test0_asset.txt"), 1_uz);
+        test_read(_PATH("test1_asset.txt"), 1_uz);
+        test_read(_PATH("asset/asset/test0_asset.txt"), 1_uz);
+        test_read(_PATH("asset/asset/test0_asset.txt"), 1_uz);
+        test_read(_PATH("asset/asset/test1_asset.txt"), 1_uz);
+        test_read(_PATH("assets/asset/test0_asset.txt"), 1_uz);
+        test_read(_PATH("assets/asset/test0_asset.txt"), 1_uz);
+        test_read(_PATH("assets/asset/test1_asset.txt"), 1_uz);
+        test_read(_PATH("assets/test0_asset.txt"), 1_uz);
+        test_read(_PATH("assets/test0_asset.txt"), 1_uz);
+        test_read(_PATH("assets/test1_asset.txt"), 1_uz);
+    }
+#endif
+
     template<class T>
     constexpr bool is_void_ptr_v = std::is_pointer_v<T> && std::is_void_v<std::remove_pointer_t<T>>;
 }
@@ -222,4 +280,5 @@ void test_file_io() noexcept
     test_write_mode();
     test_size();
     test_rw();
+    D_OS_ANDROID_ONLY(test_assets());
 }

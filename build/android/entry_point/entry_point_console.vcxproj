@@ -19,9 +19,18 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
       <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ProjectReference Include="..\common\asset_manager.vcxproj">
+      <Project>{58e8699e-edd0-4cff-87e6-7276601a1332}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\debug\debug.vcxproj">
       <Project>{6fcb1ca4-9a18-4ecf-a118-154ebf517d91}</Project>
     </ProjectReference>

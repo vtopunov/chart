@@ -110,3 +110,4 @@ meson-uninstalled/
 
 RUN_INSTALL.vcxproj
 RUN_TESTS.vcxproj
+/apps/vtest_*/*.ttf

@@ -1,0 +1,19 @@
+#pragma once
+
+#include <core/utility.h>
+
+class AAssetManager;
+
+namespace common
+{
+    struct asset_manager_own
+    {
+        D_DISABLE_COPY_MOVE(asset_manager_own);
+
+        explicit asset_manager_own(AAssetManager* am) noexcept;
+
+        ~asset_manager_own() noexcept;
+    };
+
+    AAssetManager* asset_manager() noexcept;
+}

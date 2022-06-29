@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdlib>
 
 #include <core/warnings.h>
 #include <core/utility.h>

@@ -52,6 +52,18 @@
   <ItemGroup>
     <ProjectReference Include="$(AppLibName).vcxproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="assets\assets\asset\test0_asset.txt" />
+    <Content Include="assets\assets\asset\test1_asset.txt" />
+    <Content Include="assets\assets\test0_asset.txt" />
+    <Content Include="assets\assets\test1_asset.txt" />
+    <Content Include="assets\asset\test0_asset.txt" />
+    <Content Include="assets\asset\test1_asset.txt" />
+    <Content Include="assets\test0_asset.txt" />
+    <Content Include="assets\test1_asset.txt" />
+    <Content Include="assets\asset\asset\test0_asset.txt" />
+    <Content Include="assets\asset\asset\test1_asset.txt" />
+  </ItemGroup>
   <Import Project="$(AndroidTargetsPath)\Android.targets" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

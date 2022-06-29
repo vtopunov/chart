@@ -95,5 +95,11 @@ void test_type_traits() noexcept
         static_assert(std::is_same_v<remove_enum_t<u8_enum>, uint8_t>);
     }
 
+    {
+        static_assert(std::is_same_v<add_unsigned_t<float>, float>);
+        static_assert(std::is_same_v<add_unsigned_t<int>, unsigned>);
+        static_assert(std::is_same_v<add_unsigned_t<unsigned>, unsigned>);
+    }
+
     D_ASSERT(!errno);
 }

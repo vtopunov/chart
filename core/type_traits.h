@@ -60,3 +60,7 @@ using remove_enum_t = typename remove_enum<T>::type;
 
 template<class T>
 using remove_cve_t = std::remove_cv_t<remove_enum_t<T>>;
+
+
+template<class T>
+using add_unsigned_t = conditional_op_t<std::is_integral_v<T>, std::make_unsigned_t, T>;

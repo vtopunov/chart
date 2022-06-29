@@ -89,8 +89,6 @@ namespace
 
 int app_main(os::module_handle_t) noexcept
 {
-    font_cache::set_directory(_PATH("..\\fonts"));
-
     return widget::run<main_widget>();
 }
 

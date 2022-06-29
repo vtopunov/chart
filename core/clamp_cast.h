@@ -1,7 +1,6 @@
 #pragma once
 
-#include <type_traits>
-
+#include <core/type_traits.h>
 #include <core/warnings.h>
 #include <core/limits.h>
 
@@ -53,11 +52,28 @@ constexpr std::enable_if_t<is_unsigned2_v<Target, Source>, Target> clamp_cast(So
     {
         constexpr Source target_max{ numeric_max_v<Target> };
 
-        return (v > target_max) ? target_max : static_cast<Target>(v);
+        return static_cast<Target>((target_max < v) ? target_max : v);
     }
     else
     {
         return static_cast<Target>(v);
+    }
+}
+
+template<class Source> [[nodiscard]]
+constexpr decltype(auto) clamp_to_unsigned(Source v) noexcept
+{
+    using source_t = std::remove_cv_t<Source>;
+    using unsigned_t = add_unsigned_t<source_t>;
+
+    if constexpr (!std::is_same_v<unsigned_t, source_t>)
+    {
+        constexpr Source zero{};
+        return static_cast<unsigned_t>((v < zero) ? zero : v);
+    }
+    else
+    {
+        return static_cast<unsigned_t>(v);
     }
 }
 

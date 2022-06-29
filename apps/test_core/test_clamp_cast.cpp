@@ -27,6 +27,5 @@ void test_clamp_cast() noexcept
         static_assert(clamp_cast<uint16_t>(0xbeefull) == 0xbeeful);
     }
 
-
     D_ASSERT(!errno);
 }

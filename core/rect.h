@@ -30,18 +30,12 @@ constexpr decltype(auto) operator - (const size2d<T>& left, const point2d<T>& ri
 }
 
 
-namespace private_detail_rect
-{
-    template<class T>
-    using make_unsigned_opt_t = conditional_op_t<std::is_integral_v<T>, std::make_unsigned_t, T>;
-}
-
 
 template<class T>
 struct rect
 {
     using scalar_type = T;
-    using size_type = private_detail_rect::make_unsigned_opt_t<scalar_type>;
+    using size_type = add_unsigned_t<scalar_type>;
     using size2d_type = size2d<size_type>;
     using point2d_type = point2d<scalar_type>;
     using diagonal_line_type = num_range<point2d_type>;

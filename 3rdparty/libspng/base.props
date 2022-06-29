@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <LibSPNGDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)'))</LibSPNGDir>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <LibSPNGSrcDir>$(LibSPNGDir)spng</LibSPNGSrcDir>
+  </PropertyGroup>
+  
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>SPNG_USE_MINIZ;SPNG_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+</Project>
