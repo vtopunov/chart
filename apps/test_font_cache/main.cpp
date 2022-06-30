@@ -3,13 +3,15 @@
 
 #include <utility/font_cache.cpp>
 
-#include <process.h>
+#ifdef D_OS_WINDOWS
+#define D_FONT_NAME(name) _PATH("..\\fonts\\" ## name)
+#else
+#define D_FONT_NAME(name) _PATH(name)
+#endif
 
 
 namespace
 {
-#define D_FONT_NAME(name) _PATH("..\\fonts\\" ## name)
-
     constexpr std::array names
     {
         D_FONT_NAME("DroidSerif-Regular.ttf"),

@@ -91,7 +91,7 @@ public:
             if (const auto garbage_for_rewrite = garbage())
             {
                 std::destroy_at(garbage_for_rewrite);
-                std::construct_at(garbage_for_rewrite, std::forward<Args>(args)...);
+                new (garbage_for_rewrite) value_type(std::forward<Args>(args)...);
                 return garbage_for_rewrite;
             }
         }
