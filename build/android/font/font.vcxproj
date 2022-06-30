@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
       <Configuration>Debug</Configuration>
@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{48eb2e2d-ca01-4061-a18e-b62c59297906}</ProjectGuid>
     <Keyword>Android</Keyword>
-    <RootNamespace>libspng</RootNamespace>
+    <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
+    <ProjectGuid>{32516E1E-1547-4010-9DF2-656FED1AC2D4}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
@@ -32,18 +32,22 @@
     <AndroidAPILevel>android-30</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\..\build\static_library_c.props" />
-  <Import Project="$(ThirdPartyDir)\libspng\in.props" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <ClCompile>
-      <CppLanguageStandard>c++1z</CppLanguageStandard>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <ClCompile>
-      <CppLanguageStandard>c++1z</CppLanguageStandard>
-    </ClCompile>
-  </ItemDefinitionGroup>
+  <Import Project="..\build\static_library.props" />
+  <Import Project="$(ThirdPartyDir)\freetype2\out.props" />
+  <ItemGroup>
+    <ClCompile Include="$(RepoDir)\font\font.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(RepoDir)\font\font.h" />
+    <ClInclude Include="$(RepoDir)\font\fixed.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\3rdparty\freetype2\freetype2.vcxproj">
+      <Project>{0144d63b-05d3-4147-a8f6-22c265284ef8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\debug\debug.vcxproj">
+      <Project>{6fcb1ca4-9a18-4ecf-a118-154ebf517d91}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets" />
 </Project>

@@ -10,6 +10,19 @@ namespace font
 {
     namespace
     {
+        template<class T, size_t FractBits>
+        [[nodiscard]] constexpr px::point2d as_px_position(const point2d<fixed<T, FractBits>>& p) noexcept
+        {
+            return
+            {
+                trunc_to<pxside_t>(p.x()),
+                trunc_to<pxside_t>(p.y())
+            };
+        }
+
+        static_assert(as_px_position(invalid_cursor) == invalid_position);
+
+
         using library_descriptor_t = FT_Library;
 
         void e_debug_ft(const char* string, FT_Error errc) noexcept
@@ -46,9 +59,6 @@ namespace font
             }
         };
 
-        template<class T>
-        constexpr auto int_max_v = static_cast<T>(numeric_max_v<std::make_signed_t<T>>);
-
         class library
         {
         public:
@@ -81,7 +91,7 @@ namespace font
             {
                 using unique_resource::unique_resource;
 
-                constexpr operator library_descriptor_t () const noexcept
+                operator library_descriptor_t () const noexcept
                 {
                     return lib;
                 }

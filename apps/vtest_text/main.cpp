@@ -10,6 +10,12 @@
 
 #include <utility/shaders_library.h>
 
+#ifdef D_OS_WINDOWS
+#define D_FONT_NAME(name) _PATH("..\\fonts\\" ## name)
+#else
+#define D_FONT_NAME(name) _PATH(name)
+#endif
+
 
 using namespace std::string_view_literals;
 
@@ -24,7 +30,7 @@ namespace
             return {};
         }
 
-        const auto font_file = file::mmap(_PATH("..\\fonts\\DroidSerif-Regular.ttf"));
+        const auto font_file = file::mmap(D_FONT_NAME("DroidSerif-Regular.ttf"));
         if (!font_file)
         {
             e_debug("can't open font file");

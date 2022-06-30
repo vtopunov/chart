@@ -32,6 +32,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(SolutionDir)\build\windows\static_library.props" />  
   <Import Project="in.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -52,7 +53,6 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/Zc:char8_t %(AdditionalOptions)</AdditionalOptions>
-      <EnablePREfast>true</EnablePREfast>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <DisableSpecificWarnings>4706;4018;4245;4456;6246;6287;26451;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>

@@ -49,6 +49,7 @@
   <ImportGroup Label="Shared">
   </ImportGroup>
   <Import Project="..\build\windows\static_library.props" />
+    <Import Project="$(ThirdPartyDir)\freetype2\out.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -60,8 +61,6 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/Zc:char8_t %(AdditionalOptions)</AdditionalOptions>
-      <EnablePREfast>true</EnablePREfast>
-      <AdditionalIncludeDirectories>$(ThirdPartyDir)\freetype2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -85,7 +84,6 @@
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ThirdPartyDir)\freetype2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

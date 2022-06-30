@@ -3,17 +3,19 @@
   <Import Project="..\includes.props" />
   
   <ItemDefinitionGroup>
-	<ClCompile>
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <ConformanceMode>true</ConformanceMode>
-	  <ExceptionHandling>false</ExceptionHandling>
       <EnablePREfast>false</EnablePREfast>
-	  <PreprocessorDefinitions>NOMINMAX;_HAS_EXCEPTIONS=0;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_HAS_EXCEPTIONS=0;_ITERATOR_DEBUG_LEVEL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-	  <LanguageStandard_C>stdc17</LanguageStandard_C>
-	  <SDLCheck>true</SDLCheck>
-	  <SupportJustMyCode>false</SupportJustMyCode>
-	  <WarningLevel>Level4</WarningLevel>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <SDLCheck>true</SDLCheck>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <WarningLevel>Level4</WarningLevel>
     </ClCompile>
   </ItemDefinitionGroup>
   
@@ -26,8 +28,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
+      <OmitFramePointers>true</OmitFramePointers>
     </ClCompile>
   </ItemDefinitionGroup>
 </Project>

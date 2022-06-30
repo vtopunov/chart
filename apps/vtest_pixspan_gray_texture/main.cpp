@@ -18,7 +18,7 @@ namespace
 
         constexpr pix8space image_sizes{ 9_px, 11_px };
 
-        constexpr pix8_t image[image_sizes.size()]
+        static constexpr pix8_t image[image_sizes.size()]
         {
             0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0x00, 0x00, 0x00,
             0xff, 0xcc, 0xcc,  0xcc, 0xcc, 0xcc,  0xcc, 0xcc, 0xff,  0x00, 0x00, 0x00,
@@ -42,7 +42,7 @@ namespace
 
         constexpr pix8space gallery_sizes{ 4u * w_image_space, 3u * h_image_space };
         pix8_t gallery[gallery_sizes.size()]{};
-        constexpr pix8span gallery_span{ gallery, gallery_sizes };
+        const pix8span gallery_span{ gallery, gallery_sizes };
 
         for (pxside_t y = 0_px; y < gallery_sizes.height(); y += h_image_space)
         {

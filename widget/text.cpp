@@ -12,8 +12,8 @@ namespace widget
 
             const pix8space space
             {
-                std::min(sizes.width(), tm.width.narrow_to_ceil<pxside_t>()),
-                std::min(sizes.height(), (tm.bottom - tm.top).narrow_to_ceil<pxside_t>())
+                std::min(sizes.width(), ceil_to<pxside_t>(tm.width)),
+                std::min(sizes.height(), ceil_to<pxside_t>(tm.bottom - tm.top))
             };
 
             const auto size_bytes = space.size_bytes();

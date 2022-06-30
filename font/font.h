@@ -64,20 +64,8 @@ namespace font
         }
     };
 
-    template<class T, size_t FractBits>
-    [[nodiscard]] constexpr px::point2d as_px_position(const point2d<fixed<T, FractBits>>& p) noexcept
-    {
-        return
-        {
-            p.x().narrow_to<pxside_t>(),
-            p.y().narrow_to<pxside_t>()
-        };
-    }
-
-
-    constexpr point2d px_invalid_position{ fill_vec2(numeric_max_v<pxside_t>) };
-    constexpr auto invalid_cursor = cursor::instance(px_invalid_position);
-    static_assert(as_px_position(invalid_cursor) == px_invalid_position);
+    constexpr point2d invalid_position{ fill_vec2(numeric_max_v<pxside_t>) };
+    constexpr auto invalid_cursor = cursor::instance(invalid_position);
 
     cursor draw_char(pix8span image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept;
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <compare>
+
 #include <core/narrow.h>
 
 namespace font
@@ -22,27 +24,6 @@ namespace font
         [[nodiscard]] static constexpr fixed instance(fixed<NewT, FractBits> fix_value) noexcept
         {
             return { narrow_cast<NewT>(fix_value.value) };
-        }
-
-        template<class Out>
-        [[nodiscard]] constexpr Out narrow_to() const noexcept
-        {
-            static_assert(std::is_integral_v<Out>);
-            return narrow_cast<Out>(discard_fraction());
-        }
-
-        template<class Out>
-        [[nodiscard]] constexpr Out narrow_to_ceil() const noexcept
-        {
-            if constexpr (std::is_unsigned_v<Out>)
-            {
-                return narrow_cast<Out>(discard_fraction() + !!fraction());
-            }
-            else
-            {
-                static_assert(std::is_integral_v<Out>);
-                return narrow_cast<Out>(discard_fraction() + is_positive(value) && !!fraction());
-            }
         }
 
         [[nodiscard]]
@@ -73,6 +54,28 @@ namespace font
         [[nodiscard]]
         constexpr auto operator<=>(const fixed&) const noexcept = default;
     };
+
+    template<class Out, class T, size_t FractBits>
+    constexpr Out trunc_to(const fixed<T, FractBits>& fp) noexcept
+    {
+        static_assert(std::is_integral_v<Out>);
+        return narrow_cast<Out>(fp.discard_fraction());
+    }
+
+    template<class Out, class T, size_t FractBits>
+    constexpr Out ceil_to(const fixed<T, FractBits>& fp) noexcept
+    {
+        if constexpr (std::disjunction_v<std::is_unsigned<Out>, std::is_unsigned<T>>)
+        {
+            return narrow_cast<Out>(fp.discard_fraction() + !!fp.fraction());
+        }
+        else
+        {
+            static_assert(std::is_integral_v<Out>);
+            return narrow_cast<Out>(fp.discard_fraction() + is_positive(fp) && !!fp.fraction());
+        }
+    }
+
 
     template<class T, size_t FractBits>
     constexpr fixed<T, FractBits> operator - (const fixed<T, FractBits>& right) noexcept

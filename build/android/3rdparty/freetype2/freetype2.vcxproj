@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{48eb2e2d-ca01-4061-a18e-b62c59297906}</ProjectGuid>
+    <ProjectGuid>{0144D63B-05D3-4147-A8F6-22C265284EF8}</ProjectGuid>
     <Keyword>Android</Keyword>
-    <RootNamespace>libspng</RootNamespace>
+    <RootNamespace>freetype2</RootNamespace>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
@@ -33,7 +33,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\..\build\static_library_c.props" />
-  <Import Project="$(ThirdPartyDir)\libspng\in.props" />
+  <Import Project="$(ThirdPartyDir)\freetype2\in.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
       <CppLanguageStandard>c++1z</CppLanguageStandard>

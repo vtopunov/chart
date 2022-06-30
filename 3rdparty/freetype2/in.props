@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="base.props" />
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <ClCompile Include="$(LibFTDir)builds\stubs\ftdebug.c" />
+    <ClCompile Include="$(LibFTDir)src\autofit\autofit.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftbase.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftbbox.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftbdf.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftbitmap.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftcid.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftfstype.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftgasp.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftglyph.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftgxval.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftinit.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftmm.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftotval.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftpatent.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftpfr.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftstroke.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftsynth.c" />
+    <ClCompile Include="$(LibFTDir)src\base\ftsystem.c" />
+    <ClCompile Include="$(LibFTDir)src\base\fttype1.c" />
+    <ClCompile Include="$(LibFTDir)src\bdf\bdf.c" />
+    <ClCompile Include="$(LibFTDir)src\cache\ftcache.c" />
+    <ClCompile Include="$(LibFTDir)src\cff\cff.c" />
+    <ClCompile Include="$(LibFTDir)src\cid\type1cid.c" />
+    <ClCompile Include="$(LibFTDir)src\gzip\ftgzip.c" />
+    <ClCompile Include="$(LibFTDir)src\lzw\ftlzw.c" />
+    <ClCompile Include="$(LibFTDir)src\pcf\pcf.c" />
+    <ClCompile Include="$(LibFTDir)src\pfr\pfr.c" />
+    <ClCompile Include="$(LibFTDir)src\psaux\psaux.c" />
+    <ClCompile Include="$(LibFTDir)src\pshinter\pshinter.c" />
+    <ClCompile Include="$(LibFTDir)src\psnames\psmodule.c" />
+    <ClCompile Include="$(LibFTDir)src\raster\raster.c" />
+    <ClCompile Include="$(LibFTDir)src\sfnt\sfnt.c" />
+    <ClCompile Include="$(LibFTDir)src\smooth\smooth.c" />
+    <ClCompile Include="$(LibFTDir)src\truetype\truetype.c" />
+    <ClCompile Include="$(LibFTDir)src\type1\type1.c" />
+    <ClCompile Include="$(LibFTDir)src\type42\type42.c" />
+  </ItemGroup>
+</Project>
