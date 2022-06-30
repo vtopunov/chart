@@ -35,7 +35,7 @@ template<class T>
 struct rgba_color
 {
     using tint_type = T;
-    using view_type = span<const tint_type, 4_uz>;
+    using view_type = span<const tint_type, 4u>;
 
     tint_type r;
     tint_type g;
@@ -61,7 +61,7 @@ struct rgba_color
     [[nodiscard]]
     constexpr operator view_type() const noexcept
     {
-        static_assert(sizeof(rgba_color<T>) == 4 * sizeof(T));
+        static_assert(sizeof(rgba_color<T>) == 4u * sizeof(T));
         return view_type{ std::addressof(r), view_type::extent };
     }
 
@@ -89,7 +89,7 @@ using rgba_color32_view = rgba_color32_t::view_type;
 using rgba_colorf_t = rgba_color<float>;
 using rgba_colorf_view = rgba_colorf_t::view_type;
 
-static_assert(sizeof(rgba_color32_t) == 4_uz);
+static_assert(sizeof(rgba_color32_t) == 4u);
 
 
 D_WARNING_PUSH
