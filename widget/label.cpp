@@ -2,15 +2,17 @@
 
 #include <debug/debug.h>
 
+#include <egl_ui/egl_resources.h>
+
 #include <widget/shader.h>
 #include <widget/text.h>
 
 
 namespace widget
 {
-    bool label::initialize(px::size2d viewport_sizes) noexcept
+    bool label::initialize(const egl_resources& egl) noexcept
     {
-        if (!shader::gray_texture_mix_color::initialize(viewport_sizes))
+        if (!shader::gray_texture_mix_color::initialize(sizes(egl)))
         {
             e_debug("shaders error: {}", glGetError());
             return false;
@@ -29,16 +31,16 @@ namespace widget
         return true;
     }
 
-    void label::draw(buffer_t& temp_buffer) noexcept
+    void label::draw(buffer_t& buffer) noexcept
     {
-        if (!text_texture && !text.empty())
+        if (!texture_text_cache && !text.empty())
         {
-            text_texture = text::draw_to_texture(temp_buffer, font, text);
+            texture_text_cache = text::draw_to_texture(buffer, font, text);
         }
 
-        if (text_texture)
+        if (texture_text_cache)
         {
-            shader::gray_texture_mix_color::draw(position, text_texture, gl::colors::black_f);
+            shader::gray_texture_mix_color::draw(position, texture_text_cache, gl::colors::black_f);
         }
     }
 }

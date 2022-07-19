@@ -70,6 +70,12 @@ namespace ui
         }
 
         [[nodiscard]]
+        constexpr module_handle_t module() const noexcept
+        {
+            return data_.hInstance;
+        }
+
+        [[nodiscard]]
         unique_type_window build_as(wzstring_view name) noexcept;
 
         [[nodiscard]] 

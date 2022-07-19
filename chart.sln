@@ -57,7 +57,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspng", "3rdparty\libspng
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "image", "image\image.vcxproj", "{730D00F2-56BF-4F42-8055-A1517B0214C4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "egl", "egl\egl.vcxproj", "{C68C0DC6-5BBB-4620-9132-D734195ECAA5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "egl_ui", "egl_ui\egl_ui.vcxproj", "{C68C0DC6-5BBB-4620-9132-D734195ECAA5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gl", "gl\gl.vcxproj", "{24516AC3-B08D-4A84-A63C-735A50200B28}"
 EndProject

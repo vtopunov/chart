@@ -17,6 +17,7 @@
     <ClCompile Include="$(TestCoreDir)\test_lerp_color.cpp" />
     <ClCompile Include="$(TestCoreDir)\test_narrow.cpp" />
     <ClCompile Include="$(TestCoreDir)\test_num_range.cpp" />
+    <ClCompile Include="$(TestCoreDir)\test_ordered_overload.cpp" />
     <ClCompile Include="$(TestCoreDir)\test_rational.cpp" />
     <ClCompile Include="$(TestCoreDir)\test_rect.cpp" />
     <ClCompile Include="$(TestCoreDir)\test_size2d.cpp" />

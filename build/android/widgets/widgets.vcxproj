@@ -16,7 +16,7 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
-    <ProjectGuid>{C0808F2E-6821-487F-B347-6AE09A529F59}</ProjectGuid>
+    <ProjectGuid>{F005696A-A08C-4A10-95EB-B7EF15CF7C26}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
@@ -33,32 +33,23 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\static_library.props" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(RepoDir)\egl\instance.cpp" />
-    <ClCompile Include="ui_wrapper.cpp" />
+    <ClInclude Include="$(RepoDir)\widget\button.h" />
+    <ClInclude Include="$(RepoDir)\widget\label.h" />
+    <ClInclude Include="$(RepoDir)\widget\rectangle.h" />
+    <ClInclude Include="$(RepoDir)\widget\run.h" />
+    <ClInclude Include="$(RepoDir)\widget\shader.h" />
+    <ClInclude Include="$(RepoDir)\widget\text.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(RepoDir)\egl\config.h" />
-    <ClInclude Include="$(RepoDir)\egl\instance.h" />
-    <ClInclude Include="$(RepoDir)\egl\ui_wrapper.h" />
-    <ClInclude Include="$(RepoDir)\egl\event_loop.h" />
+    <ClCompile Include="$(RepoDir)\widget\button.cpp" />
+    <ClCompile Include="$(RepoDir)\widget\label.cpp" />
+    <ClCompile Include="$(RepoDir)\widget\shader.cpp" />
+    <ClCompile Include="$(RepoDir)\widget\text.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(AndroidThirdPartyDir)\fmt\libfmt.vcxproj">
-      <Project>{9c883076-1fce-4950-b4e8-d40a0fff03b5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\ui\ui.vcxproj">
-      <Project>{c36c7b4a-2ef3-4d1c-8d38-9061545b3a30}</Project>
+    <ProjectReference Include="..\utility\utility.vcxproj">
+      <Project>{47c90779-22f4-49a5-8b9f-b5d799e5d3b5}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

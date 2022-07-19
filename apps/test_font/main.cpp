@@ -6,7 +6,7 @@
 
 namespace
 {
-    constexpr const font::library_descriptor_t get_library() noexcept
+    const font::library_descriptor_t get_library() noexcept
     {
         return font::library::library_ref{};
     }

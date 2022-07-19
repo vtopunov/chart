@@ -49,7 +49,7 @@ void test_pixspan() noexcept
 
     {
         uint8_t temp_image[std::size(image) + line_size]{};
-        pix8span temp_image_span{ std::data(temp_image), image_sizes.width(), image_sizes.height() + 1_uz };
+        pix8span temp_image_span{ std::data(temp_image), image_sizes.width(), image_sizes.height() + 1_px };
         D_ASSERT(image_sizes == temp_image_span.store(0_px, 1_px, image_span));
         D_ASSERT(!memcmp(temp_image + line_size, image, sizeof(image)));
     }

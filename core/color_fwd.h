@@ -10,3 +10,5 @@ static_assert(sizeof(u8tint_t) == 1u);
 
 template<class T>
 struct rgba_color;
+
+using rgba_color32_t = rgba_color<u8tint_t>;

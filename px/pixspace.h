@@ -1,7 +1,7 @@
 #pragma once
 
-#include <px/pxfwd.h>
-#include <px/pxalignment.h>
+#include <px/fwd.h>
+#include <px/alignment.h>
 
 namespace px
 {
@@ -9,8 +9,6 @@ namespace px
     class line_size_opt
     {
     public:
-        static constexpr bool is_enabled = false;
-
         template<size_t>
         [[nodiscard]] static constexpr line_size_opt instance_from_width(size_t) noexcept
         {
@@ -22,8 +20,6 @@ namespace px
     class line_size_opt<true>
     {
     public:
-        static constexpr bool is_enabled = true;
-
         constexpr line_size_opt() noexcept = default;
 
         constexpr line_size_opt(size_t line_size) noexcept
@@ -58,7 +54,9 @@ namespace px
     public:
         static constexpr auto px_size = PxSize;
         static constexpr auto alignment = Alignment;
-        using line_size_type = line_size_opt<px::is_dynamic_alignment_v<alignment>>;
+        using dynamic_alignment_is_enabled_t = px::is_dynamic_alignment<alignment>;
+        static constexpr auto dynamic_alignment_is_enabled = dynamic_alignment_is_enabled_t::value;
+        using line_size_type = line_size_opt<dynamic_alignment_is_enabled>;
 
         constexpr pixspace() noexcept = default;
 
@@ -66,7 +64,7 @@ namespace px
 
         template<size_t Align, std::enable_if_t <is_compatible_align_v<Align, alignment>, int > = 0 >
         constexpr pixspace(const pixspace<px_size, Align>& right) noexcept
-            : line_size_type{ right.line_size() }
+            : line_size_type{ right._line_size_opt(dynamic_alignment_is_enabled_t{}) }
             , sizes_{ right.sizes() }
         {}
 
@@ -95,7 +93,7 @@ namespace px
         template<size_t Align, std::enable_if_t<is_compatible_align_v<Align, alignment>, int> = 0>
         constexpr pixspace& operator = (const pixspace<px_size, Align>& right) noexcept
         {
-            line_size_type::operator = (line_size_type{ right.line_size() });
+            line_size_type::operator = (right._line_size_opt(dynamic_alignment_is_enabled_t{}));
             sizes_ = right.sizes();
             return *this;
         }
@@ -103,7 +101,7 @@ namespace px
         [[nodiscard]]
         constexpr size_t line_size() const noexcept
         {
-            if constexpr (line_size_type::is_enabled)
+            if constexpr (dynamic_alignment_is_enabled)
             {
                 return line_size_type::included_line_size();
             }
@@ -142,6 +140,18 @@ namespace px
         {
             return sizes_.height();
         }
+
+    private:
+        consteval line_size_opt<false> _line_size_opt(std::false_type) const
+        {
+            return {};   
+        }
+
+        constexpr line_size_opt<true> _line_size_opt(std::true_type) const
+        {
+            return line_size();
+        }
+
 
     private:
         size2d sizes_{};

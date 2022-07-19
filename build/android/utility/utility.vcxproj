@@ -36,13 +36,18 @@
   <ItemGroup>
     <ClInclude Include="$(RepoDir)\utility\png.h" />
     <ClInclude Include="$(RepoDir)\utility\shaders_library.h" />
+    <ClInclude Include="..\..\..\utility\font_cache.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(RepoDir)\utility\png.cpp" />
+    <ClCompile Include="..\..\..\utility\font_cache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\file\file.vcxproj">
       <Project>{41a1fae5-2cd8-4894-a1b8-af520fbf3239}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\font\font.vcxproj">
+      <Project>{32516e1e-1547-4010-9df2-656fed1ac2d4}</Project>
     </ProjectReference>
     <ProjectReference Include="..\gl\gl.vcxproj">
       <Project>{40eaf3cf-7215-4353-9a89-883b91118195}</Project>

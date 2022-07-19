@@ -64,7 +64,7 @@ namespace px
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
-            if (buffer_.try_resize(space.size_bytes()))
+            if (buffer_.try_reserve(space.size_bytes()))
             {
                 zero_memory(*this);
             }

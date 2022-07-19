@@ -49,7 +49,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_anima_applib", "apps\
 EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_anima", "apps\vtest_anima\vtest_anima.androidproj", "{BA44A99A-DFF2-4456-A5E3-73BDA173A4F4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "egl", "egl\egl.vcxproj", "{C0808F2E-6821-487F-B347-6AE09A529F59}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "egl_ui", "egl_ui\egl_ui.vcxproj", "{C0808F2E-6821-487F-B347-6AE09A529F59}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gl", "gl\gl.vcxproj", "{40EAF3CF-7215-4353-9A89-883B91118195}"
 EndProject
@@ -134,6 +134,14 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_font_cache_applib", "apps\test_font_cache\test_font_cache_applib.vcxproj", "{FD74547E-9DFF-48C4-BF05-C4A30A0B3C30}"
 EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "test_font_cache", "apps\test_font_cache\test_font_cache.androidproj", "{4BCB8E28-FA92-499F-A5F5-2C9B3609F8BC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "widgets", "widgets\widgets.vcxproj", "{F005696A-A08C-4A10-95EB-B7EF15CF7C26}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_widget", "vtest_widget", "{D7BC1C8F-E7A9-4109-AED0-58D560D8A976}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_widget_applib", "apps\vtest_widget\vtest_widget_applib.vcxproj", "{0976DCDB-5034-4844-B6F4-40573C83E6F2}"
+EndProject
+Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_widget", "apps\vtest_widget\vtest_widget.androidproj", "{329FD3AF-568A-4A63-A487-BA3119BD7234}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -363,6 +371,20 @@ Global
 		{4BCB8E28-FA92-499F-A5F5-2C9B3609F8BC}.Release|ARM.ActiveCfg = Release|ARM
 		{4BCB8E28-FA92-499F-A5F5-2C9B3609F8BC}.Release|ARM.Build.0 = Release|ARM
 		{4BCB8E28-FA92-499F-A5F5-2C9B3609F8BC}.Release|ARM.Deploy.0 = Release|ARM
+		{F005696A-A08C-4A10-95EB-B7EF15CF7C26}.Debug|ARM.ActiveCfg = Debug|ARM
+		{F005696A-A08C-4A10-95EB-B7EF15CF7C26}.Debug|ARM.Build.0 = Debug|ARM
+		{F005696A-A08C-4A10-95EB-B7EF15CF7C26}.Release|ARM.ActiveCfg = Release|ARM
+		{F005696A-A08C-4A10-95EB-B7EF15CF7C26}.Release|ARM.Build.0 = Release|ARM
+		{0976DCDB-5034-4844-B6F4-40573C83E6F2}.Debug|ARM.ActiveCfg = Debug|ARM
+		{0976DCDB-5034-4844-B6F4-40573C83E6F2}.Debug|ARM.Build.0 = Debug|ARM
+		{0976DCDB-5034-4844-B6F4-40573C83E6F2}.Release|ARM.ActiveCfg = Release|ARM
+		{0976DCDB-5034-4844-B6F4-40573C83E6F2}.Release|ARM.Build.0 = Release|ARM
+		{329FD3AF-568A-4A63-A487-BA3119BD7234}.Debug|ARM.ActiveCfg = Debug|ARM
+		{329FD3AF-568A-4A63-A487-BA3119BD7234}.Debug|ARM.Build.0 = Debug|ARM
+		{329FD3AF-568A-4A63-A487-BA3119BD7234}.Debug|ARM.Deploy.0 = Debug|ARM
+		{329FD3AF-568A-4A63-A487-BA3119BD7234}.Release|ARM.ActiveCfg = Release|ARM
+		{329FD3AF-568A-4A63-A487-BA3119BD7234}.Release|ARM.Build.0 = Release|ARM
+		{329FD3AF-568A-4A63-A487-BA3119BD7234}.Release|ARM.Deploy.0 = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -418,6 +440,9 @@ Global
 		{9D98D486-B56D-4CAC-98EF-C68FF3EB03C0} = {41B10E82-3141-4F27-859E-E16086E7F3CB}
 		{FD74547E-9DFF-48C4-BF05-C4A30A0B3C30} = {9D98D486-B56D-4CAC-98EF-C68FF3EB03C0}
 		{4BCB8E28-FA92-499F-A5F5-2C9B3609F8BC} = {9D98D486-B56D-4CAC-98EF-C68FF3EB03C0}
+		{D7BC1C8F-E7A9-4109-AED0-58D560D8A976} = {41B10E82-3141-4F27-859E-E16086E7F3CB}
+		{0976DCDB-5034-4844-B6F4-40573C83E6F2} = {D7BC1C8F-E7A9-4109-AED0-58D560D8A976}
+		{329FD3AF-568A-4A63-A487-BA3119BD7234} = {D7BC1C8F-E7A9-4109-AED0-58D560D8A976}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6BA0FE90-5B90-4621-9483-7FC05A6F0C49}

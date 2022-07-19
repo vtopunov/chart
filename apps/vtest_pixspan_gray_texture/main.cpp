@@ -4,7 +4,7 @@
 
 #include <px/pixspan.h>
 
-#include <egl/event_loop.h>
+#include <egl_ui/run.h>
 
 #include <utility/shaders_library.h>
 
@@ -65,7 +65,7 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl::instance(app);
+    const auto egl = egl_instance(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -93,7 +93,7 @@ int app_main(os::module_handle_t app) noexcept
     shaders.frag.s_texture.store(texture);
 
     {
-        egl::painting_owner painting_lock{ egl };
+        egl_painting_owner painting_lock{ egl };
         gl::clear(gl::colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();

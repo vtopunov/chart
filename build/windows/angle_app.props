@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="app.props" />
-  <Import Project="$(ThirdPartyDir)\angle\angle.props" />
+  <Import Project="$(ThirdPartyDir)\angle\out.props" />
   
   <ItemGroup>
 	<ProjectReference Include="$(RepoDir)\entry_point\entry_point.vcxproj">

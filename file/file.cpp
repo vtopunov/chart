@@ -19,7 +19,7 @@ namespace file
         [[nodiscard]]
         constexpr access_flags operator | (access_flags left, access_flags right) noexcept
         {
-            return e_or(left, right);
+            return e_bit_or(left, right);
         }
 
         enum class share_flags : DWORD
@@ -31,7 +31,7 @@ namespace file
         [[nodiscard]]
         constexpr share_flags operator | (share_flags left, share_flags right) noexcept
         {
-            return e_or(left, right);
+            return e_bit_or(left, right);
         }
 
         enum class creation_mode : DWORD
@@ -81,6 +81,7 @@ namespace file
             }
         }
 
+        [[nodiscard]]
         file_resource_descriptor_t std_handle(DWORD no) noexcept
         {
             return as_resource_descriptor(GetStdHandle(no));

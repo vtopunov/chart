@@ -55,12 +55,12 @@ namespace
 int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
 {
     debug("create main window");
-    ui::type_window_builder type_builder;
-    type_builder.module(instance);
+    ui::window_builder builder{};
+    builder.module(instance);
 
-    const auto mainwindow =
-        ui::window_builder{}
-        .type(type_builder.background(ui::stock_brush::dark_gray).build())
+    const auto mainwindow 
+        = builder
+        .background(ui::stock_brush::dark_gray)
         .title(L"vtest_win32app")
         .build();
 
@@ -72,9 +72,9 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
 
 
     debug("create subwindow");
-    const auto subwindow =
-        ui::window_builder{}
-        .type(type_builder.background(ui::stock_brush::light_gray).build())
+    const auto subwindow 
+        = builder
+        .background(ui::stock_brush::light_gray)
         .parent(mainwindow)
         .geometry(subwindow_geometry(ui::geometry(mainwindow).sizes()))
         .build();

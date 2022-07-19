@@ -26,3 +26,17 @@ namespace ordered_overload
 
     constexpr _order<_0> _start{ nullptr };
 }
+
+struct no_overload
+{
+    template<class T>
+    constexpr no_overload(const T&) noexcept
+    {}
+};
+
+template<class T>
+struct no_overload_for
+{
+    constexpr no_overload_for(const T&) noexcept
+    {}
+};

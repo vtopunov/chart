@@ -6,26 +6,26 @@
 #include <ui/window.h>
 #endif
 
-#include <egl/instance.h>
+#include <egl_ui/egl_instance.h>
+#include <egl_ui/painting_owner.h>
 
 
-namespace egl
+namespace egl_ui
 {
     namespace private_detail_run
     {
 #if defined(D_OS_WINDOWS)
-        inline ui::window_handle_t prepare(const egl_resources& egl) noexcept
+        inline os::window_handle_t prepare(const egl_resources& egl) noexcept
         {
             ui::show(egl.ui.app_wnd, ui::show_command::show_maximazed);
-            return render_window(egl.ui);
+            return render_window(egl);
         }
 
 #elif defined(D_OS_ANDROID)
-        inline ui::module_handle_t prepare(const egl_resources& egl) noexcept
+        constexpr os::module_handle_t prepare(const egl_resources& egl) noexcept
         {
-            return egl.ui.app;
+            return app(egl);
         }
-
 #endif
     }
 

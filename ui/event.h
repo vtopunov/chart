@@ -2,7 +2,7 @@
 
 #include <core/clamp_cast.h>
 
-#include <px/pxfwd.h>
+#include <px/fwd.h>
 
 #include <ui/event_fwd.h>
 
@@ -13,32 +13,23 @@ namespace ui
     using long_parameter_t = ptrdiff_t;
 #endif
 
+    struct idle_event {};
+
+
+#if defined(D_OS_WINDOWS)
     class event
     {
     public:
-        template<event_style style> 
-        [[nodiscard]] constexpr const specialized_event<style>& as() const noexcept
-        {
-            D_ASSERT(style == style_);
-            return static_cast<const specialized_event<style>&>(*this);
-        }
-
-        [[nodiscard]]
-        constexpr event_style style() const noexcept
-        {
-            return style_;
-        }
-
-#if defined(D_OS_WINDOWS)
-        constexpr event(
+        constexpr event
+        (
             window_handle_t window,
+            event_style style,
             word_parameter_t word_parameter,
-            long_parameter_t long_parameter,
-            event_style style
-            ) noexcept
-            : window_{ window }
+            long_parameter_t long_parameter
+         ) noexcept
+            : long_parameter_{ long_parameter }
+            , window_{ window }
             , word_parameter_{ word_parameter }
-            , long_parameter_{ long_parameter }
             , style_{ style }
         {}
 
@@ -46,6 +37,12 @@ namespace ui
         constexpr window_handle_t window() const noexcept
         {
             return window_;
+        }
+
+        [[nodiscard]]
+        constexpr event_style style() const noexcept
+        {
+            return style_;
         }
 
         event_result_t do_default_process() const noexcept;
@@ -87,26 +84,53 @@ namespace ui
             return { x_long_parameter(), y_long_parameter() };
         }
 
-#elif defined(D_OS_ANDROID)
-        constexpr explicit event(event_style style) noexcept
-            : style_{ style }
-        {}
-
-#endif
 
     private:
-#ifdef D_OS_WINDOWS
+        long_parameter_t long_parameter_;
         window_handle_t window_;
         word_parameter_t word_parameter_;
-        long_parameter_t long_parameter_;
-#endif
-
         event_style style_;
     };
+
+#elif defined(D_OS_ANDROID)
+    [[nodiscard]]
+    constexpr event_style to_event_style(int32_t action) noexcept
+    {
+        return underlying_cast<event_style>(action);
+    }
+
+    class event
+    {
+    public:
+        static constexpr int32_t action_mask{ 0xff };
+
+        [[nodiscard]]
+        constexpr event_style style() const noexcept
+        {
+            return to_event_style(action_ & action_mask);
+        }
+
+    protected:
+        constexpr explicit event(int32_t action) noexcept
+            : action_{ action }
+        {}
+        
+        [[nodiscard]]
+        constexpr int32_t action() const noexcept
+        {
+            return action_;
+        }
+
+    private:
+        int32_t action_;
+    };
+
+#endif
 
     template<event_style>
     class specialized_event : public event
     {};
+
 
 #if defined(D_OS_WINDOWS)
     D_WARNING_PUSH;
@@ -192,18 +216,103 @@ namespace ui
         }
     };
 
+#elif defined(D_OS_ANDROID)
+    class mouse_event : public event
+    {
+    public:
+        static constexpr int32_t p_index_mask{ 0xff00 };
+        static constexpr int32_t p_index_shift{ 8 };
+        
+        [[nodiscard]]
+        static mouse_event instance(const AInputEvent* input_e) noexcept;
+
+        constexpr explicit operator bool() const noexcept
+        {
+            return nullptr != input_e_;
+        }
+
+        [[nodiscard]]
+        constexpr size_t index() const noexcept
+        {
+            return narrow_cast<size_t>((event::action() & p_index_mask) >> p_index_shift);
+        }
+
+        [[nodiscard]]
+        float x_by_index(size_t index) const noexcept;
+        
+        [[nodiscard]]
+        float y_by_index(size_t index) const noexcept;
+
+        struct cursor_position
+        {
+            const mouse_event& e;
+            const size_t index;
+
+            [[nodiscard]]
+            float x() const noexcept
+            {
+                return e.x_by_index(index);
+            }
+
+            [[nodiscard]]
+            float y() const noexcept
+            {
+                return e.y_by_index(index);
+            }
+        };
+
+        [[nodiscard]]
+        constexpr cursor_position position_by_index(size_t index) const noexcept
+        {
+            return { *this, index };
+        }
+
+        [[nodiscard]]
+        size_t number_of_positions() const;
+    
+        [[nodiscard]]
+        float x() const noexcept
+        {
+            return x_by_index(index());
+        }
+
+        [[nodiscard]]
+        float y() const noexcept
+        {
+            return y_by_index(index());
+        }
+
+        [[nodiscard]]
+        constexpr cursor_position position() const noexcept
+        {
+            return position_by_index(index());
+        }
+
+    private:
+        constexpr mouse_event(int32_t action, const AInputEvent* input_e) noexcept
+            : event{ action }
+            , input_e_{ input_e }
+        {}
+
+    private:
+        const AInputEvent* input_e_;
+    };
+
+#endif
+
     template<>
-    class specialized_event<event_style::mouse_lbutton_down> : public mouse_event
+    class specialized_event<event_style::mouse_down> : public mouse_event
     {};
 
     template<>
-    class specialized_event<event_style::mouse_lbutton_up> : public mouse_event
+    class specialized_event<event_style::mouse_up> : public mouse_event
     {};
 
     template<>
     class specialized_event<event_style::mouse_move> : public mouse_event
     {};
 
+#if defined(D_OS_WINDOWS)
     template<>
     class specialized_event<event_style::size> : public event
     {
@@ -226,16 +335,13 @@ namespace ui
             return { vec_long_parameter() };
         }
     };
-
-#elif defined(D_OS_ANDROID)
-    struct input_event : public event
-    {
-        constexpr input_event(const AInputEvent* e) noexcept
-            : event{ event_style::null }
-        {
-            D_ASSERT(e);
-        }
-    };
-
 #endif
+
+
+    template<event_style style> [[nodiscard]]
+    constexpr const specialized_event<style>& event_specializing_for(const event& e) noexcept
+    {
+        D_ASSERT(style == e.style());
+        return static_cast<const specialized_event<style>&>(e);
+    }
 }

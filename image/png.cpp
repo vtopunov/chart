@@ -162,7 +162,7 @@ namespace image
             return png_errno::SIZE;
         }
 
-        if (!temp.try_resize(size))
+        if (!temp.try_reserve(size))
         {
             return png_errno::MEM;
         }

@@ -64,6 +64,7 @@ constexpr T& as_reference(T& value) noexcept
     return value;
 }
 
+
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_const_cast)
 

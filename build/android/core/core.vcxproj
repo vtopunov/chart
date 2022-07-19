@@ -45,7 +45,6 @@
     <ClInclude Include="$(RepoDir)\core\buffer_view.h" />
     <ClInclude Include="$(RepoDir)\core\clamp_cast.h" />
     <ClInclude Include="$(RepoDir)\core\color.h" />
-    <ClInclude Include="$(RepoDir)\core\colorfwd.h" />
     <ClInclude Include="$(RepoDir)\core\coordinate.h" />
     <ClInclude Include="$(RepoDir)\core\intrusive_list.h" />
     <ClInclude Include="$(RepoDir)\core\lerp.h" />
@@ -74,6 +73,10 @@
     <ClInclude Include="$(RepoDir)\core\warnings.h" />
     <ClInclude Include="$(RepoDir)\core\zero.h" />
     <ClInclude Include="$(RepoDir)\core\zstring_view.h" />
+    <ClInclude Include="..\..\..\core\buffer_fwd.h" />
+    <ClInclude Include="..\..\..\core\color_fwd.h" />
+    <ClInclude Include="..\..\..\core\fmt.h" />
+    <ClInclude Include="..\..\..\core\resource_fwd.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

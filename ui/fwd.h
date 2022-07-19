@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include <os/osfwd.h>
+#include <os/fwd.h>
 
 namespace ui
 {

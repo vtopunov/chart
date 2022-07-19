@@ -37,18 +37,22 @@ namespace file
             append = O_APPEND
         };
 
-        constexpr int permissions{ S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH };
-
         [[nodiscard]]
         constexpr open_flags operator | (open_flags left, open_flags right) noexcept
         {
-            return e_or(left, right);
+            return e_bit_or(left, right);
+        }
+
+        template<class T> 
+        [[nodiscard]] constexpr file_resource_descriptor_t as_resource_descriptor(T sys) noexcept
+        {
+            return underlying_cast<file_resource_descriptor_t>(sys);
         }
 
         template<class... Args>
         [[nodiscard]] file_resource_descriptor_t _open(path_zstring_view path, Args... args) noexcept
         {
-            return underlying_cast<file_resource_descriptor_t>(::open(path.c_str(), underlying_cast<int>(args)...));
+            return as_resource_descriptor(::open(path.c_str(), underlying_cast<int>(args)...));
         }
 
         struct asset_deleter
@@ -74,91 +78,83 @@ namespace file
             };
         }
 
-        class unpacking_asset_tmp
+        class unpacking_asset
         {
-            static constexpr path_zstring_view temp_path{ "unpacking_asset.tmp" };
-
         public:
-            unpacking_asset_tmp(std::mutex& guard) noexcept
-                : unpacking_lock_{ guard }
-            {}
+            constexpr unpacking_asset() noexcept = default;
 
-            D_DISABLE_COPY_MOVE(unpacking_asset_tmp);
+            D_DISABLE_COPY_MOVE(unpacking_asset);
 
+            void unpack(const void* buffer, size_t len, path_zstring_view path) noexcept
+            {
+                if (D_LIKELY(unpack(buffer, len)))
+                {
+                    if (D_LIKELY(move_to(path)))
+                    {
+                        tmpremove_is_enabled_ = false;
+                    }
+                }
+            }
+
+            ~unpacking_asset() noexcept
+            {
+                if (D_UNLIKELY(tmpremove_is_enabled_))
+                {
+                    ::remove(tmpfile_name);
+                }
+            }
+
+        private:
             [[nodiscard]]
-            bool unpack_from_buffer(const void* buffer, size_t len) noexcept
+            bool unpack(const void* buffer, size_t len) noexcept
             {
                 D_ASSERT(buffer);
                 D_ASSERT(len);
 
-                const auto temp_file = open_tmp();
-                if (D_UNLIKELY(!temp_file))
+                const wo_file tmpfile
+                {
+                    resource_construct,
+                    as_resource_descriptor(mkstemp(tmpfile_name))
+                };
+
+                if (D_UNLIKELY(!tmpfile))
                 {
                     return false;
                 }
 
-                const auto w_len = file::write(temp_file, buffer, len);
+                const auto w_len = file::write(tmpfile, buffer, len);
                 return w_len == len;
             }
 
-            void move_to(path_zstring_view path) noexcept
+            [[nodiscard]]
+            bool move_to(path_zstring_view path) const noexcept
             {
                 D_ASSERT(!is_null_or_empty(path.c_str()));
+                if (D_LIKELY(!::rename(tmpfile_name, path.c_str())))
+                {
+                    return true;
+                }
 
                 create_file_directories(path.c_str());
-
-                autoremove_is_enabled_ = !!::rename(temp_path.c_str(), path.c_str());
-            }
-
-            ~unpacking_asset_tmp() noexcept
-            {
-                if (D_UNLIKELY(autoremove_is_enabled_))
-                {
-                    remove_tmp();
-                }
+                return !::rename(tmpfile_name, path.c_str());
             }
 
         private:
-            [[nodiscard]]
-            static wo_file try_open_tmp() noexcept
-            {
-                return
-                {
-                    resource_construct,
-                    _open(temp_path, open_flags::create | open_flags::exclusive | open_flags::wo, permissions)
-                };
-            }
-
-            [[nodiscard]]
-            static wo_file open_tmp() noexcept
-            {
-                auto temp_file = try_open_tmp();
-                if (D_UNLIKELY(!temp_file))
-                {
-                    remove_tmp();
-                    temp_file = try_open_tmp();
-                }
-
-                return temp_file;
-            }
-
-            static void remove_tmp() noexcept
-            {
-                ::remove(temp_path.c_str());
-            }
-
-        private:
-            bool autoremove_is_enabled_{ true };
-            std::lock_guard<std::mutex> unpacking_lock_;
+            char tmpfile_name[10u]{ "tmpXXXXXX" };
+            bool tmpremove_is_enabled_{ true };
         };
 
-        template<class... Args>
+        void unpack_assert(const void* buffer, size_t len, path_zstring_view path) noexcept
+        {
+            unpacking_asset{}.unpack(buffer, len, path);
+        }
+
+        template<class... Args> [[nodiscard]]
         file_resource_descriptor_t open_file_or_asset(path_zstring_view path, Args... args) noexcept
         {
             constexpr auto invalid = file_resource_descriptor_t::invalid;
 
-            auto result = _open(path, args...);
-            if (D_LIKELY(invalid != result))
+            if (const auto result = _open(path, args...); D_LIKELY(invalid != result))
             {
                 return result;
             }
@@ -192,44 +188,35 @@ namespace file
                 return invalid;
             }
 
-            {
-                static std::mutex unpack_mutex{};
-                unpacking_asset_tmp temp_asset{ unpack_mutex };
-
-                if (D_UNLIKELY(!temp_asset.unpack_from_buffer(asset_buffer, asset_len)))
-                {
-                    return invalid;
-                }
-
-                temp_asset.move_to(path);
-
-                result = _open(path, args...);
-            }
-
-            return result;
+            unpack_assert(asset_buffer, asset_len, path);
+            
+            return _open(path, args...);
         }
 
-
+        [[nodiscard]]
         file_resource_descriptor_t ro_open_file_or_asset(path_zstring_view path) noexcept
         {
             return open_file_or_asset(path, open_flags::ro);
         }
 
+        [[nodiscard]]
         file_resource_descriptor_t w_open_file_or_asset(path_zstring_view path, open_flags flags) noexcept
         {
+            constexpr int permissions{ S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH };
             return open_file_or_asset(path, open_flags::create | flags, permissions);
         }
 
+        [[nodiscard]]
         constexpr open_flags mode_to_flags(w_open_mode mode) noexcept
         {
             switch (mode)
             {
-            case w_open_mode::truncate:
-                return open_flags::truncate;
-            case w_open_mode::append:
-                return open_flags::append;
-            default:
-                break;
+                case w_open_mode::truncate:
+                    return open_flags::truncate;
+                case w_open_mode::append:
+                    return open_flags::append;
+                default:
+                    break;
             }
 
             return {};

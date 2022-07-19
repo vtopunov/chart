@@ -1,20 +1,10 @@
 #pragma once
 
-#include <core/warnings.h>
-
-D_WARNING_PUSH
-D_WARNING_DISABLE_MSVC(W_incorrect_logical_or)
-D_WARNING_DISABLE_MSVC(W_redundant_code__left_and_right_subexpressions_are_identical)
-
-#include <fmt/xchar.h>
-#include <fmt/format.h>
-
-D_WARNING_POP
-
+#include <core/fmt.h>
 #include <core/assert.h>
 #include <core/string_char.h>
 
-#include <os/osfwd.h>
+#include <os/fwd.h>
 
 
 D_WARNING_PUSH
@@ -161,6 +151,12 @@ namespace private_detail_debug
     }
 
     template<class FormatString, class... Args>
+    void w_debug(const FormatString& format_string, const Args&... args) noexcept
+    {
+        priority_debug(WARN, format_string, args...);
+    }
+
+    template<class FormatString, class... Args>
     void e_debug(const FormatString& format_string, const Args&... args) noexcept
     {
         priority_debug(ERROR, format_string, args...);
@@ -170,4 +166,5 @@ D_WARNING_POP
 
 
 using private_detail_debug::debug;
+using private_detail_debug::w_debug;
 using private_detail_debug::e_debug;

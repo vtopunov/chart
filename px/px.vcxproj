@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pixalgorithm.h" />
+    <ClInclude Include="algorithm.h" />
     <ClInclude Include="pixline.h" />
     <ClInclude Include="pixmap.h" />
     <ClInclude Include="pixspace.h" />
-    <ClInclude Include="pxalignment.h" />
-    <ClInclude Include="pxfwd.h" />
+    <ClInclude Include="alignment.h" />
+    <ClInclude Include="fwd.h" />
     <ClInclude Include="pixspan.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -57,7 +57,6 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/Zc:char8_t %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

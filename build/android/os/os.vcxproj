@@ -41,9 +41,9 @@
   <Import Project="..\build\static_library.props" />
   <ItemGroup>
     <ClInclude Include="..\..\..\os\file.h" />
+    <ClInclude Include="..\..\..\os\fwd.h" />
     <ClInclude Include="..\..\..\os\log.h" />
     <ClInclude Include="..\..\..\os\os.h" />
-    <ClInclude Include="..\..\..\os\osfwd.h" />
     <ClInclude Include="..\..\..\os\os_android.h" />
     <ClInclude Include="..\..\..\os\os_detection.h" />
     <ClInclude Include="..\..\..\os\undef.h" />

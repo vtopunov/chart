@@ -2,6 +2,7 @@
 
 #include <utility>
 
+#include <core/resource_fwd.h>
 #include <core/intrusive_list.h>
 #include <core/view.h>
 #include <core/null.h>
@@ -97,8 +98,8 @@ public:
 
     void reset() noexcept
     {
-        [[maybe_unused]] 
-        const unique_resource temp{ std::move(*this) };
+        [[maybe_unused]]
+        unique_resource temp{ std::move(*this) };
     }
 
 

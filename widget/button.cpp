@@ -2,9 +2,13 @@
 
 #include <debug/debug.h>
 
-#include <widget/event_context.h>
+#include <ui/event.h>
+
+#include <egl_ui/egl_resources.h>
+
 #include <widget/shader.h>
 #include <widget/text.h>
+
 
 namespace widget
 {
@@ -19,22 +23,22 @@ namespace widget
             {
                 switch (state)
                 {
-                case button_state::hovered:
-                    return
-                    {
-                        .frame{0x0078d7_glrgb},
-                        .body{0xe5f1fb_glrgb}
-                    };
+                    case button_state::hovered:
+                        return
+                        {
+                            .frame{0x0078d7_glrgb},
+                            .body{0xe5f1fb_glrgb}
+                        };
 
-                case button_state::pressed:
-                    return
-                    {
-                        .frame{0x005499_glrgb},
-                        .body{0xcce4f7_glrgb}
-                    };
+                    case button_state::pressed:
+                        return
+                        {
+                            .frame{0x005499_glrgb},
+                            .body{0xcce4f7_glrgb}
+                        };
 
-                default:
-                    break;
+                    default:
+                        break;
                 }
 
                 return
@@ -61,19 +65,21 @@ namespace widget
             };
         }
 
-        constexpr void update_state_and_redraw(button& b, event_context& context, button_state new_state) noexcept
+        constexpr bool update_state(button_state& state, button_state new_state) noexcept
         {
-            if (b.state != new_state)
+            if (state != new_state)
             {
-                b.state = new_state;
-                context.need_redraw = true;
+                state = new_state;
+                return true;
             }
+
+            return false;
         }
     }
 
-    bool button::initialize(px::size2d viewport_sizes) noexcept
+    bool button::initialize(const egl_resources& window) noexcept
     {
-        if (!button_shaders_initialize(viewport_sizes))
+        if (!button_shaders_initialize(sizes(window)))
         {
             e_debug("shaders error: {}", glGetError());
             return false;
@@ -92,41 +98,71 @@ namespace widget
         return true;
     }
 
-    void button::operator () (event_context& context, const ui::mouse_lbutton_down_event& e) noexcept
+    event_result button::operator () (const ui::mouse_down_event& e) noexcept
     {
-        if (geometry.contains(e.position()))
+        if (geometry.contains(e))
         {
-            update_state_and_redraw(*this, context, button_state::pressed);
+            if (update_state(state, button_state::pressed))
+            {
+                return event_result::redraw;
+            }
         }
+
+        return event_result::idle;
     }
 
-    void button::operator () (event_context& context, const ui::mouse_lbutton_up_event& e) noexcept
+    event_result button::operator () (const ui::mouse_up_event& e) noexcept
     {
-        if (state == button_state::pressed)
+        switch (state)
         {
-            const auto is_clicked = geometry.contains(e.position());
-
-            const auto new_state = (is_clicked) ? button_state::hovered : button_state::free;
-
-            if (is_clicked && clicked)
+            case button_state::pressed:
             {
-                clicked();
+                const auto is_clicked = geometry.contains(e);
+
+#ifdef D_OS_ANDROID
+                state = button_state::free;
+#else
+                state = (is_clicked) ? button_state::hovered : button_state::free;
+#endif
+
+                if (is_clicked && clicked)
+                {
+                    clicked();
+                }
+
+                return event_result::redraw;
             }
 
-            update_state_and_redraw(*this, context, new_state);
+#ifdef D_OS_ANDROID
+            case button_state::hovered:
+            {
+                state = button_state::free;
+                return event_result::redraw;
+            }
+#endif
+
+            default:
+                break;
         }
+
+        return event_result::idle;
     }
 
-    void button::operator () (event_context& context, const ui::mouse_move_event& e) noexcept
+    event_result button::operator () (const ui::mouse_move_event& e) noexcept
     {
-        if (state != button_state::pressed)
+        if (button_state::pressed != state)
         {
             const auto new_state = geometry.contains(e.position()) ? button_state::hovered : button_state::free;
-            update_state_and_redraw(*this, context, new_state);
+            if (update_state(state, new_state))
+            {
+                return event_result::redraw;
+            }
         }
+
+        return event_result::idle;
     }
 
-    void button::draw(buffer_t& temp_buffer) noexcept
+    void button::draw(buffer_t& buffer) noexcept
     {
         const auto colors = button_colors::instance(state);
 
@@ -135,15 +171,15 @@ namespace widget
         const auto client_rc = rectangle_without_frame(geometry);
         shader::colored_rectangle::draw(client_rc, colors.body);
 
-        if (!text_texture && !text.empty())
+        if (!texture_text_cache && !text.empty())
         {
-            text_texture = text::draw_to_texture(temp_buffer, font, text, client_rc.sizes);
+            texture_text_cache = text::draw_to_texture(buffer, font, text, client_rc.sizes);
         }
 
-        if (text_texture)
+        if (texture_text_cache)
         {
-            const auto position = (2 * client_rc.position + client_rc.sizes - sizes(text_texture)) / 2;
-            shader::gray_texture_mix_color::draw(position, text_texture, gl::colors::black_f);
+            const auto position = (2 * client_rc.position + client_rc.sizes - sizes(texture_text_cache)) / 2;
+            shader::gray_texture_mix_color::draw(position, texture_text_cache, gl::colors::black_f);
         }
     }
 }

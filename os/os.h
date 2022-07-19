@@ -1,6 +1,8 @@
 #pragma once
 
-#include <os/osfwd.h>
+#include <type_traits>
+
+#include <os/fwd.h>
 
 #if defined(D_OS_WINDOWS)
 #include <os/os_windows.h>
@@ -19,5 +21,10 @@ static_assert(std::is_same_v<os::word_t, WORD>);
 #elif defined(D_OS_ANDROID)
 #include <os/os_android.h>
 #endif
+
+
+static_assert(std::is_class_v<std::remove_pointer_t<os::window_handle_t>>);
+static_assert(std::is_class_v<std::remove_pointer_t<os::module_handle_t>>);
+
 
 #include <os/undef.h>

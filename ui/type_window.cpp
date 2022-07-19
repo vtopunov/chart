@@ -62,6 +62,7 @@ namespace ui
         if (!data_.hInstance)
         {
             data_.hInstance = GetModuleHandleW(nullptr);
+            D_ASSERT(data_.hInstance);
         }
 
         if (!data_.lpfnWndProc)
@@ -72,11 +73,13 @@ namespace ui
         if (!data_.hCursor)
         {
             data_.hCursor = LoadCursorW(nullptr, idc_arrow_w());
+            D_ASSERT(data_.hCursor);
         }
 
         if (!data_.hbrBackground)
         {
             data_.hbrBackground = stock(stock_brush::white);
+            D_ASSERT(data_.hbrBackground);
         }
 
         return

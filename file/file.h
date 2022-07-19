@@ -4,7 +4,7 @@
 
 #include <core/resouce.h>
 
-#include <os/osfwd.h>
+#include <os/fwd.h>
 
 #include <file/path.h>
 

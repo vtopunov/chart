@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ui/ufwd.h>
+#include <ui/fwd.h>
 
 namespace ui
 {
@@ -10,12 +10,12 @@ namespace ui
         
 #ifdef D_OS_WINDOWS
         size = 0x0005,
-        close = 0x0010,
-        mouse_move = 0x0200,
-        mouse_lbutton_down = 0x0201,
-        mouse_lbutton_up = 0x0202,
-        mouse_lbutton_double_click = 0x0203
+        mouse_double_click = 0x0203,
 #endif
+
+        mouse_move = D_CONDITIONAL_OS_WINDOWS(0x0200, 0x02),
+        mouse_down = D_CONDITIONAL_OS_WINDOWS(0x0201, 0x00),
+        mouse_up = D_CONDITIONAL_OS_WINDOWS(0x0202, 0x01),
     };
 
     template<event_style>
@@ -23,9 +23,9 @@ namespace ui
 
 #ifdef D_OS_WINDOWS
     using size_event = specialized_event<event_style::size>;
-    using close_event = specialized_event<event_style::close>;
-    using mouse_move_event = specialized_event<event_style::mouse_move>;
-    using mouse_lbutton_down_event = specialized_event<event_style::mouse_lbutton_down>;
-    using mouse_lbutton_up_event = specialized_event<event_style::mouse_lbutton_up>;
 #endif
+
+    using mouse_move_event = specialized_event<event_style::mouse_move>;
+    using mouse_down_event = specialized_event<event_style::mouse_down>;
+    using mouse_up_event = specialized_event<event_style::mouse_up>;
 }

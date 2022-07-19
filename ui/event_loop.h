@@ -17,14 +17,34 @@
 
 namespace ui
 {
+    using milliseconds_t = std::chrono::milliseconds;
+
+    constexpr auto infinite = milliseconds_t{D_CONDITIONAL_OS_WINDOWS(0xffffffff, -1)};
+
+    constexpr idle_event idle_event_v{};
+
+    template<class T> [[nodiscard]]
+    auto do_idle(T& processor) noexcept -> decltype(processor(idle_event_v))
+    {
+        return processor(idle_event_v);
+    }
+
+    [[nodiscard]]
+    constexpr milliseconds_t do_idle(no_overload) noexcept
+    {
+        return infinite;
+    }
+
+
 #if defined(D_OS_WINDOWS)
     namespace private_detail_event_loop
     {
         constexpr auto msg_storage_size = 48_uz;
         constexpr uint_t pm_remove{ 1u };
 
-        void sleep_or_reñeive_message(milliseconds_t timeout) noexcept;
+        void message_wait_for(milliseconds_t timeout) noexcept;
 
+        [[nodiscard]]
         std::optional<int> process_message(const os::message_t* msg) noexcept;
     }
 
@@ -33,14 +53,12 @@ namespace ui
     {
         using namespace private_detail_event_loop;
 
-        const auto processor_ptr = std::addressof(processor);
-
-        constexpr event_callback_t callback{ event_callback_instance<decltype(processor_ptr)>::callback };
+        constexpr event_callback_t callback{ event_callback_instance<T>::callback };
 
         const auto event_processing = create_event_processor
         (
             mainwindow,
-            as_mutable_pointer(processor_ptr),
+            as_mutable_pointer(std::addressof(processor)),
             callback
         );
 
@@ -49,12 +67,12 @@ namespace ui
 
         for (;;) [[likely]]
         {
-            const milliseconds_t timeout{ call_event(processor_ptr, idle_event{}) };
+            const milliseconds_t timeout{ do_idle(processor) };
             if (timeout > milliseconds_t::zero()) [[unlikely]]
             {
-                sleep_or_reñeive_message(timeout);
+                message_wait_for(timeout);
             }
-            
+
             while (PeekMessageW(pmsg, nullptr, 0u, 0u, pm_remove)) [[unlikely]]
             {
                 const auto exit_status_opt = process_message(pmsg);
@@ -70,7 +88,7 @@ namespace ui
 
     inline int run_event_loop(window_handle_t mainwindow) noexcept
     {
-        constexpr struct {} nop;
+        constexpr struct {} nop{};
         return run_event_loop(mainwindow, nop);
     };
 
@@ -86,6 +104,7 @@ namespace ui
                 D_ASSERT(window_);
             }
 
+            [[nodiscard]]
             D_FORCE_INLINE bool poll(const ui::milliseconds_t& timeout) noexcept
             {
                 return ALooper_pollAll
@@ -97,13 +116,21 @@ namespace ui
                 ) >= 0;
             }
 
-            std::optional<int> process(module_handle_t app) const noexcept;
+            enum class process_result
+            {
+                continue_processing,
+                quit
+            };
+
+            [[nodiscard]]
+            process_result process(module_handle_t app) const noexcept;
 
         private:
             window_handle_t window_;
             android_poll_source* source_{ nullptr };
             int events_{ 0 };
         };
+
 
         class app_manager
         {
@@ -114,23 +141,22 @@ namespace ui
                 : app_{ app }
             {}
 
-            template<class ProcessorPtr>
-            int run(ProcessorPtr processor_ptr) const noexcept
+            template<class Processor> [[nodiscard]]
+            int run(Processor& processor) const noexcept
             {
-                set_processor(processor_ptr);
+                set_processor(processor);
 
-                message msg{ app::window(app_) };
+                message msg{ app_window(app_) };
 
-                for (;;)
+                while(D_LIKELY(true))
                 {
-                    const milliseconds_t timeout{ call_event(processor_ptr, idle_event{}) };
+                    const milliseconds_t timeout{ do_idle(processor) };
 
                     if (D_UNLIKELY(msg.poll(timeout)))
                     {
-                        const auto exit_status_opt = msg.process(app_);
-                        if (D_UNLIKELY(exit_status_opt.has_value()))
+                        if (D_UNLIKELY(message::process_result::quit == msg.process(app_)))
                         {
-                            return *exit_status_opt;
+                            break;
                         }
                     }
                 }
@@ -138,11 +164,7 @@ namespace ui
                 return EXIT_SUCCESS;
             }
             
-            ~app_manager() noexcept
-            {
-                app::set_user_data(app_, nullptr);
-                app::quit(app_);
-            }
+            ~app_manager() noexcept;
 
         private:
             template<class T>
@@ -150,29 +172,28 @@ namespace ui
             {
                 static constexpr ui::event_callback_t callback{ ui::event_callback_instance<T>::callback };
 
-                static void cmd_callback(module_handle_t app, int32_t cmd) noexcept
-                {
-                    const ui::event e { underlying_cast<ui::event_style>(cmd) };
-                    callback(app::user_data(app), e);
-                }
+                static void cmd_callback(module_handle_t, int32_t) noexcept
+                {}
 
+                [[nodiscard]]
                 static int input_event_callback(module_handle_t app, AInputEvent* input_e) noexcept
                 {
-                    const ui::input_event e{ input_e };
-                    callback(app::user_data(app), e);
+                    if (const auto e_opt = ui::mouse_event::instance(input_e))
+                    {
+                        callback(user_data(app), e_opt);
+                    }
+
                     return 0;
                 }
             };
 
-            template<class ProcessorPtr>
-            void set_processor(ProcessorPtr processor_ptr) const noexcept
+            template<class Processor>
+            void set_processor(Processor& processor) const noexcept
             {
-                D_ASSERT(processor_ptr);
-
-                using message_callbacks_instance_t = message_callbacks_instance<ProcessorPtr>;
-                app::set_user_data(app_, as_mutable_pointer(processor_ptr));
-                app::set_cmd_callback(app_, message_callbacks_instance_t::cmd_callback);
-                app::set_input_event_callback(app_, message_callbacks_instance_t::input_event_callback);
+                using message_callbacks_instance_t = message_callbacks_instance<Processor>;
+                set_user_data(app_, as_mutable_pointer(std::addressof(processor)));
+                set_cmd_callback(app_, message_callbacks_instance_t::cmd_callback);
+                set_input_event_callback(app_, message_callbacks_instance_t::input_event_callback);
             }
 
         private:
@@ -184,7 +205,7 @@ namespace ui
     int run_event_loop(module_handle_t app, T&& processor) noexcept
     {
         const private_detail_event_loop::app_manager app_manager{ app };
-        return app_manager.run(std::addressof(processor));
+        return app_manager.run(processor);
     }
 
     inline int run_event_loop(module_handle_t app) noexcept

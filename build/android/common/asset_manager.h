@@ -15,5 +15,6 @@ namespace common
         ~asset_manager_own() noexcept;
     };
 
+    [[nodiscard]]
     AAssetManager* asset_manager() noexcept;
 }

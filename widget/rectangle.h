@@ -1,6 +1,6 @@
 #pragma once
 
-#include <px/pxfwd.h>
+#include <px/fwd.h>
 
 namespace widget
 {
@@ -9,9 +9,13 @@ namespace widget
         px::point2d position{};
         px::size2d sizes{};
 
-        constexpr bool contains(const px::point2d& p) const noexcept
+        template<class Point>
+        constexpr bool contains(const Point& p) const noexcept
         {
-            constexpr auto contains1d = [](pxside_t p, pxside_t p0, pxside_t dp) noexcept
+            using position_on_axis_t = std::decay_t<decltype(p.x())>;
+            static_assert(std::is_same_v<position_on_axis_t, std::decay_t<decltype(p.y())>>);
+
+            constexpr auto contains1d = [](position_on_axis_t p, pxside_t p0, pxside_t dp) noexcept
             {
                 return p >= p0 && p < (p0 + dp);
             };

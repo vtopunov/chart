@@ -1,6 +1,6 @@
 #pragma once
 
-#include <os/osfwd.h>
+#include <os/fwd.h>
 
 #ifdef D_OS_ANDROID
 #include <android/log.h>

@@ -2,7 +2,7 @@
 
 #include <core/resouce.h>
 
-#include <ui/ufwd.h>
+#include <ui/fwd.h>
 
 namespace ui
 {

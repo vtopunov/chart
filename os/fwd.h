@@ -2,11 +2,10 @@
 
 #include <cstdint>
 
-#include <type_traits>
-
 #include <core/warnings.h>
 
 #include <os/os_detection.h>
+#include <os/undef.h>
 
 
 #if defined(D_OS_WINDOWS)
@@ -21,12 +20,18 @@
 #define D_CONDITIONAL_OS_WINDOWS(A, B) B
 #endif
 
-
 #if defined(D_OS_ANDROID)
 #define D_OS_ANDROID_ONLY(A) A
 #else
 #define D_OS_ANDROID_ONLY(A)
 #endif
+
+#if defined(D_OS_ANDROID)
+#define D_CONDITIONAL_OS_ANDROID(A, B) A
+#else
+#define D_CONDITIONAL_OS_ANDROID(A, B) B
+#endif
+
 
 #if defined(D_OS_WINDOWS)
 namespace private_detail_osfwd
@@ -89,7 +94,3 @@ namespace os
 
     using file_descriptor_t = D_CONDITIONAL_OS_WINDOWS(handle_t, int);
 }
-
-
-static_assert(std::is_class_v<std::remove_pointer_t<os::window_handle_t>>);
-static_assert(std::is_class_v<std::remove_pointer_t<os::module_handle_t>>);

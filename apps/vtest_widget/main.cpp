@@ -47,32 +47,38 @@ namespace
                 .sizes{150_px, 50_px}
             },
             .text{ u8"Exit" },
-            .clicked{ ui::quit  }
         };
 
         label lb
         {
-            .position{220_px, 220_px},
-            .text{ u8"Label" },
+            .position{30_px, 450_px},
+            .text{ u8"Привет мир!" },
         };
 
-        main_widget() noexcept
+        bool initialize(const egl_resources& egl) noexcept
         {
-            b0.clicked = [this]() noexcept
+            b0.clicked = [this] () noexcept
             {
                 clicked(this->b0);
             };
 
-            b1.clicked = [this]() noexcept
+            b1.clicked = [this] () noexcept
             {
                 clicked(this->b1);
             };
 
-            b2.clicked = [this]() noexcept
+            b2.clicked = [this] () noexcept
             {
                 clicked(this->b2);
             };
-        };
+
+            exit_b.clicked = [app = app(egl)]() noexcept
+            {
+                ui::quit(app);
+            };
+
+            return true;
+        }
 
         template<class Fn>
         decltype(auto) apply(Fn fn) noexcept
@@ -87,9 +93,9 @@ namespace
     };
 }
 
-int app_main(os::module_handle_t) noexcept
+int app_main(os::module_handle_t app) noexcept
 {
-    return widget::run<main_widget>();
+    return widget::run<main_widget>(app);
 }
 
 

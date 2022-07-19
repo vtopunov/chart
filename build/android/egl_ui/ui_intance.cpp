@@ -1,12 +1,12 @@
 #include <core/utility.h>
 
-#include <egl/ui_wrapper.h>
+#include <egl_ui/ui_intance.h>
 
 #include <android/sensor.h>
 
 #include <entry_point/android_native_app_glue.h>
 
-namespace egl
+namespace egl_ui
 {
     namespace
     {
@@ -50,11 +50,6 @@ namespace egl
             constexpr T zero{};
             return narrow_cast<pxside_t>(std::max(zero, value));
         }
-    }
-
-    os::window_handle_t render_window(os::module_handle_t app) noexcept
-    {
-        return app->window;
     }
 
     void ui_resources_collector::operator()(const ui_resources& ui) const noexcept

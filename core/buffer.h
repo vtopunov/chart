@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 
+#include <core/buffer_fwd.h>
 #include <core/warnings.h>
 #include <core/utility.h>
 #include <core/size_type.h>
@@ -143,7 +144,7 @@ public:
     }
 
     [[nodiscard]]
-    bool try_resize(size_t new_count) noexcept
+    bool try_reserve(size_t new_count) noexcept
     {
         if (_count() < new_count)
         {
@@ -338,7 +339,6 @@ private:
     }
 };
 
-using buffer_t = buffer<std::byte>;
 static_assert(1_uz == sizeof(buffer_t::value_type));
 
 D_WARNING_POP

@@ -11,14 +11,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="config.h" />
-    <ClInclude Include="event_loop.h" />
-    <ClInclude Include="instance.h" />
-    <ClInclude Include="ui_wrapper.h" />
+    <ClInclude Include="egl_config.h" />
+    <ClInclude Include="egl_descriptors.h" />
+    <ClInclude Include="egl_resources.h" />
+    <ClInclude Include="egl_resources_fwd.h" />
+    <ClInclude Include="painting_owner.h" />
+    <ClInclude Include="run.h" />
+    <ClInclude Include="egl_instance.h" />
+    <ClInclude Include="ui_intance.h" />
+    <ClInclude Include="ui_resources.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="instance.cpp" />
-    <ClCompile Include="ui_wrapper.cpp" />
+    <ClCompile Include="egl_instance.cpp" />
+    <ClCompile Include="ui_intance.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\3rdparty\angle\src\libEGL.vcxproj">
@@ -57,14 +62,6 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <Import Project="..\build\windows\angle_static_library.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
-  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>

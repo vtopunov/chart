@@ -1,10 +1,12 @@
-#include "instance.h"
+#include "egl_instance.h"
+
+#include <egl_ui/ui_intance.h>
 
 #include <string_view>
 
 using namespace std::string_view_literals;
 
-namespace egl
+namespace egl_ui
 {
     namespace
     {
@@ -74,7 +76,7 @@ namespace egl
         }
     }
 
-    void resources_collector::operator()(const egl_resources& r) const noexcept
+    void egl_resources_collector::operator()(const egl_resources& r) const noexcept
     {
         if (r.surface)
         {
@@ -96,7 +98,7 @@ namespace egl
         close(r.ui);
     }
 
-    egl_t instance(os::module_handle_t module) noexcept
+    egl_t egl_instance(os::module_handle_t module) noexcept
     {
         egl_t result;
 
@@ -176,7 +178,7 @@ namespace egl
             (
                 r.display,
                 config,
-                render_window(r.ui),
+                render_window(r),
                 surface_attributes.take()
             ));
         }

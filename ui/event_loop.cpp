@@ -18,10 +18,10 @@ namespace ui
             }
         }
 
-        void sleep_or_reñeive_message(milliseconds_t timeout) noexcept
+        void message_wait_for(milliseconds_t timeout) noexcept
         {
-            static_assert(infinite.count() == INFINITE);
-
+            static_assert(INFINITE == infinite.count());
+            
             MsgWaitForMultipleObjectsEx
             (
                 0u,

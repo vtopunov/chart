@@ -43,17 +43,18 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-  </ItemDefinitionGroup>    
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ui\app.h" />
     <ClInclude Include="..\..\..\ui\event.h" />
     <ClInclude Include="..\..\..\ui\event_fwd.h" />
     <ClInclude Include="..\..\..\ui\event_loop.h" />
     <ClInclude Include="..\..\..\ui\event_matching.h" />
-    <ClInclude Include="..\..\..\ui\ufwd.h" />
+    <ClInclude Include="..\..\..\ui\fwd.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
+    <ClCompile Include="event.cpp" />
     <ClCompile Include="event_loop.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -4,7 +4,6 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <RunCodeAnalysis>false</RunCodeAnalysis>
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   

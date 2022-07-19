@@ -13,7 +13,7 @@
   <ItemGroup>
     <ClInclude Include="log.h" />
     <ClInclude Include="os.h" />
-    <ClInclude Include="osfwd.h" />
+    <ClInclude Include="fwd.h" />
     <ClInclude Include="os_android.h" />
     <ClInclude Include="os_detection.h" />
     <ClInclude Include="os_windows.h" />
@@ -55,7 +55,6 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/Zc:char8_t %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

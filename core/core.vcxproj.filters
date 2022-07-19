@@ -22,7 +22,7 @@
     <ClInclude Include="size2d.h" />
     <ClInclude Include="point2d.h" />
     <ClInclude Include="utf.h" />
-    <ClInclude Include="colorfwd.h" />
+    <ClInclude Include="color_fwd.h" />
     <ClInclude Include="view.h" />
     <ClInclude Include="warnings.h" />
     <ClInclude Include="value_type.h" />
@@ -36,5 +36,8 @@
     <ClInclude Include="string_char.h" />
     <ClInclude Include="span.h" />
     <ClInclude Include="underlying.h" />
+    <ClInclude Include="resource_fwd.h" />
+    <ClInclude Include="buffer_fwd.h" />
+    <ClInclude Include="fmt.h" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\angle.props"/>
+  <Import Project="..\out.props"/>
   
   <PropertyGroup>
     <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
@@ -9,6 +9,7 @@
   <ItemDefinitionGroup>
 	<ClCompile>
 	  <AdditionalIncludeDirectories>$(AngleDir)\include;$(AngleDir)\src;$(AngleDir)\util;$(AngleDir)\samples\sample_util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4275;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup />

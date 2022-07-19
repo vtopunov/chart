@@ -144,9 +144,7 @@ namespace ui
 
         if (!cached_type_)
         {
-            cached_type_ = type_window_builder{}
-                .module(module_)
-                .build();
+            cached_type_ = type_builder_.build();
         }
 
         if (cached_type_)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/colorfwd.h>
+#include <core/color_fwd.h>
 
 namespace px
 {
@@ -8,7 +8,7 @@ namespace px
     struct pixline
     {
         using pointer = T*;
-        using const_pointer = std::add_const_t<T>*;
+        using const_pointer = const T*;
 
         pointer position;
         size_t size;

@@ -5,7 +5,7 @@
 #include <core/rect.h>
 #include <core/small_vector.h>
 
-#include <px/pxfwd.h>
+#include <px/fwd.h>
 
 #include <ui/type_window.h>
 
@@ -105,11 +105,6 @@ namespace ui
 
     bool close(window_handle_t window) noexcept;
 
-    inline void quit() noexcept
-    {
-        ::PostQuitMessage(0);
-    }
-
     [[nodiscard]]
     px::rect geometry(window_handle_t window) noexcept;
 
@@ -181,8 +176,20 @@ namespace ui
 
         constexpr window_builder& module(module_handle_t module) noexcept
         {
-            module_ = module;
+            type_builder_.module(module);
             return *this;
+        }
+
+        window_builder& background(stock_brush brush) noexcept
+        {
+            type_builder_.background(brush);
+            cached_type_.deattach_and_reset();
+            return *this;
+        }
+
+        constexpr module_handle_t module() const noexcept
+        {
+            return type_builder_.module();
         }
 
         [[nodiscard]]
@@ -199,11 +206,12 @@ namespace ui
         }
 
     private:
-        mutable shared_type_window cached_type_;
+        mutable type_window_builder type_builder_{};
+        mutable shared_type_window cached_type_{};
         std::wstring title_;
         px::point2d position_{ px_usedefault, 0_px };
         px::size2d sizes_{ px_usedefault, 0_px };
         window_handle_t parent_{ nullptr };
-        module_handle_t module_{ nullptr };
+
     };
 }

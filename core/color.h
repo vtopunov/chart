@@ -2,7 +2,7 @@
 
 #include <compare>
 
-#include <core/colorfwd.h>
+#include <core/color_fwd.h>
 #include <core/rational.h>
 
 template<class T> [[nodiscard]]
@@ -84,10 +84,7 @@ struct rgba_color
     }
 };
 
-using rgba_color32_t = rgba_color<u8tint_t>;
 using rgba_color32_view = rgba_color32_t::view_type;
-using rgba_colorf_t = rgba_color<float>;
-using rgba_colorf_view = rgba_colorf_t::view_type;
 
 static_assert(sizeof(rgba_color32_t) == 4u);
 

@@ -37,7 +37,7 @@
     <ClCompile Include="..\..\..\..\apps\vtest_text\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\egl\egl.vcxproj">
+    <ProjectReference Include="..\..\egl_ui\egl_ui.vcxproj">
       <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\file\file.vcxproj">

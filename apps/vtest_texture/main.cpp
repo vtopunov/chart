@@ -2,7 +2,7 @@
 
 #include <debug/debug.h>
 
-#include <egl/event_loop.h>
+#include <egl_ui/run.h>
 
 #include <utility/png.h>
 
@@ -86,7 +86,7 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl::instance(app);
+    const auto egl = egl_instance(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}\n",
@@ -97,11 +97,11 @@ int app_main(os::module_handle_t app) noexcept
     const auto [base_texture, mix_texture] = png_textures_from_file(_PATH("base.png"), _PATH("mix.png"));
 
     {
-        egl::painting_owner painting_lock{ egl };
+        egl_painting_owner painting_lock{ egl };
         draw_texture_mix(base_texture, mix_texture);
     }
 
-    return egl::run(egl);
+    return run(egl);
 }
 
 

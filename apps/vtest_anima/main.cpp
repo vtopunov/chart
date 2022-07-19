@@ -3,7 +3,7 @@
 #include <debug/debug.h>
 
 #include <gl/draw.h>
-#include <egl/event_loop.h>
+#include <egl_ui/run.h>
 
 using namespace std::chrono;
 using namespace std::chrono_literals;
@@ -29,7 +29,7 @@ namespace
         return oscillating_sign * (time - bound);
     }
 
-    constexpr rgba_colorf_t anima_color(duration_t now) noexcept
+    constexpr gl::rgba_colorf_t anima_color(duration_t now) noexcept
     {
         constexpr auto period = anima_lerp_period.count();
 
@@ -39,7 +39,7 @@ namespace
             num_range{ anima_start_color, anima_end_color }
         );
 
-        return color_cast<rgba_colorf_t>(anima_lerp(oscillating_time(now.count(), period)));
+        return color_cast<gl::rgba_colorf_t>(anima_lerp(oscillating_time(now.count(), period)));
     }
 
     void draw_figure(duration_t now) noexcept
@@ -98,7 +98,7 @@ namespace
 
         void draw(duration_t now) const noexcept
         {
-            egl::painting_owner painting_lock{ egl };
+            egl_painting_owner painting_lock{ egl };
             draw_figure(now);
         }
 
@@ -128,7 +128,7 @@ int app_main(os::module_handle_t app) noexcept
 {
     const main_processor processor
     {
-        .egl{ egl::instance(app) }
+        .egl{ egl_instance(app) }
     };
 
     if (!processor.egl)

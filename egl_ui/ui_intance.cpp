@@ -1,23 +1,9 @@
-#include "ui_wrapper.h"
+#include "ui_intance.h"
 
 #include <ui/window.h>
 
-namespace egl
+namespace egl_ui
 {
-    namespace
-    {
-        constexpr bool pxsize_is_valid(pxside_t size) noexcept
-        {
-            return size > 0_px;
-        }
-
-        constexpr bool pxsize_is_valid(px::size2d sizes) noexcept
-        {
-            return pxsize_is_valid(sizes.width()) 
-                && pxsize_is_valid(sizes.height());
-        }
-    }
-
     void ui_resources_collector::operator () (const ui_resources& ui) const noexcept
     {
         ui::close(ui.render_wnd);
@@ -27,28 +13,39 @@ namespace egl
     ui_wrapper ui_intance(os::module_handle_t module) noexcept
     {
         ui_wrapper result;
-
         auto& w = as_mutable(result.r());
 
         ui::window_builder builder;
         builder.module(module);
 
-        w.app_wnd = builder.build().release();
+        const auto sizes = ui::desktop_sizes();
+        static_assert(std::is_unsigned_v<decltype(sizes.width())>);
+        static_assert(std::is_unsigned_v<decltype(sizes.height())>);
+        if (sizes.width() && sizes.height())
+        {
+            w.app_wnd = builder.build().release();
+        }
 
         if (w.app_wnd)
         {
-            w.sizes = ui::desktop_sizes();
+            w.app = builder.module();
+            D_ASSERT(w.app);
         }
 
-        if (pxsize_is_valid(w.sizes))
+        if (w.app)
         {
             w.render_wnd
                 = builder
                 .parent(w.app_wnd)
                 .position(0_px, 0_px)
-                .sizes(w.sizes)
+                .sizes(sizes)
                 .build()
                 .release();
+        }
+
+        if (w.render_wnd)
+        {
+            w.sizes = sizes;
         }
 
         return result;
