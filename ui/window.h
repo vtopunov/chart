@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <core/rect.h>
+#include <core/rectangle.h>
 #include <core/small_vector.h>
 
 #include <px/fwd.h>
@@ -106,14 +106,17 @@ namespace ui
     bool close(window_handle_t window) noexcept;
 
     [[nodiscard]]
-    px::rect geometry(window_handle_t window) noexcept;
+    px::rectangle geometry(window_handle_t window) noexcept;
 
-    bool geometry(window_handle_t window, px::rect rc) noexcept;
+    [[nodiscard]]
+    px::size2d sizes(window_handle_t window) noexcept;
+
+    bool geometry(window_handle_t window, px::rectangle rc) noexcept;
 
     [[nodiscard]]
     inline px::size2d desktop_sizes() noexcept
     {
-        return geometry(::GetDesktopWindow()).sizes();
+        return sizes(geometry(::GetDesktopWindow()));
     }
 
     struct window_resource_deleter
@@ -149,7 +152,7 @@ namespace ui
 
         constexpr window_builder& position(px::point2d position) noexcept
         {
-            position_ = position;
+            geometry_.position = position;
             return *this;
         }
 
@@ -160,7 +163,7 @@ namespace ui
 
         constexpr window_builder& sizes(px::size2d sizes) noexcept
         {
-            sizes_ = sizes;
+            geometry_.sizes = sizes;
             return *this;
         }
 
@@ -169,9 +172,10 @@ namespace ui
             return sizes(px::size2d{ width, height });
         }
 
-        constexpr window_builder& geometry(const px::rect& rc) noexcept
+        constexpr window_builder& geometry(const px::rectangle& rc) noexcept
         {
-            return position(rc.p00()).sizes(rc.sizes());
+            geometry_ = rc;
+            return *this;
         }
 
         constexpr window_builder& module(module_handle_t module) noexcept
@@ -209,8 +213,7 @@ namespace ui
         mutable type_window_builder type_builder_{};
         mutable shared_type_window cached_type_{};
         std::wstring title_;
-        px::point2d position_{ px_usedefault, 0_px };
-        px::size2d sizes_{ px_usedefault, 0_px };
+        px::rectangle geometry_{ px_usedefault, 0_px, px_usedefault, 0_px };
         window_handle_t parent_{ nullptr };
 
     };

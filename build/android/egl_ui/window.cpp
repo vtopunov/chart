@@ -1,6 +1,6 @@
 #include <core/utility.h>
 
-#include <egl_ui/ui_intance.h>
+#include <egl_ui/window.h>
 
 #include <android/sensor.h>
 
@@ -52,7 +52,7 @@ namespace egl_ui
         }
     }
 
-    void ui_resources_collector::operator()(const ui_resources& ui) const noexcept
+    void window_resource_collector::operator()(const window_resource& ui) const noexcept
     {
         if (ui.sensor_event_queue)
         {
@@ -60,16 +60,16 @@ namespace egl_ui
         }
     }
 
-    ui_wrapper ui_intance(os::module_handle_t app) noexcept
+    window create_window(os::module_handle_t app) noexcept
     {
-        ui_wrapper result;
+        window result;
 
         auto& ui = as_mutable(result.r());
 
         ui.app = app;
         ui.sensor_manager = ASensorManager_getInstance();
 
-        if (ui.sensor_manager)
+        if (D_LIKELY(ui.sensor_manager))
         {
             ui.sensor_event_queue = ASensorManager_createEventQueue
             (
@@ -81,17 +81,16 @@ namespace egl_ui
             );
         }
 
-        if (ui.sensor_event_queue)
+        if (D_LIKELY(ui.sensor_event_queue))
         {
             const auto window = receive_window(app);
-            if (window)
+            if (D_LIKELY(window))
             {
-                ui.sizes.ref_width() = to_px(ANativeWindow_getWidth(window));
-            }
-
-            if (ui.sizes.width())
-            {
-                ui.sizes.ref_height() = to_px(ANativeWindow_getHeight(window));
+                ui.window_viewport.sizes = 
+                {
+                    to_px(ANativeWindow_getWidth(window)),
+                    to_px(ANativeWindow_getHeight(window))
+                };
             }
         }
 

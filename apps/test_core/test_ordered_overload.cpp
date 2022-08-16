@@ -21,7 +21,7 @@ namespace
         return true;
     }
 
-    constexpr bool call_method_if_exist(no_overload) noexcept
+    constexpr bool call_method_if_exist(no_overloaded) noexcept
     {
         return false;
     }

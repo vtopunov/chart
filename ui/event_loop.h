@@ -30,7 +30,7 @@ namespace ui
     }
 
     [[nodiscard]]
-    constexpr milliseconds_t do_idle(no_overload) noexcept
+    constexpr milliseconds_t do_idle(no_overloaded) noexcept
     {
         return infinite;
     }
@@ -178,9 +178,9 @@ namespace ui
                 [[nodiscard]]
                 static int input_event_callback(module_handle_t app, AInputEvent* input_e) noexcept
                 {
-                    if (const auto e_opt = ui::mouse_event::instance(input_e))
+                    if (const ui::event e{ input_e })
                     {
-                        callback(user_data(app), e_opt);
+                        callback(user_data(app), e);
                     }
 
                     return 0;

@@ -1,123 +1,117 @@
 #pragma once
 
+#include <px/fwd.h>
+
 #include <gl/texture.h>
 #include <gl/draw.h>
 
 namespace px
 {
-    struct uniform_point2d
+    struct uniform_vec2
     {
         using glsl_uniform_type = gl::uniform_vec2f;
+        static constexpr auto type_id = glsl_uniform_type::type_id;
+        using value_tuple_type = gl::glsl_type_t<type_id>;
+        using value_type = typename value_tuple_type::value_type;
 
         glsl_uniform_type uniform;
 
-        void store(px::point2d p) const noexcept
+        template<class T>
+        void store(::vec2<T> p) const noexcept
         {
-            uniform.store(narrow2d_cast<gl::vec2f>(p));
-        }
-
-        static uniform_point2d instance(gl::shaders_program_resource program, zstring_view name) noexcept
-        {
-            return { .uniform{ glsl_uniform_type::instance(program, name) } };
-        }
-    };
-
-    struct uniform_size2d
-    {
-        using glsl_uniform_type = gl::uniform_vec2f;
-
-        glsl_uniform_type uniform;
-
-        void store(px::size2d sizes) const noexcept
-        {
-            uniform.store(narrow2d_cast<gl::vec2f>(sizes));
-        }
-
-        static uniform_size2d instance(gl::shaders_program_resource program, zstring_view name) noexcept
-        {
-            return { .uniform{ glsl_uniform_type::instance(program, name) } };
-        }
-    };
-}
-
-
-namespace figures
-{
-    struct frame_attribute
-    {
-        gl::attribute_location attrib;
-
-        static frame_attribute instance(gl::shaders_program_resource program, zstring_view name) noexcept
-        {
-            return { .attrib{ gl::get_attribute_location(program, name) } };
-        }
-
-        struct user
-        {
-            gl::vertex_buffer_user vb_user;
-
-            void draw() const
+            if constexpr (std::is_same_v<value_tuple_type, ::vec2<T>>)
             {
-                vb_user.draw(gl::draw_mode::triangle_strip);
+                uniform.store(std::move(p));
             }
-        };
-
-        user bind() const noexcept
-        {
-            constexpr gl::vec2f vertices[]
+            else
             {
-                {0.0f, 0.0f},
-                {0.0f, 1.0f},
-                {1.0f, 0.0f},
-                {1.0f, 1.0f}
-            };
-
-            static const gl::vertex_buffer vbo{ vertices };
-
-            return { .vb_user{ vbo.bind(attrib) } };
+                uniform.store(narrow2d_cast<value_tuple_type>(std::move(p)));
+            }
         }
 
-
-        void draw() const noexcept
+        template<class T>
+        void store(T p0, T p1) const noexcept
         {
-            bind().draw();
+            if constexpr (std::is_same_v<value_type, std::remove_cvref_t<T>>)
+            {
+                uniform.store(std::move(p0), std::move(p1));
+            }
+            else
+            {
+                uniform.store
+                (
+                    narrow_cast<value_type>(std::move(p0)),
+                    narrow_cast<value_type>(std::move(p1))
+                );
+            }
+        }
+
+        static uniform_vec2 instance(gl::shaders_program_resource program, zstring_view name) noexcept
+        {
+            return { .uniform{ glsl_uniform_type::instance(program, name) } };
         }
     };
 }
 
 
-struct shader_initializer
+struct attribute_frame
 {
-    gl::shaders_program_resource program;
-
-    template<class T>
-    void operator () (T& target, zstring_view name) const noexcept
+    static constexpr gl::vec2f vertices[]
     {
-        target = T::instance(program, name);
+        {0.0f, 0.0f},
+        {0.0f, 1.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f}
+    };
+
+    gl::attribute_location attrib;
+    
+    static attribute_frame instance(gl::shaders_program_resource program, zstring_view name) noexcept
+    {
+        return { .attrib{ gl::get_attribute_location(program, name) } };
+    }
+
+    struct vertex_buffer_user
+    {
+        static void draw() noexcept
+        {
+            gl::draw_arrays(gl::draw_mode::triangle_strip, 0, std::size(vertices));
+        }
+    };
+
+    vertex_buffer_user bind() const noexcept
+    {
+        static const gl::vertex_buffer vbo{ vertices };
+        vbo.bind(attrib);
+        return {};
+    }
+
+    void draw() const noexcept
+    {
+        bind().draw();
     }
 };
 
-
 namespace vert
 {
-    struct positioned_figure
+    struct positioned_frame
     {
-        px::uniform_point2d      u_position{ gl::invaliduniform };
-        px::uniform_size2d       u_size{ gl::invaliduniform };
-        px::uniform_size2d       u_viewport{ gl::invaliduniform };
-        figures::frame_attribute a_frame{ gl::invalidattribute };
+        px::uniform_vec2 u_position{ gl::invaliduniform };
+        px::uniform_vec2 u_size{ gl::invaliduniform };
+        px::uniform_vec2 u_viewport{ gl::invaliduniform };
+        attribute_frame  a_frame{ gl::invalidattribute };
 
-        bool initialize(shader_initializer ini) noexcept
+        template<class Serializer>
+        constexpr void serialize(Serializer& ser) noexcept
         {
-            ini(u_position, "u_position"_zsv);
-            ini(u_size, "u_size"_zsv);
-            ini(u_viewport, "u_viewport"_zsv);
-            ini(a_frame, "a_frame"_zsv);
-            return true;
+            ser(u_position, "u_position"_zsv);
+            ser(u_size, "u_size"_zsv);
+            ser(u_viewport, "u_viewport"_zsv);
+            ser(a_frame, "a_frame"_zsv);
         }
     };
 
-    struct positioned_texture : positioned_figure
+    struct positioned_texture : positioned_frame
     {
         static constexpr auto shader_text = R"(
             uniform vec2 u_position;
@@ -137,7 +131,7 @@ namespace vert
         )"_glsl;
     };
 
-    struct positioned_rectangle : positioned_figure
+    struct positioned_rectangle : positioned_frame
     {
         static constexpr auto shader_text = R"(
             uniform vec2 u_position;
@@ -172,10 +166,10 @@ namespace frag
 
         gl::uniform_vec4f u_color = gl::invaliduniform;
 
-        bool initialize(shader_initializer ini) noexcept
+        template<class Serializer>
+        constexpr void serialize(Serializer& ser) noexcept
         {
-            ini(u_color, "u_color"_zsv);
-            return true;
+            ser(u_color, "u_color"_zsv);
         }
     };
 
@@ -195,10 +189,10 @@ namespace frag
 
         gl::texture_sampler2D s_texture = gl::invalidtexsampler;
 
-        bool initialize(shader_initializer ini) noexcept
+        template<class Serializer>
+        constexpr void serialize(Serializer& ser) noexcept
         {
-            ini(s_texture, "s_texture"_zsv);
-            return true;
+            ser(s_texture, "s_texture"_zsv);
         }
     };
 
@@ -219,10 +213,10 @@ namespace frag
 
         gl::texture_sampler2D s_texture = gl::invalidtexsampler;
 
-        bool initialize(shader_initializer ini) noexcept
+        template<class Serializer>
+        constexpr void serialize(Serializer& ser) noexcept
         {
-            ini(s_texture, "s_texture"_zsv);
-            return true;
+            ser(s_texture, "s_texture"_zsv);
         }
     };
 
@@ -246,11 +240,11 @@ namespace frag
         gl::uniform_vec4f u_color = gl::invaliduniform;
         gl::texture_sampler2D s_texture = gl::invalidtexsampler;
 
-        bool initialize(shader_initializer ini) noexcept
+        template<class Serializer>
+        constexpr void serialize(Serializer& ser) noexcept
         {
-            ini(u_color, "u_color"_zsv);
-            ini(s_texture, "s_texture"_zsv);
-            return true;
+            ser(u_color, "u_color"_zsv);
+            ser(s_texture, "s_texture"_zsv);
         }
     };
 }
@@ -271,18 +265,18 @@ struct shaders_library
 
     bool build() noexcept
     {
-        if (auto new_program = gl::create_shaders_program(vert.shader_text, frag.shader_text))
+        program = gl::create_shaders_program(vert.shader_text, frag.shader_text);
+       
+        if (program)
         {
-            const shader_initializer ini
+            const auto unfiorm_factory = [p = view(program)]<class T>(T& target, zstring_view name) noexcept
             {
-                view(new_program)
+                target = T::instance(p, name);
             };
 
-            if (vert.initialize(ini) && frag.initialize(ini))
-            {
-                program = std::move(new_program);
-                return true;
-            }
+            serialize(unfiorm_factory);
+
+            return true;
         }
 
         return false;
@@ -292,6 +286,11 @@ struct shaders_library
     {
         gl::use(program);
     }
+
+    template<class Serializer>
+    constexpr void serialize(Serializer& ser) noexcept
+    {
+        vert.serialize(ser);
+        frag.serialize(ser);
+    }
 };
-
-

@@ -45,7 +45,6 @@
     <ClInclude Include="$(RepoDir)\core\buffer_view.h" />
     <ClInclude Include="$(RepoDir)\core\clamp_cast.h" />
     <ClInclude Include="$(RepoDir)\core\color.h" />
-    <ClInclude Include="$(RepoDir)\core\coordinate.h" />
     <ClInclude Include="$(RepoDir)\core\intrusive_list.h" />
     <ClInclude Include="$(RepoDir)\core\lerp.h" />
     <ClInclude Include="$(RepoDir)\core\limits.h" />
@@ -57,7 +56,6 @@
     <ClInclude Include="$(RepoDir)\core\point2d.h" />
     <ClInclude Include="$(RepoDir)\core\polynomial.h" />
     <ClInclude Include="$(RepoDir)\core\rational.h" />
-    <ClInclude Include="$(RepoDir)\core\rect.h" />
     <ClInclude Include="$(RepoDir)\core\resouce.h" />
     <ClInclude Include="$(RepoDir)\core\size2d.h" />
     <ClInclude Include="$(RepoDir)\core\size_type.h" />
@@ -76,7 +74,10 @@
     <ClInclude Include="..\..\..\core\buffer_fwd.h" />
     <ClInclude Include="..\..\..\core\color_fwd.h" />
     <ClInclude Include="..\..\..\core\fmt.h" />
+    <ClInclude Include="..\..\..\core\rectangle.h" />
     <ClInclude Include="..\..\..\core\resource_fwd.h" />
+    <ClInclude Include="..\..\..\core\round.h" />
+    <ClInclude Include="..\..\..\core\static_vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

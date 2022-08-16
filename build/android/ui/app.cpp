@@ -6,32 +6,32 @@
 
 namespace ui
 {
-    os::window_handle_t app_window(os::module_handle_t app) noexcept
+    window_handle_t app_window(const_module_handle_t app) noexcept
     {
         return app->window;
     }
 
-    void set_user_data(os::module_handle_t app, void* data) noexcept
+    void set_user_data(module_handle_t app, void* data) noexcept
     {
         app->userData = data;
     }
 
-    void* user_data(module_handle_t app) noexcept
+    void* user_data(const_module_handle_t app) noexcept
     {
         return app->userData;
     }
 
-    void set_cmd_callback(os::module_handle_t app, cmd_callback_t callback) noexcept
+    void set_cmd_callback(module_handle_t app, cmd_callback_t callback) noexcept
     {
         app->onAppCmd = callback;
     }
 
-    void set_input_event_callback(os::module_handle_t app, input_event_callback_t callback) noexcept
+    void set_input_event_callback(module_handle_t app, input_event_callback_t callback) noexcept
     {
         app->onInputEvent = callback;
     }
 
-    void quit(module_handle_t app) noexcept
+    void quit(const_module_handle_t app) noexcept
     {
         if (!app->destroyRequested)
         {

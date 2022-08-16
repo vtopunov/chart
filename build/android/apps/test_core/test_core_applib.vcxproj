@@ -15,6 +15,10 @@
       <Project>{89189ae4-8ecd-4bae-b09f-ce8c6b9f0246}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\apps\test_core\test_round.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_static_vector.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BF9FBC59-47DD-402B-A56E-8C7A864CEFF6}</ProjectGuid>
     <Keyword>Android</Keyword>
@@ -46,12 +50,18 @@
       <PreprocessorDefinitions>__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <Link>
+      <LibraryDependencies>m;%(LibraryDependencies)</LibraryDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
       <PreprocessorDefinitions>__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <Link>
+      <LibraryDependencies>m;%(LibraryDependencies)</LibraryDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

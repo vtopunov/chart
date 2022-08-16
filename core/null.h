@@ -138,8 +138,6 @@ namespace private_detail_null_instance
     template<class T>
     struct null_instance
     {
-        using identity_type = null_instance<T>;
-
         static_assert(!std::is_reference_v<T>);
 
         [[nodiscard]]
@@ -235,38 +233,42 @@ namespace private_detail_is_nullable
     using has_value_t = decltype(private_detail_has_value::has_value(std::declval<T&>()));
 
     template<class T>
-    constexpr bool is_nullable_v = is_detected_v<has_value_t, T>;
+    using is_nullable = is_detected<has_value_t, T>;
+
+    template<class T>
+    constexpr bool is_nullable_v = is_nullable<T>::value;
 }
 
 namespace private_detail_null_instance
 {
-    template<class T>
-    using null_identity_t = typename private_detail_null_type::null_t<T>::identity_type;
+    using private_detail_null_type::null_t;
 
     template<class T>
-    [[nodiscard]] constexpr auto operator != (const T& value, null_identity_t<T>) noexcept 
-        -> decltype(private_detail_has_value::has_value(value))
+    constexpr auto has_cmp_with_null_v = std::conjunction_v<
+        private_detail_is_nullable::is_nullable<T>,
+        std::is_class<null_t<T>>
+    >;
+
+    template<class T, std::enable_if_t<has_cmp_with_null_v<T>, int> = 0>
+    [[nodiscard]] constexpr decltype(auto) operator != (const T& value, null_t<T>) noexcept
     {
         return private_detail_has_value::has_value(value);
     }
 
-    template<class T>
-    [[nodiscard]] constexpr auto operator != (null_identity_t<T>, const T& value) noexcept 
-        -> decltype(private_detail_has_value::has_value(value))
+    template<class T, std::enable_if_t<has_cmp_with_null_v<T>, int> = 0>
+    [[nodiscard]] constexpr decltype(auto) operator != (null_t<T>, const T& value) noexcept
     {
         return private_detail_has_value::has_value(value);
     }
-
-    template<class T> 
-    [[nodiscard]] constexpr auto operator == (const T& value, null_identity_t<T>) noexcept 
-        -> decltype(private_detail_is_null::is_null(value))
+ 
+    template<class T, std::enable_if_t<has_cmp_with_null_v<T>, int> = 0>
+    [[nodiscard]] constexpr decltype(auto) operator == (const T& value, null_t<T>) noexcept
     {
         return private_detail_is_null::is_null(value);
     }
 
-    template<class T> 
-    [[nodiscard]] constexpr auto operator == (null_identity_t<T>, const T& value) noexcept 
-        -> decltype(private_detail_is_null::is_null(value))
+    template<class T, std::enable_if_t<has_cmp_with_null_v<T>, int> = 0>
+    [[nodiscard]] constexpr decltype(auto) operator == (null_t<T>, const T& value) noexcept
     {
         return private_detail_is_null::is_null(value);
     }

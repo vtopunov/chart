@@ -12,12 +12,16 @@ namespace file
 
         struct _private_detail
         {
-            ro_file_resource file_;
 #ifdef D_OS_WINDOWS
+            ro_file_resource file_;
             void* fmmd_;
-#endif
             const void* data_;
             size_t size_;
+#else
+            const void* data_;
+            size_t size_;
+            ro_file_resource file_;
+#endif
         }
         private_detail_;
 
@@ -28,15 +32,22 @@ namespace file
             {
                 return
                 {
+#ifdef D_OS_WINDOWS
                     _private_detail
                     {
                         invalidfile,
-#ifdef D_OS_WINDOWS
                         nullptr,
-#endif
                         nullptr,
                         0_uz
                     }
+#else
+                    _private_detail
+                    {
+                        nullptr,
+                        0_uz,
+                        invalidfile
+                    }
+#endif
                 };
             }
         };

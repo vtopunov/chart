@@ -1,20 +1,17 @@
-#include <core/rect.h>
+#include <core/rectangle.h>
 
 #include <core/assert.h>
 
-void test_rect() noexcept
+void test_rectangle() noexcept
 {
-    static_assert( std::is_trivial_v<rect<int>> && std::is_standard_layout_v<rect<int>> );
+    static_assert( std::is_trivial_v<rectangle<int>> && std::is_standard_layout_v<rectangle<int>> );
 
     constexpr point2d p0{1, 2};
-    constexpr point2d p1{3, 5};
+    constexpr size2d sz{2u, 3u};
+    constexpr auto p1 = p0 + narrow2d_cast<point2d<int>>(sz);
 
-    constexpr rect rc{p0, p1};
+    constexpr rectangle rc{p0, sz};
 
-    constexpr num_range line01{ p0, p1 };
-    constexpr auto sizes01 = narrow2d_cast<size2d<unsigned>>( p1 - p0 );
-
-    static_assert( rc.diagonal == line01 );
     static_assert( rc.p00() == p0 );
     static_assert( rc.p01() == vec2{ p0.x(), p1.y() } );
     static_assert( rc.p10() == vec2{ p1.x(), p0.y() } );
@@ -23,7 +20,6 @@ void test_rect() noexcept
     static_assert( rc.y0() == p0.y() );
     static_assert( rc.x1() == p1.x() );
     static_assert( rc.y1() == p1.y() );
-    static_assert( rc.sizes() == sizes01 );
 
     D_ASSERT( !errno );
 }

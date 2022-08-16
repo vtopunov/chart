@@ -21,16 +21,18 @@ namespace ui
 
         static_assert(event_style::null == to_event_style(WM_NULL));
         static_assert(event_style::size == to_event_style(WM_SIZE));
+        static_assert(event_style::mouse_wheel == to_event_style(WM_MOUSEWHEEL));
         static_assert(event_style::mouse_move == to_event_style(WM_MOUSEMOVE));
         static_assert(event_style::mouse_down == to_event_style(WM_LBUTTONDOWN));
         static_assert(event_style::mouse_up == to_event_style(WM_LBUTTONUP));
         static_assert(event_style::mouse_double_click == to_event_style(WM_LBUTTONDBLCLK));
 
-        static_assert(mouse_keys::lbutton == MK_LBUTTON);
-        static_assert(mouse_keys::rbutton == MK_RBUTTON);
-        static_assert(mouse_keys::shift == MK_SHIFT);
-        static_assert(mouse_keys::control == MK_CONTROL);
-        static_assert(mouse_keys::mbutton == MK_MBUTTON);
+        static_assert(mouse_keys::lbutton == mouse_keys::instance(MK_LBUTTON));
+        static_assert(mouse_keys::rbutton == mouse_keys::instance(MK_RBUTTON));
+        static_assert(mouse_keys::shift == mouse_keys::instance(MK_SHIFT));
+        static_assert(mouse_keys::control == mouse_keys::instance(MK_CONTROL));
+        static_assert(mouse_keys::mbutton == mouse_keys::instance(MK_MBUTTON));
+        static_assert(min_mouse_wheel_delta == WHEEL_DELTA);
 
         const event e { window, to_event_style(message), word_parameter, long_parameter };
 

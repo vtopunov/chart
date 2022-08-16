@@ -2,23 +2,25 @@
 
 #include <core/null.h>
 
-#include <px/fwd.h>
 #include <os/fwd.h>
 
 #if defined(D_OS_ANDROID)
 #include <ui/app.h>
 #endif
 
+#include <egl_ui/viewport_rectangle.h>
+
+
 namespace egl_ui
 {
-    struct ui_resources
+    struct window_resource
     {
         struct null_type
         {
             [[nodiscard]]
-            constexpr operator ui_resources() const noexcept
+            constexpr operator window_resource() const noexcept
             {
-                return ui_resources
+                return window_resource
                 {
                         .app{ nullptr },
 
@@ -31,13 +33,12 @@ namespace egl_ui
                         .sensor_event_queue{ nullptr },
 
     #endif
-                        .sizes{ 0_px, 0_px },
+                        .window_viewport{ .sizes{ 0_px, 0_px } },
                 };
             }
         };
 
-
-        os::module_handle_t app;
+        os::const_module_handle_t app;
 
 #if defined(D_OS_WINDOWS)
         os::window_handle_t app_wnd;
@@ -47,44 +48,43 @@ namespace egl_ui
         os::sensor_manager_handle_t sensor_manager;
         os::sensor_event_queue_handle_t sensor_event_queue;
 
-        using view_type = os::module_handle_t;
-
-        constexpr operator view_type () const noexcept
-        {
-            return app;
-        }
 #endif
 
-        px::size2d sizes;
+        viewport_rectangle window_viewport;
 
         constexpr explicit operator bool() const noexcept
         {
-            static_assert(std::is_unsigned_v<decltype(sizes.height())>);
-            return !!sizes.height();
+            return !!window_viewport;
+        }
+
+        constexpr operator viewport_rectangle() const noexcept
+        {
+            static_assert(sizeof(viewport_rectangle) <= std::min(8_uz, 2u * sizeof(size_t)));
+            return window_viewport;
+        }
+
+        constexpr operator os::const_module_handle_t() const noexcept
+        {
+            return app;
         }
     };
 
-    using nullui_t = null_t<ui_resources>;
-    constexpr nullui_t nullui = null_v<ui_resources>;
+    using nullui_t = null_t<window_resource>;
+    constexpr nullui_t nullui = null_v<window_resource>;
 
-    [[nodiscard]]
-    constexpr os::module_handle_t app(const ui_resources& ui) noexcept
-    {
-        return ui.app;
-    }
 
 #if defined(D_OS_WINDOWS)
     [[nodiscard]]
-    constexpr os::window_handle_t render_window(const ui_resources& ui) noexcept
+    constexpr os::window_handle_t render_window(const window_resource& ui) noexcept
     {
         return ui.render_wnd;
     }
 
 #elif defined(D_OS_ANDROID)
     [[nodiscard]]
-    inline os::window_handle_t render_window(const ui_resources& ui) noexcept
+    inline os::window_handle_t render_window(const window_resource& w) noexcept
     {
-        return  ui::app_window(app(ui));
+        return  ui::app_window(w.app);
     }
 
 #endif

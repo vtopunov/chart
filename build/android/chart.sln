@@ -143,6 +143,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_widget_applib", "apps
 EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_widget", "apps\vtest_widget\vtest_widget.androidproj", "{329FD3AF-568A-4A63-A487-BA3119BD7234}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_move_and_zoom", "vtest_move_and_zoom", "{7E36C66F-2FE2-40DF-9250-C1E6B369E8DC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_move_and_zoom_applib", "apps\vtest_move_and_zoom\vtest_move_and_zoom_applib.vcxproj", "{28A64F39-6796-4BCA-B5E6-0DACA4419810}"
+EndProject
+Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_move_and_zoom", "apps\vtest_move_and_zoom\vtest_move_and_zoom.androidproj", "{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -385,6 +391,16 @@ Global
 		{329FD3AF-568A-4A63-A487-BA3119BD7234}.Release|ARM.ActiveCfg = Release|ARM
 		{329FD3AF-568A-4A63-A487-BA3119BD7234}.Release|ARM.Build.0 = Release|ARM
 		{329FD3AF-568A-4A63-A487-BA3119BD7234}.Release|ARM.Deploy.0 = Release|ARM
+		{28A64F39-6796-4BCA-B5E6-0DACA4419810}.Debug|ARM.ActiveCfg = Debug|ARM
+		{28A64F39-6796-4BCA-B5E6-0DACA4419810}.Debug|ARM.Build.0 = Debug|ARM
+		{28A64F39-6796-4BCA-B5E6-0DACA4419810}.Release|ARM.ActiveCfg = Release|ARM
+		{28A64F39-6796-4BCA-B5E6-0DACA4419810}.Release|ARM.Build.0 = Release|ARM
+		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}.Debug|ARM.ActiveCfg = Debug|ARM
+		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}.Debug|ARM.Build.0 = Debug|ARM
+		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}.Debug|ARM.Deploy.0 = Debug|ARM
+		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}.Release|ARM.ActiveCfg = Release|ARM
+		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}.Release|ARM.Build.0 = Release|ARM
+		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}.Release|ARM.Deploy.0 = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -443,6 +459,9 @@ Global
 		{D7BC1C8F-E7A9-4109-AED0-58D560D8A976} = {41B10E82-3141-4F27-859E-E16086E7F3CB}
 		{0976DCDB-5034-4844-B6F4-40573C83E6F2} = {D7BC1C8F-E7A9-4109-AED0-58D560D8A976}
 		{329FD3AF-568A-4A63-A487-BA3119BD7234} = {D7BC1C8F-E7A9-4109-AED0-58D560D8A976}
+		{7E36C66F-2FE2-40DF-9250-C1E6B369E8DC} = {41B10E82-3141-4F27-859E-E16086E7F3CB}
+		{28A64F39-6796-4BCA-B5E6-0DACA4419810} = {7E36C66F-2FE2-40DF-9250-C1E6B369E8DC}
+		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D} = {7E36C66F-2FE2-40DF-9250-C1E6B369E8DC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6BA0FE90-5B90-4621-9483-7FC05A6F0C49}

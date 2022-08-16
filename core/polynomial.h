@@ -2,6 +2,7 @@
 
 #include <core/vec2.h>
 
+
 template<class T>
 struct polynomial2
 {
@@ -9,8 +10,8 @@ struct polynomial2
 
     vec2<coefficients_type> coefficients;
 
-    template<class Arg> [[nodiscard]]
-    constexpr decltype(auto) operator () (const Arg& argument) const noexcept
+    template<class Arg>
+    [[nodiscard]] constexpr decltype(auto) operator () (const Arg& argument) const noexcept
     {
         return coefficients._1 * argument + coefficients._0;
     }

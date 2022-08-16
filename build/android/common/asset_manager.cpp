@@ -13,18 +13,17 @@ namespace common
 
     AAssetManager* asset_manager() noexcept
     {
-        return asset_manager_.load();
+        return asset_manager_;
     }
     
     asset_manager_own::asset_manager_own(AAssetManager* am) noexcept
     {
-        D_ASSERT(am && !asset_manager_);
+        D_ASSERT(am);
         asset_manager_ = am;
     }
     
     asset_manager_own::~asset_manager_own() noexcept
     {
-        D_ASSERT(asset_manager_);
         asset_manager_ = nullptr;
     }
 }

@@ -23,11 +23,12 @@
     <ClInclude Include="buffer.h" />
     <ClInclude Include="point2d.h" />
     <ClInclude Include="resource_fwd.h" />
+    <ClInclude Include="round.h" />
     <ClInclude Include="size2d.h" />
     <ClInclude Include="size_type.h" />
     <ClInclude Include="span.h" />
+    <ClInclude Include="static_vector.h" />
     <ClInclude Include="string_char.h" />
-    <ClInclude Include="temp_swap.h" />
     <ClInclude Include="type_traits.h" />
     <ClInclude Include="underlying.h" />
     <ClInclude Include="utf.h" />
@@ -40,7 +41,7 @@
     <ClInclude Include="num_range.h" />
     <ClInclude Include="polynomial.h" />
     <ClInclude Include="rational.h" />
-    <ClInclude Include="rect.h" />
+    <ClInclude Include="rectangle.h" />
     <ClInclude Include="small_vector.h" />
     <ClInclude Include="resouce.h" />
     <ClInclude Include="value_type.h" />

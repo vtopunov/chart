@@ -10,8 +10,6 @@ namespace
 {
     gl::texture2d pix8map_rendering() noexcept
     {
-        gl::texture2d result_texture;
-
         constexpr px::size2d image_sizes{ 9_px, 9_px };
 
         constexpr GLubyte image[image_sizes.height() * size_align<4>(image_sizes.width())]
@@ -29,20 +27,13 @@ namespace
             0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0x00, 0x00, 0x00
         };
 
-        result_texture = gl::create_texture2d(image_sizes, image);
-        if (!result_texture)
-        {
-            e_debug("create texture error: {}", glGetError());
-            return {};
-        }
-
-        return result_texture;
+        return gl::create_texture2d(image_sizes, image);
     }
 }
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl_instance(app);
+    const auto egl = create_egl_window(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -53,11 +44,11 @@ int app_main(os::module_handle_t app) noexcept
     const auto texture = pix8map_rendering();
     if (!texture)
     {
-        e_debug("pixmap rendering fail");
+        e_debug("pixmap rendering fail: {}", glGetError());
         return EXIT_FAILURE;
     }
 
-    shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> shaders;
+    shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");
@@ -70,7 +61,7 @@ int app_main(os::module_handle_t app) noexcept
     shaders.frag.s_texture.store(texture);
 
     {
-        egl_painting_owner painting_lock{ egl };
+        const egl_painting_owner painting_lock{ egl };
         gl::clear(gl::colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();

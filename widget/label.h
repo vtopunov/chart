@@ -8,7 +8,7 @@
 
 #include <utility/font_cache.h>
 
-#include <egl_ui/egl_resources_fwd.h>
+#include <widget/window_fwd.h>
 
 
 namespace widget
@@ -29,8 +29,8 @@ namespace widget
             }
         }
 
-        bool initialize(const egl_resources& egl) noexcept;
+        bool initialize(window& w) noexcept;
 
-        void draw(buffer_t& buffer) noexcept;
+        void draw(const window& w) noexcept;
     };
 }

@@ -13,17 +13,18 @@
   <ItemGroup>
     <ClInclude Include="egl_config.h" />
     <ClInclude Include="egl_descriptors.h" />
-    <ClInclude Include="egl_resources.h" />
-    <ClInclude Include="egl_resources_fwd.h" />
+    <ClInclude Include="egl_window_resource.h" />
+    <ClInclude Include="egl_window_resource_fwd.h" />
     <ClInclude Include="painting_owner.h" />
     <ClInclude Include="run.h" />
-    <ClInclude Include="egl_instance.h" />
-    <ClInclude Include="ui_intance.h" />
-    <ClInclude Include="ui_resources.h" />
+    <ClInclude Include="egl_window.h" />
+    <ClInclude Include="viewport_rectangle.h" />
+    <ClInclude Include="window.h" />
+    <ClInclude Include="window_resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="egl_instance.cpp" />
-    <ClCompile Include="ui_intance.cpp" />
+    <ClCompile Include="egl_window.cpp" />
+    <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\3rdparty\angle\src\libEGL.vcxproj">

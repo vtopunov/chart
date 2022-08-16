@@ -55,7 +55,7 @@ namespace
             .text{ u8"Привет мир!" },
         };
 
-        bool initialize(const egl_resources& egl) noexcept
+        bool initialize(const window& w) noexcept
         {
             b0.clicked = [this] () noexcept
             {
@@ -72,9 +72,9 @@ namespace
                 clicked(this->b2);
             };
 
-            exit_b.clicked = [app = app(egl)]() noexcept
+            exit_b.clicked = [&w]() noexcept
             {
-                ui::quit(app);
+                quit(w);
             };
 
             return true;

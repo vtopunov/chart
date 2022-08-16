@@ -11,13 +11,13 @@ D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
 namespace private_detail_narrow
 {
     template<class Target, class Source>
-    constexpr bool is_narrowing_v = std::numeric_limits<Target>::digits < std::numeric_limits<Source>::digits;
+    constexpr bool is_narrowing_v = numeric_digits_v<Target> < numeric_digits_v<Source>;
 
     template<class Target, class Source>
     using is_narrowing = std::bool_constant<is_narrowing_v<Target, Source>>;
 
     template<class Target, class Source>
-    constexpr bool is_narrowing_or_same_v = std::numeric_limits<Target>::digits <= std::numeric_limits<Source>::digits;
+    constexpr bool is_narrowing_or_same_v = numeric_digits_v<Target> <= numeric_digits_v<Source>;
 
     template<class Target, class Source>
     using is_signed2unsigned = std::conjunction<
@@ -66,11 +66,11 @@ namespace private_detail_narrow
 
     template<class T, class S>
     constexpr bool is_safe_numeric_conversion_v 
-        = is_safe_numeric_conversion0_v<std::remove_cv_t<T>, std::remove_cv_t<S>>;
+        = is_safe_numeric_conversion0_v<std::remove_cvref_t<T>, std::remove_cvref_t<S>>;
 
     template<class T, class S>
     constexpr bool is_safe_numeric_not_same_conversion_v
-        = is_safe_numeric_not_same_conversion0_v<std::remove_cv_t<T>, std::remove_cv_t<S>>;
+        = is_safe_numeric_not_same_conversion0_v<std::remove_cvref_t<T>, std::remove_cvref_t<S>>;
 
     template<class Target, class Source>
     [[nodiscard]] constexpr bool is_safe_upper_narrowing_conversion(const Source& v) noexcept
@@ -110,8 +110,8 @@ namespace private_detail_narrow
     template<class Target, class Source>
     [[nodiscard]] constexpr bool is_safe_integral_to_floating_point_conversion(const Source& v) noexcept
     {
-        constexpr auto target_digits = std::numeric_limits<Target>::digits;
-        constexpr auto source_digits = std::numeric_limits<Source>::digits;
+        constexpr auto target_digits = numeric_digits_v<Target>;
+        constexpr auto source_digits = numeric_digits_v<Source>;
 
         if constexpr (target_digits < source_digits)
         {
@@ -204,6 +204,26 @@ namespace private_detail_narrow
             return v;
         }
     }
+
+    template<class T>
+    constexpr decltype(auto) to_unsigned_or(const T& value) noexcept
+    {
+        static_assert(std::is_arithmetic_v<T>);
+        return narrow_cast<unsigned_or_t<T>>(value);
+    }
+
+    template<class T>
+    constexpr decltype(auto) to_unsigned(const T& value) noexcept
+    {
+        return narrow_cast<std::make_unsigned_t<T>>(value);
+    }
+
+    template<class T>
+    constexpr decltype(auto) to_signed(const T& value) noexcept
+    {
+        static_assert(std::is_arithmetic_v<T>);
+        return narrow_cast<remove_unsigned_t<T>>(value);
+    }
 }
 
 using private_detail_narrow::is_narrowing_v;
@@ -213,5 +233,9 @@ using private_detail_narrow::is_safe_numeric_not_same_conversion_v;
 using private_detail_narrow::is_safe_narrowing_conversion;
 using private_detail_narrow::narrow_cast;
 using private_detail_narrow::safe_numeric_cast;
+using private_detail_narrow::to_unsigned_or;
+using private_detail_narrow::to_unsigned;
+using private_detail_narrow::to_signed;
+
 
 D_WARNING_POP

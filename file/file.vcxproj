@@ -85,6 +85,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="file.h" />
+    <ClInclude Include="file_asset.h" />
     <ClInclude Include="file_io.h" />
     <ClInclude Include="file_mmap.h" />
     <ClInclude Include="path.h" />

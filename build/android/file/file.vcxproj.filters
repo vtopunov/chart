@@ -13,16 +13,12 @@
     <ClInclude Include="private\private_file.h">
       <Filter>private</Filter>
     </ClInclude>
-    <ClInclude Include="private\private_path.h">
-      <Filter>private</Filter>
-    </ClInclude>
+    <ClInclude Include="..\..\..\file\file_asset.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="file.cpp" />
     <ClCompile Include="file_io.cpp" />
     <ClCompile Include="file_mmap.cpp" />
-    <ClCompile Include="private\private_path.cpp">
-      <Filter>private</Filter>
-    </ClCompile>
+    <ClCompile Include="file_asset.cpp" />
   </ItemGroup>
 </Project>

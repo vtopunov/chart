@@ -7,7 +7,7 @@
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl_instance(app);
+    const auto egl = create_egl_window(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -15,14 +15,14 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    const auto texture = png_texture_from_file(_PATH("grid_9x9.png"));
+    const auto texture = png_texture_from_asset_or_file(_PATH("grid_9x9.png"));
     if (!texture)
     {
         e_debug("create png texture error: {}", glGetError());
         return EXIT_FAILURE;
     }
 
-    shaders_library<vert::positioned_texture, frag::default_texture> shaders;
+    shaders_library<vert::positioned_texture, frag::default_texture> shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");
@@ -35,7 +35,7 @@ int app_main(os::module_handle_t app) noexcept
     shaders.frag.s_texture.store(texture);
 
     {
-        egl_painting_owner painting_lock{ egl };
+        const egl_painting_owner painting_lock{ egl };
         gl::clear(gl::colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();

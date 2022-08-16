@@ -4,7 +4,7 @@
 
 #include <egl_ui/run.h>
 
-#include <file/file_mmap.h>
+#include <file/file_asset.h>
 
 #include <font/font.h>
 
@@ -30,7 +30,7 @@ namespace
             return {};
         }
 
-        const auto font_file = file::mmap(D_FONT_NAME("DroidSerif-Regular.ttf"));
+        const auto font_file = file::asset_or_file_mmap(D_FONT_NAME("DroidSerif-Regular.ttf"));
         if (!font_file)
         {
             e_debug("can't open font file");
@@ -38,7 +38,6 @@ namespace
         }
 
         const auto face = font::create_face(font_file, 20_px);
-
         if (!face)
         {
             e_debug("can't create font");
@@ -122,7 +121,7 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl_instance(app);
+    const auto egl = create_egl_window(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -137,7 +136,7 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> shaders;
+    shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");
@@ -150,7 +149,7 @@ int app_main(os::module_handle_t app) noexcept
     shaders.frag.s_texture.store(texture);
 
     {
-        egl_painting_owner painting_lock{ egl };
+        const egl_painting_owner painting_lock{ egl };
         gl::clear(gl::colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();

@@ -63,4 +63,28 @@ using remove_cve_t = std::remove_cv_t<remove_enum_t<T>>;
 
 
 template<class T>
-using add_unsigned_t = conditional_op_t<std::is_integral_v<T>, std::make_unsigned_t, T>;
+using unsigned_or_t = conditional_op_t<std::is_integral_v<T>, std::make_unsigned_t, T>;
+
+template<class T>
+using remove_unsigned_t = conditional_op_t<std::is_unsigned_v<T>, std::make_signed_t, T>;
+
+
+template<class T>
+constexpr decltype(auto) as_unsigned_or(const T& value) noexcept
+{
+    static_assert(std::is_arithmetic_v<T>);
+    return static_cast<unsigned_or_t<T>>(value);
+}
+
+template<class T>
+constexpr decltype(auto) as_unsigned(const T& value) noexcept
+{
+    return static_cast<std::make_unsigned_t<T>>(value);
+}
+
+template<class T>
+constexpr decltype(auto) as_signed(const T& value) noexcept
+{
+    static_assert(std::is_arithmetic_v<T>);
+    return static_cast<remove_unsigned_t<T>>(value);
+}

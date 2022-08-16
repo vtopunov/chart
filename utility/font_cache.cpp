@@ -6,7 +6,7 @@
 
 #include <debug/debug.h>
 
-#include <file/file_mmap.h>
+#include <file/file_asset.h>
 
 namespace font_cache
 {
@@ -15,7 +15,7 @@ namespace font_cache
         struct mmap_item
         {
             file::path_string name;
-            file::file_mmap mmap;
+            file::asset_or_file_mmap_t mmap;
 
             struct by_name
             {
@@ -138,7 +138,7 @@ namespace font_cache
         {
             const_buffer_view font_storage{};
             file::path_string file_name;
-            file::file_mmap file_mmap;
+            file::asset_or_file_mmap_t file_mmap;
 
             if (cached_mmap)
             {
@@ -148,7 +148,7 @@ namespace font_cache
             {
                 file_name = name;
 
-                file_mmap = file::mmap(file_name);
+                file_mmap = file::asset_or_file_mmap(file_name);
                 if (!file_mmap)
                 {
                     e_debug(_PATH("can't open font file: {}"), file_name);

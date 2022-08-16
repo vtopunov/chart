@@ -43,6 +43,9 @@ namespace gl
         struct index
         {};
 
+        template<size_t i>
+        constexpr index<i> index_v{};
+
         template<class S, class T>
         using ptr_t = copy_const_t<S, T>*;
 
@@ -70,11 +73,10 @@ namespace gl
             return std::addressof(p->a3);
         }
 
-        template<size_t n, class V>
-        constexpr auto get_ptr(V* p) noexcept -> decltype(get_ptr_impl(std::declval<index<n>>(), std::declval<V*>()))
+        template<size_t i, class V>
+        constexpr auto get_ptr(V* p) noexcept -> decltype(get_ptr_impl(index_v<i>, p))
         {
-            constexpr index<n> index_selector{};
-            return get_ptr_impl(index_selector, p);
+            return get_ptr_impl(index_v<i>, p);
         }
     }
 

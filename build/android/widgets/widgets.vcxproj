@@ -36,15 +36,14 @@
   <ItemGroup>
     <ClInclude Include="$(RepoDir)\widget\button.h" />
     <ClInclude Include="$(RepoDir)\widget\label.h" />
-    <ClInclude Include="$(RepoDir)\widget\rectangle.h" />
     <ClInclude Include="$(RepoDir)\widget\run.h" />
-    <ClInclude Include="$(RepoDir)\widget\shader.h" />
     <ClInclude Include="$(RepoDir)\widget\text.h" />
+    <ClInclude Include="..\..\..\widget\shaders.h" />
+    <ClInclude Include="..\..\..\widget\window.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(RepoDir)\widget\button.cpp" />
     <ClCompile Include="$(RepoDir)\widget\label.cpp" />
-    <ClCompile Include="$(RepoDir)\widget\shader.cpp" />
     <ClCompile Include="$(RepoDir)\widget\text.cpp" />
   </ItemGroup>
   <ItemGroup>

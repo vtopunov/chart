@@ -59,7 +59,7 @@ struct attach_construct_t
 
 constexpr attach_construct_t attach_construct{};
 
-template<class T, size_t N>
+template<class T, size_t N, class Buffer = buffer<T>>
 class small_vector
 {
     using self = small_vector;
@@ -76,7 +76,7 @@ public:
     using const_iterator = const_pointer;
     using span_type = span<value_type>;
     using const_span_type = span<std::add_const_t<value_type>>;
-    using buffer_type = buffer<value_type>;
+    using buffer_type = Buffer;
     using size_type = typename buffer_type::size_type;
 
     static constexpr size_type static_size{ N };
@@ -128,7 +128,7 @@ public:
     {
         if (this != std::addressof(right))
         {
-            D_ASSERT_WITH_SIDE_EFFECTS(try_assign(right));
+            D_ASSERT_OR_UNUSED(try_assign(right));
         }
 
         return *this;
@@ -136,7 +136,7 @@ public:
 
     self& operator = (const_span_type right) noexcept
     {
-        D_ASSERT_WITH_SIDE_EFFECTS(try_assign(right));
+        D_ASSERT_OR_UNUSED(try_assign(right));
         return *this;
     }
 
@@ -274,7 +274,7 @@ public:
 
     void reserve(size_type new_capacity) noexcept
     {
-        D_ASSERT_WITH_SIDE_EFFECTS(try_reserve(new_capacity));
+        D_ASSERT_OR_UNUSED(try_reserve(new_capacity));
     }
 
     [[nodiscard]]
@@ -299,7 +299,7 @@ public:
 
     void shrink_to_fit() noexcept
     {
-        D_ASSERT_WITH_SIDE_EFFECTS(try_shrink_to_fit());
+        D_ASSERT_OR_UNUSED(try_shrink_to_fit());
     }
 
     template<class... Args>
@@ -314,6 +314,12 @@ public:
         }
 
         return nullptr;
+    }
+
+    template<class... Args>
+    void emplace_back(Args&&... args) noexcept
+    {
+        D_ASSERT_OR_UNUSED(try_emplace_back(std::forward<Args>(args)...));
     }
 
     void pop_back() noexcept
@@ -367,7 +373,7 @@ public:
     [[nodiscard]]
     constexpr const_iterator cend() const noexcept
     {
-        return _cend();
+        return data_ + size_;
     }
 
     [[nodiscard]]
@@ -403,7 +409,7 @@ public:
     [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
-        return *(_cend()-1_uz);
+        return *(cend()-1_uz);
     }
 
     [[nodiscard]]
@@ -478,12 +484,6 @@ public:
     }
 
 private:
-    [[nodiscard]]
-    constexpr const_pointer _cend() const noexcept
-    {
-        return data_ + size_;
-    }
-
     [[nodiscard]]
     constexpr size_type _release_size() noexcept
     {
@@ -650,7 +650,7 @@ private:
 
     void _collect(size_type expected_capacity) noexcept
     {
-        D_ASSERT_WITH_SIDE_EFFECTS(_try_collect(expected_capacity));
+        D_ASSERT_OR_UNUSED(_try_collect(expected_capacity));
     }
 
     void _collect() noexcept

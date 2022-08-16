@@ -23,8 +23,4 @@ static_assert(std::is_same_v<os::word_t, WORD>);
 #endif
 
 
-static_assert(std::is_class_v<std::remove_pointer_t<os::window_handle_t>>);
-static_assert(std::is_class_v<std::remove_pointer_t<os::module_handle_t>>);
-
-
 #include <os/undef.h>

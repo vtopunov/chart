@@ -5,8 +5,8 @@
 #include <core/polynomial.h>
 
 
-template<class From, class To> [[nodiscard]]
-constexpr decltype(auto) lerp(const num_range<From>& x, const num_range<To>& y) noexcept
+template<class From, class To>
+[[nodiscard]] constexpr decltype(auto) lerp(const num_range<From>& x, const num_range<To>& y) noexcept
 {
     const auto x_length = x.length();
     D_ASSERT(x_length);
@@ -17,9 +17,8 @@ constexpr decltype(auto) lerp(const num_range<From>& x, const num_range<To>& y) 
     return polynomial2{ offset, scaling };
 }
 
-
-template<class T> [[nodiscard]]
-constexpr decltype(auto) lerp(const point2d<T>& p0, const point2d<T>& p1) noexcept
+template<class T>
+[[nodiscard]] constexpr decltype(auto) lerp(const point2d<T>& p0, const point2d<T>& p1) noexcept
 {
     return lerp
     (
@@ -28,8 +27,8 @@ constexpr decltype(auto) lerp(const point2d<T>& p0, const point2d<T>& p1) noexce
     );
 }
 
-template<class T> [[nodiscard]]
-constexpr decltype(auto) lerp(const num_range<point2d<T>>& line) noexcept
+template<class T>
+[[nodiscard]] constexpr decltype(auto) lerp(const num_range<point2d<T>>& line) noexcept
 {
     return lerp(line._0, line._1);
 }

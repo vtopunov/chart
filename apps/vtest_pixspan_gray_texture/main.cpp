@@ -12,8 +12,6 @@ namespace
 {
     gl::texture2d pix8map_gallery_rendering() noexcept
     {
-        gl::texture2d result_texture;
-
         using pix8_t = pix8span::pixel_type;
 
         constexpr pix8space image_sizes{ 9_px, 11_px };
@@ -52,20 +50,13 @@ namespace
             }
         }
 
-        result_texture = gl::create_texture2d(gallery_span);
-        if (!result_texture)
-        {
-            e_debug("create texture error: {}", glGetError());
-            return {};
-        }
-
-        return result_texture;
+        return gl::create_texture2d(gallery_span);
     }
 }
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl_instance(app);
+    const auto egl = create_egl_window(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -76,11 +67,11 @@ int app_main(os::module_handle_t app) noexcept
     const auto texture = pix8map_gallery_rendering();
     if (!texture)
     {
-        e_debug("pixmap rendering fail");
+        e_debug("pixmap rendering fail: {}", glGetError());
         return EXIT_FAILURE;
     }
 
-    shaders_library<vert::positioned_texture, frag::gray_texture_mix_color>  shaders;
+    shaders_library<vert::positioned_texture, frag::gray_texture_mix_color>  shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");
@@ -93,7 +84,7 @@ int app_main(os::module_handle_t app) noexcept
     shaders.frag.s_texture.store(texture);
 
     {
-        egl_painting_owner painting_lock{ egl };
+        const egl_painting_owner painting_lock{ egl };
         gl::clear(gl::colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();

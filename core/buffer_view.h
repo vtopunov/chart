@@ -260,13 +260,13 @@ public:
     [[nodiscard]]
     constexpr reference back() const noexcept
     {
-        return *(_end() - 1_uz);
+        return const_cast<reference>(cback());
     }
 
     [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
-        return back();
+        return *(cend() - 1_uz);
     }
 
     [[nodiscard]]
@@ -284,22 +284,16 @@ public:
     [[nodiscard]]
     constexpr iterator end() const noexcept
     {
-        return _end();
+        return const_cast<iterator>(cend());
     }
 
     [[nodiscard]]
     constexpr const_iterator cend() const noexcept
     {
-        return end();
-    }
-
-private:
-    [[nodiscard]]
-    constexpr pointer _end() const noexcept
-    {
         return as_bytes_ptr() + size_;
     }
 
+private:
     template<class T>
     [[nodiscard]] constexpr size_t _count() const noexcept
     {

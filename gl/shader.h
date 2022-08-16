@@ -2,10 +2,12 @@
 
 #include <string_view>
 
+#include <core/assert.h>
 #include <core/resouce.h>
 #include <core/zstring_view.h>
 
 #include <gl/glsl_typeid.h>
+
 
 namespace gl
 {
@@ -204,26 +206,53 @@ namespace gl
     constexpr invaliduniform_t invaliduniform{};
     static_assert(uniform_location::invalid == invaliduniform);
 
-    template<glsl_typeid id>
+    template<glsl_typeid TypeId>
     struct uniform : uniform_base
     {
-        using value_view_type = glsl_view_t<id>;
+        static constexpr glsl_typeid type_id{ TypeId };
+        using value_view_type = glsl_view_t<type_id>;
+       
+#if D_IS_DEBUG
+        static constexpr int DEBUG_STORED__{ 1 << 0 };
+        static constexpr int DEBUG_RO__{ 1 << 1 };
+
+        mutable int debug_flags__{ 0 };
+
+        constexpr void __debug_store() const noexcept
+        {
+            D_ASSERT(!(debug_flags__ & DEBUG_RO__));
+            debug_flags__ |= DEBUG_STORED__;
+        }
+
+        constexpr void __debug_set_ro() const noexcept
+        {
+            D_ASSERT(__debug_is_stored());
+            debug_flags__ |= DEBUG_RO__;
+        }
+
+        constexpr bool __debug_is_stored() const noexcept
+        {
+            return !!(debug_flags__ & DEBUG_STORED__);
+        }
+#endif
 
         [[nodiscard]]
         bool test(shaders_program_resource program, string_view name) const noexcept
         {
-            return test_uniform(program, location, id, name);
+            return test_uniform(program, location, type_id, name);
         }
 
         void store(value_view_type view) const
         {
+            __debug_store();
             store_uniform_value(location, view);
         }
 
         template<class... Types>
-        auto store(const Types&... values) const -> decltype(store_uniform_method_v<id>(location_as_int(location), values...))
+        auto store(const Types&... values) const -> decltype(store_uniform_method_v<type_id>(location_as_int(location), values...))
         {
-            return store_uniform_method_v<id>(location_as_int(location), values...);
+            __debug_store();
+            return store_uniform_method_v<type_id>(location_as_int(location), values...);
         }
 
         [[nodiscard]] 

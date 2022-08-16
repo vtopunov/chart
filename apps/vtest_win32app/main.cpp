@@ -7,12 +7,12 @@ using namespace std::chrono_literals;
 
 namespace
 {
-    constexpr px::rect subwindow_geometry(px::size2d sizes) noexcept
+    constexpr px::rectangle subwindow_geometry(px::size2d mainwindow_sizes) noexcept
     {
         return
         {
-            narrow2d_cast<px::point2d>( sizes / 4u ),
-            narrow2d_cast<px::point2d>( (3u * sizes) / 4u )
+            narrow2d_cast<px::point2d>( mainwindow_sizes / 4u ),
+            narrow2d_cast<px::size2d>( mainwindow_sizes / 2u )
         };
     }
 
@@ -76,7 +76,7 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
         = builder
         .background(ui::stock_brush::light_gray)
         .parent(mainwindow)
-        .geometry(subwindow_geometry(ui::geometry(mainwindow).sizes()))
+        .geometry(subwindow_geometry(sizes(ui::geometry(mainwindow))))
         .build();
 
     if ( !subwindow )

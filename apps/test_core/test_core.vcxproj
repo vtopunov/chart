@@ -10,6 +10,10 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="test_round.cpp" />
+    <ClCompile Include="test_static_vector.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{EBD0A49D-12C3-44FC-9C69-2751125BA92C}</ProjectGuid>

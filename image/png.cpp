@@ -67,12 +67,12 @@ namespace image
 
     pxside_t png_header::width() const noexcept
     {
-        return as_pxside(as_spng_ihdr(storage_)->width);
+        return narrow_cast<pxside_t>(as_spng_ihdr(storage_)->width);
     }
 
     pxside_t png_header::height() const noexcept
     {
-        return as_pxside(as_spng_ihdr(storage_)->height);
+        return narrow_cast<pxside_t>(as_spng_ihdr(storage_)->height);
     }
 
     uint8_t png_header::bit_depth() const noexcept

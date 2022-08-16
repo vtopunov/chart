@@ -27,10 +27,10 @@ namespace ordered_overload
     constexpr _order<_0> _start{ nullptr };
 }
 
-struct no_overload
+struct no_overloaded
 {
     template<class T>
-    constexpr no_overload(const T&) noexcept
+    constexpr no_overloaded(const T&) noexcept
     {}
 };
 

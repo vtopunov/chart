@@ -59,7 +59,7 @@ namespace gl
 
     template<class T>
     auto draw_elements(draw_mode mode, const T& data) noexcept
-        -> decltype(draw_elements(std::declval<draw_mode>(), std::size(std::declval<T&>()), std::data(std::declval<T&>())))
+        -> decltype(draw_elements(mode, std::size(data), std::data(data)))
     {
         draw_elements(mode, std::size(data), std::data(data));
     }

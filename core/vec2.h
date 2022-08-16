@@ -1,14 +1,9 @@
 #pragma once
 
-#include <algorithm>
-
 #include <core/member_detector.h>
 #include <core/size_type.h>
 #include <core/span.h>
 
-
-#undef min
-#undef max
 
 template<class T>
 struct vec2
@@ -48,20 +43,47 @@ struct vec2
 template<class T>
 vec2(T, T)->vec2<T>;
 
-template<class T> [[nodiscard]]
-constexpr const vec2<T>& as_vec2(const vec2<T>& vec) noexcept
+template<size_t Index, class T>
+[[nodiscard]] constexpr const T& get(const vec2<T>& v) noexcept
+{
+    if constexpr (0_uz == Index)
+    {
+        return v._0;
+    }
+    else
+    {
+        static_assert(1_uz == Index);
+        return v._1;
+    }
+}
+
+template<size_t Index, class T>
+[[nodiscard]] constexpr T& get(vec2<T>& v) noexcept
+{
+    return const_cast<T&>(get<Index>(std::as_const(v)));
+}
+
+template<class T>
+[[nodiscard]] constexpr const vec2<T>& as_vec2(const vec2<T>& vec) noexcept
 {
     return vec;
 }
 
-template<class T> [[nodiscard]]
-constexpr vec2<T>& as_vec2(vec2<T>& vec) noexcept
+template<class T>
+[[nodiscard]] constexpr vec2<T>& as_vec2(vec2<T>& vec) noexcept
 {
     return vec;
 }
 
-template<class T> [[nodiscard]]
-constexpr vec2<T> fill_vec2(const T& value) noexcept
+template<class Callback, class In>
+[[nodiscard]] constexpr decltype(auto) apply(Callback&& fn, vec2<In> vec) noexcept
+{
+    using common_t = std::common_type_t<decltype(fn(std::move(vec._0))), decltype(fn(std::move(vec._1)))>;
+    return vec2<common_t>{ fn(std::move(vec._0)), fn(std::move(vec._1)) };
+}
+
+template<class T>
+[[nodiscard]] constexpr vec2<T> fill_vec2(const T& value) noexcept
 {
     return
     {
@@ -70,61 +92,20 @@ constexpr vec2<T> fill_vec2(const T& value) noexcept
     };
 }
 
-template<class T> [[nodiscard]]
-constexpr vec2<T> shift_push_back(const vec2<T>& vec, const T& value) noexcept
+template<class T>
+[[nodiscard]] constexpr std::enable_if_t<
+    std::negation_v<std::is_unsigned<T>>, vec2<std::remove_cvref_t<decltype(-std::declval<std::add_const_t<T>>())>>
+> operator - (const vec2<T>& right) noexcept
 {
     return
-    {
-        vec._1,
-        value
-    };
-}
-
-template<class T> [[nodiscard]]
-constexpr vec2<T> shift_push_front(const vec2<T>& vec, const T& value) noexcept
-{
-    return
-    {
-        value,
-        vec._0
-    };
-}
-
-
-template<class T> [[nodiscard]]
-constexpr vec2<T> reverse(const vec2<T>& v) noexcept
-{
-    return
-    {
-        v._1,
-        v._0
-    };
-}
-
-template<class T> [[nodiscard]]
-constexpr decltype(auto) sum(const vec2<T>& v) noexcept
-{
-    return v._1 + v._0;
-}
-
-template<class T> [[nodiscard]]
-constexpr decltype(auto)  difference(const vec2<T>& v) noexcept
-{
-    return v._1 - v._0;
-}
-
-template<class T> [[nodiscard]]
-constexpr decltype(auto) operator - (const vec2<T>& right) noexcept
-{
-    return vec2
     {
         -right._0,
         -right._1
     };
 }
 
-template<class L, class R> [[nodiscard]]
-constexpr decltype(auto) operator - (const vec2<L>& left, const vec2<R>& right) noexcept
+template<class L, class R>
+[[nodiscard]] constexpr decltype(auto) operator - (const vec2<L>& left, const vec2<R>& right) noexcept
 {
     return vec2
     {
@@ -133,8 +114,8 @@ constexpr decltype(auto) operator - (const vec2<L>& left, const vec2<R>& right) 
     };
 }
 
-template<class L, class R> [[nodiscard]]
-constexpr decltype(auto) operator + (const vec2<L>& left, const vec2<R>& right) noexcept
+template<class L, class R>
+[[nodiscard]] constexpr decltype(auto) operator + (const vec2<L>& left, const vec2<R>& right) noexcept
 {
     return vec2
     {
@@ -143,8 +124,8 @@ constexpr decltype(auto) operator + (const vec2<L>& left, const vec2<R>& right) 
     };
 }
 
-template<class T> [[nodiscard]]
-constexpr decltype(auto) operator * (const vec2<T>& left, const T& right) noexcept
+template<class T>
+[[nodiscard]] constexpr decltype(auto) operator * (const vec2<T>& left, const T& right) noexcept
 {
     return vec2
     {
@@ -153,8 +134,8 @@ constexpr decltype(auto) operator * (const vec2<T>& left, const T& right) noexce
     };
 }
 
-template<class T> [[nodiscard]]
-constexpr decltype(auto) operator * (const T& left, const vec2<T>& right) noexcept
+template<class T>
+[[nodiscard]] constexpr decltype(auto) operator * (const T& left, const vec2<T>& right) noexcept
 {
     return right * left;
 }
@@ -165,13 +146,11 @@ using decl_mul_t = std::remove_cvref_t<decltype(std::declval<std::add_const_t<L>
 template<class L, class R>
 using decl_div_t = std::remove_cvref_t<decltype(std::declval<std::add_const_t<L>>() / std::declval<std::add_const_t<R>>())>;
 
-template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t
-<
-    std::conjunction_v<std::negation<std::is_same<T, U>>, std::is_arithmetic<U>>, 
+template<class T, class U>
+[[nodiscard]] constexpr std::enable_if_t<
+    std::conjunction_v<std::negation<std::is_same<T, U>>, std::is_arithmetic<U>>,
     vec2<decl_mul_t<T, U>>
-> 
-operator * (const vec2<T>& left, const U& right) noexcept
+> operator * (const vec2<T>& left, const U& right) noexcept
 {
     return
     {
@@ -180,14 +159,17 @@ operator * (const vec2<T>& left, const U& right) noexcept
     };
 }
 
-template<class U, class T> [[nodiscard]]
-constexpr auto operator * (const U& left, const vec2<T>& right) noexcept -> decltype(right* left)
+template<class U, class T>
+[[nodiscard]] constexpr auto operator * (const U& left, const vec2<T>& right) noexcept -> decltype(right* left)
 {
     return right * left;
 }
 
-template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t<std::is_arithmetic_v<U>, vec2<decl_div_t<T, U>>>  operator / (const vec2<T>& left, const U& right) noexcept
+template<class T, class U>
+[[nodiscard]] constexpr std::enable_if_t<
+    std::is_arithmetic_v<U>,
+    vec2<decl_div_t<T, U>>
+>  operator / (const vec2<T>& left, const U& right) noexcept
 {
     return
     {
@@ -196,50 +178,8 @@ constexpr std::enable_if_t<std::is_arithmetic_v<U>, vec2<decl_div_t<T, U>>>  ope
     };
 }
 
-template<class T> [[nodiscard]]
-constexpr vec2<T> min(const vec2<T>& a, const vec2<T>& b) noexcept;
-
-template<class T> [[nodiscard]]
-constexpr vec2<T> max(const vec2<T>& a, const vec2<T>& b) noexcept;
-
-template<class T> [[nodiscard]]
-constexpr T min(const vec2<T>& v) noexcept
-{
-    using std::min;
-    using ::min;
-    return min(v._0, v._1);
-}
-
-template<class T> [[nodiscard]]
-constexpr T max(const vec2<T>& v) noexcept
-{
-    using std::max;
-    using ::max;
-    return max(v._0, v._1);
-}
-
-template<class T> [[nodiscard]]
-constexpr vec2<T> min(const vec2<T>& a, const vec2<T>& b) noexcept
-{
-    return
-    {
-        min(vec2{ a._0, b._0 }),
-        min(vec2{ a._1, b._1 })
-    };
-}
-
-template<class T> [[nodiscard]]
-constexpr vec2<T> max(const vec2<T>& a, const vec2<T>& b) noexcept
-{
-    return
-    {
-        max(vec2{ a._0, b._0 }),
-        max(vec2{ a._1, b._1 })
-    };
-}
-
-template<class OutT, class InT> [[nodiscard]]
-constexpr OutT narrow2d_cast(InT x, InT y) noexcept
+template<class OutT, class InT>
+[[nodiscard]] constexpr OutT narrow2d_cast(InT x, InT y) noexcept
 {
     using value_t = value_type_t<OutT>;
 
@@ -250,8 +190,8 @@ constexpr OutT narrow2d_cast(InT x, InT y) noexcept
     };
 }
 
-template<class OutT, class InT> [[nodiscard]]
-constexpr OutT narrow2d_cast(vec2<InT> in) noexcept
+template<class OutT, class InT>
+[[nodiscard]] constexpr OutT narrow2d_cast(vec2<InT> in) noexcept
 {
     return narrow2d_cast<OutT>(std::move(in._0), std::move(in._1));
 }

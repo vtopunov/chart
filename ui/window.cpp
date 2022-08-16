@@ -1,5 +1,7 @@
 #include "window.h"
 
+#include <algorithm>
+
 #include <ui/event_processors_container.h>
 
 namespace ui
@@ -43,14 +45,35 @@ namespace ui
             };
         }
 
+        template<class T> [[nodiscard]]
+        constexpr pxside_t side_length(T p0, T p1) noexcept
+        {
+            D_ASSERT(p1 >= p0);
+            return narrow_cast<pxside_t>(p1 - p0);
+        }
+
         [[nodiscard]]
-        constexpr px::rect make_rect_from_gdi(const RECT& rect) noexcept
+        constexpr px::size2d sizes(const RECT& rect) noexcept
+        {
+            return { side_length(rect.left, rect.right), side_length(rect.top, rect.bottom) };
+        }
+
+        [[nodiscard]]
+        constexpr px::rectangle make_rectangle(const RECT& rect) noexcept
         {
             return
             {
-                narrow2d_cast<px::point2d>(rect.left, rect.top),
-                narrow2d_cast<px::point2d>(rect.right, rect.bottom)
+                .position{ narrow2d_cast<px::point2d>(rect.left, rect.top) },
+                .sizes{ sizes(rect) }
             };
+        }
+
+        [[nodiscard]]
+        RECT gdi_geometry(window_handle_t window) noexcept
+        {
+            RECT rect{ 0, 0, 0, 0 };
+            D_ASSERT_OR_UNUSED(GetClientRect(window, &rect));
+            return rect;
         }
 
         bool close(window_container& window_set, window_handle_t window) noexcept
@@ -107,14 +130,17 @@ namespace ui
         }
     }
 
-    px::rect geometry(window_handle_t window) noexcept
+    px::rectangle geometry(window_handle_t window) noexcept
     {
-        RECT rect{ 0, 0, 0, 0 };
-        D_ASSERT_WITH_SIDE_EFFECTS(GetClientRect(window, &rect));
-        return make_rect_from_gdi(rect);
+        return make_rectangle(gdi_geometry(window));
     }
 
-    bool geometry(window_handle_t window, px::rect rc) noexcept
+    px::size2d sizes(window_handle_t window) noexcept
+    {
+        return sizes(gdi_geometry(window));
+    }
+
+    bool geometry(window_handle_t window, px::rectangle rc) noexcept
     {
         return !!SetWindowPos
         (
@@ -160,10 +186,10 @@ namespace ui
                     cached_type_.r().name_id,
                     title_.c_str(),
                     style,
-                    px_to_native(position_.x()),
-                    px_to_native(position_.y()),
-                    px_to_native(sizes_.width()),
-                    px_to_native(sizes_.height()),
+                    px_to_native(geometry_.x()),
+                    px_to_native(geometry_.y()),
+                    px_to_native(geometry_.width()),
+                    px_to_native(geometry_.height()),
                     parent_,
                     nullptr,
                     cached_type_.r().module,

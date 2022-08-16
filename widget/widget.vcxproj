@@ -14,10 +14,11 @@
     <ClInclude Include="button.h" />
     <ClInclude Include="event_result.h" />
     <ClInclude Include="label.h" />
-    <ClInclude Include="rectangle.h" />
     <ClInclude Include="run.h" />
-    <ClInclude Include="shader.h" />
+    <ClInclude Include="shaders.h" />
     <ClInclude Include="text.h" />
+    <ClInclude Include="window.h" />
+    <ClInclude Include="window_fwd.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\utility\utility.vcxproj">
@@ -27,7 +28,6 @@
   <ItemGroup>
     <ClCompile Include="button.cpp" />
     <ClCompile Include="label.cpp" />
-    <ClCompile Include="shader.cpp" />
     <ClCompile Include="text.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

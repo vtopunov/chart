@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 
 #include <core/warnings.h>
 
@@ -9,9 +10,9 @@
 
 
 #if defined(D_OS_WINDOWS)
-#define D_OS_WINDOWS_ONLY(A) A
+#define D_ONLY_OS_WINDOWS(A) A
 #else
-#define D_OS_WINDOWS_ONLY(A)
+#define D_ONLY_OS_WINDOWS(A)
 #endif
 
 #if defined(D_OS_WINDOWS)
@@ -21,9 +22,9 @@
 #endif
 
 #if defined(D_OS_ANDROID)
-#define D_OS_ANDROID_ONLY(A) A
+#define D_ONLY_OS_ANDROID(A) A
 #else
-#define D_OS_ANDROID_ONLY(A)
+#define D_ONLY_OS_ANDROID(A)
 #endif
 
 #if defined(D_OS_ANDROID)
@@ -65,6 +66,7 @@ struct ASensorManager;
 struct ASensorEventQueue;
 struct AInputEvent;
 struct android_poll_source;
+struct AAsset;
 
 extern "C" int ALooper_pollAll(int timeoutMillis, int* outFd, int* outEvents, void** outData);
 
@@ -89,8 +91,20 @@ namespace os
     using window_handle_t = ANativeWindow*;
     using sensor_manager_handle_t = ASensorManager*;
     using sensor_event_queue_handle_t = ASensorEventQueue*;
+    using asset_handle_t = AAsset*;
 
 #endif
 
+    using const_module_handle_t = std::add_pointer_t<std::add_const_t<std::remove_pointer_t<module_handle_t>>>;
     using file_descriptor_t = D_CONDITIONAL_OS_WINDOWS(handle_t, int);
+
+
+    namespace private_detail_osfwd_test
+    {
+        template<class Handle>
+        constexpr bool handle_type_is_valid_v = std::conjunction_v<std::is_pointer<Handle>, std::is_class<std::remove_pointer_t<Handle>>>;
+
+        static_assert(handle_type_is_valid_v<window_handle_t>);
+        static_assert(handle_type_is_valid_v<module_handle_t>);
+    }
 }

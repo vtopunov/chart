@@ -42,13 +42,11 @@ namespace
 
     gl::texture2d lines_rendering() noexcept
     {
-        gl::texture2d result_texture;
-    
         pix8map image{ 600_px, 600_px };
         if (!image)
         {
             e_debug("out of memory");
-            return result_texture;
+            return {};
         }
 
         const auto line0 = image.line0();
@@ -149,7 +147,7 @@ namespace
         draw_dda_line(line0, 240, 340, 5, 555);
         draw_antialiasing_line(line0, 5, 550, 240, 335);
 
-        result_texture = gl::create_texture2d(image);
+        auto result_texture = gl::create_texture2d(image);
         if (!result_texture)
         {
             e_debug("create texture error: {}\n", glGetError());
@@ -163,7 +161,7 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl_instance(app);
+    const auto egl = create_egl_window(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -178,22 +176,22 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shaders_library<vert::positioned_texture, frag::inverted_texture>  shaders;
+    shaders_library<vert::positioned_texture, frag::inverted_texture>  shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");
         return EXIT_FAILURE;
     }
-
-    shaders.use();
-    shaders.vert.u_position.store(point2d{ 30_px, 50_px });
-    shaders.vert.u_size.store(sizes(texture));
-    shaders.vert.u_viewport.store(sizes(egl));
-    shaders.frag.s_texture.store(texture);
     
     {
-        egl_painting_owner painting_lock{ egl };
+        const egl_painting_owner painting_lock{ egl };
         gl::clear(gl::colors::gray_f);
+
+        shaders.use();
+        shaders.frag.s_texture.store(texture);
+        shaders.vert.u_viewport.store(sizes(egl));
+        shaders.vert.u_position.store(30_px, 50_px);
+        shaders.vert.u_size.store(sizes(texture));
         shaders.vert.a_frame.draw();
     }
 

@@ -7,12 +7,10 @@
 
 #include <gl/texture.h>
 
-#include <egl_ui/egl_resources_fwd.h>
-
 #include <utility/font_cache.h>
 
+#include <widget/window_fwd.h>
 #include <widget/event_result.h>
-#include <widget/rectangle.h>
 
 namespace widget
 {
@@ -25,7 +23,7 @@ namespace widget
 
     struct button
     {
-        rectangle geometry{};
+        px::rectangle geometry{};
         std::u8string text{};
         std::function<void()> clicked{};
         font_cache::face font{};
@@ -41,12 +39,12 @@ namespace widget
             }
         }
 
-        bool initialize(const egl_resources& egl) noexcept;
+        bool initialize(window& w) noexcept;
 
         event_result operator () (const ui::mouse_down_event& e) noexcept;
         event_result operator () (const ui::mouse_up_event& e) noexcept;
         event_result operator () (const ui::mouse_move_event& e) noexcept;
         
-        void draw(buffer_t& buffer) noexcept;
+        void draw(const window& w) noexcept;
     };
 }

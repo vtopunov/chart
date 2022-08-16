@@ -122,6 +122,14 @@ namespace gl
         {
             using type = vec2b;
         };
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::sampler2D> : select_type_for_glsl<glsl_typeid::sint>
+        {};
+
+        template<>
+        struct select_type_for_glsl<glsl_typeid::samplerCube> : select_type_for_glsl<glsl_typeid::sint>
+        {};
     }
 
     template<glsl_typeid id>
@@ -251,12 +259,6 @@ namespace gl
         return id;
     }
 
-    [[nodiscard]]
-    constexpr bool is_sampler(glsl_typeid id) noexcept
-    {
-        return glsl_typeid::sampler2D == id || glsl_typeid::samplerCube == id;
-    }
-
     template<glsl_typeid id>
     constexpr auto glsl_tuple_element_typeid_v = glsl_tuple_element_typeid(id);
 
@@ -297,9 +299,7 @@ namespace gl
         template<glsl_typeid id>
         struct select_glsl_view0<id, 1_uz>
         {
-            static constexpr auto base_id = is_sampler(id) ? glsl_tuple_element_typeid(id) : id;
-
-            using type = glsl_type_t<base_id>;
+            using type = glsl_type_t<id>;
         };
     }
 

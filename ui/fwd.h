@@ -8,6 +8,7 @@ namespace ui
 {
     using os::window_handle_t;
     using os::module_handle_t;
+    using os::const_module_handle_t;
 
 #ifdef D_OS_WINDOWS
     using os::uint_t;

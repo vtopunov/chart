@@ -36,6 +36,7 @@
   <ItemGroup>
     <ClInclude Include="$(RepoDir)\utility\png.h" />
     <ClInclude Include="$(RepoDir)\utility\shaders_library.h" />
+    <ClInclude Include="..\..\..\utility\cache_storage.h" />
     <ClInclude Include="..\..\..\utility\font_cache.h" />
   </ItemGroup>
   <ItemGroup>

@@ -49,7 +49,7 @@ namespace ui
     {
         if (type)
         {
-            D_ASSERT_WITH_SIDE_EFFECTS(UnregisterClassW(type.name_id, type.module));
+            D_ASSERT_OR_UNUSED(UnregisterClassW(type.name_id, type.module));
         }
     }
 
@@ -58,6 +58,7 @@ namespace ui
         data_.cbSize = sizeof(data_);
         data_.lpszClassName = name.c_str();
         D_ASSERT(!is_null_or_empty(data_.lpszClassName));
+        data_.style |= CS_DBLCLKS;
 
         if (!data_.hInstance)
         {

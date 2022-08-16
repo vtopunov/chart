@@ -92,7 +92,7 @@ namespace file
     {
         if (invalidfile != file)
         {
-            D_ASSERT_WITH_SIDE_EFFECTS(CloseHandle(file.fd));
+            D_ASSERT_OR_UNUSED(CloseHandle(file.fd));
         }
     }
 

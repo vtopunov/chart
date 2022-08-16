@@ -225,3 +225,7 @@ namespace gl
     using texture_sampler2D = texture_sampler<texture_target::texture_2d>;
     static_assert(std::is_same_v<nulltexsampler_t, null_t<texture_sampler2D> >);
 }
+
+using gl::sizes;
+using gl::width;
+using gl::height;

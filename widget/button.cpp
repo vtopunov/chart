@@ -4,9 +4,7 @@
 
 #include <ui/event.h>
 
-#include <egl_ui/egl_resources.h>
-
-#include <widget/shader.h>
+#include <widget/window.h>
 #include <widget/text.h>
 
 
@@ -49,13 +47,13 @@ namespace widget
             }
         };
 
-        bool button_shaders_initialize(px::size2d viewport_sizes) noexcept
+        bool button_shaders_initialize(shaders& shaders, px::size2d viewport_sizes) noexcept
         {
-            return shader::colored_rectangle::initialize(viewport_sizes)
-                && shader::gray_texture_mix_color::initialize(viewport_sizes);
+            return shaders.colored_rectangle.initialize(viewport_sizes)
+                && shaders.gray_texture_mix_color.initialize(viewport_sizes);
         }
 
-        constexpr rectangle rectangle_without_frame(const rectangle& r)noexcept
+        constexpr px::rectangle rectangle_without_frame(const px::rectangle& r)noexcept
         {
             constexpr size2d frame_sizes{ 1_px, 1_px };
             return
@@ -77,9 +75,9 @@ namespace widget
         }
     }
 
-    bool button::initialize(const egl_resources& window) noexcept
+    bool button::initialize(window& w) noexcept
     {
-        if (!button_shaders_initialize(sizes(window)))
+        if (!button_shaders_initialize(w.shaders, sizes(w)))
         {
             e_debug("shaders error: {}", glGetError());
             return false;
@@ -152,7 +150,7 @@ namespace widget
     {
         if (button_state::pressed != state)
         {
-            const auto new_state = geometry.contains(e.position()) ? button_state::hovered : button_state::free;
+            const auto new_state = geometry.contains(e) ? button_state::hovered : button_state::free;
             if (update_state(state, new_state))
             {
                 return event_result::redraw;
@@ -162,24 +160,24 @@ namespace widget
         return event_result::idle;
     }
 
-    void button::draw(buffer_t& buffer) noexcept
+    void button::draw(const window& w) noexcept
     {
         const auto colors = button_colors::instance(state);
 
-        shader::colored_rectangle::draw(geometry, colors.frame);
+        w.shaders.colored_rectangle.draw(geometry, colors.frame);
 
         const auto client_rc = rectangle_without_frame(geometry);
-        shader::colored_rectangle::draw(client_rc, colors.body);
+        w.shaders.colored_rectangle.draw(client_rc, colors.body);
 
         if (!texture_text_cache && !text.empty())
         {
-            texture_text_cache = text::draw_to_texture(buffer, font, text, client_rc.sizes);
+            texture_text_cache = text::draw_to_texture(w.temp_buffer, font, text, client_rc.sizes);
         }
 
         if (texture_text_cache)
         {
             const auto position = (2 * client_rc.position + client_rc.sizes - sizes(texture_text_cache)) / 2;
-            shader::gray_texture_mix_color::draw(position, texture_text_cache, gl::colors::black_f);
+            w.shaders.gray_texture_mix_color.draw(position, texture_text_cache, gl::colors::black_f);
         }
     }
 }

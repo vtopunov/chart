@@ -4,6 +4,12 @@ namespace gl
 {
     namespace
     {
+        [[nodiscard]]
+        constexpr bool is_sampler(glsl_typeid id) noexcept
+        {
+            return glsl_typeid::sampler2D == id || glsl_typeid::samplerCube == id;
+        }
+
         template<texture_target target>
         void set_texture(specialized_texture_resource<target> texture, px::size2d sizes, texture_format format, const void* pixels) noexcept
         {

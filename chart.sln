@@ -103,6 +103,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_pixspan_gray_texture"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_pixspan_texture", "apps\vtest_pixspan_texture\vtest_pixspan_texture.vcxproj", "{4199FB02-2B55-4E9F-BF25-B32A1A625EE0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_move_and_zoom", "apps\vtest_move_and_zoom\vtest_move_and_zoom.vcxproj", "{D0B217C2-97AD-495F-B85F-E61B2E53E4CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -293,6 +295,10 @@ Global
 		{4199FB02-2B55-4E9F-BF25-B32A1A625EE0}.Debug|x64.Build.0 = Debug|x64
 		{4199FB02-2B55-4E9F-BF25-B32A1A625EE0}.Release|x64.ActiveCfg = Release|x64
 		{4199FB02-2B55-4E9F-BF25-B32A1A625EE0}.Release|x64.Build.0 = Release|x64
+		{D0B217C2-97AD-495F-B85F-E61B2E53E4CE}.Debug|x64.ActiveCfg = Debug|x64
+		{D0B217C2-97AD-495F-B85F-E61B2E53E4CE}.Debug|x64.Build.0 = Debug|x64
+		{D0B217C2-97AD-495F-B85F-E61B2E53E4CE}.Release|x64.ActiveCfg = Release|x64
+		{D0B217C2-97AD-495F-B85F-E61B2E53E4CE}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -333,6 +339,7 @@ Global
 		{6983C2F4-F136-43EC-9FA1-647664EE5CF7} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{173F3AA8-32C9-43A7-9888-51B2DA3A9742} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{4199FB02-2B55-4E9F-BF25-B32A1A625EE0} = {522D351D-0C5D-40A1-A856-3C94167BA347}
+		{D0B217C2-97AD-495F-B85F-E61B2E53E4CE} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA32F6CD-3CF1-41D1-9B1C-B19E96B2EE6A}

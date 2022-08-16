@@ -40,17 +40,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\file\file.h" />
+    <ClInclude Include="..\..\..\file\file_asset.h" />
     <ClInclude Include="..\..\..\file\file_io.h" />
     <ClInclude Include="..\..\..\file\file_mmap.h" />
     <ClInclude Include="..\..\..\file\path.h" />
     <ClInclude Include="private\private_file.h" />
-    <ClInclude Include="private\private_path.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="file.cpp" />
+    <ClCompile Include="file_asset.cpp" />
     <ClCompile Include="file_io.cpp" />
     <ClCompile Include="file_mmap.cpp" />
-    <ClCompile Include="private\private_path.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\common\asset_manager.vcxproj">

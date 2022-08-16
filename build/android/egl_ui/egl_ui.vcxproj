@@ -54,17 +54,17 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\egl_ui\egl_config.h" />
     <ClInclude Include="..\..\..\egl_ui\egl_descriptors.h" />
-    <ClInclude Include="..\..\..\egl_ui\egl_instance.h" />
-    <ClInclude Include="..\..\..\egl_ui\egl_resources.h" />
-    <ClInclude Include="..\..\..\egl_ui\egl_resources_fwd.h" />
+    <ClInclude Include="..\..\..\egl_ui\egl_window.h" />
+    <ClInclude Include="..\..\..\egl_ui\egl_window_resource.h" />
+    <ClInclude Include="..\..\..\egl_ui\egl_window_resource_fwd.h" />
     <ClInclude Include="..\..\..\egl_ui\painting_owner.h" />
     <ClInclude Include="..\..\..\egl_ui\run.h" />
-    <ClInclude Include="..\..\..\egl_ui\ui_intance.h" />
-    <ClInclude Include="..\..\..\egl_ui\ui_resources.h" />
+    <ClInclude Include="..\..\..\egl_ui\window.h" />
+    <ClInclude Include="..\..\..\egl_ui\window_resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\egl_ui\egl_instance.cpp" />
-    <ClCompile Include="ui_intance.cpp" />
+    <ClCompile Include="..\..\..\egl_ui\egl_window.cpp" />
+    <ClCompile Include="window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

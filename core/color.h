@@ -34,8 +34,10 @@ constexpr Target color_cast(const Source& src) noexcept;
 template<class T>
 struct rgba_color
 {
+    static constexpr size_t extent{ 4u };
+
     using tint_type = T;
-    using view_type = span<const tint_type, 4u>;
+    using view_type = span<const tint_type, extent>;
 
     tint_type r;
     tint_type g;
@@ -57,12 +59,11 @@ struct rgba_color
         return color_cast<rgba_color<rational<U>>>(*this);
     }
 
-
     [[nodiscard]]
     constexpr operator view_type() const noexcept
     {
-        static_assert(sizeof(rgba_color<T>) == 4u * sizeof(T));
-        return view_type{ std::addressof(r), view_type::extent };
+        static_assert(sizeof(rgba_color<T>) == extent * sizeof(tint_type));
+        return view_type{ std::addressof(r), extent };
     }
 
     [[nodiscard]]

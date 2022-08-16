@@ -1,5 +1,7 @@
 #pragma once
 
+#include <compare>
+
 #include <core/clamp_cast.h>
 
 #include <px/fwd.h>
@@ -49,41 +51,63 @@ namespace ui
 
     protected:
         [[nodiscard]]
-        constexpr word_parameter_t word_parameter() const noexcept
+        constexpr word_parameter_t _word_parameter() const noexcept
         {
             return word_parameter_;
         }
 
         [[nodiscard]]
-        constexpr long_parameter_t long_parameter() const noexcept
+        constexpr long_parameter_t _long_parameter() const noexcept
         {
             return long_parameter_;
         }
 
+        using _coordinate_value_type = pxside_t;
+        static_assert(is_safe_numeric_conversion_v<_coordinate_value_type, word_t>);
+
         [[nodiscard]]
-        constexpr pxside_t x_long_parameter() const noexcept
+        constexpr _coordinate_value_type _x_coordinate() const noexcept
         {
             D_WARNING_PUSH;
             D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
-            return as_pxside(lo_cast<word_t>(static_cast<dword_t>(long_parameter())));
+            return lo_cast<word_t>(static_cast<dword_t>(_long_parameter()));
             D_WARNING_POP;
         }
 
         [[nodiscard]]
-        constexpr pxside_t y_long_parameter() const noexcept
+        constexpr _coordinate_value_type _y_coordinate() const noexcept
         {
             D_WARNING_PUSH;
             D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
-            return as_pxside(hi_cast<word_t>(static_cast<dword_t>(long_parameter())));
+            return hi_cast<word_t>(static_cast<dword_t>(_long_parameter()));
             D_WARNING_POP;
         }
 
         [[nodiscard]]
-        constexpr px::vec2 vec_long_parameter() const noexcept
+        constexpr _coordinate_value_type _x_coordinate(size_t index) const noexcept
         {
-            return { x_long_parameter(), y_long_parameter() };
+            D_ASSERT(index < _size()); D_UNUSED(index);
+            return _x_coordinate();
         }
 
+        [[nodiscard]]
+        constexpr _coordinate_value_type _y_coordinate(size_t index) const noexcept
+        {
+            D_ASSERT(index < _size()); D_UNUSED(index);
+            return _y_coordinate();
+        }
+
+        [[nodiscard]]
+        constexpr size_t _index() const noexcept
+        {
+            return 0_uz;
+        }
+
+        [[nodiscard]]
+        constexpr size_t _size() const noexcept
+        {
+            return 1_uz;
+        }
 
     private:
         long_parameter_t long_parameter_;
@@ -102,7 +126,17 @@ namespace ui
     class event
     {
     public:
+        static constexpr int32_t invalid_action{ -1 };
         static constexpr int32_t action_mask{ 0xff };
+        static constexpr int32_t p_index_mask{ 0xff00 };
+        static constexpr int32_t p_index_shift{ 8 };
+
+        event(const AInputEvent* input_e) noexcept;
+
+        constexpr explicit operator bool() const noexcept
+        {
+            return invalid_action != action_;
+        }
 
         [[nodiscard]]
         constexpr event_style style() const noexcept
@@ -110,27 +144,102 @@ namespace ui
             return to_event_style(action_ & action_mask);
         }
 
-    protected:
-        constexpr explicit event(int32_t action) noexcept
-            : action_{ action }
-        {}
-        
+    protected:        
         [[nodiscard]]
         constexpr int32_t action() const noexcept
         {
             return action_;
         }
 
+        using _coordinate_value_type = float;
+
+        [[nodiscard]]
+        _coordinate_value_type _x_coordinate() const noexcept
+        {
+            return _x_coordinate(_index());
+        }
+
+        [[nodiscard]]
+        _coordinate_value_type _y_coordinate() const noexcept
+        {
+            return _y_coordinate(_index());
+        }
+
+        [[nodiscard]]
+        _coordinate_value_type _x_coordinate(size_t index) const noexcept;
+
+        [[nodiscard]]
+        _coordinate_value_type _y_coordinate(size_t index) const noexcept;
+
+        [[nodiscard]]
+        constexpr size_t _index() const noexcept
+        {
+            return static_cast<size_t>((action_ & p_index_mask) >> p_index_shift);
+        }
+
+        [[nodiscard]]
+        size_t _size() const noexcept;
+
     private:
+        const AInputEvent* input_e_;
         int32_t action_;
     };
-
 #endif
 
-    template<event_style>
-    class specialized_event : public event
-    {};
+    class pointer_event : public event
+    {
+    public:
+        using value_type = event::_coordinate_value_type;
+        using point2d_type = point2d<value_type>;
 
+        [[nodiscard]]
+        D_ONLY_OS_WINDOWS(constexpr) value_type x() const noexcept
+        {
+            return _x_coordinate();
+        }
+
+        [[nodiscard]]
+        D_ONLY_OS_WINDOWS(constexpr) value_type y() const noexcept
+        {
+            return _y_coordinate();
+        }
+
+        [[nodiscard]]
+        D_ONLY_OS_WINDOWS(constexpr) value_type x(size_t index) const noexcept
+        {
+            return _x_coordinate(index);
+        }
+
+        [[nodiscard]]
+        D_ONLY_OS_WINDOWS(constexpr) value_type y(size_t index) const noexcept
+        {
+            return _y_coordinate(index);
+        }
+
+        [[nodiscard]]
+        D_ONLY_OS_WINDOWS(constexpr) point2d_type pointer(size_t index) const noexcept
+        {
+            return { x(index), y(index) };
+        }
+
+        [[nodiscard]]
+        D_ONLY_OS_WINDOWS(constexpr) point2d_type pointer() const noexcept
+        {
+            return { x(), y() };
+        }
+
+        [[nodiscard]]
+        constexpr size_t index() const noexcept
+        {
+            return _index();
+        }
+
+        [[nodiscard]]
+        D_ONLY_OS_WINDOWS(constexpr) size_t size() const noexcept
+        {
+            return _size();
+        }
+    };
 
 #if defined(D_OS_WINDOWS)
     D_WARNING_PUSH;
@@ -138,7 +247,7 @@ namespace ui
 
     struct mouse_keys
     {
-        enum e_mouse_keys : word_parameter_t
+        enum e_mouse_keys : word_t
         {
             lbutton = 0x0001, // MK_LBUTTON,
             rbutton = 0x0002, // MK_RBUTTON,
@@ -146,7 +255,7 @@ namespace ui
             control = 0x0008, // MK_CONTROL,
             mbutton = 0x0010  // MK_MBUTTON
         };
-        
+
         e_mouse_keys keys;
 
         [[nodiscard]]
@@ -184,121 +293,64 @@ namespace ui
         {
             return is(control);
         }
+
+        [[nodiscard]]
+        constexpr bool operator == (const mouse_keys&) const noexcept = default;
+
+        [[nodiscard]]
+        constexpr bool operator != (const mouse_keys&) const noexcept = default;
+
+        static constexpr mouse_keys instance(word_parameter_t word_parameter) noexcept
+        {
+            return { .keys{ underlying_cast<mouse_keys::e_mouse_keys>(lo_cast<word_t>(word_parameter)) } };
+        }
     };
 
-    D_WARNING_POP;
+    [[nodiscard]]
+    constexpr bool operator == (mouse_keys left, mouse_keys::e_mouse_keys right) noexcept
+    {
+        return left.keys == right;
+    }
 
-    class mouse_event : public event
+    [[nodiscard]]
+    constexpr bool operator == (mouse_keys::e_mouse_keys left, mouse_keys right) noexcept
+    {
+        return left == right.keys;
+    }
+
+    [[nodiscard]]
+    constexpr bool operator != (mouse_keys left, mouse_keys::e_mouse_keys right) noexcept
+    {
+        return left.keys != right;
+    }
+
+    [[nodiscard]]
+    constexpr bool operator != (mouse_keys::e_mouse_keys left, mouse_keys right) noexcept
+    {
+        return left != right.keys;
+    }
+
+    class mouse_event : public pointer_event
     {
     public:
-        [[nodiscard]]
-        constexpr pxside_t x() const noexcept
-        {
-            return x_long_parameter();
-        }
-
-        [[nodiscard]]
-        constexpr pxside_t y() const noexcept
-        {
-            return y_long_parameter();
-        }
-
-        [[nodiscard]]
-        constexpr px::point2d position() const noexcept
-        {
-            return { vec_long_parameter() };
-        }
-
         [[nodiscard]]
         constexpr mouse_keys keys() const noexcept
         {
-            return { underlying_cast<mouse_keys::e_mouse_keys>(word_parameter()) };
+            return mouse_keys::instance(_word_parameter());
         }
     };
 
-#elif defined(D_OS_ANDROID)
-    class mouse_event : public event
+#else
+    class mouse_event : public pointer_event
     {
     public:
-        static constexpr int32_t p_index_mask{ 0xff00 };
-        static constexpr int32_t p_index_shift{ 8 };
-        
-        [[nodiscard]]
-        static mouse_event instance(const AInputEvent* input_e) noexcept;
-
-        constexpr explicit operator bool() const noexcept
-        {
-            return nullptr != input_e_;
-        }
-
-        [[nodiscard]]
-        constexpr size_t index() const noexcept
-        {
-            return narrow_cast<size_t>((event::action() & p_index_mask) >> p_index_shift);
-        }
-
-        [[nodiscard]]
-        float x_by_index(size_t index) const noexcept;
-        
-        [[nodiscard]]
-        float y_by_index(size_t index) const noexcept;
-
-        struct cursor_position
-        {
-            const mouse_event& e;
-            const size_t index;
-
-            [[nodiscard]]
-            float x() const noexcept
-            {
-                return e.x_by_index(index);
-            }
-
-            [[nodiscard]]
-            float y() const noexcept
-            {
-                return e.y_by_index(index);
-            }
-        };
-
-        [[nodiscard]]
-        constexpr cursor_position position_by_index(size_t index) const noexcept
-        {
-            return { *this, index };
-        }
-
-        [[nodiscard]]
-        size_t number_of_positions() const;
-    
-        [[nodiscard]]
-        float x() const noexcept
-        {
-            return x_by_index(index());
-        }
-
-        [[nodiscard]]
-        float y() const noexcept
-        {
-            return y_by_index(index());
-        }
-
-        [[nodiscard]]
-        constexpr cursor_position position() const noexcept
-        {
-            return position_by_index(index());
-        }
-
-    private:
-        constexpr mouse_event(int32_t action, const AInputEvent* input_e) noexcept
-            : event{ action }
-            , input_e_{ input_e }
-        {}
-
-    private:
-        const AInputEvent* input_e_;
     };
-
 #endif
+
+
+    template<event_style>
+    class specialized_event : public event
+    {};
 
     template<>
     class specialized_event<event_style::mouse_down> : public mouse_event
@@ -317,24 +369,58 @@ namespace ui
     class specialized_event<event_style::size> : public event
     {
     public:
+        using value_type = event::_coordinate_value_type;
+        using size2d_type = size2d<value_type>;
+
         [[nodiscard]]
-        constexpr pxside_t width() const noexcept
+        constexpr value_type width() const noexcept
         {
-            return x_long_parameter();
+            return _x_coordinate();
         }
 
         [[nodiscard]]
-        constexpr pxside_t height() const noexcept
+        constexpr value_type height() const noexcept
         {
-            return y_long_parameter();
+            return _y_coordinate();
         }
 
         [[nodiscard]]
-        constexpr px::size2d sizes() const noexcept
+        constexpr size2d_type sizes() const noexcept
         {
-            return { vec_long_parameter() };
+            return { width(), height() };
         }
     };
+
+    using mouse_wheel_delta_t = short;
+    constexpr mouse_wheel_delta_t min_mouse_wheel_delta{ 120 };
+
+    [[nodiscard]]
+    constexpr mouse_wheel_delta_t mouse_wheel_delta(word_parameter_t word_parametr) noexcept
+    {
+        return static_cast<mouse_wheel_delta_t>(hi_cast<word_t>(word_parametr));
+    }
+
+    template<>
+    class specialized_event<event_style::mouse_wheel> : public mouse_event
+    {
+    public:
+        [[nodiscard]]
+        constexpr mouse_wheel_delta_t delta() const noexcept
+        {
+            return mouse_wheel_delta(_word_parameter());
+        }
+
+        [[nodiscard]]
+        constexpr double rot() const noexcept
+        {
+            return narrow_cast<double>(delta()) / min_mouse_wheel_delta;
+        }
+    };
+
+
+    template<>
+    class specialized_event<event_style::mouse_double_click> : public mouse_event
+    {};
 #endif
 
 

@@ -57,7 +57,7 @@ namespace ui
                 container_->unlock_and_collecting();
             }
 
-            struct enumerate
+            struct enumerator
             {
                 size_t position;
                 const container_type* container;
@@ -68,7 +68,7 @@ namespace ui
                     return position < std::size(*container);
                 }
 
-                constexpr enumerate& operator++() noexcept
+                constexpr enumerator& operator++() noexcept
                 {
                     ++position;
                     return *this;
@@ -82,13 +82,13 @@ namespace ui
             };
 
             [[nodiscard]]
-            constexpr enumerate begin() const noexcept
+            constexpr enumerator begin() const noexcept
             {
                 return { 0_uz, std::addressof(container_->items_) };
             }
 
             [[nodiscard]]
-            constexpr null_t<enumerate> end() const noexcept
+            constexpr null_t<enumerator> end() const noexcept
             {
                 return {};
             }

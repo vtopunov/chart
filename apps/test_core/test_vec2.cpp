@@ -43,11 +43,33 @@ void test_vec2() noexcept
 
         static_assert(std::is_trivial_v<vec2<int>> && std::is_standard_layout_v<vec2<int>>);
 
+        static_assert(1 == v0._0);
+        static_assert(1 == v0._1);
+        static_assert(1 == get<0>(v0));
+        static_assert(1 == get<1>(v0));
+        static_assert(v0 == vec2<int>{ 1, 1 });
+        static_assert(!(v0 != vec2<int>{ 1, 1 }));
         static_assert(v0 != v1);
-        static_assert(max(v1, v2) == v3);
-        static_assert(min(v4, v2) == v4);
-        static_assert(reverse(v1) == v2);
-        static_assert(reverse(v2) == v1);
+        static_assert(!(v0 == v1));
+
+        static_assert(1 == v1._0);
+        static_assert(2 == v1._1);
+        static_assert(1 == get<0>(v1));
+        static_assert(2 == get<1>(v1));
+        static_assert(v1 == vec2<int>{ 1, 2 });
+        static_assert(!(v1 != vec2<int>{ 1, 2 }));
+        static_assert(v1 != v2);
+        static_assert(!(v1 == v2));
+
+        static_assert(2 == v2._0);
+        static_assert(1 == v2._1);
+        static_assert(2 == get<0>(v2));
+        static_assert(1 == get<1>(v2));
+        static_assert(v2 == vec2<int>{ 2, 1 });
+        static_assert(!(v2 != vec2<int>{ 2, 1 }));
+        static_assert(v2 != v0);
+        static_assert(!(v2 == v0));
+
         static_assert(2 * v0 == v0 * 2);
         static_assert(2 * v0 == v3);
         static_assert(v3 / 2 == v0);

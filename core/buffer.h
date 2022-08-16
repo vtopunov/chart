@@ -238,7 +238,7 @@ public:
     [[nodiscard]]
     constexpr const_iterator cend() const noexcept
     {
-        return _end();
+        return data() + size();
     }
 
     [[nodiscard]]
@@ -262,7 +262,7 @@ public:
     [[nodiscard]]
     constexpr iterator end() noexcept
     {
-        return const_cast<pointer>(_end());
+        return const_cast<iterator>(cend());
     }
 
     [[nodiscard]]
@@ -274,7 +274,7 @@ public:
     [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
-        return *(_end() - 1_uz);
+        return *(cend() - 1_uz);
     }
 
     [[nodiscard]]
@@ -329,13 +329,6 @@ public:
     constexpr reference value(size_type index) noexcept
     {
         return const_cast<reference>(cvalue(index));
-    }
-
-private:
-    [[nodiscard]]
-    constexpr const_pointer _end() const noexcept
-    {
-        return data() + size();
     }
 };
 

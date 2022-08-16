@@ -2,7 +2,7 @@
 
 #include <core/resouce.h>
 
-#include <egl_ui/egl_resources.h>
+#include <egl_ui/egl_window_resource.h>
 
 namespace egl_ui
 {
@@ -29,8 +29,12 @@ namespace egl_ui
     class egl_painting_owner
     {
     public:
-        egl_painting_owner(const egl_resources& egl) noexcept
-            : lock_{ resource_construct, egl.display, egl.surface }
+        constexpr egl_painting_owner(display_descriptor_t display, surface_descriptor_t surface) noexcept
+            : lock_{ resource_construct, display, surface }
+        {}
+
+        egl_painting_owner(const egl_window_resource& egl) noexcept
+            : egl_painting_owner{ egl.display, egl.surface }
         {
             glViewport
             (

@@ -8,7 +8,7 @@
     <ClInclude Include="narrow.h" />
     <ClInclude Include="num_range.h" />
     <ClInclude Include="rational.h" />
-    <ClInclude Include="rect.h" />
+    <ClInclude Include="rectangle.h" />
     <ClInclude Include="vec2.h" />
     <ClInclude Include="zstring_view.h" />
     <ClInclude Include="small_vector.h" />
@@ -27,7 +27,6 @@
     <ClInclude Include="warnings.h" />
     <ClInclude Include="value_type.h" />
     <ClInclude Include="zero.h" />
-    <ClInclude Include="temp_swap.h" />
     <ClInclude Include="ordered_overload.h" />
     <ClInclude Include="size_type.h" />
     <ClInclude Include="clamp_cast.h" />
@@ -39,5 +38,7 @@
     <ClInclude Include="resource_fwd.h" />
     <ClInclude Include="buffer_fwd.h" />
     <ClInclude Include="fmt.h" />
+    <ClInclude Include="round.h" />
+    <ClInclude Include="static_vector.h" />
   </ItemGroup>
 </Project>

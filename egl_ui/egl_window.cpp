@@ -1,6 +1,6 @@
-#include "egl_instance.h"
+#include "egl_window.h"
 
-#include <egl_ui/ui_intance.h>
+#include <egl_ui/window.h>
 
 #include <string_view>
 
@@ -76,35 +76,35 @@ namespace egl_ui
         }
     }
 
-    void egl_resources_collector::operator()(const egl_resources& r) const noexcept
+    void egl_window_resource_collector::operator()(const egl_window_resource& r) const noexcept
     {
         if (r.surface)
         {
-            D_ASSERT_WITH_SIDE_EFFECTS(eglDestroySurface(r.display, r.surface));
+            D_ASSERT_OR_UNUSED(eglDestroySurface(r.display, r.surface));
         }
 
         if (r.context)
         {
-            D_ASSERT_WITH_SIDE_EFFECTS(eglDestroyContext(r.display, r.context));
+            D_ASSERT_OR_UNUSED(eglDestroyContext(r.display, r.context));
         }
 
         if (r.display)
         {
             eglMakeCurrent(r.display, nullptr, nullptr, nullptr);
-            D_ASSERT_WITH_SIDE_EFFECTS(eglTerminate(r.display));
+            D_ASSERT_OR_UNUSED(eglTerminate(r.display));
         }
 
-        constexpr ui_resources_collector close{};
+        constexpr window_resource_collector close{};
         close(r.ui);
     }
 
-    egl_t egl_instance(os::module_handle_t module) noexcept
+    egl_window create_egl_window(os::module_handle_t app_module) noexcept
     {
-        egl_t result;
+        egl_window result;
 
         auto& r = as_mutable(result.r());
 
-        r.ui = ui_intance(module).release();
+        r.ui = create_window(app_module).release();
 
         if (r.ui)
         {

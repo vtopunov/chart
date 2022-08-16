@@ -75,18 +75,18 @@ namespace
     }
 
     template<class... Paths>
-    [[nodiscard]] std::array<gl::texture2d, sizeof...(Paths)>  png_textures_from_file(Paths... paths) noexcept
+    [[nodiscard]] std::array<gl::texture2d, sizeof...(Paths)>  png_textures_from_asset_or_file(Paths... paths) noexcept
     {
         buffer_t temp;
 
-        return { png_texture_from_file(paths, temp)... };
+        return { png_texture_from_asset_or_file(paths, temp)... };
     };
 }
 
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl_instance(app);
+    const auto egl = create_egl_window(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}\n",
@@ -94,7 +94,7 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    const auto [base_texture, mix_texture] = png_textures_from_file(_PATH("base.png"), _PATH("mix.png"));
+    const auto [base_texture, mix_texture] = png_textures_from_asset_or_file(_PATH("base.png"), _PATH("mix.png"));
 
     {
         egl_painting_owner painting_lock{ egl };

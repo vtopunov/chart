@@ -210,7 +210,7 @@ namespace px
         [[nodiscard]]
         constexpr const_pointer end() noexcept
         {
-            return cend();
+            return data() + space_type::size();
         }
 
         [[nodiscard]]

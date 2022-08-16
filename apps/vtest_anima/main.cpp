@@ -94,11 +94,11 @@ namespace
 
     struct main_processor
     {
-        egl_t egl;
+        egl_window egl;
 
         void draw(duration_t now) const noexcept
         {
-            egl_painting_owner painting_lock{ egl };
+            const egl_painting_owner painting_lock{ egl };
             draw_figure(now);
         }
 
@@ -128,7 +128,7 @@ int app_main(os::module_handle_t app) noexcept
 {
     const main_processor processor
     {
-        .egl{ egl_instance(app) }
+        .egl{ create_egl_window(app) }
     };
 
     if (!processor.egl)

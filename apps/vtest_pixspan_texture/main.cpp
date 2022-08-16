@@ -4,7 +4,7 @@
 
 #include <egl_ui/run.h>
 
-#include <file/file_mmap.h>
+#include <file/file_asset.h>
 
 #include <image/png.h>
 
@@ -15,7 +15,7 @@ namespace
 {
     gl::texture2d image_gallery_rendering() noexcept
     {
-        const auto png = image::png_decode_to_r8g8b8a8(file::mmap(_PATH("grid_9x9.png")));
+        const auto png = image::png_decode_to_r8g8b8a8(file::asset_or_file_mmap(_PATH("grid_9x9.png")));
         if (!png)
         {
             const auto errc = png.error_code();
@@ -55,7 +55,7 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = egl_instance(app);
+    const auto egl = create_egl_window(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -83,7 +83,7 @@ int app_main(os::module_handle_t app) noexcept
     shaders.frag.s_texture.store(texture);
 
     {
-        egl_painting_owner painting_lock{ egl };
+        const egl_painting_owner painting_lock{ egl };
         gl::clear(gl::colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();

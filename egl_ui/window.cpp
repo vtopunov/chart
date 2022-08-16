@@ -1,18 +1,18 @@
-#include "ui_intance.h"
+#include "window.h"
 
 #include <ui/window.h>
 
 namespace egl_ui
 {
-    void ui_resources_collector::operator () (const ui_resources& ui) const noexcept
+    void window_resource_collector::operator () (const window_resource& ui) const noexcept
     {
         ui::close(ui.render_wnd);
         ui::close(ui.app_wnd);
     }
 
-    ui_wrapper ui_intance(os::module_handle_t module) noexcept
+    window create_window(os::module_handle_t module) noexcept
     {
-        ui_wrapper result;
+        window result;
         auto& w = as_mutable(result.r());
 
         ui::window_builder builder;
@@ -45,7 +45,7 @@ namespace egl_ui
 
         if (w.render_wnd)
         {
-            w.sizes = sizes;
+            w.window_viewport.sizes = sizes;
         }
 
         return result;

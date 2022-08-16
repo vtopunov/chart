@@ -91,6 +91,11 @@ namespace file
         }
     };
 
+    static_assert(sizeof(file_resource) == sizeof(os::file_descriptor_t));
+    static_assert(sizeof(ro_file_resource) == sizeof(os::file_descriptor_t));
+    static_assert(sizeof(wo_file_resource) == sizeof(os::file_descriptor_t));
+    static_assert(sizeof(rw_file_resource) == sizeof(os::file_descriptor_t));
+
 
 #ifdef D_OS_WINDOWS
     struct stdin_file_resource

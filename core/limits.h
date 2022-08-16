@@ -19,3 +19,6 @@ constexpr auto numeric_nan_v = std::numeric_limits<T>::quiet_NaN();
 
 template<class T>
 constexpr auto numeric_inf_v = std::numeric_limits<T>::infinity();
+
+template<class T>
+constexpr auto numeric_digits_v = std::numeric_limits<T>::digits;

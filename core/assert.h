@@ -6,13 +6,17 @@
 
 #ifdef NDEBUG
 
-#define D_DEBUG_ONLY(A)
+#define D_IS_DEBUG 0
+#define D_ONLY_DEBUG(A)
 #define D_ASSERT(expression) D_UNUSED(0)
-#define D_ASSERT_WITH_SIDE_EFFECTS(expression) D_UNUSED(expression)
+#define D_ASSERT_OR_UNUSED(expression) D_UNUSED(expression)
+
 
 #else
 
-#define D_DEBUG_ONLY(A) A
+
+#define D_IS_DEBUG 1
+#define D_ONLY_DEBUG(A) A
 
 #ifdef _MSC_VER
 #define D_ASSERT(expression) D_UNUSED((!!(expression)) || ((__debugbreak()), 0))
@@ -20,7 +24,7 @@
 #define D_ASSERT(expression) assert(expression)
 #endif
 
+#define D_ASSERT_OR_UNUSED(expression) D_ASSERT(expression)
 
-#define D_ASSERT_WITH_SIDE_EFFECTS(expression) D_ASSERT(expression)
 
 #endif

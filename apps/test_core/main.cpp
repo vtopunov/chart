@@ -5,6 +5,7 @@ extern void test_value_type() noexcept;
 extern void test_zero() noexcept;
 extern void test_utility() noexcept;
 extern void test_clamp_cast() noexcept;
+extern void test_round() noexcept;
 extern void test_size_type() noexcept;
 extern void test_narrow() noexcept;
 extern void test_span() noexcept;
@@ -14,15 +15,16 @@ extern void test_vec2() noexcept;
 extern void test_point2d() noexcept;
 extern void test_size2d() noexcept;
 extern void test_num_range() noexcept;
-extern void test_rect() noexcept;
+extern void test_rectangle() noexcept;
 extern void test_lerp() noexcept;
 extern void test_rational() noexcept;
 extern void test_color() noexcept;
 extern void test_lerp_color() noexcept;
 extern void test_null() noexcept;
 extern void test_resource() noexcept;
-extern void test_small_vector() noexcept;
 extern void test_buffer() noexcept;
+extern void test_small_vector() noexcept;
+extern void test_static_vector() noexcept;
 extern void test_utf() noexcept;
 
 
@@ -34,6 +36,7 @@ int main() noexcept
     test_zero();
     test_utility();
     test_clamp_cast();
+    test_round();
     test_size_type();
     test_narrow();
     test_span();
@@ -43,7 +46,7 @@ int main() noexcept
     test_point2d();
     test_size2d();
     test_num_range();
-    test_rect();
+    test_rectangle();
     test_lerp();
     test_rational();
     test_color();
@@ -52,6 +55,7 @@ int main() noexcept
     test_resource();    
     test_buffer();
     test_small_vector();
+    test_static_vector();
     test_utf();
 
     return 0;
