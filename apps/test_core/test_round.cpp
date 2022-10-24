@@ -31,7 +31,7 @@ void test_round() noexcept
     D_ASSERT(9007199254740992LL == round_cast<int64_t>(9007199254740992.5));
     D_ASSERT(9007199254740992LL == round_cast<int64_t>(9007199254740993.0));
 
-    D_ASSERT(0xfffffffful == round_cast<uint32_t>(4.3123e9f));
+     D_ASSERT(0xffffff00ul == round_cast<uint32_t>(4.3123e9f));
 
     {
         const auto s_round = std::to_string(round_cast<uint64_t>(4.3123e9f));

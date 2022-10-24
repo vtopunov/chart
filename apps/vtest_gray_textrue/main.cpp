@@ -10,7 +10,7 @@ namespace
 {
     gl::texture2d pix8map_rendering() noexcept
     {
-        constexpr px::size2d image_sizes{ 9_px, 9_px };
+        constexpr pxsize2d image_sizes{ 9_px, 9_px };
 
         constexpr GLubyte image[image_sizes.height() * size_align<4>(image_sizes.width())]
         {

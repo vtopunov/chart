@@ -15,11 +15,11 @@ namespace widget
         constexpr auto default_font_size = 15_px;
 
 
-        gl::texture2d draw_to_texture(buffer_t& buffer, font::face_descriptor_t face, std::u8string_view text, px::size2d sizes) noexcept;
+        gl::texture2d draw_to_texture(buffer_t& buffer, font::face_descriptor_t face, std::u8string_view text, pxsize2d sizes) noexcept;
 
         inline gl::texture2d draw_to_texture(buffer_t& buffer, font::face_descriptor_t face, std::u8string_view text) noexcept
         {
-            constexpr px::size2d max_sizes{ fill_vec2(numeric_max_v<pxside_t>) };
+            constexpr pxsize2d max_sizes{ fill_vec2(numeric_max_v<pxside_t>) };
             return draw_to_texture(buffer, face, text, max_sizes);
         }
     }

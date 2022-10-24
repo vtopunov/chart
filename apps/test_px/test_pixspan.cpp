@@ -2,7 +2,7 @@
 
 void test_pixspan() noexcept
 {
-    constexpr px::size2d image_sizes{ 9_px, 9_px };
+    constexpr pxsize2d image_sizes{ 9_px, 9_px };
 
     static_assert(4_uz == px::default_alignment);
     constexpr auto line_size = size_align<px::default_alignment>(image_sizes.width());

@@ -35,7 +35,7 @@ namespace widget
             }
         }
 
-        gl::texture2d draw_to_texture(buffer_t& buffer, font::face_descriptor_t face, std::u8string_view text, px::size2d sizes) noexcept
+        gl::texture2d draw_to_texture(buffer_t& buffer, font::face_descriptor_t face, std::u8string_view text, pxsize2d sizes) noexcept
         {
             const auto tm = font::text_metrics(face, text);
 

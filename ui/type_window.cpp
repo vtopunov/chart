@@ -90,22 +90,30 @@ namespace ui
             MAKEINTATOMW(RegisterClassExW(&data_))
         };
     }
-    
+
     unique_type_window type_window_builder::build() noexcept
     {
         constexpr auto n_unique_name = 5_uz;
         WCHAR unique_hexname[n_unique_name];
 
-        auto unique_ui16 = generate_unique_ui16();
-
         auto pname = unique_hexname + (n_unique_name - 1_uz);
         *pname = L'\0';
 
+        auto unique_ui16 = generate_unique_ui16();
         do
         {
-            constexpr char hexchars[] = "0123456789abcdef";
-            *--pname = hexchars[unique_ui16 & 0xf];;
-        } while (unique_ui16 >>= 4);
+            constexpr char hexchars[]
+            {
+                '0', '1', '2', '3',
+                '4', '5', '6', '7',
+                '8', '9', 'a', 'b',
+                'c', 'd', 'e', 'f'
+            };
+            static_assert(16_uz == std::size(hexchars));
+
+            *--pname = hexchars[unique_ui16 & 0xfu];
+        }
+        while (unique_ui16 >>= 4);
 
         return build_as(pname);
     }

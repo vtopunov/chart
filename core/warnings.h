@@ -31,7 +31,7 @@
 #define D_WARNING_DISABLE_CLANG(text)
 #endif
 
-
+#define W_truncation_of_value                                          4309
 #define W_incorrect_logical_or                                         6285
 #define W_redundant_code__left_and_right_subexpressions_are_identical  6287
 #define W_potential_comparison_of_a_constant_with_another_constant     6326
@@ -39,7 +39,7 @@
 #define W_do_not_slice                                                 26437
 #define W_use_not_null                                                 26429                                                     
 #define W_unchecked_subscript_operator                                 26446 26482
-#define W_arithmetic_overflow                                          26451
+#define W_arithmetic_overflow                                           4056 26450 26451
 #define W_do_not_use_const_cast                                        26465 26492
 #define W_converting_from_floating_point_to_unsigned_integral          26467
 #define W_do_not_use_static_cast                                       26472

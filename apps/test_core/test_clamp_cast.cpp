@@ -50,6 +50,48 @@ namespace
 
         D_ASSERT(!errno);
     }
+
+    template<class Int, class Float>
+    void test_clamp_cast_for_f() noexcept
+    {
+        D_WARNING_PUSH;
+        D_WARNING_DISABLE_MSVC(W_truncation_of_value);
+        D_WARNING_DISABLE_MSVC(W_arithmetic_overflow);
+
+        static_assert(std::is_integral_v<Int>);
+        static_assert(std::is_floating_point_v<Float>);
+        constexpr bool is_trunc = numeric_digits_v<Float> < numeric_digits_v<Int>;
+
+        {
+            constexpr auto max_i = numeric_max_v<Int>;
+            constexpr auto max_f = static_cast<Float>(max_i);
+            const volatile auto max_f_i = static_cast<Int>(max_f);
+            D_ASSERT(is_trunc || max_f_i == max_i);
+            D_ASSERT(!is_trunc || max_f_i != max_i);
+
+            const auto i_max_i = clamp_cast<Int>(max_f);
+            D_ASSERT(is_trunc || i_max_i == max_i);
+            D_ASSERT(!is_trunc || i_max_i < max_i);
+            const volatile auto i_max_f = static_cast<Float>(i_max_i);
+            const volatile auto i_max_f_i = static_cast<Int>(i_max_f);
+            D_ASSERT(i_max_i == i_max_f_i);
+            D_ASSERT(i_max_i == clamp_cast<Int>(max_f + max_f));
+        }
+
+        {
+            constexpr auto min_i = numeric_min_v<Int>;
+            constexpr auto min_f = static_cast<Float>(min_i);
+
+            const auto i_min_i = clamp_cast<Int>(min_f);
+            D_ASSERT(i_min_i >= min_i);
+            const volatile auto i_min_f = static_cast<Float>(i_min_i);
+            const volatile auto i_min_f_i = static_cast<Int>(i_min_f);
+            D_ASSERT(i_min_i == i_min_f_i);
+            D_ASSERT(i_min_i == clamp_cast<Int>(min_f + min_f));
+        }
+
+        D_WARNING_POP;
+    }
 }
 
 void test_clamp_cast() noexcept
@@ -146,5 +188,19 @@ void test_clamp_cast() noexcept
     test_clamp_cast_for<int64_t, int32_t>();
     test_clamp_cast_for<int64_t, int64_t>();
 
+    test_clamp_cast_for_f<int16_t, float>();
+    test_clamp_cast_for_f<uint16_t, float>();
+    test_clamp_cast_for_f<int32_t, float>();
+    test_clamp_cast_for_f<uint32_t, float>();
+    test_clamp_cast_for_f<int64_t, float>();
+    test_clamp_cast_for_f<uint64_t, float>();
+
+    test_clamp_cast_for_f<int16_t, double>();
+    test_clamp_cast_for_f<uint16_t, double>();
+    test_clamp_cast_for_f<int32_t, double>();
+    test_clamp_cast_for_f<uint32_t, double>();
+    test_clamp_cast_for_f<int64_t, double>();
+    test_clamp_cast_for_f<uint64_t, double>();
+    
     D_ASSERT(!errno);
 }

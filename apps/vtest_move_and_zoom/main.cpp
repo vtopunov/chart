@@ -13,23 +13,17 @@
 
 namespace
 {
-    template<class T>
-    [[nodiscard]] constexpr point2d<remove_unsigned_t<T>> as_signed_point(const point2d<T>& p) noexcept
-    {
-        return { apply(as_signed<T>, p) };
-    }
-
     template<class L, class R>
     [[nodiscard]] constexpr decltype(auto) sqr_distance(const point2d<L>& p0, const point2d<R>& p1) noexcept
     {
-        const auto dpt = as_signed_point(p0 - p1);
+        const auto dpt = as_signed(p0 - p1);
         return to_unsigned_or(dpt.x() * dpt.x()) + to_unsigned_or(dpt.y() * dpt.y());
     };
 
     using zoom_value_t = uint64_t;
     static_assert(sizeof(zoom_value_t) > sizeof(pxside_t));
 
-    [[nodiscard]] constexpr zoom_value_t zoom_value_for_full_srceen(px::size2d viewport) noexcept
+    [[nodiscard]] constexpr zoom_value_t zoom_value_for_full_srceen(pxsize2d viewport) noexcept
     {
         return static_cast<zoom_value_t>(viewport.width()) * viewport.height();
     }
@@ -41,9 +35,9 @@ namespace
         value_type value{ 0u };
 
         [[nodiscard]]
-        constexpr figure_zoom with_clamp(px::size2d viewport) const noexcept
+        constexpr figure_zoom with_clamp(pxsize2d viewport) const noexcept
         {
-            constexpr auto max_zoom = [] (px::size2d viewport) noexcept -> value_type
+            constexpr auto max_zoom = [] (pxsize2d viewport) noexcept -> value_type
             {
                 constexpr auto px_digits = numeric_digits_v<pxoff_t>;
                 constexpr auto gl_max_mantissa = numeric_max_v<pxoff_t> >> (px_digits - std::min(numeric_digits_v<GLfloat>, px_digits));
@@ -51,7 +45,7 @@ namespace
                 return std::min(min_dim, gl_max_mantissa / max_dim) * zoom_value_for_full_srceen(viewport);
             };
 
-            constexpr auto min_zoom = [] (px::size2d viewport) noexcept -> value_type
+            constexpr auto min_zoom = [] (pxsize2d viewport) noexcept -> value_type
             {
                 return std::max(viewport.width(), viewport.height());
             };
@@ -78,9 +72,9 @@ namespace
         }
 
         [[nodiscard]]
-        constexpr px::size2d operator () (px::size2d viewport) const noexcept
+        constexpr pxsize2d operator () (pxsize2d viewport) const noexcept
         {
-            return narrow2d_cast<px::size2d>(value / viewport.height(), value / viewport.width());
+            return narrow2d_cast<pxsize2d>(value / viewport.height(), value / viewport.width());
         }
 
         [[nodiscard]]
@@ -91,25 +85,26 @@ namespace
     };
 
     [[nodiscard]]
-    constexpr figure_zoom full_screen_zoom(px::size2d viewport) noexcept
+    constexpr figure_zoom full_screen_zoom(pxsize2d viewport) noexcept
     {
         return { .value{ zoom_value_for_full_srceen(viewport) } };
     }
 
     struct figure_center_position
     {
-        px::off2d position{};
+        pxoff2d position{};
 
-        static constexpr figure_center_position instance(px::size2d viewport) noexcept
+        [[nodiscard]]
+        static constexpr figure_center_position instance(pxsize2d viewport) noexcept
         {
-            return { .position{ narrow2d_cast<px::off2d>(viewport / 2_px) } };
+            return { .position{ narrow2d_cast<pxoff2d>(viewport / 2_px) } };
         }
 
         [[nodiscard]]
-        constexpr figure_center_position with_clamp(px::size2d fig_sizes, px::size2d viewport) const noexcept
+        constexpr figure_center_position with_clamp(pxsize2d fig_sizes, pxsize2d viewport) const noexcept
         {
-            const auto min_position = -narrow2d_cast<px::off2d>((fig_sizes + fill_vec2(1_px)) / 2_px);
-            const auto max_position = narrow2d_cast<px::off2d>((fig_sizes + 2_px * viewport) / 2_px);
+            const auto min_position = -narrow2d_cast<pxoff2d>((fig_sizes + fill_vec2(1_px)) / 2_px);
+            const auto max_position = narrow2d_cast<pxoff2d>((fig_sizes + 2_px * viewport) / 2_px);
 
             return
             {
@@ -122,15 +117,15 @@ namespace
         }
 
         [[nodiscard]]
-        constexpr figure_center_position with_shift(px::off2d shift) const noexcept
+        constexpr figure_center_position with_shift(pxoff2d shift) const noexcept
         {
             return { .position{ position + shift } };
         }
 
         [[nodiscard]]
-        constexpr px::off2d left_top(px::size2d fig_sizes) const noexcept
+        constexpr pxoff2d left_top(pxsize2d fig_sizes) const noexcept
         {
-            return (2 * position - narrow2d_cast<px::off2d>(fig_sizes)) / 2;
+            return (2 * position - narrow2d_cast<pxoff2d>(fig_sizes)) / 2;
         }
 
         [[nodiscard]]
@@ -147,7 +142,7 @@ namespace
         figure_zoom zoom{};
 
         [[nodiscard]]
-        constexpr rectangle<px::pxoff_t> geometry(px::size2d viewport) const noexcept
+        constexpr rectangle<px::pxoff_t> geometry(pxsize2d viewport) const noexcept
         {
             const auto fig_sizes = zoom(viewport);
             return
@@ -157,9 +152,8 @@ namespace
             };
         }
 
-
         [[nodiscard]]
-        constexpr figure_area width_shift(px::off2d shift, px::size2d viewport) const noexcept
+        constexpr figure_area with_shift(pxoff2d shift, pxsize2d viewport) const noexcept
         {
             return
             {
@@ -169,7 +163,7 @@ namespace
         }
 
         [[nodiscard]]
-        figure_area with_zoom(figure_zoom new_zoom, px::size2d viewport) const noexcept
+        figure_area with_zoom(figure_zoom new_zoom, pxsize2d viewport) const noexcept
         {
             return
             {
@@ -179,14 +173,14 @@ namespace
         }
 
         [[nodiscard]]
-        figure_area with_zoom_increase(double rot, px::size2d viewport) const noexcept
+        figure_area with_zoom_increase(double rot, pxsize2d viewport) const noexcept
         {
             const auto new_zoom = zoom.with_increase(rot).with_clamp(viewport);
             return with_zoom(new_zoom, viewport);
         }
 
         [[nodiscard]]
-        figure_area with_zoom_multiplier(double mul, px::size2d viewport) const noexcept
+        figure_area with_zoom_multiplier(double mul, pxsize2d viewport) const noexcept
         {
             const auto new_zoom = zoom.with_multiplier(mul).with_clamp(viewport);
             return with_zoom(new_zoom, viewport);
@@ -202,10 +196,10 @@ namespace
 
     struct gesture
     {
-        px::off2d move{ 0, 0 };
+        pxoff2d move{ 0, 0 };
         double zoom{ numeric_nan_v<double> };
 
-        template<class T>
+        template<class T> [[nodiscard]]
         gesture with_move(const point2d<T>& p) const noexcept
         {
             return
@@ -323,7 +317,6 @@ namespace
                     }
 
                     {
-
                         constexpr auto min_diagonal_length = 0.71;
                         const auto len0 = diagonal_length(trace0);
                         if (len0 > min_diagonal_length)
@@ -341,7 +334,7 @@ namespace
                 {
                     if (!is_trace01 && !is_trace11)
                     {
-                        result = result.with_move(as_signed_point(trace1[0] - trace0[0]));
+                        result = result.with_move(as_signed(trace1[0] - trace0[0]));
                     }
                 }
             }
@@ -354,7 +347,7 @@ namespace
     };
 
     [[nodiscard]]
-    gl::texture2d pix8map_generate(px::size2d sizes) noexcept
+    gl::texture2d pix8map_generate(pxsize2d sizes) noexcept
     {
         using pixmap_t = pix8map;
 
@@ -456,7 +449,7 @@ namespace
 
             if (gesture.has_move())
             {
-                if (const auto new_area = area_.width_shift(gesture.move, sizes(egl_)); new_area != area_)
+                if (const auto new_area = area_.with_shift(gesture.move, sizes(egl_)); new_area != area_)
                 {
                     area_ = new_area;
                     need_redraw_ = true;
@@ -506,7 +499,8 @@ namespace
             shaders_.draw(area_.geometry(sizes(egl_)));
         }
 
-        static figure_area default_area(px::size2d viewport) noexcept
+        [[nodiscard]]
+        static figure_area default_area(pxsize2d viewport) noexcept
         {
             return
             {
@@ -519,7 +513,7 @@ namespace
         class shaders_lib
         {
         public:
-            bool initialize(px::size2d viewport, gl::texture2d_resource texture) noexcept
+            bool initialize(pxsize2d viewport, gl::texture2d_resource texture) noexcept
             {
                 if (!lib.build())
                 {

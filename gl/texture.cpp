@@ -11,7 +11,7 @@ namespace gl
         }
 
         template<texture_target target>
-        void set_texture(specialized_texture_resource<target> texture, px::size2d sizes, texture_format format, const void* pixels) noexcept
+        void set_texture(specialized_texture_resource<target> texture, pxsize2d sizes, texture_format format, const void* pixels) noexcept
         {
             texture.bind();
 
@@ -46,7 +46,7 @@ namespace gl
         glDeleteTextures(1, &texture.d);
     }
 
-    texture2d create_texture2d(px::size2d sizes, texture_format format, const void* pixels) noexcept
+    texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept
     {
         texture2d texture
         {

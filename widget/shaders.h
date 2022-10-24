@@ -13,20 +13,20 @@ namespace widget
             D_ONLY_DEBUG(vec.uniform.__debug_set_ro());
         }
 
-        inline void initialize_viewport(const vert::positioned_frame& vert, px::size2d sizes) noexcept
+        inline void initialize_viewport(const vert::positioned_frame& vert, pxsize2d sizes) noexcept
         {
             initialize_uniform(vert.u_viewport, sizes);
         }
 
         template<class VS, class FS>
-        void initialize_lib_uniforms(const shaders_library<VS, FS>& lib, px::size2d viewport_sizes) noexcept
+        void initialize_lib_uniforms(const shaders_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
         {
             lib.use();
             initialize_viewport(lib.vert, viewport_sizes);
         }
 
         template<class VS, class FS>
-        bool initialize_lib(shaders_library<VS, FS>& lib, px::size2d viewport_sizes) noexcept
+        bool initialize_lib(shaders_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
         {
             if (!lib)
             {
@@ -96,12 +96,12 @@ namespace widget
     class gray_texture_mix_color_lib
     {
     public:
-        bool initialize(px::size2d viewport_sizes) noexcept
+        bool initialize(pxsize2d viewport_sizes) noexcept
         {
             return private_detail_shaders_library::initialize_lib(lib, viewport_sizes);
         }
 
-        void draw(px::point2d position, gl::texture2d_resources texture, gl::rgba_colorf_view colorf) const noexcept
+        void draw(pxpoint2d position, gl::texture2d_resources texture, gl::rgba_colorf_view colorf) const noexcept
         {
             lib.use();
             lib.frag.u_color.store(colorf);
@@ -118,12 +118,12 @@ namespace widget
     class colored_rectangle_lib
     {
     public:
-        bool initialize(px::size2d viewport_sizes) noexcept
+        bool initialize(pxsize2d viewport_sizes) noexcept
         {
             return private_detail_shaders_library::initialize_lib(lib, viewport_sizes);;
         }
 
-        void draw(px::rectangle rc, gl::rgba_colorf_t colorf) const noexcept
+        void draw(pxrectangle rc, gl::rgba_colorf_t colorf) const noexcept
         {
             lib.use();
             lib.frag.u_color.store(colorf);

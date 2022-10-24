@@ -1,9 +1,8 @@
 #pragma once
 
 #include <core/type_traits.h>
-#include <core/warnings.h>
 #include <core/limits.h>
-
+#include <core/utility.h>
 
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
@@ -53,7 +52,8 @@ constexpr decltype(auto) clamp_to_unsigned(Source v) noexcept
     {
         using unsigned_t = std::make_unsigned_t<source_t>;
         constexpr source_t zero{};
-        return static_cast<unsigned_t>((v < zero) ? zero : v);
+        constexpr unsigned_t u_zero{};
+        return (v < zero) ? u_zero : static_cast<unsigned_t>(v);
     }
     else
     {
@@ -64,7 +64,7 @@ constexpr decltype(auto) clamp_to_unsigned(Source v) noexcept
 namespace private_detail_clamp_cast
 {
     template<class Target, class Source>
-    [[nodiscard]] constexpr Target clamp_max_cast(Source v) noexcept
+    [[nodiscard]] constexpr Target clamp_int_max_cast(Source v) noexcept
     {
         using source_t = std::remove_cvref_t<Source>;
         constexpr auto target_max = numeric_max_v<Target>;
@@ -72,16 +72,48 @@ namespace private_detail_clamp_cast
         return (target_max_source < v) ?  target_max : static_cast<Target>(v);
     }
 
-
-    template<class Target, class Source>
-    [[nodiscard]] constexpr Target clamp_minmax_cast(Source v) noexcept
+    template<class Target>
+    struct static_cast_fn
     {
+        template<class Source>
+        constexpr Target operator () (Source v) const noexcept
+        {
+            return static_cast<Target>(v);
+        }
+    };
+
+    template<class Target, class Source, class Fn = static_cast_fn<Target>>
+    [[nodiscard]] constexpr Target clamp_minmax_cast(Source v, Fn fn = {}) noexcept
+    {
+        D_WARNING_PUSH
+        D_WARNING_DISABLE_MSVC(W_arithmetic_overflow)
+
         using source_t = std::remove_cvref_t<Source>;
-        constexpr auto target_min = numeric_min_v<Target>;
-        constexpr auto target_max = numeric_max_v<Target>;
-        constexpr source_t target_min_source{ target_min };
-        constexpr source_t target_max_source{ target_max };
-        return (v < target_min_source) ? target_min : ((target_max_source < v) ? target_max : static_cast<Target>(v));
+        using target_t = std::remove_cvref_t<Target>;
+        constexpr auto target_min = numeric_min_v<target_t>;
+        constexpr auto target_max = numeric_max_v<target_t>;
+        constexpr target_t target_one{ 1 };
+        constexpr int target_digits{ numeric_digits_v<target_t> };
+        constexpr int source_digits{ numeric_digits_v<source_t> };
+        constexpr int digits_loss{ (std::is_floating_point_v<source_t> && (target_digits > source_digits)) ? (target_digits - source_digits) : 0 };
+        constexpr auto round_mask = ~((target_one << digits_loss) - target_one);
+        constexpr auto round_target_min = target_min & round_mask;
+        constexpr auto round_target_max = target_max & round_mask;
+        static_assert((digits_loss) ? (round_target_min >= target_min) : (round_target_min == target_min));
+        static_assert((digits_loss) ? (round_target_max < target_max) : (round_target_max == target_max));
+
+        constexpr auto target_min_source = static_cast<source_t>(round_target_min);
+        constexpr auto target_max_source = static_cast<source_t>(round_target_max);
+
+        if (D_UNLIKELY(v <= target_min_source)) D_ATTRIB_UNLIKELY
+            return round_target_min;
+
+        if (D_UNLIKELY(v >= target_max_source)) D_ATTRIB_UNLIKELY
+            return round_target_max;
+
+        return fn(v);
+
+        D_WARNING_POP
     }
 
     template<class Target, class Source>
@@ -91,7 +123,7 @@ namespace private_detail_clamp_cast
 
         if constexpr (sizeof(Source) > sizeof(Target))
         {
-            return clamp_max_cast<Target, Source>(v);
+            return clamp_int_max_cast<Target, Source>(v);
         }
         else
         {
@@ -132,7 +164,7 @@ constexpr Target clamp_cast(Source v) noexcept
         {
             if constexpr (sizeof(Source) >= sizeof(Target))
             {
-                return clamp_max_cast<Target>(v);
+                return clamp_int_max_cast<Target>(v);
             }
             else
             {

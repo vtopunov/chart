@@ -25,25 +25,17 @@ namespace px
     using decl_space_type_t = typename T::space_type;
 
     template<class T>
-    using decl_data_pointer_t = decltype(as_pointer(std::declval<T>().data()));
-
-    template<class T>
     using decl_pixel_type_t = typename T::pixel_type;
 
 
     template<class T>
     constexpr auto decl_alignment_v = decl_space_type_t<T>::alignment;
 
-
     template<class T>
     using is_space_type = is_detected<decl_space_type_t, T>;
 
     template<class T>
-    using is_data_pointer = is_detected<decl_data_pointer_t, T>;
-
-    template<class T>
     using is_pixel_type = is_detected<decl_pixel_type_t, T>;
-
 
     template<class T, class Space>
     struct is_convertible_space : std::is_convertible<decl_space_type_t<T>, Space>
@@ -85,14 +77,14 @@ namespace px
     template<class T>
     using decl_const_pixspan_t = pixspan<std::add_const_t<decl_pixel_type_t<T>>, decl_alignment_v<T>>;
 
-    template<class T>
+    template<class T> [[nodiscard]]
     constexpr decl_const_pixspan_t<T> as_const_pixspan(const T& image) noexcept
     {
         return image;
     }
 
     template<class T, size_t OutAlignment, size_t InAlignment>
-    constexpr size2d write(pixspan<T, OutAlignment> in, point2d position, pixspan<const T, InAlignment> out) noexcept;
+    constexpr pxsize2d write(pixspan<T, OutAlignment> in, pxpoint2d position, pixspan<const T, InAlignment> out) noexcept;
 
 
     template<class T, size_t Alignment = default_alignment>
@@ -115,23 +107,23 @@ namespace px
             , data_{ data }
         {}
 
-        constexpr pixspan(pointer data, size2d sizes) noexcept
+        constexpr pixspan(pointer data, pxsize2d sizes) noexcept
             : space_type{ sizes }
             , data_{ data }
         {}
 
-        constexpr pixspan(pointer data, pxside_t x, pxside_t y) noexcept
-            : space_type{ x, y }
+        constexpr pixspan(pointer data, pxside_t w, pxside_t h) noexcept
+            : space_type{ w, h }
             , data_{ data }
         {}
 
-        constexpr pixspan(pointer data, size2d sizes, line_size_type line_size) noexcept
+        constexpr pixspan(pointer data, pxsize2d sizes, line_size_type line_size) noexcept
             : space_type{ sizes, line_size }
             , data_{ data }
         {}
 
-        constexpr pixspan(pointer data, pxside_t x, pxside_t y, line_size_type line_size) noexcept
-            : space_type{ x, y, line_size }
+        constexpr pixspan(pointer data, pxside_t w, pxside_t h, line_size_type line_size) noexcept
+            : space_type{ w, h, line_size }
             , data_{ data }
         {}
 
@@ -190,19 +182,19 @@ namespace px
         static constexpr bool is_compatible_for_store_v = is_compatible_for_write_v<C, pixel_type>;
 
         template<class C>
-        constexpr std::enable_if_t<is_compatible_for_store_v<C>, size2d> store(point2d position, const C& image) const noexcept
+        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsize2d> store(pxpoint2d position, const C& image) const noexcept
         {
             return write(*this, position, as_const_pixspan(image));
         }
 
         template<class C>
-        constexpr std::enable_if_t<is_compatible_for_store_v<C>, size2d> store(pxside_t x, pxside_t y, const C& image) const noexcept
+        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsize2d> store(pxside_t x, pxside_t y, const C& image) const noexcept
         {
             return store(point2d{ x, y }, image);
         }
 
         template<class C>
-        constexpr std::enable_if_t<is_compatible_for_store_v<C>, size2d> store(const C& image) const noexcept
+        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsize2d> store(const C& image) const noexcept
         {
             return store(0_px, 0_px, image);
         }
@@ -212,12 +204,12 @@ namespace px
     };
 
     template<class T, size_t OutAlignment, size_t InAlignment>
-    constexpr size2d write(pixspan<T, OutAlignment> out, point2d position, pixspan<const T, InAlignment> in) noexcept
+    constexpr pxsize2d write(pixspan<T, OutAlignment> out, pxpoint2d position, pixspan<const T, InAlignment> in) noexcept
     {
         const auto x = std::min(position.x(), out.width());
         const auto y = std::min(position.y(), out.height());
 
-        const size2d crop_sizes
+        const pxsize2d crop_sizes
         {
             std::min(in.width(), out.width() - x),
             std::min(in.height(), out.height() - y)

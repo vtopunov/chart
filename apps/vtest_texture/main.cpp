@@ -97,7 +97,7 @@ int app_main(os::module_handle_t app) noexcept
     const auto [base_texture, mix_texture] = png_textures_from_asset_or_file(_PATH("base.png"), _PATH("mix.png"));
 
     {
-        egl_painting_owner painting_lock{ egl };
+        const egl_painting_owner painting_lock{ egl };
         draw_texture_mix(base_texture, mix_texture);
     }
 

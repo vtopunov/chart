@@ -5,31 +5,6 @@
 
 
 template<class T>
-[[nodiscard]] constexpr decltype(auto) operator + (const point2d<T>& right, const size2d<T>& left) noexcept
-{
-    return point2d{ as_vec2(left) + as_vec2(right) };
-}
-
-template<class T>
-[[nodiscard]] constexpr decltype(auto) operator + (const size2d<T>& right, const point2d<T>& left) noexcept
-{
-    return size2d{ as_vec2(left) + as_vec2(right) };
-}
-
-template<class T>
-[[nodiscard]] constexpr decltype(auto) operator - (const point2d<T>& left, const size2d<T>& right) noexcept
-{
-    return point2d{ as_vec2(left) - as_vec2(right) };
-}
-
-template<class T>
-[[nodiscard]] constexpr decltype(auto) operator - (const size2d<T>& left, const point2d<T>& right) noexcept
-{
-    return size2d{ as_vec2(left) - as_vec2(right) };
-}
-
-
-template<class T>
 struct rectangle
 {
     using value_type = T;
@@ -91,13 +66,19 @@ struct rectangle
     [[nodiscard]]
     constexpr value_type x1() const noexcept
     {
-        return narrow_cast<value_type>(x0() + width());
+        D_WARNING_PUSH;
+        D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
+        return static_cast<value_type>(x0() + width());
+        D_WARNING_POP;
     }
 
     [[nodiscard]]
     constexpr value_type y1() const noexcept
     {
-        return narrow_cast<value_type>(y0() + height());
+        D_WARNING_PUSH;
+        D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
+        return static_cast<value_type>(y0() + height());
+        D_WARNING_POP;
     }
 
     [[nodiscard]]

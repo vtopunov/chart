@@ -11,7 +11,7 @@ namespace font
     namespace
     {
         template<class T, size_t FractBits>
-        [[nodiscard]] constexpr px::point2d as_px_position(const point2d<fixed<T, FractBits>>& p) noexcept
+        [[nodiscard]] constexpr pxpoint2d as_px_position(const point2d<fixed<T, FractBits>>& p) noexcept
         {
             return
             {
@@ -163,7 +163,7 @@ namespace font
         }
     }
 
-    face create_face(const_buffer_view font_storage, px::size2d sizes) noexcept
+    face create_face(const_buffer_view font_storage, pxsize2d sizes) noexcept
     {
         auto lib = library::instance();
 
@@ -204,7 +204,7 @@ namespace font
         return face;
     }
 
-    bool sizes(face_descriptor_t face, px::size2d sizes) noexcept
+    bool sizes(face_descriptor_t face, pxsize2d sizes) noexcept
     {
         if (const auto errc
             = FT_Set_Pixel_Sizes

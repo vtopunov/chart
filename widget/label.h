@@ -15,7 +15,7 @@ namespace widget
 {
     struct label
     {
-        px::point2d position{};
+        pxpoint2d position{};
         std::u8string text{};
         font_cache::face font{};
         gl::texture2d texture_text_cache{};

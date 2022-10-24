@@ -68,14 +68,14 @@ namespace px
             , sizes_{ right.sizes() }
         {}
 
-        constexpr pixspace(size2d sizes, line_size_type line_size) noexcept
+        constexpr pixspace(pxsize2d sizes, line_size_type line_size) noexcept
             : line_size_type{ line_size }
             , sizes_{ sizes }
         {
             D_ASSERT(pixspace::width() <= pixspace::line_size());
         }
 
-        constexpr pixspace(size2d sizes) noexcept
+        constexpr pixspace(pxsize2d sizes) noexcept
             : pixspace{ sizes, line_size_type::template instance_from_width<px_size>(sizes.width()) }
         {}
 
@@ -124,7 +124,7 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr size2d sizes() const noexcept
+        constexpr pxsize2d sizes() const noexcept
         {
             return sizes_;
         }
@@ -152,9 +152,8 @@ namespace px
             return line_size();
         }
 
-
     private:
-        size2d sizes_{};
+        pxsize2d sizes_{};
     };
 
     template<size_t PxSize, size_t Alignment>

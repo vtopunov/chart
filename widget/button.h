@@ -23,7 +23,7 @@ namespace widget
 
     struct button
     {
-        px::rectangle geometry{};
+        pxrectangle geometry{};
         std::u8string text{};
         std::function<void()> clicked{};
         font_cache::face font{};

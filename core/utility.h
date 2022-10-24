@@ -6,11 +6,17 @@
 
 #ifdef _MSC_VER
 #define D_FORCE_INLINE inline __forceinline
+#define D_LIKELY(expr) expr   
+#define D_UNLIKELY(expr) expr
+#define D_ATTRIB_LIKELY [[likely]]
+#define D_ATTRIB_UNLIKELY [[unlikely]]
 
 #else
 #define D_FORCE_INLINE inline __attribute__((always_inline))
 #define D_LIKELY(expr)    __builtin_expect(!!(expr), 1L)
 #define D_UNLIKELY(expr)  __builtin_expect(!!(expr), 0L)
+#define D_ATTRIB_LIKELY 
+#define D_ATTRIB_UNLIKELY
 
 #endif
 

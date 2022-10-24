@@ -7,12 +7,12 @@ using namespace std::chrono_literals;
 
 namespace
 {
-    constexpr px::rectangle subwindow_geometry(px::size2d mainwindow_sizes) noexcept
+    constexpr pxrectangle subwindow_geometry(pxsize2d mainwindow_sizes) noexcept
     {
         return
         {
-            narrow2d_cast<px::point2d>( mainwindow_sizes / 4u ),
-            narrow2d_cast<px::size2d>( mainwindow_sizes / 2u )
+            narrow2d_cast<pxpoint2d>( mainwindow_sizes / 4u ),
+            narrow2d_cast<pxsize2d>( mainwindow_sizes / 2u )
         };
     }
 

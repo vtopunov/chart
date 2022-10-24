@@ -53,17 +53,17 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr px::size2d sizes(const RECT& rect) noexcept
+        constexpr pxsize2d sizes(const RECT& rect) noexcept
         {
             return { side_length(rect.left, rect.right), side_length(rect.top, rect.bottom) };
         }
 
         [[nodiscard]]
-        constexpr px::rectangle make_rectangle(const RECT& rect) noexcept
+        constexpr pxrectangle make_rectangle(const RECT& rect) noexcept
         {
             return
             {
-                .position{ narrow2d_cast<px::point2d>(rect.left, rect.top) },
+                .position{ narrow2d_cast<pxpoint2d>(rect.left, rect.top) },
                 .sizes{ sizes(rect) }
             };
         }
@@ -130,17 +130,17 @@ namespace ui
         }
     }
 
-    px::rectangle geometry(window_handle_t window) noexcept
+    pxrectangle geometry(window_handle_t window) noexcept
     {
         return make_rectangle(gdi_geometry(window));
     }
 
-    px::size2d sizes(window_handle_t window) noexcept
+    pxsize2d sizes(window_handle_t window) noexcept
     {
         return sizes(gdi_geometry(window));
     }
 
-    bool geometry(window_handle_t window, px::rectangle rc) noexcept
+    bool geometry(window_handle_t window, pxrectangle rc) noexcept
     {
         return !!SetWindowPos
         (

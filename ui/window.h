@@ -106,15 +106,15 @@ namespace ui
     bool close(window_handle_t window) noexcept;
 
     [[nodiscard]]
-    px::rectangle geometry(window_handle_t window) noexcept;
+    pxrectangle geometry(window_handle_t window) noexcept;
 
     [[nodiscard]]
-    px::size2d sizes(window_handle_t window) noexcept;
+    pxsize2d sizes(window_handle_t window) noexcept;
 
-    bool geometry(window_handle_t window, px::rectangle rc) noexcept;
+    bool geometry(window_handle_t window, pxrectangle rc) noexcept;
 
     [[nodiscard]]
-    inline px::size2d desktop_sizes() noexcept
+    inline pxsize2d desktop_sizes() noexcept
     {
         return sizes(geometry(::GetDesktopWindow()));
     }
@@ -150,7 +150,7 @@ namespace ui
             return *this;
         }
 
-        constexpr window_builder& position(px::point2d position) noexcept
+        constexpr window_builder& position(pxpoint2d position) noexcept
         {
             geometry_.position = position;
             return *this;
@@ -158,10 +158,10 @@ namespace ui
 
         constexpr window_builder& position(pxside_t x, pxside_t y) noexcept
         {
-            return position(px::point2d{ x, y });
+            return position(pxpoint2d{ x, y });
         }
 
-        constexpr window_builder& sizes(px::size2d sizes) noexcept
+        constexpr window_builder& sizes(pxsize2d sizes) noexcept
         {
             geometry_.sizes = sizes;
             return *this;
@@ -169,10 +169,10 @@ namespace ui
 
         constexpr window_builder& sizes(pxside_t width, pxside_t height) noexcept
         {
-            return sizes(px::size2d{ width, height });
+            return sizes(pxsize2d{ width, height });
         }
 
-        constexpr window_builder& geometry(const px::rectangle& rc) noexcept
+        constexpr window_builder& geometry(const pxrectangle& rc) noexcept
         {
             geometry_ = rc;
             return *this;
@@ -191,6 +191,7 @@ namespace ui
             return *this;
         }
 
+        [[nodiscard]]
         constexpr module_handle_t module() const noexcept
         {
             return type_builder_.module();
@@ -204,6 +205,7 @@ namespace ui
         static constexpr native_pxside_t cw_usedefault{ CW_USEDEFAULT };
         static constexpr auto px_usedefault = static_cast<pxside_t>(cw_usedefault);
 
+        [[nodiscard]]
         static constexpr native_pxside_t px_to_native(pxside_t px) noexcept
         {
             return (px == px_usedefault) ? cw_usedefault : narrow_cast<native_pxside_t>(px);
@@ -213,7 +215,7 @@ namespace ui
         mutable type_window_builder type_builder_{};
         mutable shared_type_window cached_type_{};
         std::wstring title_;
-        px::rectangle geometry_{ px_usedefault, 0_px, px_usedefault, 0_px };
+        pxrectangle geometry_{ px_usedefault, 0_px, px_usedefault, 0_px };
         window_handle_t parent_{ nullptr };
 
     };

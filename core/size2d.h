@@ -6,6 +6,8 @@
 template<class T>
 struct size2d : vec2<T>
 {
+    static_assert(is_salar_for_vec_v<T>);
+
     using vec2_type = vec2<T>;
     using vec2_type::_0;
     using vec2_type::_1;
@@ -88,6 +90,8 @@ template<class T>
 template<class L, class R>
 [[nodiscard]] constexpr decltype(auto) operator - (const size2d<L>& left, const size2d<R>& right) noexcept
 {
+    D_ASSERT(left._0 >= right._0);
+    D_ASSERT(left._1 >= right._1);
     return size2d{ as_vec2(left) - as_vec2(right) };
 }
 
@@ -111,7 +115,7 @@ template<class T>
 
 template<class T, class U>
 [[nodiscard]] constexpr std::enable_if_t<
-    std::conjunction_v<std::negation<std::is_same<T, U>>, std::is_arithmetic<U>>,
+    is_compatible_scalar_for_vec_v<T, U>,
     size2d<decl_mul_t<T, U>>
 >
 operator * (const size2d<T>& left, const U& right) noexcept
@@ -133,7 +137,7 @@ template<class T>
 
 template<class T, class U>
 [[nodiscard]] constexpr std::enable_if_t<
-    std::conjunction_v<std::negation<std::is_same<T, U>>, std::is_arithmetic<U>>,
+    is_compatible_scalar_for_vec_v<T, U>,
     size2d<decl_div_t<T, U>>
 > operator / (const size2d<T>& left, const U& right) noexcept
 {

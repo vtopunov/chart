@@ -30,7 +30,7 @@ namespace font
     using face = unique_resource<face_descriptor_t, face_deleter>;
 
     [[nodiscard]]
-    face create_face(const_buffer_view font_storage, px::size2d sizes) noexcept;
+    face create_face(const_buffer_view font_storage, pxsize2d sizes) noexcept;
 
     [[nodiscard]]
     inline face create_face(const_buffer_view font_storage, pxside_t size) noexcept
@@ -38,7 +38,7 @@ namespace font
         return create_face(font_storage, size2d{ 0_px, size });
     }
 
-    bool sizes(face_descriptor_t face, px::size2d sizes) noexcept;
+    bool sizes(face_descriptor_t face, pxsize2d sizes) noexcept;
 
     inline bool size(face_descriptor_t face, pxside_t px) noexcept
     {

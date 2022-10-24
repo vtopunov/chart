@@ -17,6 +17,7 @@ namespace widget
             gl::rgba_colorf_t frame;
             gl::rgba_colorf_t body;
 
+            [[nodiscard]]
             static constexpr button_colors instance(button_state state) noexcept
             {
                 switch (state)
@@ -47,15 +48,16 @@ namespace widget
             }
         };
 
-        bool button_shaders_initialize(shaders& shaders, px::size2d viewport_sizes) noexcept
+        bool button_shaders_initialize(shaders& shaders, pxsize2d viewport_sizes) noexcept
         {
             return shaders.colored_rectangle.initialize(viewport_sizes)
                 && shaders.gray_texture_mix_color.initialize(viewport_sizes);
         }
 
-        constexpr px::rectangle rectangle_without_frame(const px::rectangle& r)noexcept
+        [[nodiscard]]
+        constexpr pxrectangle rectangle_without_frame(const pxrectangle& r)noexcept
         {
-            constexpr size2d frame_sizes{ 1_px, 1_px };
+            constexpr pxsize2d frame_sizes{ 1_px, 1_px };
             return
             {
                 .position{ r.position + frame_sizes },

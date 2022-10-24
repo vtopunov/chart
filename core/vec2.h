@@ -75,12 +75,14 @@ template<class T>
     return vec;
 }
 
-template<class Callback, class In>
-[[nodiscard]] constexpr decltype(auto) apply(Callback&& fn, vec2<In> vec) noexcept
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr std::enable_if_t<
+    std::is_base_of_v<vec2<T>, Vec<T>>, Vec<remove_unsigned_t<T>>
+> as_signed(const Vec<T>& vec) noexcept
 {
-    using common_t = std::common_type_t<decltype(fn(std::move(vec._0))), decltype(fn(std::move(vec._1)))>;
-    return vec2<common_t>{ fn(std::move(vec._0)), fn(std::move(vec._1)) };
+    return { as_signed(std::move(vec._0)), as_signed(std::move(vec._1)) };
 }
+
 
 template<class T>
 [[nodiscard]] constexpr vec2<T> fill_vec2(const T& value) noexcept
@@ -107,27 +109,44 @@ template<class T>
 template<class L, class R>
 [[nodiscard]] constexpr decltype(auto) operator - (const vec2<L>& left, const vec2<R>& right) noexcept
 {
-    return vec2
+    using common_t = std::remove_cvref_t<decltype(left._0 - right._0)>;
+
+    return vec2<common_t>
     {
         left._0 - right._0,
-        left._1 - right._1
+            left._1 - right._1
     };
 }
 
 template<class L, class R>
 [[nodiscard]] constexpr decltype(auto) operator + (const vec2<L>& left, const vec2<R>& right) noexcept
 {
-    return vec2
-    {
-        left._0 + right._0,
-        left._1 + right._1
+    using common_t = std::remove_cvref_t<decltype(left._0 + right._0)>;
+    using common_vec2_t = vec2<common_t>;
+
+    return common_vec2_t
+    { 
+        left._0 + right._0, 
+        left._1 + right._1 
     };
 }
 
+template<class L, class R>
+using decl_mul_t = std::remove_cvref_t<decltype(std::declval<std::add_const_t<L>>()* std::declval<std::add_const_t<R>>())>;
+
+template<class L, class R>
+using decl_div_t = std::remove_cvref_t<decltype(std::declval<std::add_const_t<L>>() / std::declval<std::add_const_t<R>>())>;
+
 template<class T>
-[[nodiscard]] constexpr decltype(auto) operator * (const vec2<T>& left, const T& right) noexcept
+using is_salar_for_vec = std::negation<is_data_pointer<T>>;
+
+template<class T>
+constexpr bool is_salar_for_vec_v = is_salar_for_vec<T>::value;
+
+template<class T>
+[[nodiscard]] constexpr vec2<decl_mul_t<T, T>> operator * (const vec2<T>& left, const T& right) noexcept
 {
-    return vec2
+    return
     {
         left._0 * right,
         left._1 * right
@@ -140,15 +159,37 @@ template<class T>
     return right * left;
 }
 
-template<class L, class R>
-using decl_mul_t = std::remove_cvref_t<decltype(std::declval<std::add_const_t<L>>()* std::declval<std::add_const_t<R>>())>;
+template<class T>
+[[nodiscard]] constexpr std::enable_if_t<
+    is_salar_for_vec_v<T>,
+    vec2<decl_div_t<T, T>>
+> operator / (const vec2<T>& left, const T& right) noexcept
+{
+    return
+    {
+        left._0 / right,
+        left._1 / right
+    };
+}
 
-template<class L, class R>
-using decl_div_t = std::remove_cvref_t<decltype(std::declval<std::add_const_t<L>>() / std::declval<std::add_const_t<R>>())>;
+namespace private_detail_vec2
+{
+    template<class VecScalar, class Scalar>
+    constexpr bool is_compatible_scalar_for_vec0_v = std::conjunction_v<
+        is_salar_for_vec<Scalar>,
+        std::negation<std::is_base_of<VecScalar, Scalar>>
+    >;
+}
+
+template<class VecScalar, class Scalar>
+constexpr bool is_compatible_scalar_for_vec_v = private_detail_vec2::is_compatible_scalar_for_vec0_v
+<
+    std::remove_cvref_t<VecScalar>, std::remove_cvref_t<Scalar>
+>;
 
 template<class T, class U>
 [[nodiscard]] constexpr std::enable_if_t<
-    std::conjunction_v<std::negation<std::is_same<T, U>>, std::is_arithmetic<U>>,
+    is_compatible_scalar_for_vec_v<T, U>,
     vec2<decl_mul_t<T, U>>
 > operator * (const vec2<T>& left, const U& right) noexcept
 {
@@ -167,7 +208,7 @@ template<class U, class T>
 
 template<class T, class U>
 [[nodiscard]] constexpr std::enable_if_t<
-    std::is_arithmetic_v<U>,
+    is_compatible_scalar_for_vec_v<T, U>,
     vec2<decl_div_t<T, U>>
 >  operator / (const vec2<T>& left, const U& right) noexcept
 {

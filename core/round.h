@@ -5,38 +5,64 @@
 #include <core/clamp_cast.h>
 
 
-template<class OutT, class InT>
-OutT round_cast(InT in) noexcept
+namespace private_detail_round_cast
 {
-    if constexpr (std::is_floating_point_v<InT>)
+    template<class Target>
+    struct round_fn
     {
-        constexpr auto out_digits = numeric_digits_v<OutT>;
-        constexpr auto l_digits = numeric_digits_v<long>;
-
-        if constexpr (out_digits > l_digits)
+        template<class Source>
+        constexpr Target operator () (Source v) const noexcept
         {
-            return clamp_cast<OutT>(std::llround(in));
+            return static_cast<Target>(std::round(v));
+        }
+    };
+
+    template<class Target>
+    struct trunc_fn
+    {
+        template<class Source>
+        constexpr Target operator () (Source v) const noexcept
+        {
+            return static_cast<Target>(std::trunc(v));
+        }
+    };
+
+    template<class Target, class Source, class Fn>
+    Target round_cast_impl(Source v, Fn fn) noexcept
+    {
+        using source_t = std::remove_cvref_t<Source>;
+
+        if constexpr (std::is_floating_point_v<source_t>)
+        {
+            if constexpr (std::is_integral_v<Target>)
+            {
+                return private_detail_clamp_cast::clamp_minmax_cast<Target>(v, fn);
+            }
+            else
+            {
+                return fn(v);
+            }
         }
         else
         {
-            return clamp_cast<OutT>(std::lround(in));
+            return clamp_cast<Target>(v);
         }
     }
-    else
+
+    template<class Target, class Source>
+    Target round_cast(Source v) noexcept
     {
-        return clamp_cast<OutT>(in);
+        constexpr round_fn<Target> fn{};
+        return round_cast_impl<Target>(v, fn);
+    }
+
+    template<class Target, class Source>
+    Target trunc_cast(Source v) noexcept
+    {
+        constexpr trunc_fn<Target> fn{};
+        return round_cast_impl<Target>(v, fn);
     }
 }
 
-template<class OutT, class InT>
-OutT trunc_cast(InT in) noexcept
-{
-    if constexpr (std::is_floating_point_v<InT>)
-    {
-        return clamp_cast<OutT>(std::trunc(in));
-    }
-    else
-    {
-        return clamp_cast<OutT>(in);
-    }
-}
+using private_detail_round_cast::round_cast;
+using private_detail_round_cast::trunc_cast;

@@ -78,11 +78,11 @@ namespace px
             : pixmap{ std::move(buffer), space_type{} }
         {}
 
-        explicit pixmap(size2d sizes) noexcept
+        explicit pixmap(pxsize2d sizes) noexcept
             : pixmap{ space_type{ sizes } }
         {}
 
-        pixmap(buffer_t buffer, size2d sizes) noexcept
+        pixmap(buffer_t buffer, pxsize2d sizes) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes } }
         {}
 
@@ -94,11 +94,11 @@ namespace px
             : pixmap{ std::move(buffer), space_type{ x, y } }
         {}
 
-        pixmap(size2d sizes, line_size_type line_size) noexcept
+        pixmap(pxsize2d sizes, line_size_type line_size) noexcept
             : pixmap{ space_type{ sizes, line_size } }
         {}
 
-        pixmap(buffer_t buffer, size2d sizes, line_size_type line_size) noexcept
+        pixmap(buffer_t buffer, pxsize2d sizes, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes, line_size } }
         {}
 
@@ -227,7 +227,7 @@ namespace px
 
 
         template<class C>
-        constexpr auto store(point2d position, const C& image) noexcept -> decltype(view().store(position, image))
+        constexpr auto store(pxpoint2d position, const C& image) noexcept -> decltype(view().store(position, image))
         {
             return view().store(position, image);
         }

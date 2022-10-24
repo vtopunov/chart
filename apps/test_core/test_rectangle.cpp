@@ -12,6 +12,16 @@ void test_rectangle() noexcept
 
     constexpr rectangle rc{p0, sz};
 
+    constexpr point2d p11_u{ p0.x() + rc.width(), p0.y() + rc.height() };
+    constexpr auto p00_u = p1 - sz;
+
+    static_assert(std::is_unsigned_v<decltype(p00_u.x())>);
+    static_assert(std::is_unsigned_v<decltype(p11_u.x())>);
+    static_assert(p11_u == (p0 + sz));
+    static_assert(p11_u == (sz + p0));
+    static_assert(p00_u == p11_u - sz);
+    static_assert(sz + p00_u == p11_u);
+
     static_assert( rc.p00() == p0 );
     static_assert( rc.p01() == vec2{ p0.x(), p1.y() } );
     static_assert( rc.p10() == vec2{ p1.x(), p0.y() } );

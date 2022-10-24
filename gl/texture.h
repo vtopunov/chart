@@ -67,13 +67,13 @@ namespace gl
             }
         };
 
-        px::size2d sizes;
+        pxsize2d sizes;
     };
 
     using texture2d = unique_resource<texture2d_resources, texture_resource_deleter>;
 
     [[nodiscard]]
-    constexpr px::size2d sizes(const texture2d_resources& tex) noexcept
+    constexpr pxsize2d sizes(const texture2d_resources& tex) noexcept
     {
         return tex.sizes;
     }
@@ -115,7 +115,7 @@ namespace gl
     constexpr texture_format LUMINANCE8{ pixel_format::LUMINANCE, pixel_type::UNSIGNED_BYTE };
 
     [[nodiscard]]
-    texture2d create_texture2d(px::size2d sizes, texture_format format, const void* pixels) noexcept;
+    texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept;
 
     template<size_t PxSize>
     struct texpix_traits 
@@ -144,7 +144,7 @@ namespace gl
     constexpr auto texpix_format_v = texpix_traits<sizeof(T)>::format;
 
     template<class T> 
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> create_texture2d(px::size2d sizes, const T* pixels) noexcept
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> create_texture2d(pxsize2d sizes, const T* pixels) noexcept
     {
         return create_texture2d(sizes, texpix_format_v<T>, pixels);
     }

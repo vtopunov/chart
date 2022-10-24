@@ -1,12 +1,9 @@
 ﻿#include <iostream>
-#include <ranges>
-#include <vector>
-#include <string_view>
+#include <type_traits>
 
 int main()
 {
-    uint32_t width = -7;
-    uint32_t h = -9;
-    int32_t signed_offset = h - width;
-    return signed_offset;
+    constexpr int i = ( (-254) >> 8 );
+    fopen("text", "w");
+    return lround(0.5);
 }

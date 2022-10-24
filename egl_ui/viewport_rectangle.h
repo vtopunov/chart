@@ -6,7 +6,7 @@ namespace egl_ui
 {
     struct viewport_rectangle
     {
-        px::size2d sizes;
+        pxsize2d sizes;
 
         constexpr explicit operator bool() const noexcept
         {
@@ -29,7 +29,7 @@ namespace egl_ui
     };
 
     [[nodiscard]]
-    constexpr px::size2d sizes(const viewport_rectangle& v) noexcept
+    constexpr pxsize2d sizes(const viewport_rectangle& v) noexcept
     {
         return v.sizes;
     }

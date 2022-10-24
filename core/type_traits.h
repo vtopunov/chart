@@ -83,8 +83,7 @@ constexpr decltype(auto) as_unsigned(const T& value) noexcept
 }
 
 template<class T>
-constexpr decltype(auto) as_signed(const T& value) noexcept
+constexpr std::enable_if_t<std::is_arithmetic_v<T>, remove_unsigned_t<T>> as_signed(const T& value) noexcept
 {
-    static_assert(std::is_arithmetic_v<T>);
     return static_cast<remove_unsigned_t<T>>(value);
 }

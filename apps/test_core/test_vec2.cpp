@@ -25,6 +25,20 @@ namespace
 void test_vec2() noexcept
 {
     {
+        constexpr int carr[1]{};
+        constexpr std::array arr{0};
+        static_assert(!is_salar_for_vec_v<decltype(carr)>);
+        static_assert(!is_salar_for_vec_v<decltype(arr)>);
+        static_assert(!is_salar_for_vec_v<vec2<int>>);
+        static_assert(!is_salar_for_vec_v<std::vector<int>>);
+        static_assert(!is_salar_for_vec_v<span<int>>);
+        static_assert(is_salar_for_vec_v<int>);
+        static_assert(is_salar_for_vec_v<int*>);
+        static_assert(is_salar_for_vec_v<std::iterator_traits<int*>>);
+        static_assert(is_salar_for_vec_v<std::random_access_iterator_tag>);
+    }
+
+    {
         constexpr vec2 v0{ 1, 1 };
         constexpr vec2 v1{ 1, 2 };
         constexpr vec2 v2{ 2, 1 };
