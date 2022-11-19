@@ -75,12 +75,24 @@ namespace egl_ui
 
 #if defined(D_OS_WINDOWS)
     [[nodiscard]]
+    constexpr os::window_handle_t app_window(const window_resource& ui) noexcept
+    {
+        return ui.app_wnd;
+    }
+
+    [[nodiscard]]
     constexpr os::window_handle_t render_window(const window_resource& ui) noexcept
     {
         return ui.render_wnd;
     }
 
 #elif defined(D_OS_ANDROID)
+    [[nodiscard]]
+    inline os::window_handle_t app_window(const window_resource& w) noexcept
+    {
+        return  ui::app_window(w.app);
+    }
+
     [[nodiscard]]
     inline os::window_handle_t render_window(const window_resource& w) noexcept
     {

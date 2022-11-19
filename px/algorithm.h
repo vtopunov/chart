@@ -10,7 +10,7 @@
 
 namespace px
 {
-    constexpr void draw_antialiasing_line(const pix8span image, double x0, double y0, double x1, double y1) noexcept
+    constexpr void draw_antialiasing_line(const pix8span image, double_t x0, double_t y0, double_t x1, double_t y1) noexcept
     {
         D_WARNING_PUSH;
         D_WARNING_DISABLE_MSVC(W_converting_from_floating_point_to_unsigned_integral);
@@ -19,16 +19,19 @@ namespace px
 
         constexpr auto max_color = numeric_max_v<u8tint_t>;
 
-        constexpr auto eps = 0.5 / 256.0;
+        constexpr double_t _0_0{ 0.0 };
+        constexpr double_t _0_5{ 0.5 };
+        constexpr double_t _256_0{ 256.0 };
+        constexpr double_t eps{ _0_5 / _256_0 };
 
-        constexpr auto uz_round = [] (double v) noexcept
+        constexpr auto uz_round = [] (double_t v) noexcept
         {
-            return static_cast<size_t>(v + 0.5);
+            return static_cast<size_t>(v + _0_5);
         };
 
-        constexpr auto _256_gradient = [] (double dx, double dy) noexcept
+        constexpr auto _256_gradient = [] (double_t dx, double_t dy) noexcept
         {
-            return (eps < dx) ? (256.0 * (dy / dx)) : 256.0;
+            return (eps < dx) ? (_256_0 * (dy / dx)) : _256_0;
         };
 
 
@@ -46,7 +49,7 @@ namespace px
             std::swap(y0, y1);
         }
 
-        if (x1 < 0.0)
+        if (x1 < _0_0)
         {
             return;
         }
@@ -55,18 +58,18 @@ namespace px
 
         const auto _256_dy_by_dx = _256_gradient(x1 - x0, y1 - y0);
 
-        auto _256_yf = 256.0 * (y0 + 0.5);
+        auto _256_yf = _256_0 * (y0 + _0_5);
 
-        if (x0 < 0.0)
+        if (x0 < _0_0)
         {
             _256_yf -= _256_dy_by_dx * x0;
-            x0 = 0.0;
+            x0 = _0_0;
         }
 
         if (swap_xy)
         {
             {
-                const auto xf_bound = image.height() - (0.5 + eps);
+                const auto xf_bound = image.height() - (_0_5 + eps);
 
                 if (x0 > xf_bound)
                 {
@@ -81,7 +84,7 @@ namespace px
 
             auto p = image.data() + line_size * uz_round(x0);
             const auto end_p = image.data() + line_size * (uz_round(x1) + 1_uz);
-            const auto _256_yf_size = 256.0 * image.width();
+            const auto _256_yf_size = _256_0 * image.width();
 
             for (; p != end_p; p += line_size)
             {
@@ -106,7 +109,7 @@ namespace px
         else
         {
             {
-                const auto xf_bound = image.width() - (0.5 + eps);
+                const auto xf_bound = image.width() - (_0_5 + eps);
 
                 if (x0 > xf_bound)
                 {
@@ -121,7 +124,7 @@ namespace px
 
             auto p = image.data() + uz_round(x0);
             const auto end_p = image.data() + (uz_round(x1) + 1_uz);
-            const double _256_yf_size = 256.0 * image.height();
+            const double _256_yf_size = _256_0 * image.height();
 
             for (; p != end_p; ++p)
             {

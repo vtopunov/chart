@@ -129,6 +129,16 @@ namespace ui
 
     using window = unique_resource<window_handle_t, window_resource_deleter>;
 
+    namespace private_detail_window
+    {
+        using native_px_t = int;
+        
+        constexpr native_px_t cw_usedefault{ CW_USEDEFAULT };
+        constexpr auto px_usedefault = static_cast<pxside_t>(cw_usedefault);
+    }
+
+    using private_detail_window::px_usedefault;
+
     class window_builder
     {
     public:
@@ -199,17 +209,6 @@ namespace ui
 
         [[nodiscard]]
         window build() const noexcept;
-
-    private:
-        using native_pxside_t = int;
-        static constexpr native_pxside_t cw_usedefault{ CW_USEDEFAULT };
-        static constexpr auto px_usedefault = static_cast<pxside_t>(cw_usedefault);
-
-        [[nodiscard]]
-        static constexpr native_pxside_t px_to_native(pxside_t px) noexcept
-        {
-            return (px == px_usedefault) ? cw_usedefault : narrow_cast<native_pxside_t>(px);
-        }
 
     private:
         mutable type_window_builder type_builder_{};

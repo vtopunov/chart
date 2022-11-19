@@ -46,6 +46,11 @@ namespace egl_ui
         }
     };
 
+    [[nodiscard]]
+    D_CONDITIONAL_OS_WINDOWS(constexpr, inline) os::window_handle_t app_window(const egl_window_resource& egl) noexcept
+    {
+        return app_window(egl.ui);
+    }
 
     [[nodiscard]]
     D_CONDITIONAL_OS_WINDOWS(constexpr, inline) os::window_handle_t render_window(const egl_window_resource& egl) noexcept

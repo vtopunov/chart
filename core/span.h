@@ -275,6 +275,12 @@ public:
     }
 
     [[nodiscard]]
+    constexpr span subspan(size_type pos) const noexcept
+    {
+        return { data_ + pos, size_ - pos };
+    }
+
+    [[nodiscard]]
     constexpr span last(size_type size) const noexcept
     {
         return { data_ + size_ - size, size };

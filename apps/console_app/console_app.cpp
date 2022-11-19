@@ -1,9 +1,10 @@
 ﻿#include <iostream>
 #include <type_traits>
+#include <vector>
+
+#include <core/point2d.h>
+#include <core/small_vector.h>
 
 int main()
 {
-    constexpr int i = ( (-254) >> 8 );
-    fopen("text", "w");
-    return lround(0.5);
 }

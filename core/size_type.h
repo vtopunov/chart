@@ -5,6 +5,7 @@
 #include <core/assert.h>
 #include <core/limits.h>
 
+
 constexpr size_t operator "" _uz(unsigned long long value) noexcept
 {
     return value;

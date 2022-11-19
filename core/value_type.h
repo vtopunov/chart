@@ -4,6 +4,7 @@
 
 #include <core/utility.h>
 
+
 namespace private_detail_value_type
 {
     template<class C>

@@ -8,6 +8,7 @@
 #undef min
 #undef max
 
+
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_const_cast)
 
@@ -59,7 +60,11 @@ struct attach_construct_t
 
 constexpr attach_construct_t attach_construct{};
 
-template<class T, size_t N, class Buffer = buffer<T>>
+template<class T>
+constexpr auto small_size_v = std::max(sizeof(buffer<T>) / sizeof(T), 1_uz);
+
+
+template<class T, size_t N = small_size_v<T>, class Buffer = buffer<T>>
 class small_vector
 {
     using self = small_vector;

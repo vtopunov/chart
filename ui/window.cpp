@@ -39,23 +39,25 @@ namespace ui
 
             return
             {
-                narrow_cast<size_t>(std::lower_bound(first, c.cend(), by_parent{parent}) - first),
+                narrow_cast<size_t>(std::lower_bound(first, c.cend(), by_parent{ parent }) - first),
                 &c,
                 parent
             };
         }
 
-        template<class T> [[nodiscard]]
-        constexpr pxside_t side_length(T p0, T p1) noexcept
+        [[nodiscard]] constexpr pxsize2d sizes(const RECT& rect) noexcept
         {
-            D_ASSERT(p1 >= p0);
-            return narrow_cast<pxside_t>(p1 - p0);
-        }
+            constexpr auto side_length = [] (auto p0, auto p1) noexcept
+            {
+                D_ASSERT(p1 >= p0);
+                return narrow_cast<pxside_t>(p1 - p0);
+            };
 
-        [[nodiscard]]
-        constexpr pxsize2d sizes(const RECT& rect) noexcept
-        {
-            return { side_length(rect.left, rect.right), side_length(rect.top, rect.bottom) };
+            return
+            {
+                side_length(rect.left, rect.right),
+                side_length(rect.top, rect.bottom)
+            };
         }
 
         [[nodiscard]]
@@ -163,8 +165,18 @@ namespace ui
 
     window window_builder::build() const noexcept
     {
-        constexpr dword_t main_window_style{ WS_OVERLAPPED | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX };
-        constexpr dword_t child_window_style{ WS_VISIBLE | WS_CHILD };
+        constexpr auto px_to_native = [] (pxside_t px) noexcept
+        {
+            using namespace private_detail_window;
+            return (px == px_usedefault) ? cw_usedefault : narrow_cast<native_px_t>(px);
+        };
+
+        constexpr auto select_window_style = [] (bool has_parent) noexcept
+        {
+            constexpr dword_t main_window_style{ WS_OVERLAPPED | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX };
+            constexpr dword_t child_window_style{ WS_VISIBLE | WS_CHILD };
+            return (has_parent) ? child_window_style : main_window_style;
+        };
 
         window result;
 
@@ -175,8 +187,6 @@ namespace ui
 
         if (cached_type_)
         {
-            const auto style = (parent_) ? child_window_style : main_window_style;
-
             result = window
             {
                 resource_construct,
@@ -185,7 +195,7 @@ namespace ui
                     0,
                     cached_type_.r().name_id,
                     title_.c_str(),
-                    style,
+                    select_window_style(!!parent_),
                     px_to_native(geometry_.x()),
                     px_to_native(geometry_.y()),
                     px_to_native(geometry_.width()),
@@ -203,12 +213,7 @@ namespace ui
 
                 const auto ok = !!window_set.try_emplace
                 (
-                    std::upper_bound
-                    (
-                        window_set.cbegin(),
-                        window_set.cend(),
-                        by_parent{ parent_ }
-                    ),
+                    std::upper_bound(window_set.cbegin(), window_set.cend(), by_parent{ parent_ }),
                     result.r(),
                     parent_,
                     cached_type_

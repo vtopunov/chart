@@ -4,11 +4,11 @@
 #include <core/size2d.h>
 
 
-template<class T>
+template<class Value, class Size = unsigned_or_t<Value>>
 struct rectangle
 {
-    using value_type = T;
-    using size_type = unsigned_or_t<value_type>;
+    using value_type = Value;
+    using size_type = Size;
     using point2d_type = point2d<value_type>;
     using size2d_type = size2d<size_type>;
 
@@ -96,10 +96,10 @@ struct rectangle
     template<class Point>
     [[nodiscard]] constexpr bool contains(const Point& p) const noexcept
     {
-        using position_on_axis_t = std::decay_t<decltype(p.x())>;
-        static_assert(std::is_same_v<position_on_axis_t, std::decay_t<decltype(p.y())>>);
+        using value_t = std::decay_t<decltype(p.x())>;
+        static_assert(std::is_same_v<value_t, std::decay_t<decltype(p.y())>>);
 
-        constexpr auto contains1d = [] (position_on_axis_t p, value_type p0, size_type dp) noexcept
+        constexpr auto contains1d = [] (value_t p, value_type p0, size_type dp) noexcept
         {
             return p >= p0 && p < (p0 + dp);
         };

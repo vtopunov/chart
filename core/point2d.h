@@ -6,8 +6,6 @@
 template<class T>
 struct point2d : vec2<T>
 {
-    static_assert(is_salar_for_vec_v<T>);
-
     using vec2_type = vec2<T>;
     using vec2_type::_0;
     using vec2_type::_1;
@@ -106,15 +104,12 @@ template<class L, class R>
 }
 
 template<class T>
-[[nodiscard]] constexpr decltype(auto) operator * (const point2d<T>& left, const T& right) noexcept
+[[nodiscard]] constexpr std::enable_if_t<
+    is_salar_for_vec_v<T>,
+    point2d<decl_mul_t<T, T>>
+> operator * (const point2d<T>& left, const T& right) noexcept
 {
     return point2d{ as_vec2(left) * right };
-}
-
-template<class T>
-[[nodiscard]] constexpr decltype(auto)  operator * (const T& left, const point2d<T>& right) noexcept
-{
-    return right * left;
 }
 
 template<class T, class U>

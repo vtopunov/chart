@@ -83,7 +83,6 @@ template<template<class> class Vec, class T>
     return { as_signed(std::move(vec._0)), as_signed(std::move(vec._1)) };
 }
 
-
 template<class T>
 [[nodiscard]] constexpr vec2<T> fill_vec2(const T& value) noexcept
 {
@@ -93,6 +92,19 @@ template<class T>
         value
     };
 }
+
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr std::enable_if_t <
+    std::is_base_of_v<vec2<T>, Vec<T>>, Vec<T>
+> inverse(const Vec<T>& v) noexcept
+{
+    return
+    {
+        v._1,
+        v._0
+    };
+}
+
 
 template<class T>
 [[nodiscard]] constexpr std::enable_if_t<
@@ -110,11 +122,12 @@ template<class L, class R>
 [[nodiscard]] constexpr decltype(auto) operator - (const vec2<L>& left, const vec2<R>& right) noexcept
 {
     using common_t = std::remove_cvref_t<decltype(left._0 - right._0)>;
+    using common_vec2_t = vec2<common_t>;
 
-    return vec2<common_t>
+    return common_vec2_t
     {
         left._0 - right._0,
-            left._1 - right._1
+        left._1 - right._1
     };
 }
 
@@ -125,9 +138,9 @@ template<class L, class R>
     using common_vec2_t = vec2<common_t>;
 
     return common_vec2_t
-    { 
-        left._0 + right._0, 
-        left._1 + right._1 
+    {
+        left._0 + right._0,
+        left._1 + right._1
     };
 }
 
