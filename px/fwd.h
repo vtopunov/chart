@@ -8,6 +8,7 @@ namespace px
     using pxoff_t = int32_t;
     static_assert(sizeof(pxoff_t) >= sizeof(pxside_t));
 
+    using pxvec2 = ::vec2<pxside_t>;
     using pxpoint2d = ::point2d<pxside_t>;
     using pxoff2d = ::point2d<pxoff_t>;
     using pxsize2d = ::size2d<pxside_t>;
@@ -31,6 +32,7 @@ namespace px_literals
 
 using px::pxside_t;
 using px::pxoff_t;
+using px::pxvec2;
 using px::pxpoint2d;
 using px::pxoff2d;
 using px::pxsize2d;

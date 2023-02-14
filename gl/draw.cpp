@@ -13,13 +13,11 @@ namespace gl
             return d;
         }
 
-        void write(buffer_resource_t resource, const_buffer_view data) noexcept
+        void set_array(const_buffer_view data) noexcept
         {
-            gl::bind_buffer(resource.target, resource);
-
             glBufferData
             (
-                to_underlying(resource.target),
+                GL_ARRAY_BUFFER,
                 narrow_cast<GLsizeiptr>(std::size(data)),
                 std::data(data),
                 GL_STATIC_DRAW
@@ -70,10 +68,23 @@ namespace gl
             gen_buffer()
         };
 
-        D_ASSERT(gl_buffer);
+        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
+        {
+            return {};
+        }
 
-        write(gl_buffer, data);
-
+        gl::bind(gl_buffer);
+        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
+        {
+            return {};
+        }
+        
+        set_array(data);
+        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
+        {
+            return {};
+        }
+        
         return gl_buffer;
     }
 

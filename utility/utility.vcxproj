@@ -18,7 +18,7 @@
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />  
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <CharacterSet>Unicode</CharacterSet>
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -27,7 +27,7 @@
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\build\windows\gl_static_library.props" />  
+  <Import Project="..\build\windows\gl_static_library.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
@@ -78,6 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ProjectReference Include="..\debug\debug.vcxproj">
+      <Project>{fc7a4ffb-fa58-4f42-a821-a1967b253843}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\file\file.vcxproj">
       <Project>{499e20aa-8c6a-4235-a383-4e6d4c5e6aff}</Project>
     </ProjectReference>
@@ -91,12 +94,14 @@
   <ItemGroup>
     <ClCompile Include="font_cache.cpp" />
     <ClCompile Include="png.cpp" />
+    <ClCompile Include="px.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cache_storage.h" />
     <ClInclude Include="font_cache.h" />
     <ClInclude Include="png.h" />
+    <ClInclude Include="px.h" />
     <ClInclude Include="shaders_library.h" />
   </ItemGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />  
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

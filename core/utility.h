@@ -80,9 +80,6 @@ constexpr T& as_mutable(const T& value) noexcept
     return const_cast<T&>(value);
 }
 
-template <class T>
-void as_mutable(const T&&) = delete;
-
 D_WARNING_POP
 
 
@@ -90,4 +87,26 @@ template<class T> [[nodiscard]]
 constexpr bool is_null_or_empty(const T* string) noexcept
 {
     return !string || !*string;
+}
+
+template<class T, class U>
+constexpr T& min_eq(T& value, U&& new_value) noexcept
+{
+    if (new_value < value)
+    {
+        value = std::forward<U>(new_value);
+    }
+
+    return value;
+}
+
+template<class T, class U>
+constexpr T& max_eq(T& value, U&& new_value) noexcept
+{
+    if (value < new_value)
+    {
+        value = std::forward<U>(new_value);
+    }
+
+    return value;
 }

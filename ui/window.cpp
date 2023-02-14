@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include <os/os.h>
+
 #include <ui/event_processors_container.h>
 
 namespace ui
@@ -40,9 +42,26 @@ namespace ui
             return
             {
                 narrow_cast<size_t>(std::lower_bound(first, c.cend(), by_parent{ parent }) - first),
-                &c,
+                std::addressof(c),
                 parent
             };
+        }
+
+        [[nodiscard]]
+        constexpr window_roots roots(const window_container& c) noexcept
+        {
+            size_t position{ 0 };
+            for (const auto& value : c)
+            {
+                if (value.is_root())
+                {
+                    break;
+                }
+
+                ++position;
+            }
+
+            return { position, std::addressof(c) };
         }
 
         [[nodiscard]] constexpr pxsize2d sizes(const RECT& rect) noexcept
@@ -153,6 +172,11 @@ namespace ui
         );
     }
 
+    pxsize2d desktop_sizes() noexcept
+    {
+        return sizes(geometry(::GetDesktopWindow()));
+    }
+
     bool close(window_handle_t window) noexcept
     {
         return window && close(window_container_global(), window);
@@ -163,11 +187,32 @@ namespace ui
         return childrens(window_container_global(), window);
     }
 
+    window_roots roots() noexcept
+    {
+        return roots(window_container_global());
+    }
+
+    bool show(window_handle_t window, int cmd) noexcept
+    {
+        static_assert(std::is_same_v<int, std::underlying_type_t<show_command>>);
+        static_assert(SW_HIDE == to_underlying(show_command::hide));
+        static_assert(SW_NORMAL == to_underlying(show_command::normal));
+        static_assert(SW_SHOWMINIMIZED == to_underlying(show_command::minimazed));
+        static_assert(SW_SHOWMAXIMIZED == to_underlying(show_command::maximazed));
+        static_assert(SW_SHOWNOACTIVATE == to_underlying(show_command::inactive));
+        static_assert(SW_SHOW == to_underlying(show_command::show));
+        static_assert(SW_RESTORE == to_underlying(show_command::restore));
+
+        return !!ShowWindow(window, cmd);
+    }
+
     window window_builder::build() const noexcept
     {
         constexpr auto px_to_native = [] (pxside_t px) noexcept
         {
             using namespace private_detail_window;
+            static_assert(std::is_same_v<decltype(CW_USEDEFAULT), native_px_t>);
+            static_assert(CW_USEDEFAULT == cw_usedefault);
             return (px == px_usedefault) ? cw_usedefault : narrow_cast<native_px_t>(px);
         };
 

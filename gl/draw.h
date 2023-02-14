@@ -4,29 +4,11 @@
 
 #include <core/buffer_view.h>
 
-#include <gl/color.h>
 #include <gl/shader.h>
 #include <gl/vertex.h>
 
 namespace gl
 {
-    inline void clear(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) noexcept
-    {
-        glClearColor(red, green, blue, alpha);
-        glClear(GL_COLOR_BUFFER_BIT);
-    }
-
-    inline void clear(GLfloat red, GLfloat green, GLfloat blue) noexcept
-    {
-        clear(red, green, blue, 1.0f);
-    }
-
-    inline void clear(rgba_colorf_view color) noexcept
-    {
-        static_assert(rgba_colorf_view::extent == 4_uz);
-        clear(color[0], color[1], color[2], color[3]);
-    }
-
     enum class draw_mode : GLenum
     {
         points = GL_POINTS,
@@ -194,17 +176,16 @@ namespace gl
     struct specialized_buffer_resource : buffer_resource
     {
         static constexpr auto target = Target;
-
-        void bind() const noexcept
-        {
-            bind_buffer(target, *this);
-        }
     };
-
 
     using buffer_resource_t = specialized_buffer_resource<buffer_target::array_buffer>;
 
     using buffer = unique_resource<buffer_resource_t, buffer_resource_deleter>;
+
+    inline void bind(buffer_resource_t resource) noexcept
+    {
+        gl::bind_buffer(resource.target, resource);
+    }
 
     [[nodiscard]]
     buffer create_buffer(const_buffer_view data) noexcept;
@@ -212,7 +193,7 @@ namespace gl
     template<class Vertex>
     void set_vertex_buffer(span<const attribute_location> attributes, buffer_resource_t buffer) noexcept
     {
-        buffer.bind();
+        bind(buffer);
         gl::set_vertex_pointer<Vertex>(attributes, nullptr);
     }
 

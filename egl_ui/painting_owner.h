@@ -42,6 +42,15 @@ namespace egl_ui
                 narrow_cast<GLsizei>(width(egl)),
                 narrow_cast<GLsizei>(height(egl))
             );
+
+            clear(egl.background);
+        }
+
+    private:
+        static void clear(const gl::rgba_colorf_t& c) noexcept
+        {
+            glClearColor(c.r, c.g, c.b, c.a);
+            glClear(GL_COLOR_BUFFER_BIT);
         }
 
     private:

@@ -20,7 +20,6 @@ constexpr Target underlying_cast(const Source& source) noexcept
     return static_cast<Target>(source);
 }
 
-
 template<class E> [[nodiscard]]
 constexpr E e_bit_or(E left, E right) noexcept
 {
@@ -41,7 +40,6 @@ constexpr E e_bit_not(E e) noexcept
     using underlying_t = std::underlying_type_t<E>;
     return static_cast<E>(~static_cast<underlying_t>(e));
 }
-
 
 D_WARNING_POP;
 

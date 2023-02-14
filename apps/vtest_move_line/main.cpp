@@ -129,7 +129,11 @@ namespace
         [[nodiscard]]
         bool initialize(os::module_handle_t app) noexcept
         {
-            egl_ = create_egl_window(app);
+            egl_ = egl_window_builder{}
+                 .module(app)
+                 .background(gl::colors::cyan_f)
+                 .build();
+
             if (!egl_)
             {
                 return false;
@@ -221,12 +225,10 @@ namespace
         void draw() const noexcept
         {
             const egl_painting_owner painting_lock{ egl_ };
-            
-            gl::clear(gl::colors::cyan_f);
             shaders_.draw(texture_);
         }
 
-        static constexpr point2d invalid_mouse_pos{ fill_vec2(numeric_max_v<ui::pointer_event::value_type>) };
+        static constexpr auto invalid_mouse_pos = fill_to<point2d>(numeric_max_v<ui::pointer_event::value_type>);
 
         constexpr void mouse_trace_finish() noexcept
         {

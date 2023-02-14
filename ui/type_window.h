@@ -3,30 +3,26 @@
 #include <core/zstring_view.h>
 #include <core/resouce.h>
 
-#include <os/os.h>
-
 #include <ui/app.h>
 
 namespace ui
 {    
-    enum class stock_brush : int
+    enum class stock_brush
     {
-        white = WHITE_BRUSH,
-        light_gray = LTGRAY_BRUSH,
-        gray = GRAY_BRUSH,
-        dark_gray = DKGRAY_BRUSH,
-        black = BLACK_BRUSH,
-        null = NULL_BRUSH,
-        hollow = HOLLOW_BRUSH
+        white,
+        light_gray,
+        gray,
+        dark_gray,
+        black,
+        null
     };
-
-    [[nodiscard]]
-    HBRUSH stock(stock_brush brush) noexcept;
 
     struct type_window_resource
     {
+        using name_id_t = const wchar_t*;
+
         module_handle_t module;
-        LPCWSTR name_id;
+        name_id_t name_id;
 
         [[nodiscard]]
         constexpr explicit operator bool() const noexcept
@@ -51,29 +47,14 @@ namespace ui
     class type_window_builder
     {
     public:
-        constexpr type_window_builder& style(UINT style) noexcept
-        {
-            data_.style = style;
-            return *this;
-        }
+        type_window_builder& style(uint_t style) noexcept;
 
-        constexpr type_window_builder& module(module_handle_t module) noexcept
-        {
-            data_.hInstance = module;
-            return *this;
-        }
+        type_window_builder& module(module_handle_t module) noexcept;
 
-        type_window_builder& background(stock_brush brush) noexcept
-        {
-            data_.hbrBackground = stock(brush);
-            return *this;
-        }
+        type_window_builder& background(stock_brush brush) noexcept;
 
         [[nodiscard]]
-        constexpr module_handle_t module() const noexcept
-        {
-            return data_.hInstance;
-        }
+        module_handle_t module() const noexcept;
 
         [[nodiscard]]
         unique_type_window build_as(wzstring_view name) noexcept;
@@ -82,6 +63,13 @@ namespace ui
         unique_type_window build() noexcept;
 
     private:
-        WNDCLASSEXW data_{};
+        tagWNDCLASSEXW* wndcls() noexcept;
+
+        const tagWNDCLASSEXW* cwndcls() const noexcept;
+
+    private:
+        static constexpr size_t wndclass_len{ 80u };
+        static constexpr size_t wndclass_align{ 8u };
+        alignas(wndclass_align) std::byte storage_[wndclass_len]{};
     };
 }

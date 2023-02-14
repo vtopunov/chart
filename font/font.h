@@ -64,7 +64,7 @@ namespace font
         }
     };
 
-    constexpr point2d invalid_position{ fill_vec2(numeric_max_v<pxside_t>) };
+    constexpr auto invalid_position = fill_to<point2d>(numeric_max_v<pxside_t>);
     constexpr auto invalid_cursor = cursor::instance(invalid_position);
 
     cursor draw_char(pix8span image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept;

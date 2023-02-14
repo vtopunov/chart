@@ -45,7 +45,7 @@ namespace egl_ui
 
         if (w.render_wnd)
         {
-            w.window_viewport.sizes = sizes;
+            w.viewport_geometry.sizes = sizes;
         }
 
         return result;

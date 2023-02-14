@@ -258,7 +258,7 @@ struct shaders_library
 
     gl::shaders_program program{};
 
-    explicit constexpr operator bool() const noexcept
+    constexpr explicit operator bool() const noexcept
     {
         return !!program;
     }
@@ -267,7 +267,7 @@ struct shaders_library
     {
         program = gl::create_shaders_program(vert.shader_text, frag.shader_text);
        
-        if (program)
+        if (D_LIKELY(program)) D_ATTRIB_LIKELY
         {
             const auto unfiorm_factory = [p = view(program)]<class T>(T& target, zstring_view name) noexcept
             {

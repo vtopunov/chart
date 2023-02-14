@@ -4,7 +4,7 @@
 
 
 namespace
-{
+{ 
     using namespace widget;
 
     struct main_widget
@@ -55,7 +55,7 @@ namespace
             .text{ u8"Привет мир!" },
         };
 
-        bool initialize(const window& w) noexcept
+        void operator () (window_configuration& cfg) noexcept
         {
             b0.clicked = [this] () noexcept
             {
@@ -72,12 +72,10 @@ namespace
                 clicked(this->b2);
             };
 
-            exit_b.clicked = [&w]() noexcept
+            exit_b.clicked = [app = cfg.window().app()] () noexcept
             {
-                quit(w);
+                ui::quit(app);
             };
-
-            return true;
         }
 
         template<class Fn>
@@ -97,7 +95,3 @@ int app_main(os::module_handle_t app) noexcept
 {
     return widget::run<main_widget>(app);
 }
-
-
-
-

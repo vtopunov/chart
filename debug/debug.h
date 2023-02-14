@@ -13,29 +13,29 @@ D_WARNING_DISABLE_MSVC(W_potential_comparison_of_a_constant_with_another_constan
 
 namespace private_detail_debug
 {
-    enum debug_priority
+    enum log_priority
     {
-        UNKNOWN,
-        DEFAULT,
-        VERBOSE,
-        DEBUG,
-        INFO,
-        WARN,
-        ERROR,
-        FATAL,
-        SILENT
+        LOG_UNKNOWN,
+        LOG_DEFAULT,
+        LOG_VERBOSE,
+        LOG_DEBUG,
+        LOG_INFO,
+        LOG_WARN,
+        LOG_ERROR,
+        LOG_FATAL,
+        LOG_SILENT
     };
 
 #if defined(D_OS_WINDOWS)
-    constexpr char priority_tag(debug_priority p) noexcept
+    constexpr char priority_tag(log_priority p) noexcept
     {
         constexpr char priority_tags[]{ 'U', 'D', 'V', 'D', 'I', 'W', 'E', 'F', 'S' };
         constexpr auto n_tags = std::size(priority_tags);
         
-        static_assert(!debug_priority::UNKNOWN);
-        static_assert(debug_priority::SILENT == (n_tags - 1u));
+        static_assert(!log_priority::LOG_UNKNOWN);
+        static_assert(log_priority::LOG_SILENT == (n_tags - 1u));
         const auto tag 
-            = (p >= debug_priority::UNKNOWN && p <= debug_priority::SILENT) 
+            = (p >= log_priority::LOG_UNKNOWN && p <= log_priority::LOG_SILENT) 
             ? priority_tags[p] : '\0';
         D_ASSERT(tag);
         
@@ -59,7 +59,7 @@ namespace private_detail_debug
             static_assert(n_overhead < NBuf);
         }
 
-        static constexpr void prefix_write(CharT* out, debug_priority priority) noexcept
+        static constexpr void prefix_write(CharT* out, log_priority priority) noexcept
         { 
             *out = priority_tag(priority);
             std::copy(std::cbegin(tagend), std::cend(tagend), ++out);
@@ -76,13 +76,13 @@ namespace private_detail_debug
     void output_debug_string(const wchar_t* string) noexcept;
 
     template<class CharT>
-    void priority_output_debug_string(debug_priority, const CharT* string) noexcept
+    void priority_output_debug_string(log_priority, const CharT* string) noexcept
     {
         output_debug_string(string);
     }
 
 #elif defined(D_OS_ANDROID)
-    void priority_output_debug_string(debug_priority priority, const char* string) noexcept;
+    void priority_output_debug_string(log_priority priority, const char* string) noexcept;
 
     template<class CharT>
     struct debug_overhead
@@ -99,7 +99,7 @@ namespace private_detail_debug
             static_assert(n_overhead < NBuf);
         }
 
-        static constexpr void prefix_write(CharT*, debug_priority) noexcept
+        static constexpr void prefix_write(CharT*, log_priority) noexcept
         {}
 
         static constexpr void suffix_write(CharT* out) noexcept
@@ -110,7 +110,7 @@ namespace private_detail_debug
 #endif
 
     template<class FormatString, class... Args>
-    void priority_debug(debug_priority priority, const FormatString& format_string, const Args&... args) noexcept
+    void priority_debug(log_priority priority, const FormatString& format_string, const Args&... args) noexcept
     {
         using format_char_t = string_char_t<FormatString>;
 
@@ -147,19 +147,25 @@ namespace private_detail_debug
     template<class FormatString, class... Args>
     void debug(const FormatString& format_string, const Args&... args) noexcept
     {
-        priority_debug(DEBUG, format_string, args...);
+        priority_debug(LOG_DEBUG, format_string, args...);
     }
 
     template<class FormatString, class... Args>
     void w_debug(const FormatString& format_string, const Args&... args) noexcept
     {
-        priority_debug(WARN, format_string, args...);
+        priority_debug(LOG_WARN, format_string, args...);
     }
 
     template<class FormatString, class... Args>
     void e_debug(const FormatString& format_string, const Args&... args) noexcept
     {
-        priority_debug(ERROR, format_string, args...);
+        priority_debug(LOG_ERROR, format_string, args...);
+    }
+
+    template<class FormatString, class... Args>
+    void fatal_debug(const FormatString& format_string, const Args&... args) noexcept
+    {
+        priority_debug(LOG_FATAL, format_string, args...);
     }
 }
 D_WARNING_POP
@@ -168,3 +174,4 @@ D_WARNING_POP
 using private_detail_debug::debug;
 using private_detail_debug::w_debug;
 using private_detail_debug::e_debug;
+using private_detail_debug::fatal_debug;

@@ -83,14 +83,21 @@ template<template<class> class Vec, class T>
     return { as_signed(std::move(vec._0)), as_signed(std::move(vec._1)) };
 }
 
-template<class T>
-[[nodiscard]] constexpr vec2<T> fill_vec2(const T& value) noexcept
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr std::enable_if_t<
+    std::is_base_of_v<vec2<T>, Vec<T>>, Vec<T>> fill_to(const T& value) noexcept
 {
     return
     {
         value,
         value
     };
+}
+
+template<class T>
+[[nodiscard]] constexpr vec2<T> fill_vec2(const T& value) noexcept
+{
+    return fill_to<vec2>(value);
 }
 
 template<template<class> class Vec, class T>

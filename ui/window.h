@@ -7,7 +7,9 @@
 
 #include <px/fwd.h>
 
+#include <ui/show_command.h>
 #include <ui/type_window.h>
+
 
 namespace ui
 {
@@ -20,6 +22,11 @@ namespace ui
         constexpr operator window_handle_t() const noexcept
         {
             return current;
+        }
+
+        constexpr bool is_root() const noexcept
+        {
+            return !parent;
         }
     };
 
@@ -77,23 +84,65 @@ namespace ui
     [[nodiscard]]
     window_childrens childrens(window_handle_t parent) noexcept;
 
-    inline bool show(window_handle_t window, int cmd) noexcept
+    struct window_roots
     {
-        return !!::ShowWindow(window, cmd);
-    }
+        using container_type = window_container;
+        using reference = container_type::const_reference;
 
-    enum class show_command
-    {
-        hide = SW_HIDE,
-        show = SW_SHOW,
-        show_no_activete = SW_SHOWNOACTIVATE,
-        show_minimazed = SW_SHOWMINIMIZED,
-        show_maximazed = SW_SHOWMAXIMIZED,
-        show_minimazed_no_activete = SW_SHOWMINNOACTIVE,
-        restore = SW_RESTORE
+        size_t position;
+        const container_type* contaner;
+
+        [[nodiscard]]
+        constexpr window_roots begin() const noexcept
+        {
+            return *this;
+        }
+
+        [[nodiscard]]
+        constexpr null_t<window_roots> end() const noexcept
+        {
+            return {};
+        }
+
+        [[nodiscard]]
+        constexpr explicit operator bool() const noexcept
+        {
+            return position < std::size(*contaner);
+        }
+
+        constexpr window_roots& operator++() noexcept
+        {
+            while ((++position) < std::size(*contaner))
+            {
+                if (value().is_root())
+                    break;
+            }
+
+            return *this;
+        }
+
+        [[nodiscard]]
+        constexpr reference value() const noexcept
+        {
+            D_WARNING_PUSH;
+            D_WARNING_DISABLE_MSVC(W_unchecked_subscript_operator);
+            return (*contaner)[position];
+            D_WARNING_POP;
+        }
+
+        [[nodiscard]]
+        constexpr reference operator*() const noexcept
+        {
+            return value();
+        }
     };
 
-    inline bool show(window_handle_t  window, show_command cmd) noexcept
+    [[nodiscard]]
+    window_roots roots() noexcept;
+
+    bool show(window_handle_t window, int cmd) noexcept;
+
+    inline bool show(window_handle_t window, show_command cmd) noexcept
     {
         return show(window, to_underlying(cmd));
     }
@@ -114,10 +163,7 @@ namespace ui
     bool geometry(window_handle_t window, pxrectangle rc) noexcept;
 
     [[nodiscard]]
-    inline pxsize2d desktop_sizes() noexcept
-    {
-        return sizes(geometry(::GetDesktopWindow()));
-    }
+    pxsize2d desktop_sizes() noexcept;
 
     struct window_resource_deleter
     {
@@ -133,7 +179,7 @@ namespace ui
     {
         using native_px_t = int;
         
-        constexpr native_px_t cw_usedefault{ CW_USEDEFAULT };
+        constexpr auto cw_usedefault = static_cast<native_px_t>(0x80000000);
         constexpr auto px_usedefault = static_cast<pxside_t>(cw_usedefault);
     }
 
@@ -188,7 +234,7 @@ namespace ui
             return *this;
         }
 
-        constexpr window_builder& module(module_handle_t module) noexcept
+        window_builder& module(module_handle_t module) noexcept
         {
             type_builder_.module(module);
             return *this;
@@ -202,7 +248,7 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr module_handle_t module() const noexcept
+        module_handle_t module() const noexcept
         {
             return type_builder_.module();
         }
@@ -216,6 +262,5 @@ namespace ui
         std::wstring title_;
         pxrectangle geometry_{ px_usedefault, 0_px, px_usedefault, 0_px };
         window_handle_t parent_{ nullptr };
-
     };
 }

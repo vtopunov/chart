@@ -1,7 +1,5 @@
 #include "button.h"
 
-#include <debug/debug.h>
-
 #include <ui/event.h>
 
 #include <widget/window.h>
@@ -48,12 +46,6 @@ namespace widget
             }
         };
 
-        bool button_shaders_initialize(shaders& shaders, pxsize2d viewport_sizes) noexcept
-        {
-            return shaders.colored_rectangle.initialize(viewport_sizes)
-                && shaders.gray_texture_mix_color.initialize(viewport_sizes);
-        }
-
         [[nodiscard]]
         constexpr pxrectangle rectangle_without_frame(const pxrectangle& r)noexcept
         {
@@ -75,27 +67,6 @@ namespace widget
 
             return false;
         }
-    }
-
-    bool button::initialize(window& w) noexcept
-    {
-        if (!button_shaders_initialize(w.shaders, sizes(w)))
-        {
-            e_debug("shaders error: {}", glGetError());
-            return false;
-        }
-
-        if (!font)
-        {
-            font = font_cache::load_font(text::default_font_name, text::default_font_size);
-            if (!font)
-            {
-                e_debug("can't create font");
-                return false;
-            }
-        }
-
-        return true;
     }
 
     event_result button::operator () (const ui::mouse_down_event& e) noexcept
@@ -162,6 +133,14 @@ namespace widget
         return event_result::idle;
     }
 
+    void button::operator()(window_configuration& cfg) const noexcept
+    {
+        cfg.build()
+            .gray_texture_mix_color_shdr()
+            .colored_rectangle_shdr()
+            .pix8_temp_buffer();
+    }
+
     void button::draw(const window& w) noexcept
     {
         const auto colors = button_colors::instance(state);
@@ -171,10 +150,7 @@ namespace widget
         const auto client_rc = rectangle_without_frame(geometry);
         w.shaders.colored_rectangle.draw(client_rc, colors.body);
 
-        if (!texture_text_cache && !text.empty())
-        {
-            texture_text_cache = text::draw_to_texture(w.temp_buffer, font, text, client_rc.sizes);
-        }
+        text::draw_to_cache(*this, w.temp_buffer_view(), client_rc.sizes);
 
         if (texture_text_cache)
         {

@@ -8,7 +8,15 @@ void test_buffer() noexcept
     using type_t = int32_t;
     constexpr auto size = 10_uz;
     buffer<type_t> b{ buffer_construct, size };
-    zero_memory(b);
+    
+    {
+        type_t value_gen{ 0 };
+        for (auto& value : b)
+        {
+            value = ++value_gen;
+        }
+    }
+
     D_ASSERT(size == b.size());
     D_ASSERT(size * sizeof(type_t) == b.size_bytes());
     
@@ -43,8 +51,8 @@ void test_buffer() noexcept
     static_assert(std::is_same_v<decltype(b.cback()), const type_t&>);
     D_ASSERT(std::addressof(b.cback()) == (b.data() + size - 1));
 
-    D_ASSERT(!b.front());
-    D_ASSERT(!b.back());
+    D_ASSERT(b.front() == 1);
+    D_ASSERT(b.back() == b.size());
 
     {
         constexpr type_t c{ 123 };
@@ -61,7 +69,7 @@ void test_buffer() noexcept
     {
         constexpr type_t c{ 231 };
         constexpr auto pos = size >> 1;
-        D_ASSERT(!b[pos]);
+        D_ASSERT((pos + 1) == b[pos]);
         b[pos] = c;
         D_ASSERT(c == b[pos]);
         D_ASSERT(c == std::as_const(b)[pos]);

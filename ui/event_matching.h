@@ -30,21 +30,23 @@ namespace ui
     template<class Processor>
     struct event_callback_instance
     {
+        static_assert(!std::is_reference_v<Processor>);
+
         static event_result_opt_t callback(void* data, const event& e) noexcept
         {
             D_ASSERT(data);
-            auto& processor = *static_cast<std::remove_reference_t<Processor>*>(data);
+            auto& processor = *static_cast<Processor*>(data);
 
             switch (e.style())
             {
 #if defined(D_OS_WINDOWS)
-                case event_style::size:               return call_event(processor, event_specializing_for<event_style::size>(e));
-                case event_style::mouse_wheel:        return call_event(processor, event_specializing_for<event_style::mouse_wheel>(e));
-                case event_style::mouse_double_click: return call_event(processor, event_specializing_for<event_style::mouse_double_click>(e));
+                case event_style::size:               return call_event(processor, event_for<event_style::size>(e));
+                case event_style::mouse_wheel:        return call_event(processor, event_for<event_style::mouse_wheel>(e));
+                case event_style::mouse_double_click: return call_event(processor, event_for<event_style::mouse_double_click>(e));
 #endif
-                case event_style::mouse_move:         return call_event(processor, event_specializing_for<event_style::mouse_move>(e));
-                case event_style::mouse_down:         return call_event(processor, event_specializing_for<event_style::mouse_down>(e));
-                case event_style::mouse_up:           return call_event(processor, event_specializing_for<event_style::mouse_up>(e));
+                case event_style::mouse_move:         return call_event(processor, event_for<event_style::mouse_move>(e));
+                case event_style::mouse_down:         return call_event(processor, event_for<event_style::mouse_down>(e));
+                case event_style::mouse_up:           return call_event(processor, event_for<event_style::mouse_up>(e));
 
                 default: 
                     break;
@@ -53,5 +55,30 @@ namespace ui
             return call_event(processor, e);
         }
     };
+
+    template<class Processor>
+    constexpr event_callback_t event_callback_v{ event_callback_instance<std::remove_reference_t<Processor>>::callback };
+
+    template<event_style SelE, class Processor>
+    struct one_event_callback_instance
+    {
+        static_assert(!std::is_reference_v<Processor>);
+
+        static event_result_opt_t callback(void* data, const event& e) noexcept
+        {
+            D_ASSERT(data);
+            auto& processor = *static_cast<std::remove_reference_t<Processor>*>(data);
+
+            if (SelE == e.style())
+            {
+                return call_event(processor, event_for<SelE>(e));
+            }
+
+            return std::nullopt;
+        }
+    };
+
+    template<event_style SelE, class Processor>
+    constexpr event_callback_t one_event_callback_v{ one_event_callback_instance<SelE, std::remove_reference_t<Processor>>::callback };
 }
 

@@ -6,13 +6,13 @@
 
 
 template<class From, class To>
-[[nodiscard]] constexpr decltype(auto) lerp(const num_range<From>& x, const num_range<To>& y) noexcept
+[[nodiscard]] constexpr decltype(auto) lerp(const num_range<From>& from, const num_range<To>& to) noexcept
 {
-    const auto x_length = x.length();
-    D_ASSERT(x_length);
+    const auto x_length = from.length();
+    D_ASSERT(x_length); // + D_ASSERT(isnormal(x)) for floating point, c++23 constexpr
 
-    const auto scaling = y.length() / x_length;
-    const auto offset = (y._0 * x._1 - y._1 * x._0) / x_length;
+    const auto scaling = to.length() / x_length;
+    const auto offset = (to._0 * from._1 - to._1 * from._0) / x_length;
 
     return polynomial2{ offset, scaling };
 }

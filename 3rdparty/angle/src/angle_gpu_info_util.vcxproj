@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -42,53 +34,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
   </PropertyGroup>
   <Import Project="..\in.props"/>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>.;..\include;$(OutDir)obj\global_intermediate\angle;..\src;..\src\common\third_party\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/MP /d2guard4 /Wv:18 %(AdditionalOptions)</AdditionalOptions>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>4100;4127;4718;4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <ExceptionHandling>false</ExceptionHandling>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <MinimalRebuild>false</MinimalRebuild>
-      <Optimization>Disabled</Optimization>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_HAS_EXCEPTIONS=0;NOMINMAX;ANGLE_STANDALONE_BUILD;GPU_INFO_USE_SETUPAPI;ANGLE_X86_CPU;_DEBUG;ANGLE_ENABLE_DEBUG_ANNOTATIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <WarningLevel>Level4</WarningLevel>
-    </ClCompile>
-    <Lib>
-      <AdditionalLibraryDirectories>C:/Program Files (x86)/Windows Kits/10/Lib/winv6.3/um/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <OutputFile>$(OutDir)lib\$(ProjectName)$(TargetExt)</OutputFile>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Lib>
-    <Link>
-      <AdditionalDependencies>kernel32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;user32.lib;uuid.lib;odbc32.lib;odbccp32.lib;delayimp.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:/Program Files (x86)/Windows Kits/10/Lib/winv6.3/um/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalOptions>/guard:cf %(AdditionalOptions)</AdditionalOptions>
-      <FixedBaseAddress>false</FixedBaseAddress>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ImportLibrary>$(OutDir)lib\$(TargetName).lib</ImportLibrary>
-      <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
-      <SubSystem>Console</SubSystem>
-      <TargetMachine>MachineX86</TargetMachine>
-      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-    </Link>
-    <ResourceCompile>
-      <AdditionalIncludeDirectories>.;..\include;$(OutDir)obj\global_intermediate\angle;..\src;..\src\common\third_party\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <Culture>0x0409</Culture>
-      <PreprocessorDefinitions>ANGLE_STANDALONE_BUILD;GPU_INFO_USE_SETUPAPI;ANGLE_X86_CPU;_DEBUG;ANGLE_ENABLE_DEBUG_ANNOTATIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>.;..\include;$(OutDir)obj\global_intermediate\angle;..\src;..\src\common\third_party\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -113,8 +62,6 @@
     </Lib>
     <Link>
       <AdditionalDependencies>kernel32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;user32.lib;uuid.lib;odbc32.lib;odbccp32.lib;delayimp.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:/Program Files (x86)/Windows Kits/10/Lib/winv6.3/um/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalOptions>/guard:cf %(AdditionalOptions)</AdditionalOptions>
       <FixedBaseAddress>false</FixedBaseAddress>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ImportLibrary>$(OutDir)lib\$(TargetName).lib</ImportLibrary>
@@ -127,46 +74,6 @@
       <AdditionalIncludeDirectories>.;..\include;$(OutDir)obj\global_intermediate\angle;..\src;..\src\common\third_party\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Culture>0x0409</Culture>
       <PreprocessorDefinitions>ANGLE_STANDALONE_BUILD;GPU_INFO_USE_SETUPAPI;ANGLE_X64_CPU;_DEBUG;ANGLE_ENABLE_DEBUG_ANNOTATIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>.;..\include;$(OutDir)obj\global_intermediate\angle;..\src;..\src\common\third_party\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/MP /d2guard4 /Wv:18 %(AdditionalOptions)</AdditionalOptions>
-      <BufferSecurityCheck>true</BufferSecurityCheck>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>4100;4127;4718;4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <ExceptionHandling>false</ExceptionHandling>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <MinimalRebuild>false</MinimalRebuild>
-      <Optimization>MaxSpeed</Optimization>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_WARNINGS;_HAS_EXCEPTIONS=0;NOMINMAX;ANGLE_STANDALONE_BUILD;GPU_INFO_USE_SETUPAPI;ANGLE_X86_CPU;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <WarningLevel>Level4</WarningLevel>
-    </ClCompile>
-    <Lib>
-      <AdditionalLibraryDirectories>C:/Program Files (x86)/Windows Kits/10/Lib/winv6.3/um/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <OutputFile>$(OutDir)lib\$(ProjectName)$(TargetExt)</OutputFile>
-      <TargetMachine>MachineX86</TargetMachine>
-    </Lib>
-    <Link>
-      <AdditionalDependencies>kernel32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;user32.lib;uuid.lib;odbc32.lib;odbccp32.lib;delayimp.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:/Program Files (x86)/Windows Kits/10/Lib/winv6.3/um/x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalOptions>/guard:cf %(AdditionalOptions)</AdditionalOptions>
-      <FixedBaseAddress>false</FixedBaseAddress>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ImportLibrary>$(OutDir)lib\$(TargetName).lib</ImportLibrary>
-      <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
-      <SubSystem>Console</SubSystem>
-      <TargetMachine>MachineX86</TargetMachine>
-      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
-    </Link>
-    <ResourceCompile>
-      <AdditionalIncludeDirectories>.;..\include;$(OutDir)obj\global_intermediate\angle;..\src;..\src\common\third_party\base;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <Culture>0x0409</Culture>
-      <PreprocessorDefinitions>ANGLE_STANDALONE_BUILD;GPU_INFO_USE_SETUPAPI;ANGLE_X86_CPU;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

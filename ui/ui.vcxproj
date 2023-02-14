@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="app.h" />
+    <ClInclude Include="debug.h" />
     <ClInclude Include="event_fwd.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="event.h" />
@@ -21,6 +22,7 @@
     <ClInclude Include="event_processors_container.h" />
     <ClInclude Include="type_window.h" />
     <ClInclude Include="window.h" />
+    <ClInclude Include="show_command.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />

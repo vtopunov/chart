@@ -160,6 +160,11 @@ public:
         return true;
     }
 
+    void reserve(size_t new_count) noexcept
+    {
+        D_ASSERT_OR_UNUSED(try_reserve(new_count));
+    }
+
 private:
     [[nodiscard]]
     static constexpr bool _is_compatible_element_size(size_t testing_size) noexcept
@@ -167,6 +172,7 @@ private:
         return (testing_size >= element_size) && !(testing_size % element_size);
     }
 
+    [[nodiscard]]
     static void* _alloc(size_t size) noexcept
     {
         constexpr size_t overflow = numeric_max_v<size_t> / element_size;

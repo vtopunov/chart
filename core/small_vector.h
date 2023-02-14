@@ -313,7 +313,7 @@ public:
         if (_try_indeterminate_reserve(size() + 1_uz))
         {
             const auto last = data_ + size_;
-            new (last) value_type(std::forward<Args>(args)...);
+            new (last) value_type{ std::forward<Args>(args)... };
             ++size_;
             return last;
         }
@@ -603,12 +603,9 @@ private:
 
     constexpr void _dynamic_move_completion(self& right) noexcept
     {
-        const auto size = right.size_;
         right.data_ = right.dynamic_.data();
-        right.size_ = 0_uz;
-
         data_ = dynamic_.data();
-        size_ = size;
+        size_ = right._release_size();
     }
 
     [[nodiscard]]

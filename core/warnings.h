@@ -32,6 +32,7 @@
 #endif
 
 #define W_truncation_of_value                                          4309
+#define W_unreachable_code                                             4702
 #define W_incorrect_logical_or                                         6285
 #define W_redundant_code__left_and_right_subexpressions_are_identical  6287
 #define W_potential_comparison_of_a_constant_with_another_constant     6326

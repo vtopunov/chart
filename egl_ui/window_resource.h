@@ -33,7 +33,7 @@ namespace egl_ui
                         .sensor_event_queue{ nullptr },
 
     #endif
-                        .window_viewport{ .sizes{ 0_px, 0_px } },
+                        .viewport_geometry{ .sizes{ 0_px, 0_px } },
                 };
             }
         };
@@ -50,17 +50,17 @@ namespace egl_ui
 
 #endif
 
-        viewport_rectangle window_viewport;
+        viewport_rectangle viewport_geometry;
 
         constexpr explicit operator bool() const noexcept
         {
-            return !!window_viewport;
+            return !!viewport_geometry;
         }
 
         constexpr operator viewport_rectangle() const noexcept
         {
             static_assert(sizeof(viewport_rectangle) <= std::min(8_uz, 2u * sizeof(size_t)));
-            return window_viewport;
+            return viewport_geometry;
         }
 
         constexpr operator os::const_module_handle_t() const noexcept

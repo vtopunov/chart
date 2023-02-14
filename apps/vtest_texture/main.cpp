@@ -47,8 +47,6 @@ namespace
         static const auto s_base_texture = gl::texture_sampler2D::instance(shaders, "s_base_texture"_zsv);
         static const auto s_mix_texture = gl::texture_sampler2D::instance(shaders, "s_mix_texture"_zsv);
 
-        gl::clear(gl::colors::white_f);
-
         gl::use(shaders);
 
         constexpr GLfloat radius{ 0.25f };

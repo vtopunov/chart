@@ -4,9 +4,9 @@
 
 namespace image
 {
-    static_assert(to_underlying(png_errno::IO_ERROR) == SPNG_IO_ERROR);
-    static_assert(to_underlying(png_errno::OK) == SPNG_OK);
-    static_assert(to_underlying(png_errno::NOTFINAL) == SPNG_ENOTFINAL);
+    static_assert(to_underlying(png_errno::PNG_IO_ERROR) == SPNG_IO_ERROR);
+    static_assert(to_underlying(png_errno::PNG_OK) == SPNG_OK);
+    static_assert(to_underlying(png_errno::PNG_NOTFINAL) == SPNG_ENOTFINAL);
 
     namespace
     {
@@ -23,7 +23,7 @@ namespace image
 
     zstring_view png_error_string(png_errno e) noexcept
     {
-        if (e == png_errno::SIZE)
+        if (e == png_errno::PNG_SIZE)
         {
             return "invalid image size"_zsv;
         }
@@ -117,21 +117,21 @@ namespace image
 
         if (!image || !image.size())
         {
-            return png_errno::SIZE;
+            return png_errno::PNG_SIZE;
         }
 
         const auto png = png_instance();
         if (!png)
         {
-            return png_errno::MEM;
+            return png_errno::PNG_MEM;
         }
 
-        png_errno errc{ png_errno::OK };
+        png_errno errc{ png_errno::PNG_OK };
 
         const auto accept_errc = [&errc](png_errno new_errc) noexcept
         {
             errc = new_errc;
-            return png_errno::OK != new_errc;
+            return png_errno::PNG_OK != new_errc;
         };
 
         if (accept_errc(png_set_buffer(png, image)))
@@ -153,18 +153,18 @@ namespace image
 
         if (!size)
         {
-            return png_errno::SIZE;
+            return png_errno::PNG_SIZE;
         }
 
         const pix32space space{ png_header.sizes() };
         if (space.size_bytes() != size)
         {
-            return png_errno::SIZE;
+            return png_errno::PNG_SIZE;
         }
 
         if (!temp.try_reserve(size))
         {
-            return png_errno::MEM;
+            return png_errno::PNG_MEM;
         }
 
         if (accept_errc(png_decode_image(png, png_format, temp)))

@@ -11,6 +11,35 @@ namespace gl
     constexpr size_t default_alignment{ 4_uz };
     static_assert(px::default_alignment == gl::default_alignment);
 
+    enum class texture_target : GLenum
+    {
+        texture_2d = GL_TEXTURE_2D
+    };
+
+    enum class pixel_format : GLenum
+    {
+        RGBA = GL_RGBA,
+        RGB = GL_RGB,
+        LUMINANCE = GL_LUMINANCE
+    };
+
+    enum class pixel_type : GLenum
+    {
+        UNSIGNED_BYTE = GL_UNSIGNED_BYTE,
+        UNSIGNED_SHORT_565 = GL_UNSIGNED_SHORT_5_6_5
+    };
+
+    struct texture_format
+    {
+        pixel_format format;
+        pixel_type type;
+    };
+
+    constexpr texture_format R8G8B8A8{ pixel_format::RGBA, pixel_type::UNSIGNED_BYTE };
+    constexpr texture_format R8G8B8{ pixel_format::RGB, pixel_type::UNSIGNED_BYTE };
+    constexpr texture_format R5G6B5{ pixel_format::RGB, pixel_type::UNSIGNED_SHORT_565 };
+    constexpr texture_format LUMINANCE8{ pixel_format::LUMINANCE, pixel_type::UNSIGNED_BYTE };
+
     using texture_descriptor_t = GLuint;
 
     struct texture_resource
@@ -29,12 +58,6 @@ namespace gl
         void operator () (texture_resource texture) const noexcept;
     };
 
-    enum class texture_target : GLenum
-    {
-        texture_2d = GL_TEXTURE_2D
-    };
-
-
     inline void bind_texture(texture_target target, texture_resource texture) noexcept
     {
         glBindTexture(to_underlying(target), texture.d);
@@ -44,11 +67,6 @@ namespace gl
     struct specialized_texture_resource : texture_resource
     {
         static constexpr auto target = Target;
-
-        void bind() const noexcept
-        {
-            bind_texture(target, *this);
-        }
     };
 
     using texture2d_resource = specialized_texture_resource<texture_target::texture_2d>;
@@ -90,32 +108,14 @@ namespace gl
         return tex.sizes.height();
     }
 
-    enum class pixel_format : GLenum
-    {
-        RGBA = GL_RGBA,
-        RGB = GL_RGB,
-        LUMINANCE = GL_LUMINANCE
-    };
-
-    enum class pixel_type : GLenum
-    {
-        UNSIGNED_BYTE = GL_UNSIGNED_BYTE,
-        UNSIGNED_SHORT_565 = GL_UNSIGNED_SHORT_5_6_5
-    };
-
-    struct texture_format
-    {
-        pixel_format format;
-        pixel_type type;
-    };
-
-    constexpr texture_format R8G8B8A8{ pixel_format::RGBA, pixel_type::UNSIGNED_BYTE };
-    constexpr texture_format R8G8B8{ pixel_format::RGB, pixel_type::UNSIGNED_BYTE };
-    constexpr texture_format R5G6B5{ pixel_format::RGB, pixel_type::UNSIGNED_SHORT_565 };
-    constexpr texture_format LUMINANCE8{ pixel_format::LUMINANCE, pixel_type::UNSIGNED_BYTE };
+    [[nodiscard]]
+    texture2d create_texture2d() noexcept;
 
     [[nodiscard]]
     texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept;
+
+    [[nodiscard]]
+    texture2d write(texture2d texture, pxsize2d sizes, texture_format format, const void* pixels) noexcept;
 
     template<size_t PxSize>
     struct texpix_traits 
@@ -161,6 +161,24 @@ namespace gl
         return create_texture2d(pixspan{image});
     }
 
+    template<class T>
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> write(texture2d texture, pxsize2d sizes, const T* pixels) noexcept
+    {
+        return write(std::move(texture), sizes, texpix_format_v<T>, pixels);
+    }
+
+    template<class T>
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> write(texture2d texture, pixspan<T> image) noexcept
+    {
+        return write(std::move(texture), image.sizes(), image.data());
+    }
+
+    template<class T>
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> write(texture2d texture, const pixmap<T>& image) noexcept
+    {
+        return write(std::move(texture), pixspan{ image });
+    }
+
     template<texture_target target>
     struct select_glsl_sampler_typeid
     {};
@@ -193,7 +211,7 @@ namespace gl
         void store(specialized_texture_resource<target> texture) const noexcept
         {
             glActiveTexture(narrow_cast<GLenum>(GL_TEXTURE0 + value));
-            texture.bind();
+            bind_texture(target, texture);
             sampler.store(value);
         }
 

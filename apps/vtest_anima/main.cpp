@@ -68,11 +68,9 @@ namespace
         static const auto a_position = gl::get_attribute_location(shaders, "a_position"_zsv);
         static const auto u_color = gl::uniform_vec4f::instance(shaders, "u_color"_zsv);
 
-        gl::clear(anima_color(now));
-
         gl::use(shaders);
 
-        u_color.store(anima_color(now + anima_lerp_period));
+        u_color.store(anima_color(now));
 
         constexpr GLfloat radius{ 0.25f };
         constexpr GLfloat dia{ 2 * radius };

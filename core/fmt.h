@@ -3,6 +3,7 @@
 #include <core/warnings.h>
 
 D_WARNING_PUSH
+D_WARNING_DISABLE_MSVC(W_unreachable_code)
 D_WARNING_DISABLE_MSVC(W_incorrect_logical_or)
 D_WARNING_DISABLE_MSVC(W_redundant_code__left_and_right_subexpressions_are_identical)
 D_WARNING_DISABLE_MSVC(W_arithmetic_overflow)

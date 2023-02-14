@@ -14,95 +14,95 @@ namespace image
 
     enum class png_errno
     {
-        IO_ERROR = -2,
-        IO_EOF = -1,
-        OK = 0,
-        INVAL,
-        MEM,
-        INT_OVERFLOW,
-        SIGNATURE,
-        WIDTH,
-        HEIGHT,
-        USER_WIDTH,
-        USER_HEIGHT,
-        BIT_DEPTH,
-        COLOR_TYPE,
-        COMPRESSION_METHOD,
-        FILTER_METHOD,
-        INTERLACE_METHOD,
-        IHDR_SIZE,
-        NOIHDR,
-        CHUNK_POS,
-        CHUNK_SIZE,
-        CHUNK_CRC,
-        CHUNK_TYPE,
-        CHUNK_UNKNOWN_CRITICAL,
-        DUP_PLTE,
-        DUP_CHRM,
-        DUP_GAMA,
-        DUP_ICCP,
-        DUP_SBIT,
-        DUP_SRGB,
-        DUP_BKGD,
-        DUP_HIST,
-        DUP_TRNS,
-        DUP_PHYS,
-        DUP_TIME,
-        DUP_OFFS,
-        DUP_EXIF,
-        CHRM,
-        PLTE_IDX,
-        TRNS_COLOR_TYPE,
-        TRNS_NO_PLTE,
-        GAMA,
-        ICCP_NAME,
-        ICCP_COMPRESSION_METHOD,
-        SBIT,
-        SRGB,
-        TEXT,
-        TEXT_KEYWORD,
-        ZTXT,
-        ZTXT_COMPRESSION_METHOD,
-        ITXT,
-        ITXT_COMPRESSION_FLAG,
-        ITXT_COMPRESSION_METHOD,
-        ITXT_LANG_TAG,
-        ITXT_TRANSLATED_KEY,
-        BKGD_NO_PLTE,
-        BKGD_PLTE_IDX,
-        HIST_NO_PLTE,
-        PHYS,
-        SPLT_NAME,
-        SPLT_DUP_NAME,
-        SPLT_DEPTH,
-        TIME,
-        OFFS,
-        EXIF,
-        IDAT_TOO_SHORT,
-        IDAT_STREAM,
-        ZLIB,
-        FILTER,
-        BUFSIZE,
-        IO,
-        OF,
-        BUF_SET,
-        BADSTATE,
-        FMT,
-        FLAGS,
-        CHUNKAVAIL,
-        NCODE_ONLY,
-        OI,
-        NOPLTE,
-        CHUNK_LIMITS,
-        ZLIB_INIT,
-        CHUNK_STDLEN,
-        INTERNAL,
-        CTXTYPE,
-        NOSRC,
-        NODST,
-        OPSTATE,
-        NOTFINAL,
-        SIZE
+        PNG_IO_ERROR = -2,
+        PNG_IO_EOF = -1,
+        PNG_OK = 0,
+        PNG_INVAL,
+        PNG_MEM,
+        PNG_INT_OVERFLOW,
+        PNG_SIGNATURE,
+        PNG_WIDTH,
+        PNG_HEIGHT,
+        PNG_USER_WIDTH,
+        PNG_USER_HEIGHT,
+        PNG_BIT_DEPTH,
+        PNG_COLOR_TYPE,
+        PNG_COMPRESSION_METHOD,
+        PNG_FILTER_METHOD,
+        PNG_INTERLACE_METHOD,
+        PNG_IHDR_SIZE,
+        PNG_NOIHDR,
+        PNG_CHUNK_POS,
+        PNG_CHUNK_SIZE,
+        PNG_CHUNK_CRC,
+        PNG_CHUNK_TYPE,
+        PNG_CHUNK_UNKNOWN_CRITICAL,
+        PNG_DUP_PLTE,
+        PNG_DUP_CHRM,
+        PNG_DUP_GAMA,
+        PNG_DUP_ICCP,
+        PNG_DUP_SBIT,
+        PNG_DUP_SRGB,
+        PNG_DUP_BKGD,
+        PNG_DUP_HIST,
+        PNG_DUP_TRNS,
+        PNG_DUP_PHYS,
+        PNG_DUP_TIME,
+        PNG_DUP_OFFS,
+        PNG_DUP_EXIF,
+        PNG_CHRM,
+        PNG_PLTE_IDX,
+        PNG_TRNS_COLOR_TYPE,
+        PNG_TRNS_NO_PLTE,
+        PNG_GAMA,
+        PNG_ICCP_NAME,
+        PNG_ICCP_COMPRESSION_METHOD,
+        PNG_SBIT,
+        PNG_SRGB,
+        PNG_TEXT,
+        PNG_TEXT_KEYWORD,
+        PNG_ZTXT,
+        PNG_ZTXT_COMPRESSION_METHOD,
+        PNG_ITXT,
+        PNG_ITXT_COMPRESSION_FLAG,
+        PNG_ITXT_COMPRESSION_METHOD,
+        PNG_ITXT_LANG_TAG,
+        PNG_ITXT_TRANSLATED_KEY,
+        PNG_BKGD_NO_PLTE,
+        PNG_BKGD_PLTE_IDX,
+        PNG_HIST_NO_PLTE,
+        PNG_PHYS,
+        PNG_SPLT_NAME,
+        PNG_SPLT_DUP_NAME,
+        PNG_SPLT_DEPTH,
+        PNG_TIME,
+        PNG_OFFS,
+        PNG_EXIF,
+        PNG_IDAT_TOO_SHORT,
+        PNG_IDAT_STREAM,
+        PNG_ZLIB,
+        PNG_FILTER,
+        PNG_BUFSIZE,
+        PNG_IO,
+        PNG_OF,
+        PNG_BUF_SET,
+        PNG_BADSTATE,
+        PNG_FMT,
+        PNG_FLAGS,
+        PNG_CHUNKAVAIL,
+        PNG_NCODE_ONLY,
+        PNG_OI,
+        PNG_NOPLTE,
+        PNG_CHUNK_LIMITS,
+        PNG_ZLIB_INIT,
+        PNG_CHUNK_STDLEN,
+        PNG_INTERNAL,
+        PNG_CTXTYPE,
+        PNG_NOSRC,
+        PNG_NODST,
+        PNG_OPSTATE,
+        PNG_NOTFINAL,
+        PNG_SIZE
     };
 
     [[nodiscard]]
@@ -146,7 +146,7 @@ namespace image
         [[nodiscard]]
         constexpr explicit operator bool() const noexcept
         {
-            return errno_ == png_errno::OK;
+            return errno_ == png_errno::PNG_OK;
         }
 
         [[nodiscard]]
@@ -177,7 +177,7 @@ namespace image
         static constexpr auto png_header_len = 16_uz;
         static constexpr auto png_header_align = 8_uz;
         alignas(png_header_align) std::byte storage_[png_header_len]{};
-        png_errno errno_{ png_errno::NOIHDR };
+        png_errno errno_{ png_errno::PNG_NOIHDR };
     };
 
 
@@ -216,11 +216,11 @@ namespace image
         [[nodiscard]]
         constexpr explicit operator bool() const noexcept
         {
-            return errno_ == png_errno::OK;
+            return errno_ == png_errno::PNG_OK;
         }
 
     private:
-        png_errno errno_{ png_errno::OK };
+        png_errno errno_{ png_errno::PNG_OK };
     };
 
     pix32result png_decode_to_r8g8b8a8(const_buffer_view image, buffer_t& temp) noexcept;
@@ -247,11 +247,11 @@ namespace image
         [[nodiscard]]
         constexpr explicit operator bool() const noexcept
         {
-            return errno_ == png_errno::OK;
+            return errno_ == png_errno::PNG_OK;
         }
 
     private:
-        png_errno errno_{ png_errno::OK };
+        png_errno errno_{ png_errno::PNG_OK };
     };
 
     inline r8g8b8a8pixmap_result png_decode_to_r8g8b8a8(const_buffer_view image) noexcept

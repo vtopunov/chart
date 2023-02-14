@@ -495,7 +495,6 @@ namespace
         void draw() const noexcept
         {
             const egl_painting_owner painting_lock{ egl_ };
-            gl::clear(gl::colors::white_f);
             shaders_.draw(area_.geometry(sizes(egl_)));
         }
 

@@ -33,5 +33,3 @@ namespace ui
     [[nodiscard]]
     error_code_t error_code() noexcept;
 }
-
-using ui::quit;

@@ -22,12 +22,23 @@ namespace font
 
         static_assert(as_px_position(invalid_cursor) == invalid_position);
 
-
         using library_descriptor_t = FT_Library;
+
+        const char* error_string(FT_Error errc) noexcept
+        {
+            const auto errs = FT_Error_String(errc);
+            return (errs) ? errs : "";
+        }
 
         void e_debug_ft(const char* string, FT_Error errc) noexcept
         {
-            e_debug("FT error: {}: {}:{}", string, errc, FT_Error_String(errc));
+            e_debug
+            (
+                "FT error: {}: {}:{}", 
+                string, 
+                static_cast<int>(errc), 
+                error_string(errc)
+            );
         }
 
         struct glyph_metrics_wrapper

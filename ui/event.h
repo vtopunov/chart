@@ -369,6 +369,7 @@ namespace ui
     class specialized_event<event_style::size> : public event
     {
     public:
+        using event::event;
         using value_type = event::_coordinate_value_type;
         using size2d_type = size2d<value_type>;
 
@@ -425,7 +426,7 @@ namespace ui
 
 
     template<event_style style> [[nodiscard]]
-    constexpr const specialized_event<style>& event_specializing_for(const event& e) noexcept
+    constexpr const specialized_event<style>& event_for(const event& e) noexcept
     {
         D_ASSERT(style == e.style());
         return static_cast<const specialized_event<style>&>(e);

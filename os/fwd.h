@@ -46,6 +46,7 @@ D_OS_HANDLE_FWD(HWND);
 #undef D_OS_HANDLE_FWD
 
 struct tagMSG;
+struct tagWNDCLASSEXW;
 
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_inconsistent_annotation)

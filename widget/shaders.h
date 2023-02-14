@@ -30,7 +30,7 @@ namespace widget
         {
             if (!lib)
             {
-                if (!lib.build())
+                if (D_UNLIKELY(!lib.build())) D_ATTRIB_UNLIKELY
                 {
                     return false;
                 }

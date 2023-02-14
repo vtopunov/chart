@@ -32,12 +32,12 @@ namespace file
 
         p.file_ = ro_open(path).release();
 
-        if ( p.file_ != invalidfile )
+        if ( p.file_ != invalidfile ) [[likely]]
         {
             p.size_ = clamp_cast<size_t>(size(p.file_));
         }
 
-        if ( p.size_ )
+        if ( p.size_ ) [[likely]]
         {
             p.fmmd_ = CreateFileMappingW
             (
@@ -50,7 +50,7 @@ namespace file
             );
         }
 
-        if ( p.fmmd_ )
+        if ( p.fmmd_ ) [[likely]]
         {
             p.data_ = MapViewOfFile
             (
@@ -62,7 +62,7 @@ namespace file
             );
         }
 
-        if ( !p.data_ )
+        if ( !p.data_ ) [[unlikely]]
         {
             result.reset();
         }

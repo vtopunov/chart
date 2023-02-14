@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClInclude Include="egl_config.h" />
     <ClInclude Include="egl_descriptors.h" />
+    <ClInclude Include="egl_window_builder.h" />
     <ClInclude Include="egl_window_resource.h" />
     <ClInclude Include="egl_window_resource_fwd.h" />
     <ClInclude Include="painting_owner.h" />
@@ -24,14 +25,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="egl_window.cpp" />
+    <ClCompile Include="egl_window_builder.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\3rdparty\angle\src\libEGL.vcxproj">
       <Project>{777ac703-c49d-e67c-f2ea-2bede272a25f}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\debug\debug.vcxproj">
-      <Project>{fc7a4ffb-fa58-4f42-a821-a1967b253843}</Project>
+    <ProjectReference Include="..\3rdparty\angle\src\libGLESv2.vcxproj">
+      <Project>{d5d676ed-c189-2a6b-8de3-f4ca6175550f}</Project>
     </ProjectReference>
     <ProjectReference Include="..\ui\ui.vcxproj">
       <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>

@@ -1,3 +1,5 @@
+#include <os/os.h>
+
 #include <ui/event.h>
 #include <ui/window.h>
 #include <ui/event_processors_container.h>
@@ -12,7 +14,6 @@ namespace ui
         }
     }
 
-
     LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
     {
         static_assert(std::is_same_v<word_parameter_t, WPARAM>);
@@ -21,6 +22,7 @@ namespace ui
 
         static_assert(event_style::null == to_event_style(WM_NULL));
         static_assert(event_style::size == to_event_style(WM_SIZE));
+        static_assert(event_style::quit == to_event_style(WM_QUIT));
         static_assert(event_style::mouse_wheel == to_event_style(WM_MOUSEWHEEL));
         static_assert(event_style::mouse_move == to_event_style(WM_MOUSEMOVE));
         static_assert(event_style::mouse_down == to_event_style(WM_LBUTTONDOWN));

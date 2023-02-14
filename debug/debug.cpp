@@ -24,24 +24,24 @@ namespace private_detail_debug
         return static_cast<prio_arg_t>(e);
     }
 
-    constexpr bool prio_eq(debug_priority tested, android_LogPriority standard) noexcept
+    constexpr bool prio_eq(log_priority tested, android_LogPriority standard) noexcept
     {
         return as_prio_arg(tested) == as_prio_arg(standard);
     }
 
-    void priority_output_debug_string(debug_priority priority, const char* string) noexcept
+    void priority_output_debug_string(log_priority priority, const char* string) noexcept
     {
-        static_assert(std::is_same_v<std::underlying_type_t<debug_priority>, std::underlying_type_t<android_LogPriority> >);
+        static_assert(std::is_same_v<std::underlying_type_t<log_priority>, std::underlying_type_t<android_LogPriority> >);
 
-        static_assert( prio_eq( UNKNOWN , ANDROID_LOG_UNKNOWN ) );
-        static_assert( prio_eq( DEFAULT , ANDROID_LOG_DEFAULT ) && DEFAULT > UNKNOWN );
-        static_assert( prio_eq( VERBOSE , ANDROID_LOG_VERBOSE ) && VERBOSE > DEFAULT );
-        static_assert( prio_eq( DEBUG   , ANDROID_LOG_DEBUG   ) && DEBUG   > VERBOSE );
-        static_assert( prio_eq( INFO    , ANDROID_LOG_INFO    ) && INFO    > DEBUG   );
-        static_assert( prio_eq( WARN    , ANDROID_LOG_WARN    ) && WARN    > INFO    );
-        static_assert( prio_eq( ERROR   , ANDROID_LOG_ERROR   ) && ERROR   > WARN    );
-        static_assert( prio_eq( FATAL   , ANDROID_LOG_FATAL   ) && FATAL   > ERROR   );
-        static_assert( prio_eq( SILENT  , ANDROID_LOG_SILENT  ) && SILENT  > FATAL   );
+        static_assert( prio_eq( LOG_UNKNOWN , ANDROID_LOG_UNKNOWN ) );
+        static_assert( prio_eq( LOG_DEFAULT , ANDROID_LOG_DEFAULT ) && LOG_DEFAULT > LOG_UNKNOWN );
+        static_assert( prio_eq( LOG_VERBOSE , ANDROID_LOG_VERBOSE ) && LOG_VERBOSE > LOG_DEFAULT );
+        static_assert( prio_eq( LOG_DEBUG   , ANDROID_LOG_DEBUG   ) && LOG_DEBUG   > LOG_VERBOSE );
+        static_assert( prio_eq( LOG_INFO    , ANDROID_LOG_INFO    ) && LOG_INFO    > LOG_DEBUG   );
+        static_assert( prio_eq( LOG_WARN    , ANDROID_LOG_WARN    ) && LOG_WARN    > LOG_INFO    );
+        static_assert( prio_eq( LOG_ERROR   , ANDROID_LOG_ERROR   ) && LOG_ERROR   > LOG_WARN    );
+        static_assert( prio_eq( LOG_FATAL   , ANDROID_LOG_FATAL   ) && LOG_FATAL   > LOG_ERROR   );
+        static_assert( prio_eq( LOG_SILENT  , ANDROID_LOG_SILENT  ) && LOG_SILENT  > LOG_FATAL   );
 
         const auto prio = as_prio_arg(priority);
         

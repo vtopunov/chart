@@ -11,6 +11,17 @@
 
 namespace gl
 {
+    inline bool is_correct() noexcept
+    {
+        return GL_NO_ERROR == glGetError();
+    }
+
+    inline bool has_error() noexcept
+    {
+        return !is_correct();
+    }
+
+
     using zstring_view = basic_zstring_view<GLchar>;
     using string_view = std::basic_string_view<GLchar>;
     using source_view = string_view;
@@ -244,14 +255,20 @@ namespace gl
 
         void store(value_view_type view) const
         {
+#if D_IS_DEBUG
             __debug_store();
+#endif
+
             store_uniform_value(location, view);
         }
 
         template<class... Types>
         auto store(const Types&... values) const -> decltype(store_uniform_method_v<type_id>(location_as_int(location), values...))
         {
-            __debug_store();
+#if D_IS_DEBUG
+           __debug_store();
+#endif
+
             return store_uniform_method_v<type_id>(location_as_int(location), values...);
         }
 

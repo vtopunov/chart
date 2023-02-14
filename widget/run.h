@@ -6,73 +6,15 @@
 
 #include <egl_ui/run.h>
 
+#include <widget/event_result.h>
+#include <widget/window_configuration.h>
 #include <widget/window.h>
+
 
 namespace widget
 {
     namespace private_detail_run
     {
-        constexpr auto dialog_color = 0xf0f0f0_glrgb;
-
-        template<class Widget>
-        bool apply_initialize(Widget& widget, window& egl) noexcept;
-
-        template<class Widget, class Event>
-        decltype(auto) apply_event(Widget& widget, const Event& e) noexcept;
-
-        template<class Widget>
-        void apply_draw(Widget& widget, const window& window) noexcept;
-
-        template<class Widget>
-        struct processor
-        {
-            Widget widget;
-            window window;
-            event_result combined_event_result;
-
-            std::nullopt_t operator () (const ui::mouse_down_event& e) noexcept
-            {
-                combined_event_result |= apply_event(widget, e);
-                return std::nullopt;
-            }
-
-            std::nullopt_t operator () (const ui::mouse_up_event& e) noexcept
-            {
-                combined_event_result |= apply_event(widget, e);
-                return std::nullopt;
-            }
-
-            std::nullopt_t operator () (const ui::mouse_move_event& e) noexcept
-            {
-                combined_event_result |= apply_event(widget, e);
-                return std::nullopt;
-            }
-
-            ui::milliseconds_t operator () (ui::idle_event) noexcept
-            {
-                if (event_result::redraw == (combined_event_result & event_result::redraw))
-                {
-                    combined_event_result &= ~event_result::redraw;
-
-                    const egl_painting_owner painting_lock{ window.egl };
-                    gl::clear(dialog_color);
-                    apply_draw(widget, window);
-                }
-
-                return ui::infinite;
-            }
-        };
-
-        template<class Widget>
-        bool apply_initialize(Widget& widget, window& w) noexcept
-        {
-            return widget.initialize(w)
-                && widget.apply([&w] (auto&... widgets) noexcept
-            {
-                return (widgets.initialize(w) && ... && true);
-            });
-        }
-
         template<class Widget, class Event>
         decltype(auto) apply_event(Widget& widget, const Event& e) noexcept
         {
@@ -92,35 +34,128 @@ namespace widget
                 (widgets.draw(w), ...);
             });
         }
+
+        template<class Widget>
+        struct processor : window
+        {
+            static constexpr auto dialog_color = 0xf0f0f0_glrgb;
+
+            Widget widget;
+            event_result combined_event_result{ event_result::redraw };
+
+            template<class... Args>
+            explicit processor(os::module_handle_t app, Args&&... args) noexcept
+                : window
+                { 
+                    .egl
+                    {
+                        egl_window_builder{}
+                        .module(app)
+                        .background(dialog_color)
+                        .build()
+                    },
+                    .shaders{},
+                    .temp_buffer{},
+                    .user_sizes_cache{}
+                }
+                , widget{ std::forward<Args>(args)... }
+            {}
+
+            std::nullopt_t operator () (const ui::size_event& e) noexcept
+            {
+                user_sizes_cache = e.sizes();
+                D_ASSERT(user_sizes_cache.width() <= width(*this));
+                D_ASSERT(user_sizes_cache.height() <= height(*this));
+
+                combined_event_result |= apply_event(widget, e);
+                return std::nullopt;
+            }
+
+            template<ui::event_style Style>
+            std::nullopt_t operator () (const ui::specialized_event<Style>& e) noexcept
+            {
+                combined_event_result |= apply_event(widget, e);
+                return std::nullopt;
+            }
+
+            ui::milliseconds_t operator () (ui::idle_event) noexcept
+            {
+                if (event_result::redraw == (combined_event_result & event_result::redraw))
+                {
+                    combined_event_result &= ~event_result::redraw;
+
+                    const egl_painting_owner painting_lock{ window::egl };
+                    apply_draw(widget, *this);
+                }
+
+                return ui::infinite;
+            }
+        };
+
+
+        template<class Fn, class... Args>
+        using return_t = std::remove_cv_t<
+            decltype(std::declval<std::add_lvalue_reference_t<Fn>>()(std::declval<std::add_lvalue_reference_t<Args...>>()))
+        >;
+
+        template<class T>
+        std::enable_if_t<std::is_same_v<return_t<T, window_configuration>, void>, bool> 
+            call_window_configuration(window_configuration& cfg, T& processor) noexcept
+        {
+            processor(cfg);
+            return true;
+        }
+
+        template<class T>
+        std::enable_if_t<std::is_same_v<return_t<T, window_configuration>, bool>, bool>
+            call_window_configuration(window_configuration& cfg, T& processor) noexcept
+        {
+            return processor(cfg);
+        }
+
+        constexpr bool call_window_configuration(window_configuration&, no_overloaded) noexcept
+        {
+            return true;
+        }
+
+        template<class Widget>
+        bool configure(window& wnd, Widget& wgt) noexcept
+        {
+            window_configuration cfg{ wnd };
+            return call_window_configuration(cfg, wgt) 
+                && wgt.apply([&cfg, &wnd] (auto&... widgets) noexcept
+                {
+                    return (call_window_configuration(cfg, widgets) && ... && true);
+                }) && cfg.configure();
+        }
     }
 
     template<class Widget, class... Args>
     int run(os::module_handle_t app, Args&&... args) noexcept
     {
-        private_detail_run::processor<Widget> processor
+        private_detail_run::processor<Widget> processor{ app, std::forward<Args>(args)... };
+        if (!processor.egl)
         {
-            .widget{ std::forward<Args>(args)... },
-            .window
-            {
-                .egl{ create_egl_window(app) },
-                .shaders{},
-                .temp_buffer{}
-            },
-            .combined_event_result{ event_result::redraw }
-        };
-
-        if (!processor.window.egl)
-        {
-            e_debug("create window error: window error: {}, egl error: {}",
-                    ui::error_code(), eglGetError());
+            e_debug
+            (
+                "create window error: window error: {}, egl error: {}",
+                 ui::error_code(), 
+                eglGetError()
+            );
             return EXIT_FAILURE;
         }
 
-        if (!private_detail_run::apply_initialize(processor.widget, processor.window))
+        if (!private_detail_run::configure(processor, processor.widget))
         {
+            e_debug
+            (
+                "configure window error: window error: {}, egl error: {}",
+                ui::error_code(),
+                eglGetError()
+            );
             return EXIT_FAILURE;
         }
 
-        return egl_ui::run(processor.window.egl, processor);
+        return egl_ui::run(processor.egl, processor);
     }
 }

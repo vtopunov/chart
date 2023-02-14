@@ -1,5 +1,7 @@
 #pragma once
 
+#include <gl/color.h>
+
 #include <egl_ui/egl_window_resource_fwd.h>
 #include <egl_ui/window_resource.h>
 #include <egl_ui/egl_descriptors.h>
@@ -18,7 +20,8 @@ namespace egl_ui
                     .ui = nullui,
                     .display{ nullptr },
                     .surface{ nullptr },
-                    .context{ nullptr }
+                    .context{ nullptr },
+                    .background{}
                 };
             }
         };
@@ -28,6 +31,8 @@ namespace egl_ui
         display_descriptor_t display;
         surface_descriptor_t surface;
         context_descriptor_t context;
+
+        gl::rgba_colorf_t background;
 
         [[nodiscard]]
         constexpr explicit operator bool() const noexcept

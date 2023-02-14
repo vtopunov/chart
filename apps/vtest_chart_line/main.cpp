@@ -3,20 +3,17 @@
 #include <core/small_vector.h>
 #include <core/lerp.h>
 
-#include <debug/debug.h>
-
 #include <px/algorithm.h>
 
-#include <egl_ui/run.h>
+#include <utility/px.h>
 
-#include <file/file_mmap.h>
+#include <widget/run.h>
 
-#include <utility/shaders_library.h>
+using widget::window;
+using widget::event_result;
 
 namespace
 {
-    constexpr pxsize2d frame_sizes{ 30_px, 30_px };
-
     double_t sinc(double_t x) noexcept
     {
         constexpr double_t near_zero_eps{ 0.0004 }; // (eps*120)^(1/4)
@@ -35,15 +32,15 @@ namespace
 
     bool sinc_vector_initialize(small_vector<f64point2d>& v) noexcept
     {
-        constexpr auto size = 300_uz;
+        constexpr auto size = 800_uz;
 
         if (!v.try_reserve(size))
         {
-            e_debug("out of memory");
+            e_debug("sinc_vector_initialize: out of memory");
             return false;
         }
 
-        constexpr auto abscissa_max = 5 * std::numbers::pi_v<double_t>;
+        constexpr auto abscissa_max = 8 * std::numbers::pi_v<double_t>;
         constexpr num_range abscissa_range{ -abscissa_max, abscissa_max };
         constexpr num_range index_range{ 0_uz, size - 1_uz };
         constexpr auto abscissa = lerp(index_range, abscissa_range);
@@ -51,7 +48,7 @@ namespace
         for (size_t i = index_range._0; i <= index_range._1; ++i)
         {
             const auto x = abscissa(i);
-            v.emplace_back(point2d{ x, sinc(x) });
+            v.emplace_back(x, sinc(x));
         }
 
         return true;
@@ -59,44 +56,66 @@ namespace
 
     using f64range = num_range<double_t>;
 
+    void expand(f64range& range, double_t value) noexcept
+    {
+        if (std::isfinite(value))
+        {
+            min_eq(range._0, value);
+            max_eq(range._1, value);
+        }
+    }
+
+    bool range_is_valid(const f64range& range) noexcept
+    {
+        return std::isfinite(range._0)
+            && std::isfinite(range._1)
+            && range._1 > range._0
+            && std::isnormal(range.length());
+    }
+
     using f64point2drange = point2d<f64range>;
 
-    constexpr f64point2drange calculate_values_range(span<const f64point2d> line) noexcept
+    template<size_t axis>
+    void correct(f64point2drange& ranges) noexcept
     {
-        constexpr num_range invalid_range
+        constexpr f64range default_range{ 0.0, 1.0 };
+
+        auto& range = get<axis>(ranges);
+        if (!range_is_valid(range))
+        {
+            range = default_range;
+
+            constexpr vec2 axis_letters{ 'X', 'Y' };
+            w_debug
+            (
+                "invalid {} axis range: [{}, {}]",
+                get<axis>(axis_letters),
+                range._0,
+                range._1
+            );
+        }
+    }
+
+    f64point2drange calculate_values_range(span<const f64point2d> line) noexcept
+    {
+        constexpr num_range range0
         {
             numeric_max_v<double_t>,
             numeric_min_v<double_t>
         };
 
-        constexpr point2d invalid_point_range
-        {
-            fill_vec2(invalid_range)
-        };
+        constexpr auto point_range0 = fill_to<point2d>(range0);
 
-        f64point2drange values_range{ invalid_point_range };
+        f64point2drange values_range{ point_range0 };
+
         for (const auto& pt : line)
         {
-            if (pt._0 < values_range._0._0)
-            {
-                values_range._0._0 = pt._0;
-            }
-
-            if (pt._0 > values_range._0._1)
-            {
-                values_range._0._1 = pt._0;
-            }
-
-            if (pt._1 < values_range._1._0)
-            {
-                values_range._1._0 = pt._1;
-            }
-
-            if (pt._1 > values_range._1._1)
-            {
-                values_range._1._1 = pt._1;
-            }
+            expand(values_range.ref_x(), pt.x());
+            expand(values_range.ref_y(), pt.y());
         }
+
+        correct<0>(values_range);
+        correct<1>(values_range);
 
         return values_range;
     }
@@ -119,7 +138,11 @@ namespace
         }
     };
 
-    constexpr coordinate_transformation calculate_coordinate_transformation(f64point2drange from, f64point2drange to) noexcept
+    constexpr coordinate_transformation calculate_coordinate_transformation
+    (
+        const f64point2drange& from,
+        const f64point2drange& to
+    ) noexcept
     {
         return
         {
@@ -130,154 +153,166 @@ namespace
 
 
     template<class Transform>
-    constexpr void draw_polyline(const pix8span image, span<const f64point2d> values, Transform value2px) noexcept
+    constexpr void draw_polyline
+    (
+        const pix8span image,
+        span<const f64point2d> values,
+        Transform value2px
+    ) noexcept
     {
-        auto p0 = value2px(values[0]);
-
-        for (const auto& p : values.subspan(1u))
+        if (D_LIKELY(values.size())) D_ATTRIB_LIKELY
         {
-            const auto p1 = value2px(p);
-            px::draw_antialiasing_line(image, p0.x(), p0.y(), p1.x(), p1.y());
-            p0 = p1;
+            auto p0 = value2px(values[0]);
+
+            for (const auto& p : values.subspan(1u))
+            {
+                const auto p1 = value2px(p);
+                px::draw_antialiasing_line(image, p0.x(), p0.y(), p1.x(), p1.y());
+                p0 = p1;
+            }
         }
     }
 
-    constexpr void draw_chart_line(const pix8span image, span<const f64point2d> values) noexcept
+    constexpr void draw_chart_polyline
+    (
+        const pix8span image,
+        span<const f64point2d> values,
+        const f64point2drange& values_range
+    ) noexcept
     {
-        draw_polyline
+        draw_polyline(image, values, calculate_coordinate_transformation
         (
-            image,
-            values,
-            calculate_coordinate_transformation
-            (
-                calculate_values_range(values),
-                calculate_pix_range(image.sizes())
-            )
-        );
+            values_range,
+            calculate_pix_range(image.sizes())
+        ));
     }
 
-    class main_processor
+    template<class Pos, class Sz>
+    constexpr pxsize2d clamp_sizes(const rectangle<Pos, Sz>& r, pxsize2d max_sizes) noexcept
     {
-    public:
-        [[nodiscard]]
-        bool initialize(os::module_handle_t app) noexcept
+        using overpxoff_t = int64_t;
+        static_assert(sizeof(overpxoff_t) > sizeof(Pos));
+        static_assert(sizeof(overpxoff_t) > sizeof(Sz));
+        static_assert(sizeof(overpxoff_t) > sizeof(pxside_t));
+
+        constexpr auto clamp_len = [] (overpxoff_t position, overpxoff_t len, overpxoff_t maxlen) noexcept
         {
-            if (!sinc_vector_initialize(values_))
-            {
-                return false;
-            }
+            return narrow_cast<pxside_t>(std::min(position + len, maxlen) - position);
+        };
 
-            egl_ = create_egl_window(app);
-            if (!egl_)
-            {
-                return false;
-            }
-
-            if (!background_shaders_.build())
-            {
-                return false;
-            }
-
-            background_shaders_.use();
-            background_shaders_.frag.u_color.store(gl::colors::white_f);
-            background_shaders_.vert.u_viewport.store(sizes(egl_));
-            background_shaders_.vert.u_position.store(frame_sizes);
-
-            if (!tex_shaders_.build())
-            {
-                return false;
-            }
-
-            tex_shaders_.use();
-            tex_shaders_.frag.u_color.store(gl::colors::blue_f);
-            tex_shaders_.vert.u_viewport.store(sizes(egl_));
-            tex_shaders_.vert.u_position.store(frame_sizes);
-
-            return true;
-        }
-
-        ui::milliseconds_t operator() (ui::idle_event) noexcept
+        return
         {
-            if (chart_lines_rendering(ui::sizes(app_window(egl_)) - 2 * frame_sizes))
-            {
-                const egl_painting_owner painting_lock{ egl_ };
-                gl::clear(gl::colors::gray_f);
+            clamp_len(r.x(), r.width(), max_sizes.width()),
+            clamp_len(r.y(), r.height(), max_sizes.height())
+        };
+    }
 
-                background_shaders_.use();
-                background_shaders_.vert.u_size.store(sizes(texture_));
-                background_shaders_.vert.a_frame.draw();
-
-                tex_shaders_.use();
-                tex_shaders_.frag.s_texture.store(texture_);
-                tex_shaders_.vert.u_size.store(sizes(texture_));
-                tex_shaders_.vert.a_frame.draw();
-            }
-
-            return ui::infinite;
-        }
-
-        int run()
+    struct chart_widget
+    {
+        struct chart_line
         {
-            return egl_ui::run(egl_, *this);
-        }
+            static constexpr auto background_color = gl::colors::white_f;
+            static constexpr auto line_color = gl::colors::blue_f;
+            static constexpr pxsize2d max_sizes{ fill_vec2(numeric_max_v<pxside_t>) };
 
-    private:
-        bool chart_lines_rendering(const pxsize2d sizes) noexcept
-        {
-            if (texture_)
+            class values_container : public small_vector<f64point2d>
             {
+                static constexpr auto nan_value = numeric_nan_v<double_t>;
+                static constexpr auto nan_values_range = fill_to<point2d>(fill_to<num_range>(nan_value));
+
+            public:
+                f64point2drange values_range() const noexcept
+                {
+                    if (need_to_update_cache())
+                    {
+                        values_range_cache_ = calculate_values_range(*this);
+                    }
+
+                    return values_range_cache_;
+                }
+
+            private:
+                bool need_to_update_cache() const noexcept
+                {
+                    return std::isnan(values_range_cache_._0._0);
+                }
+
+            private:
+                mutable f64point2drange values_range_cache_{ nan_values_range };
+            };
+
+            pxrectangle geometry{ .position{}, .sizes{ max_sizes } };
+            values_container values{};
+            gl::texture2d texture_cache{};
+
+            bool operator () (window_configuration& cfg) noexcept
+            {
+                texture_cache = gl::create_texture2d();
+                if (!texture_cache)
+                {
+                    e_debug("chart_line: create texture error: {}", glGetError());
+                    return false;
+                }
+
+                cfg.build()
+                    .gray_texture_mix_color_shdr()
+                    .colored_rectangle_shdr()
+                    .pix8_temp_buffer();
+
                 return true;
             }
 
-            if (image_)
+            constexpr event_result operator () (const ui::size_event&) noexcept
             {
-                zero_memory(image_);
+                return event_result::redraw;
             }
-            else
+
+            void draw(const window& w) noexcept
             {
-                image_ = pix8map{ sizes };
-                if (!image_)
+                if (const auto view_sizes = clamp_sizes(geometry, w.user_sizes()); view_sizes != sizes(texture_cache))
                 {
-                    e_debug("out of memory");
-                    return false;
+                    const auto image = px::zeros_pix8space(w.temp_buffer_view(), view_sizes);
+                    draw_chart_polyline(image, values, values.values_range());
+                    texture_cache = gl::write(std::move(texture_cache), image);
                 }
+
+                const pxrectangle view_geometry
+                {
+                    .position{ geometry.position },
+                    .sizes{ sizes(texture_cache) }
+                };
+
+                w.shaders.colored_rectangle.draw(view_geometry, background_color);
+                w.shaders.gray_texture_mix_color.draw(view_geometry.position, texture_cache, line_color);
             }
+        };
 
-            draw_chart_line(image_, values_);
 
-            texture_ = gl::create_texture2d(image_);
-            if (!texture_)
+        chart_line line;
+
+        bool operator () (window_configuration&) noexcept
+        {
+            if (!sinc_vector_initialize(line.values))
             {
-                e_debug("create texture error: {}\n", glGetError());
+                e_debug("initialize chart error");
                 return false;
             }
 
             return true;
         }
 
-    private:
-        small_vector<f64point2d> values_{};
-        egl_window egl_{};
-        shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> tex_shaders_{};
-        shaders_library<vert::positioned_rectangle, frag::default_color> background_shaders_{};
-        gl::texture2d texture_{};
-        pix8map image_{};
+        template<class Fn>
+        decltype(auto) apply(Fn fn) noexcept
+        {
+            return fn(line);
+        }
     };
 }
 
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
-    main_processor processor;
-
-    if (!processor.initialize(app))
-    {
-        e_debug("create window error: ui error: {}, egl error: {}",
-            ui::error_code(), eglGetError());
-        return EXIT_FAILURE;
-    }
-
-    return processor.run();
+    return widget::run<chart_widget>(nullptr);
 }
 
 

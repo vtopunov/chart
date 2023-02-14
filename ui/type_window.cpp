@@ -1,6 +1,7 @@
 #include "type_window.h"
 
 #include <core/narrow.h>
+#include <os/os.h>
 
 #include <ui/window.h>
 
@@ -37,57 +38,67 @@ namespace ui
             static uint16_t id{ 0u };
             return ++id;
         }
-    }
 
+        [[nodiscard]]
+        HBRUSH stock(stock_brush brush) noexcept
+        {
+            static_assert(std::is_same_v<int, std::underlying_type_t<stock_brush>>);
+            static_assert(WHITE_BRUSH  == to_underlying(stock_brush::white));
+            static_assert(LTGRAY_BRUSH == to_underlying(stock_brush::light_gray));
+            static_assert(GRAY_BRUSH   == to_underlying(stock_brush::gray));
+            static_assert(DKGRAY_BRUSH == to_underlying(stock_brush::dark_gray));
+            static_assert(BLACK_BRUSH  == to_underlying(stock_brush::black));
+            static_assert(NULL_BRUSH   == to_underlying(stock_brush::null));
 
-    HBRUSH stock(stock_brush brush) noexcept
-    {
-        return static_cast<HBRUSH>(GetStockObject(to_underlying(brush)));
+            return static_cast<HBRUSH>(GetStockObject(to_underlying(brush)));
+        }
     }
 
     void window_type_resource_deleter::operator()(type_window_resource type) const noexcept
     {
         if (type)
         {
+            static_assert(std::is_same_v<decltype(type.name_id), LPCWSTR>);
             D_ASSERT_OR_UNUSED(UnregisterClassW(type.name_id, type.module));
         }
     }
 
     unique_type_window type_window_builder::build_as(wzstring_view name) noexcept
     {
-        data_.cbSize = sizeof(data_);
-        data_.lpszClassName = name.c_str();
-        D_ASSERT(!is_null_or_empty(data_.lpszClassName));
-        data_.style |= CS_DBLCLKS;
+        const auto pdata = wndcls();
+        pdata->cbSize = sizeof(*pdata);
+        pdata->lpszClassName = name.c_str();
+        D_ASSERT(!is_null_or_empty(pdata->lpszClassName));
+        pdata->style |= CS_DBLCLKS;
 
-        if (!data_.hInstance)
+        if (!pdata->hInstance)
         {
-            data_.hInstance = GetModuleHandleW(nullptr);
-            D_ASSERT(data_.hInstance);
+            pdata->hInstance = GetModuleHandleW(nullptr);
+            D_ASSERT(pdata->hInstance);
         }
 
-        if (!data_.lpfnWndProc)
+        if (!pdata->lpfnWndProc)
         {
-            data_.lpfnWndProc = window_procedure;
+            pdata->lpfnWndProc = window_procedure;
         }
 
-        if (!data_.hCursor)
+        if (!pdata->hCursor)
         {
-            data_.hCursor = LoadCursorW(nullptr, idc_arrow_w());
-            D_ASSERT(data_.hCursor);
+            pdata->hCursor = LoadCursorW(nullptr, idc_arrow_w());
+            D_ASSERT(pdata->hCursor);
         }
 
-        if (!data_.hbrBackground)
+        if (!pdata->hbrBackground)
         {
-            data_.hbrBackground = stock(stock_brush::white);
-            D_ASSERT(data_.hbrBackground);
+            pdata->hbrBackground = stock(stock_brush::white);
+            D_ASSERT(pdata->hbrBackground);
         }
 
         return
         {
             resource_construct,
-            data_.hInstance,
-            MAKEINTATOMW(RegisterClassExW(&data_))
+            pdata->hInstance,
+            MAKEINTATOMW(RegisterClassExW(pdata))
         };
     }
 
@@ -116,5 +127,41 @@ namespace ui
         while (unique_ui16 >>= 4);
 
         return build_as(pname);
+    }
+    
+    tagWNDCLASSEXW* type_window_builder::wndcls() noexcept
+    {
+        return as_mutable_pointer(cwndcls());
+    }
+    
+    const tagWNDCLASSEXW* type_window_builder::cwndcls() const noexcept
+    {
+        static_assert(wndclass_len >= sizeof(tagWNDCLASSEXW));
+        static_assert(wndclass_align >= alignof(tagWNDCLASSEXW));
+        return reinterpret_cast<const tagWNDCLASSEXW*>(storage_);
+    }
+
+
+    type_window_builder& type_window_builder::style(uint_t style) noexcept
+    {
+        wndcls()->style = style;
+        return *this;
+    }
+
+    type_window_builder& type_window_builder::module(module_handle_t module) noexcept
+    {
+        wndcls()->hInstance = module;
+        return *this;
+    }
+
+    type_window_builder& type_window_builder::background(stock_brush brush) noexcept
+    {
+        wndcls()->hbrBackground = stock(brush);
+        return *this;
+    }
+
+    module_handle_t type_window_builder::module() const noexcept
+    {
+        return cwndcls()->hInstance;
     }
 }

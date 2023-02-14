@@ -16,11 +16,11 @@ namespace
         };
     }
 
-    using clock_t = std::chrono::steady_clock;
-    using time_point_t = clock_t::time_point;
-
     struct main_processor
     {
+        using clock_t = std::chrono::steady_clock;
+        using time_point_t = clock_t::time_point;
+
         static constexpr auto standby_time{ 15s };
         time_point_t last_time{ time_point_t::min() };
 
@@ -42,6 +42,7 @@ namespace
 
             if ( (last_time > last_time.min()) && (now - last_time) > standby_time)
             {
+                debug("standby timeout: quit by timeout");
                 ui::quit();
             }
 
@@ -52,7 +53,9 @@ namespace
     };
 }
 
-int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
+using instance_t = os::module_handle_t;
+
+int _stdcall wWinMain(instance_t instance, instance_t, wchar_t*, int command_show)
 {
     debug("create main window");
     ui::window_builder builder{};
@@ -76,7 +79,6 @@ int APIENTRY wWinMain(HINSTANCE instance, HINSTANCE, LPWSTR, int command_show)
         = builder
         .background(ui::stock_brush::light_gray)
         .parent(mainwindow)
-        .geometry(subwindow_geometry(sizes(ui::geometry(mainwindow))))
         .build();
 
     if ( !subwindow )

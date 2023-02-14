@@ -10,6 +10,7 @@ namespace ui
         
 #ifdef D_OS_WINDOWS
         size = 0x0005,
+        quit = 0x0012,
         mouse_double_click = 0x0203,
         mouse_wheel = 0x020A,
 #endif

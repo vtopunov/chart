@@ -18,7 +18,7 @@
     <ClInclude Include="shaders.h" />
     <ClInclude Include="text.h" />
     <ClInclude Include="window.h" />
-    <ClInclude Include="window_fwd.h" />
+    <ClInclude Include="window_configuration.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\utility\utility.vcxproj">
@@ -29,6 +29,7 @@
     <ClCompile Include="button.cpp" />
     <ClCompile Include="label.cpp" />
     <ClCompile Include="text.cpp" />
+    <ClCompile Include="window_configuration.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

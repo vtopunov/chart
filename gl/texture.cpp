@@ -10,18 +10,18 @@ namespace gl
             return glsl_typeid::sampler2D == id || glsl_typeid::samplerCube == id;
         }
 
-        template<texture_target target>
-        void set_texture(specialized_texture_resource<target> texture, pxsize2d sizes, texture_format format, const void* pixels) noexcept
+        texture2d gen_texture() noexcept
         {
-            texture.bind();
+            texture_descriptor_t d{};
+            glGenTextures(1, &d);
+            return { resource_construct, d, size2d{ 0_px, 0_px } };
+        }
 
-            constexpr auto gl_target = to_underlying(target);
-            glTexParameteri(gl_target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(gl_target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
+        void set_image2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept
+        {
             glTexImage2D
             (
-                gl_target,
+                GL_TEXTURE_2D,
                 0,
                 to_underlying(format.format),
                 narrow_cast<GLsizei>(sizes.width()),
@@ -33,11 +33,16 @@ namespace gl
             );
         }
 
-        texture_descriptor_t gen_texture() noexcept
+        void set_default_parameteri2d() noexcept
         {
-            texture_descriptor_t d{};
-            glGenTextures(1, &d);
-            return d;
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        }
+
+        template<class T>
+        void bind(const unique_resource<T, texture_resource_deleter>& r) noexcept
+        {
+            bind_texture(T::target, r);
         }
     }
 
@@ -46,22 +51,77 @@ namespace gl
         glDeleteTextures(1, &texture.d);
     }
 
-    texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept
+
+    texture2d create_texture2d() noexcept
     {
-        texture2d texture
+        auto tex = gen_texture();
+        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
         {
-            resource_construct,
-            gen_texture(),
-            sizes
-        };
+            return {};
+        }
 
-        D_ASSERT(texture);
+        bind(tex);
+        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
+        {
+            return {};
+        }
 
-        set_texture(view(texture), sizes, format, pixels);
+        set_default_parameteri2d();
+        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
+        {
+            return {};
+        }
 
-        return texture;
+        return tex;
     }
 
+    texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept
+    {
+        auto tex = create_texture2d();
+
+        if (tex)
+        {
+            set_image2d(sizes, format, pixels);
+
+            if (D_LIKELY(is_correct())) D_ATTRIB_LIKELY
+            {
+                tex =
+                {
+                    resource_construct,
+                    tex.release(),
+                    sizes
+                };
+            }
+            else
+            {
+                tex.reset();
+            }
+        }
+
+        return tex;
+    }
+
+    texture2d write(texture2d tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
+    {
+        bind(tex);
+
+        if (D_LIKELY(is_correct())) D_ATTRIB_LIKELY
+        {
+            set_image2d(sizes, format, pixels);
+
+            if (D_LIKELY(is_correct())) D_ATTRIB_LIKELY
+            {
+                tex =
+                {
+                    resource_construct,
+                    tex.release(),
+                    sizes
+                };
+            }
+        }
+
+        return tex;
+    }
 
     std::underlying_type_t<uniform_location> get_sampler_number(shaders_program_resource program, uniform_location location) noexcept
     {

@@ -19,12 +19,13 @@ namespace ui
 {
     using milliseconds_t = std::chrono::milliseconds;
 
-    constexpr auto infinite = milliseconds_t{D_CONDITIONAL_OS_WINDOWS(0xffffffff, -1)};
+    constexpr auto infinite = milliseconds_t{ D_CONDITIONAL_OS_WINDOWS(0xffffffff, -1) };
 
     constexpr idle_event idle_event_v{};
 
-    template<class T> [[nodiscard]]
-    auto do_idle(T& processor) noexcept -> decltype(processor(idle_event_v))
+    template<class T>
+    [[nodiscard]] auto do_idle(T& processor) noexcept
+        -> decltype(processor(idle_event_v))
     {
         return processor(idle_event_v);
     }
@@ -44,53 +45,66 @@ namespace ui
 
         void message_wait_for(milliseconds_t timeout) noexcept;
 
+        void process_message(const os::message_t* msg) noexcept;
+
         [[nodiscard]]
-        std::optional<int> process_message(const os::message_t* msg) noexcept;
+        event_style e_style(const os::message_t* msg) noexcept;
+
+        [[nodiscard]]
+        word_parameter_t word_parameter(const os::message_t* msg) noexcept;
+
+        [[nodiscard]]
+        inline int exit_status(const os::message_t* msg) noexcept
+        {
+            D_WARNING_PUSH;
+            D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
+            return static_cast<int>(word_parameter(msg));
+            D_WARNING_POP;
+        }
+
+        void sizes_initialization() noexcept;
+
+        template<class T>
+        int run_event_loop_impl(T& idle_processor) noexcept
+        {
+            std::byte msg_storage[msg_storage_size]{};
+            const auto pmsg = reinterpret_cast<os::message_t*>(std::data(msg_storage));
+
+            for (;;) [[likely]]
+            {
+                const milliseconds_t timeout{ do_idle(idle_processor) };
+                if (timeout > milliseconds_t::zero()) [[unlikely]]
+                {
+                    message_wait_for(timeout);
+                }
+
+                while (PeekMessageW(pmsg, nullptr, 0u, 0u, pm_remove)) [[unlikely]]
+                {
+                    process_message(pmsg);
+                    if (event_style::quit == e_style(pmsg)) [[unlikely]]
+                    {
+                        return exit_status(pmsg);
+                    }
+                }
+            }
+        }
     }
+
 
     template<class T>
     int run_event_loop(window_handle_t mainwindow, T&& processor) noexcept
     {
-        using namespace private_detail_event_loop;
-
-        constexpr event_callback_t callback{ event_callback_instance<T>::callback };
-
         const auto event_processing = create_event_processor
         (
             mainwindow,
             as_mutable_pointer(std::addressof(processor)),
-            callback
+            event_callback_v<T>
         );
 
-        std::byte msg_storage[msg_storage_size]{};
-        const auto pmsg = reinterpret_cast<os::message_t*>(std::data(msg_storage));
+        private_detail_event_loop::sizes_initialization();
 
-        for (;;) [[likely]]
-        {
-            const milliseconds_t timeout{ do_idle(processor) };
-            if (timeout > milliseconds_t::zero()) [[unlikely]]
-            {
-                message_wait_for(timeout);
-            }
-
-            while (PeekMessageW(pmsg, nullptr, 0u, 0u, pm_remove)) [[unlikely]]
-            {
-                const auto exit_status_opt = process_message(pmsg);
-                if (exit_status_opt.has_value()) [[unlikely]]
-                {
-                    return *exit_status_opt;
-                }
-            }
-        }
-
-        return EXIT_SUCCESS;
+        return private_detail_event_loop::run_event_loop_impl(as_reference(processor));
     }
-
-    inline int run_event_loop(window_handle_t mainwindow) noexcept
-    {
-        constexpr struct {} nop{};
-        return run_event_loop(mainwindow, nop);
-    };
 
 #elif defined(D_OS_ANDROID)
     namespace private_detail_event_loop
@@ -163,7 +177,7 @@ namespace ui
 
                 return EXIT_SUCCESS;
             }
-            
+
             ~app_manager() noexcept;
 
         private:
@@ -207,12 +221,6 @@ namespace ui
         const private_detail_event_loop::app_manager app_manager{ app };
         return app_manager.run(processor);
     }
-
-    inline int run_event_loop(module_handle_t app) noexcept
-    {
-        constexpr struct {} nop;
-        return run_event_loop(app, nop);
-    };
 
 #endif
 }
