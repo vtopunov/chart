@@ -31,6 +31,7 @@
     <ClInclude Include="string_char.h" />
     <ClInclude Include="type_traits.h" />
     <ClInclude Include="underlying.h" />
+    <ClInclude Include="unique_function.h" />
     <ClInclude Include="utf.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="intrusive_list.h" />
@@ -43,7 +44,7 @@
     <ClInclude Include="rational.h" />
     <ClInclude Include="rectangle.h" />
     <ClInclude Include="small_vector.h" />
-    <ClInclude Include="resouce.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="value_type.h" />
     <ClInclude Include="vec2.h" />
     <ClInclude Include="view.h" />

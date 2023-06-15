@@ -73,12 +73,14 @@ namespace font_cache
         using faces_cache = cache_storage<face_item, 6_uz>;
         using faces_pointer = typename faces_cache::pointer;
 
+        [[nodiscard]]
         mmaps_cache& global_mmaps_cache() noexcept
         {
             static mmaps_cache cache{};
             return cache;
         }
 
+        [[nodiscard]]
         faces_cache& global_faces_cache() noexcept
         {
             static faces_cache cache{};
@@ -136,7 +138,7 @@ namespace font_cache
 
         if(!cached_face)
         {
-            const_buffer_view font_storage{};
+            const_buffer_view font_storage;
             file::path_string file_name;
             file::asset_or_file_mmap_t file_mmap;
 
@@ -149,7 +151,7 @@ namespace font_cache
                 file_name = name;
 
                 file_mmap = file::asset_or_file_mmap(file_name);
-                if (!file_mmap)
+                if (D_UNLIKELY(!file_mmap)) D_ATTRIB_UNLIKELY
                 {
                     e_debug(_PATH("can't open font file: {}"), file_name);
                     return {};
@@ -159,15 +161,21 @@ namespace font_cache
             }
 
             auto face = font::create_face(font_storage, size);
-            if (!face)
+            if (D_UNLIKELY(!face)) D_ATTRIB_UNLIKELY
             {
+                e_debug
+                (
+                    _PATH("create font face error: font file = {}, font size = {}"), 
+                    file_name, 
+                    size
+                );
                 return {};
             }
 
             if (!cached_mmap)
             {
                 cached_mmap = mmaps.try_emplace(std::move(file_name), std::move(file_mmap));
-                if (!cached_mmap)
+                if (D_UNLIKELY(!cached_mmap)) D_ATTRIB_UNLIKELY 
                 {
                     e_debug("load_font: out of memory");
                     return {};
@@ -175,7 +183,7 @@ namespace font_cache
             }
 
             cached_face = faces.try_emplace(std::move(face), mmaps.index(cached_mmap), size);
-            if (!cached_face)
+            if (D_UNLIKELY(!cached_face)) D_ATTRIB_UNLIKELY
             {
                 e_debug("load_font: out of memory");
                 return {};

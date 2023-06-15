@@ -24,7 +24,7 @@ namespace widget
             {
                 if (!w.font)
                 {
-                    w.font = font_cache::load_font(text::default_font_name, text::default_font_size);
+                    w.font = font_cache::load_font(default_font_name, default_font_size);
                     if (D_UNLIKELY(!w.font)) D_ATTRIB_UNLIKELY
                     {
                         error_load_default_font_report();
@@ -32,7 +32,7 @@ namespace widget
                     }
                 }
 
-                w.texture_text_cache = text::draw_to_texture(buffer, w.font, w.text, sizes);
+                w.texture_text_cache = draw_to_texture(buffer, w.font, w.text, sizes);
             }
         }
 

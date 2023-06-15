@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/resouce.h>
+#include <core/resource.h>
 
 #include <egl_ui/egl_window_resource.h>
 

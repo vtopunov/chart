@@ -65,15 +65,16 @@ namespace px
         std::negation<std::is_const<Px>>
         >;
 
-    template<class TestT, size_t TestAlign, class T, size_t Aling>
-    constexpr bool is_compatible_pixspan_v = std::conjunction_v
-        <
-        is_compatible_align_t<TestAlign, Aling>,
-        std::negation<std::is_const<TestT>>,
-        std::is_same<std::add_const_t<TestT>, T>
-        >;
-            
 
+
+    template<class TestT, size_t TestAlign, class BaseT, size_t BaseAling>
+    constexpr bool is_compatible_pixspan_v = std::conjunction_v
+    <
+        std::negation<std::conjunction<std::is_same<TestT, BaseT>, std::bool_constant<TestAlign == BaseAling>>>,
+        std::is_same<copy_const_t<BaseT, TestT>, BaseT>,
+        std::disjunction<is_dynamic_alignment<BaseAling>, std::bool_constant<TestAlign == BaseAling>>
+    >;
+    
     template<class T>
     using decl_const_pixspan_t = pixspan<std::add_const_t<decl_pixel_type_t<T>>, decl_alignment_v<T>>;
 
@@ -150,8 +151,14 @@ namespace px
         constexpr std::enable_if_t <is_compatible_pixspan_v<OtherPxType, Align>, pixspan&> operator = (const pixspan<OtherPxType, Align>& span) noexcept
         {
             space_type::operator = (span);
-            data_ = span.data_;
+            data_ = span.data();
             return *this;
+        }
+
+        [[nodiscard]]
+        constexpr pointer operator [] (size_t index) const noexcept
+        {
+            return data_ + index * space_type::line_size();
         }
 
         [[nodiscard]]

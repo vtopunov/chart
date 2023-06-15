@@ -5,6 +5,7 @@
 #include <core/color_fwd.h>
 #include <core/rational.h>
 
+
 template<class T> [[nodiscard]]
 constexpr T tint_max() noexcept
 {

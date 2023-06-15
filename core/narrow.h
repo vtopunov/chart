@@ -17,7 +17,7 @@ namespace private_detail_narrow
     using is_narrowing = std::bool_constant<is_narrowing_v<Target, Source>>;
 
     template<class Target, class Source>
-    constexpr bool is_narrowing_or_same_v = numeric_digits_v<Target> <= numeric_digits_v<Source>;
+    constexpr bool is_narrowing_or_same_v = !is_narrowing_v<Source, Target>;
 
     template<class Target, class Source>
     using is_signed2unsigned = std::conjunction<
@@ -206,20 +206,20 @@ namespace private_detail_narrow
     }
 
     template<class T>
-    constexpr decltype(auto) to_unsigned_or(const T& value) noexcept
+    [[nodiscard]] constexpr decltype(auto) to_unsigned_or(const T& value) noexcept
     {
         static_assert(std::is_arithmetic_v<T>);
         return narrow_cast<unsigned_or_t<T>>(value);
     }
 
     template<class T>
-    constexpr decltype(auto) to_unsigned(const T& value) noexcept
+    [[nodiscard]] constexpr decltype(auto) to_unsigned(const T& value) noexcept
     {
         return narrow_cast<std::make_unsigned_t<T>>(value);
     }
 
     template<class T>
-    constexpr decltype(auto) to_signed(const T& value) noexcept
+    [[nodiscard]] constexpr decltype(auto) to_signed(const T& value) noexcept
     {
         static_assert(std::is_arithmetic_v<T>);
         return narrow_cast<remove_unsigned_t<T>>(value);

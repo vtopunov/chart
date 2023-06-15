@@ -4,7 +4,7 @@
 #include <ui/window.h>
 #endif
 
-#include <egl_ui/window.h>
+#include <egl_ui/ui_window.h>
 #include <egl_ui/painting_owner.h>
 
 #include <string_view>
@@ -89,13 +89,13 @@ namespace egl_ui
 #endif
     }
 
-    egl_window egl_window_builder::build() const noexcept
+    egl_window create_egl_window(const egl_window_parameters& params) noexcept
     {
         egl_window result{};
 
         auto& r = as_mutable(result.r());
 
-        r.ui = create_window(module_).release();
+        r.ui = create_window(params.ui_params).release();
 
         if (D_LIKELY(r.ui)) D_ATTRIB_LIKELY
         {
@@ -187,15 +187,15 @@ namespace egl_ui
             r.context = static_cast<context_descriptor_t>(eglCreateContext(r.display, config, nullptr, context_attributes.take()));
         }
 
-        
+
         if (D_LIKELY(r.context && eglMakeCurrent(r.display, r.surface, r.surface, r.context))) D_ATTRIB_LIKELY
         {
             gl_enable_transparent();
-            r.background = background_;
+            r.background = params.background;
 
 #if defined(D_OS_WINDOWS)
             gl_set_background(r);
-            ui::show(r.ui.app_wnd, command_show_);
+            ui::show(r.ui.app_wnd, params.command_show);
 #endif
         }
         else

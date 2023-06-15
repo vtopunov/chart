@@ -7,8 +7,7 @@
 #include <debug/debug.h>
 
 #include <utility/shaders_library.h>
-#include <egl_ui/run.h>
-
+#include <egl_ui/event_loop.h>
 
 
 namespace
@@ -112,7 +111,7 @@ namespace
                 {
                     std::clamp(position.x(), min_position.x(), max_position.x()),
                     std::clamp(position.y(), min_position.y(), max_position.y())
-            }
+                }
             };
         }
 
@@ -488,7 +487,7 @@ namespace
         int run()
         {
             draw();
-            return egl_ui::run(egl_, *this);
+            return ui::run_event_loop(egl_, *this);
         }
 
     private:

@@ -166,6 +166,7 @@ namespace private_detail_debug
     void fatal_debug(const FormatString& format_string, const Args&... args) noexcept
     {
         priority_debug(LOG_FATAL, format_string, args...);
+        D_ASSERT(!"fatal");
     }
 }
 D_WARNING_POP

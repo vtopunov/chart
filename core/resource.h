@@ -79,6 +79,7 @@ public:
         return view(r());
     }
 
+    template<bool dummy = true, std::enable_if_t<(dummy) && std::negation_v<std::is_same<view_type, resource_type> >, int> = 0>
     [[nodiscard]] constexpr operator const resource_type& () const noexcept
     {
         return r();
@@ -197,6 +198,7 @@ public:
         return r();
     }
 
+    template<bool dummy = true, std::enable_if_t<(dummy) && std::negation_v<std::is_same<view_type, resource_type> >, int> = 0>
     [[nodiscard]] constexpr operator const resource_type& () const noexcept
     {
         return r();
@@ -260,3 +262,10 @@ private:
     intrusive_list_node copies_;
     static constexpr deleter_type close_{};
 };
+
+
+template<class T>
+using decl_resource_type_t = typename T::resource_type;
+
+template<class T>
+using resource_type_t = detected_or_t<T, decl_resource_type_t, T>;

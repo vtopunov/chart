@@ -10,7 +10,7 @@
 #include <utility/font_cache.h>
 
 #include <widget/event_result.h>
-#include <widget/window_configuration.h>
+#include <widget/widget_initializer.h>
 
 namespace widget
 {
@@ -43,7 +43,7 @@ namespace widget
         event_result operator () (const ui::mouse_up_event& e) noexcept;
         event_result operator () (const ui::mouse_move_event& e) noexcept;
        
-        void operator () (window_configuration& cfg) const noexcept;
+        void operator () (widget_initializer& cfg) const noexcept;
 
         void draw(const window& w) noexcept;
     };

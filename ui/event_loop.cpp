@@ -3,7 +3,7 @@
 #include <os/os.h>
 
 #include <ui/window.h>
-#include <ui/event_processors_container.h>
+#include <ui/event_processors_storage.h>
 
 namespace ui
 {
@@ -56,9 +56,9 @@ namespace ui
 
                 for (const auto& processor : event_processors_global().lock())
                 {
-                    if (processor.window == window)
+                    if (window == processor.window && processor(size_e))
                     {
-                        D_UNUSED(processor(size_e));
+                        break;
                     }
                 }
             }

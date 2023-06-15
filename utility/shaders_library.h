@@ -5,6 +5,7 @@
 #include <gl/texture.h>
 #include <gl/draw.h>
 
+
 namespace px
 {
     struct uniform_vec2
@@ -46,6 +47,7 @@ namespace px
             }
         }
 
+        [[nodiscard]]
         static uniform_vec2 instance(gl::shaders_program_resource program, zstring_view name) noexcept
         {
             return { .uniform{ glsl_uniform_type::instance(program, name) } };
@@ -66,6 +68,7 @@ struct attribute_frame
 
     gl::attribute_location attrib;
     
+    [[nodiscard]]
     static attribute_frame instance(gl::shaders_program_resource program, zstring_view name) noexcept
     {
         return { .attrib{ gl::get_attribute_location(program, name) } };
@@ -265,8 +268,9 @@ struct shaders_library
 
     bool build() noexcept
     {
+        D_ASSERT(!program);
+
         program = gl::create_shaders_program(vert.shader_text, frag.shader_text);
-       
         if (D_LIKELY(program)) D_ATTRIB_LIKELY
         {
             const auto unfiorm_factory = [p = view(program)]<class T>(T& target, zstring_view name) noexcept

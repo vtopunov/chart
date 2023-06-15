@@ -92,6 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="file.cpp" />
+    <ClCompile Include="file_asset.cpp" />
     <ClCompile Include="file_io.cpp" />
     <ClCompile Include="file_mmap.cpp" />
   </ItemGroup>

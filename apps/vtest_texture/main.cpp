@@ -2,7 +2,7 @@
 
 #include <debug/debug.h>
 
-#include <egl_ui/run.h>
+#include <egl_ui/event_loop.h>
 
 #include <utility/png.h>
 
@@ -99,7 +99,7 @@ int app_main(os::module_handle_t app) noexcept
         draw_texture_mix(base_texture, mix_texture);
     }
 
-    return run(egl);
+    return ui::run_event_loop(egl);
 }
 
 

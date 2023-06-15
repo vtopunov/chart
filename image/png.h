@@ -2,7 +2,7 @@
 
 #include <core/zstring_view.h>
 #include <core/color.h>
-#include <core/resouce.h>
+#include <core/resource.h>
 
 #include <px/pixmap.h>
 

@@ -81,11 +81,11 @@ namespace
     {
         test_write(3_uz, file::w_open_mode::truncate);
         test_read(3_uz);
-        test_write(4_uz, file::w_open_mode::open);
+        test_write(4_uz, file::w_open_mode::rewrite);
         test_read(4_uz);
         test_write(2_uz, file::w_open_mode::append);
         test_read(6_uz);
-        test_write(5_uz, file::w_open_mode::open);
+        test_write(5_uz, file::w_open_mode::rewrite);
         test_read(6_uz);
         test_write(0_uz, file::w_open_mode::truncate);
         test_read(0_uz);
@@ -104,7 +104,7 @@ namespace
         test_write(n_blocks, file::w_open_mode::truncate);
         test_read(n_blocks);
 
-        const auto rwf = file::rw_open(file_name, file::w_open_mode::open);
+        const auto rwf = file::rw_open(file_name, file::w_open_mode::rewrite);
         D_ASSERT(rwf);
 
         auto test_read_block = [&rwf] (std::span<const char> test) noexcept
@@ -166,9 +166,9 @@ namespace
     {
         const auto test_size = size_blocks(n_blocks);
         D_ASSERT(open_and_size(file::ro_open, file_name) == test_size);
-        D_ASSERT(open_and_size(file::wo_open, file_name, file::w_open_mode::open) == test_size);
+        D_ASSERT(open_and_size(file::wo_open, file_name, file::w_open_mode::rewrite) == test_size);
         D_ASSERT(open_and_size(file::wo_open, file_name, file::w_open_mode::append) == test_size);
-        D_ASSERT(open_and_size(file::rw_open, file_name, file::w_open_mode::open) == test_size);
+        D_ASSERT(open_and_size(file::rw_open, file_name, file::w_open_mode::rewrite) == test_size);
         D_ASSERT(open_and_size(file::rw_open, file_name, file::w_open_mode::append) == test_size);
     }
 

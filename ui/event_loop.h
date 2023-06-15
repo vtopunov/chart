@@ -90,20 +90,43 @@ namespace ui
         }
     }
 
+    template<class EventSource>
+    class event_binder;
 
-    template<class T>
-    int run_event_loop(window_handle_t mainwindow, T&& processor) noexcept
+    template<>
+    class event_binder<window_handle_t>
     {
-        const auto event_processing = create_event_processor
-        (
-            mainwindow,
-            as_mutable_pointer(std::addressof(processor)),
-            event_callback_v<T>
-        );
+    public:
+        constexpr event_binder(window_handle_t window) noexcept
+            : window_{ window }
+        {}
 
+        template<class EventTarget>
+        [[nodiscard]] event_processor bind(EventTarget& target) const noexcept
+        {
+            return create_event_processor
+            (
+                window_,
+                event_match{ std::ref(target) }
+            );
+        }
+
+    private:
+        window_handle_t window_;
+    };
+
+    template<class EventSource, class EventTarget>
+    int run_event_loop(const EventSource& source, EventTarget&& target) noexcept
+    {
+        using event_source_t = resource_type_t<std::remove_cvref_t<EventSource>>;
+
+        auto& target_ref = as_reference(target);
+
+        const auto event_bind_holder = event_binder<event_source_t>(source).bind(target_ref);
+        
         private_detail_event_loop::sizes_initialization();
-
-        return private_detail_event_loop::run_event_loop_impl(as_reference(processor));
+        
+        return private_detail_event_loop::run_event_loop_impl(target_ref);
     }
 
 #elif defined(D_OS_ANDROID)
@@ -184,7 +207,7 @@ namespace ui
             template<class T>
             struct message_callbacks_instance
             {
-                static constexpr ui::event_callback_t callback{ ui::event_callback_instance<T>::callback };
+                static_assert(!std::is_reference_v<Processor>);
 
                 static void cmd_callback(module_handle_t, int32_t) noexcept
                 {}
@@ -194,7 +217,8 @@ namespace ui
                 {
                     if (const ui::event e{ input_e })
                     {
-                        callback(user_data(app), e);
+                        Processor& processor_ref = *static_cast<Processor*>(user_data(app));
+                        do_event_match(processor_ref, e);
                     }
 
                     return 0;
@@ -204,7 +228,7 @@ namespace ui
             template<class Processor>
             void set_processor(Processor& processor) const noexcept
             {
-                using message_callbacks_instance_t = message_callbacks_instance<Processor>;
+                using message_callbacks_instance_t = message_callbacks_instance<std::remove_reference_t<Processor>>;
                 set_user_data(app_, as_mutable_pointer(std::addressof(processor)));
                 set_cmd_callback(app_, message_callbacks_instance_t::cmd_callback);
                 set_input_event_callback(app_, message_callbacks_instance_t::input_event_callback);
@@ -223,4 +247,11 @@ namespace ui
     }
 
 #endif
+
+    template<class EventSource>
+    int run_event_loop(const EventSource& source) noexcept
+    {
+        constexpr struct {} nop;
+        return run_event_loop(source, nop);
+    }
 }

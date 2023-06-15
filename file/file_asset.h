@@ -2,7 +2,9 @@
 
 #include <variant>
 
+#if defined(D_OS_ANDROID)
 #include <os/fwd.h>
+#endif
 
 #include <file/file_mmap.h>
 
@@ -30,6 +32,7 @@ namespace file
     const void* data(os::asset_handle_t asset) noexcept;
 
     size_t size(os::asset_handle_t asset) noexcept;
+#endif
 
     struct asset_or_file_mmap_resource
     {
@@ -37,13 +40,16 @@ namespace file
 
         struct _private_detail_asset_resource
         {
+#if defined(D_OS_ANDROID)
             os::asset_handle_t asset_;
+#endif
+
             const void* data_;
             size_t size_;
 
             constexpr operator const_buffer_view() const noexcept
             {
-                return {data_, size_};
+                return { data_, size_ };
             }
         };
 
@@ -64,12 +70,12 @@ namespace file
             {
                 return *asset;
             }
-            
+
             if (const auto mmap = std::get_if<file_mmap_resource>(p))
             {
                 return *mmap;
             }
-            
+
             return {};
         }
     };
@@ -81,17 +87,8 @@ namespace file
 
     using asset_or_file_mmap_t = unique_resource<asset_or_file_mmap_resource, asset_or_file_mmap_resource_deleter>;
 
+    [[nodiscard]]
     asset_or_file_mmap_t asset_or_file_mmap(path_zstring_view path) noexcept;
-
-#else
-    using asset_or_file_mmap_t = file_mmap;
-
-    inline asset_or_file_mmap_t asset_or_file_mmap(path_zstring_view path) noexcept
-    {
-        return mmap(path);
-    }
-
-#endif
 }
 
 

@@ -2,21 +2,30 @@
 
 #include <core/small_vector.h>
 #include <core/lerp.h>
-
-#include <px/algorithm.h>
+#include <core/round.h>
 
 #include <utility/px.h>
 
 #include <widget/run.h>
 
+#include <debug/debug.h>
+
+#include <px/algorithm.h>
+
+
+using namespace std::string_view_literals;
+
 using widget::window;
 using widget::event_result;
 
+using px::real_t;
+using px::point2d_real;
+
 namespace
 {
-    double_t sinc(double_t x) noexcept
+    real_t sinc(real_t x) noexcept
     {
-        constexpr double_t near_zero_eps{ 0.0004 }; // (eps*120)^(1/4)
+        constexpr real_t near_zero_eps{ 0.0004 }; // (eps*120)^(1/4)
 
         if (abs(x) > near_zero_eps)
         {
@@ -28,9 +37,7 @@ namespace
         }
     }
 
-    using f64point2d = point2d<double_t>;
-
-    bool sinc_vector_initialize(small_vector<f64point2d>& v) noexcept
+    bool sinc_vector_initialize(small_vector<point2d_real>& v) noexcept
     {
         constexpr auto size = 800_uz;
 
@@ -40,7 +47,7 @@ namespace
             return false;
         }
 
-        constexpr auto abscissa_max = 8 * std::numbers::pi_v<double_t>;
+        constexpr auto abscissa_max = 8 * std::numbers::pi_v<real_t>;
         constexpr num_range abscissa_range{ -abscissa_max, abscissa_max };
         constexpr num_range index_range{ 0_uz, size - 1_uz };
         constexpr auto abscissa = lerp(index_range, abscissa_range);
@@ -48,15 +55,15 @@ namespace
         for (size_t i = index_range._0; i <= index_range._1; ++i)
         {
             const auto x = abscissa(i);
-            v.emplace_back(x, sinc(x));
+            v.emplace_back(x, sin(x));
         }
 
         return true;
     };
 
-    using f64range = num_range<double_t>;
+    using range_real = num_range<real_t>;
 
-    void expand(f64range& range, double_t value) noexcept
+    void expand(range_real& range, real_t value) noexcept
     {
         if (std::isfinite(value))
         {
@@ -65,7 +72,7 @@ namespace
         }
     }
 
-    bool range_is_valid(const f64range& range) noexcept
+    bool range_is_valid(const range_real& range) noexcept
     {
         return std::isfinite(range._0)
             && std::isfinite(range._1)
@@ -73,12 +80,12 @@ namespace
             && std::isnormal(range.length());
     }
 
-    using f64point2drange = point2d<f64range>;
+    using point2drange_real = point2d<range_real>;
 
     template<size_t axis>
-    void correct(f64point2drange& ranges) noexcept
+    void correct(point2drange_real& ranges) noexcept
     {
-        constexpr f64range default_range{ 0.0, 1.0 };
+        constexpr range_real default_range{ 0.0, 1.0 };
 
         auto& range = get<axis>(ranges);
         if (!range_is_valid(range))
@@ -96,17 +103,19 @@ namespace
         }
     }
 
-    f64point2drange calculate_values_range(span<const f64point2d> line) noexcept
+    using const_span_point2d_real = span<const point2d_real>;
+
+    point2drange_real calculate_values_range(const_span_point2d_real line) noexcept
     {
         constexpr num_range range0
         {
-            numeric_max_v<double_t>,
-            numeric_min_v<double_t>
+            numeric_max_v<real_t>,
+            numeric_min_v<real_t>
         };
 
         constexpr auto point_range0 = fill_to<point2d>(range0);
 
-        f64point2drange values_range{ point_range0 };
+        point2drange_real values_range{ point_range0 };
 
         for (const auto& pt : line)
         {
@@ -120,19 +129,19 @@ namespace
         return values_range;
     }
 
-    constexpr f64point2drange calculate_pix_range(pxsize2d sizes) noexcept
+    constexpr point2drange_real calculate_pix_range(pxsize2d sizes) noexcept
     {
         return
         {
-            f64range{ 0.0, sizes.width() - 1.0 },
-            f64range{ 0.0, sizes.height() - 1.0 },
+            range_real{ 0.0, sizes.width() - 1.0 },
+            range_real{ 0.0, sizes.height() - 1.0 },
         };
     }
 
-    struct coordinate_transformation : vec2<polynomial2<double_t>>
+    struct coordinate_transformation : vec2<polynomial2<real_t>>
     {
         template<class Pt>
-        constexpr f64point2d operator () (const Pt& pt) const noexcept
+        constexpr point2d_real operator () (const Pt& pt) const noexcept
         {
             return { _0(pt._0), _1(pt._1) };
         }
@@ -140,8 +149,8 @@ namespace
 
     constexpr coordinate_transformation calculate_coordinate_transformation
     (
-        const f64point2drange& from,
-        const f64point2drange& to
+        const point2drange_real& from,
+        const point2drange_real& to
     ) noexcept
     {
         return
@@ -151,40 +160,25 @@ namespace
         };
     }
 
-
-    template<class Transform>
     constexpr void draw_polyline
     (
         const pix8span image,
-        span<const f64point2d> values,
-        Transform value2px
+        const const_span_point2d_real values,
+        const coordinate_transformation value2px
     ) noexcept
     {
         if (D_LIKELY(values.size())) D_ATTRIB_LIKELY
         {
-            auto p0 = value2px(values[0]);
-
+            auto cached_result = px::invalid_antialiasing_line_result_v;
+            auto p0 = value2px(values.front());
             for (const auto& p : values.subspan(1u))
             {
                 const auto p1 = value2px(p);
-                px::draw_antialiasing_line(image, p0.x(), p0.y(), p1.x(), p1.y());
+                const auto result = px::draw_antialiasing_line(image, p0, p1, cached_result);
+                cached_result = result;
                 p0 = p1;
             }
         }
-    }
-
-    constexpr void draw_chart_polyline
-    (
-        const pix8span image,
-        span<const f64point2d> values,
-        const f64point2drange& values_range
-    ) noexcept
-    {
-        draw_polyline(image, values, calculate_coordinate_transformation
-        (
-            values_range,
-            calculate_pix_range(image.sizes())
-        ));
     }
 
     template<class Pos, class Sz>
@@ -212,16 +206,16 @@ namespace
         struct chart_line
         {
             static constexpr auto background_color = gl::colors::white_f;
-            static constexpr auto line_color = gl::colors::blue_f;
+            static constexpr auto line_color = gl::colors::red_f;
             static constexpr pxsize2d max_sizes{ fill_vec2(numeric_max_v<pxside_t>) };
 
-            class values_container : public small_vector<f64point2d>
+            class values_container : public small_vector<point2d_real>
             {
-                static constexpr auto nan_value = numeric_nan_v<double_t>;
+                static constexpr auto nan_value = numeric_nan_v<real_t>;
                 static constexpr auto nan_values_range = fill_to<point2d>(fill_to<num_range>(nan_value));
 
             public:
-                f64point2drange values_range() const noexcept
+                point2drange_real values_range() const noexcept
                 {
                     if (need_to_update_cache())
                     {
@@ -238,14 +232,14 @@ namespace
                 }
 
             private:
-                mutable f64point2drange values_range_cache_{ nan_values_range };
+                mutable point2drange_real values_range_cache_{ nan_values_range };
             };
 
             pxrectangle geometry{ .position{}, .sizes{ max_sizes } };
             values_container values{};
             gl::texture2d texture_cache{};
 
-            bool operator () (window_configuration& cfg) noexcept
+            bool operator () (widget_initializer& ini) noexcept
             {
                 texture_cache = gl::create_texture2d();
                 if (!texture_cache)
@@ -254,7 +248,7 @@ namespace
                     return false;
                 }
 
-                cfg.build()
+                ini.cfg()
                     .gray_texture_mix_color_shdr()
                     .colored_rectangle_shdr()
                     .pix8_temp_buffer();
@@ -269,11 +263,15 @@ namespace
 
             void draw(const window& w) noexcept
             {
-                if (const auto view_sizes = clamp_sizes(geometry, w.user_sizes()); view_sizes != sizes(texture_cache))
+                if (const auto chart_sizes = clamp_sizes(geometry, w.user_sizes()); chart_sizes != sizes(texture_cache))
                 {
-                    const auto image = px::zeros_pix8space(w.temp_buffer_view(), view_sizes);
-                    draw_chart_polyline(image, values, values.values_range());
-                    texture_cache = gl::write(std::move(texture_cache), image);
+                    const auto chart_image = px::zeros_pix8space(w.temp_buffer_view(), chart_sizes);
+                    draw_polyline(chart_image, values, calculate_coordinate_transformation
+                    (
+                        values.values_range(),
+                        calculate_pix_range(chart_sizes)
+                    ));
+                    texture_cache = gl::write(std::move(texture_cache), chart_image);
                 }
 
                 const pxrectangle view_geometry
@@ -287,10 +285,9 @@ namespace
             }
         };
 
+        chart_line line{};
 
-        chart_line line;
-
-        bool operator () (window_configuration&) noexcept
+        bool operator () (const widget_initializer&) noexcept
         {
             if (!sinc_vector_initialize(line.values))
             {
@@ -312,9 +309,10 @@ namespace
 
 int main() noexcept
 {
-    return widget::run<chart_widget>(nullptr);
+    auto window = widget::window_builder{}
+        .sizes(1001_px, 157_px)
+        .command_show(ui::show_command::normal)
+        .build();
+
+    return widget::run<chart_widget>(window);
 }
-
-
-
-

@@ -179,7 +179,7 @@ private:
 
         void* result{ nullptr };
 
-        if (size <= overflow)
+        if (D_LIKELY(size <= overflow)) D_ATTRIB_LIKELY 
         {
             using std::malloc;
 

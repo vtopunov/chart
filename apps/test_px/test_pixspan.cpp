@@ -53,5 +53,37 @@ void test_pixspan() noexcept
         D_ASSERT(image_sizes == temp_image_span.store(0_px, 1_px, image_span));
         D_ASSERT(!memcmp(temp_image + line_size, image, sizeof(image)));
     }
+
+    {
+        uint8_t temp_image[std::size(image)]{};
+        pix8span temp_image_span{ std::data(temp_image), image_sizes };
+
+        {
+            const_pix8span const_temp_image_span{ temp_image_span };
+            D_ASSERT(std::data(const_temp_image_span) == std::data(temp_image_span));
+            D_ASSERT(space(const_temp_image_span) == space(temp_image_span));
+            const_temp_image_span = {};
+            D_ASSERT(std::data(const_temp_image_span) != std::data(temp_image_span));
+            D_ASSERT(space(const_temp_image_span) != space(temp_image_span));
+            const_temp_image_span = temp_image_span;
+            D_ASSERT(std::data(const_temp_image_span) == std::data(temp_image_span));
+            D_ASSERT(space(const_temp_image_span) == space(temp_image_span));
+        }
+
+        {
+            pixspan<pix8span::pixel_type, px::dynamic_alignment> unalign_temp_image_span{ temp_image_span };
+            D_ASSERT(std::data(unalign_temp_image_span) == std::data(temp_image_span));
+            D_ASSERT(unalign_temp_image_span.sizes() == temp_image_span.sizes());
+            D_ASSERT(unalign_temp_image_span.line_size() == temp_image_span.line_size());
+            unalign_temp_image_span = {};
+            D_ASSERT(std::data(unalign_temp_image_span) != std::data(temp_image_span));
+            D_ASSERT(unalign_temp_image_span.sizes() != temp_image_span.sizes());
+            D_ASSERT(unalign_temp_image_span.line_size() != temp_image_span.line_size());
+            unalign_temp_image_span = temp_image_span;
+            D_ASSERT(std::data(unalign_temp_image_span) == std::data(temp_image_span));
+            D_ASSERT(unalign_temp_image_span.sizes() == temp_image_span.sizes());
+            D_ASSERT(unalign_temp_image_span.line_size() == temp_image_span.line_size());
+        }
+    }
 }
 

@@ -2,8 +2,10 @@
 
 #include <core/buffer.h>
 #include <core/buffer_view.h>
+#include <core/view.h>
 
 #include <px/pixspan.h>
+
 
 namespace px
 {
@@ -50,7 +52,7 @@ namespace px
             : space_type{ space }
             , buffer_{ buffer_construct, space.size_bytes() }
         {
-            if (buffer_)
+            if (D_LIKELY(buffer_)) D_ATTRIB_LIKELY
             {
                 zero_memory(*this);
             }
@@ -64,7 +66,7 @@ namespace px
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
-            if (buffer_.try_reserve(space.size_bytes()))
+            if (D_LIKELY(buffer_.try_reserve(space.size_bytes()))) D_ATTRIB_LIKELY
             {
                 zero_memory(*this);
             }
@@ -261,6 +263,8 @@ namespace px
     };
 
     using pix8map = pixmap<u8tint_t>;
+
+    static_assert(std::is_same_v<view_t<pix8map>, pix8map::view_type>);
 }
 
 using px::pixmap;

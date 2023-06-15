@@ -4,7 +4,7 @@
 #include <chrono>
 
 #include <core/assert.h>
-#include <core/resouce.h>
+#include <core/resource.h>
 
 namespace
 {

@@ -11,6 +11,11 @@ constexpr size_t operator "" _uz(unsigned long long value) noexcept
     return value;
 }
 
+constexpr ptrdiff_t operator "" _z(unsigned long long value) noexcept
+{
+    return value;
+}
+
 
 template<size_t mul> [[nodiscard]]
 constexpr size_t size_mul(size_t size) noexcept

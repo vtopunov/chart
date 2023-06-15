@@ -6,10 +6,10 @@
 
 namespace widget
 {
-    void label::operator()(window_configuration& cfg) const noexcept
+    void label::operator()(widget_initializer& ini) const noexcept
     {
-        cfg.build()
-            .colored_rectangle_shdr()
+        ini.cfg()
+            .gray_texture_mix_color_shdr()
             .pix8_temp_buffer();
     }
 

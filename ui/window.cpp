@@ -4,17 +4,17 @@
 
 #include <os/os.h>
 
-#include <ui/event_processors_container.h>
+#include <ui/event_processors_storage.h>
 
 namespace ui
 {
     namespace
     {
         [[nodiscard]]
-        window_container& window_container_global() noexcept
+        window_set& windows_global() noexcept
         {
-            static window_container map;
-            return map;
+            static window_set set{};
+            return set;
         }
 
         struct by_parent
@@ -35,7 +35,7 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr window_childrens childrens(const window_container& c, window_handle_t parent) noexcept
+        constexpr siblings_window childrens(const window_set& c, window_handle_t parent) noexcept
         {
             const auto first = c.cbegin();
 
@@ -48,20 +48,9 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr window_roots roots(const window_container& c) noexcept
+        constexpr siblings_window roots(const window_set& c) noexcept
         {
-            size_t position{ 0 };
-            for (const auto& value : c)
-            {
-                if (value.is_root())
-                {
-                    break;
-                }
-
-                ++position;
-            }
-
-            return { position, std::addressof(c) };
+            return { 0u, std::addressof(c), nullptr };
         }
 
         [[nodiscard]] constexpr pxsize2d sizes(const RECT& rect) noexcept
@@ -97,20 +86,20 @@ namespace ui
             return rect;
         }
 
-        bool close(window_container& window_set, window_handle_t window) noexcept
+        bool close(window_set& windows, window_handle_t window) noexcept
         {
             static window_handle_t in_process_of_destruction{ nullptr };
 
             if (window != in_process_of_destruction)
             {
-                event_processors_global().erase(window);
+                event_processors_global().close_window(window);
 
-                while (const auto children_opt = childrens(window_set, window))
+                while (const auto children_opt = childrens(windows, window))
                 {
-                    close(window_set, *children_opt);
+                    close(windows, *children_opt);
                 }
 
-                if (const auto it = std::find(window_set.cbegin(), window_set.cend(), window); it != window_set.cend())
+                if (const auto it = std::find(windows.cbegin(), windows.cend(), window); it != windows.cend())
                 {
                     class destruction_locker
                     {
@@ -134,9 +123,9 @@ namespace ui
 
                     const destruction_locker lock{ *it };
 
-                    window_set.erase(it);
+                    windows.erase(it);
 
-                    if (!window_set.size())
+                    if (!windows.size())
                     {
                         quit();
                     }
@@ -179,17 +168,22 @@ namespace ui
 
     bool close(window_handle_t window) noexcept
     {
-        return window && close(window_container_global(), window);
+        return window && close(windows_global(), window);
     }
 
-    window_childrens childrens(window_handle_t window) noexcept
+    bool window_text(window_handle_t window, wzstring_view text) noexcept
     {
-        return childrens(window_container_global(), window);
+        return !!SetWindowTextW(window, text.c_str());
     }
 
-    window_roots roots() noexcept
+    siblings_window childrens(window_handle_t window) noexcept
     {
-        return roots(window_container_global());
+        return childrens(windows_global(), window);
+    }
+
+    siblings_window roots() noexcept
+    {
+        return roots(windows_global());
     }
 
     bool show(window_handle_t window, int cmd) noexcept
@@ -210,7 +204,7 @@ namespace ui
     {
         constexpr auto px_to_native = [] (pxside_t px) noexcept
         {
-            using namespace private_detail_window;
+            using namespace private_detail_window_constants;
             static_assert(std::is_same_v<decltype(CW_USEDEFAULT), native_px_t>);
             static_assert(CW_USEDEFAULT == cw_usedefault);
             return (px == px_usedefault) ? cw_usedefault : narrow_cast<native_px_t>(px);
@@ -254,7 +248,7 @@ namespace ui
 
             if (result)
             {
-                auto& window_set = window_container_global();
+                auto& window_set = windows_global();
 
                 const auto ok = !!window_set.try_emplace
                 (
@@ -265,7 +259,6 @@ namespace ui
                 );
 
                 D_ASSERT(ok);
-
                 if (!ok)
                 {
                     result.reset();

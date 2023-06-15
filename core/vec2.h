@@ -60,7 +60,7 @@ template<size_t Index, class T>
 template<size_t Index, class T>
 [[nodiscard]] constexpr T& get(vec2<T>& v) noexcept
 {
-    return const_cast<T&>(get<Index>(std::as_const(v)));
+    return as_mutable(get<Index>(std::as_const(v)));
 }
 
 template<class T>

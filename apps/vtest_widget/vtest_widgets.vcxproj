@@ -50,9 +50,6 @@
       <TargetMachine>MachineX64</TargetMachine>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(RepoAppsDir)\fonts\OpenSans-Regular.ttf" "$(ProjectDir)OpenSans-Regular.ttf"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -83,9 +80,6 @@
       <TargetMachine>MachineX64</TargetMachine>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
-    <PostBuildEvent>
-      <Command>copy "$(RepoAppsDir)\fonts\OpenSans-Regular.ttf" "$(ProjectDir)OpenSans-Regular.ttf"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

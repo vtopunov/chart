@@ -8,7 +8,7 @@
 
 #include <utility/font_cache.h>
 
-#include <widget/window_configuration.h>
+#include <widget/widget_initializer.h>
 
 
 namespace widget
@@ -29,7 +29,7 @@ namespace widget
             }
         }
 
-        void operator () (window_configuration& cfg) const noexcept;
+        void operator () (widget_initializer& ini) const noexcept;
 
         void draw(const window& w) noexcept;
     };

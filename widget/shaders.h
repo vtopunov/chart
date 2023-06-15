@@ -2,20 +2,22 @@
 
 #include <utility/shaders_library.h>
 
+
 namespace widget
 {
     namespace private_detail_shaders_library
     {
         template<class T>
-        void initialize_uniform(const px::uniform_vec2& vec, ::vec2<T> p) noexcept
+        void initialize_ro_uniform(const px::uniform_vec2& vec, ::vec2<T> p) noexcept
         {
+            D_ASSERT(!vec.uniform.__debug_is_stored());
             vec.store(std::move(p));
             D_ONLY_DEBUG(vec.uniform.__debug_set_ro());
         }
 
         inline void initialize_viewport(const vert::positioned_frame& vert, pxsize2d sizes) noexcept
         {
-            initialize_uniform(vert.u_viewport, sizes);
+            initialize_ro_uniform(vert.u_viewport, sizes);
         }
 
         template<class VS, class FS>
@@ -27,18 +29,14 @@ namespace widget
 
         template<class VS, class FS>
         bool initialize_lib(shaders_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
-        {
-            if (!lib)
+        {            
+            if (D_LIKELY(lib.build())) D_ATTRIB_LIKELY
             {
-                if (D_UNLIKELY(!lib.build())) D_ATTRIB_UNLIKELY
-                {
-                    return false;
-                }
-
                 initialize_lib_uniforms(lib, viewport_sizes);
+                return true;
             }
 
-            return true;
+            return false;
         }
 
 #if D_IS_DEBUG

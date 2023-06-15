@@ -42,7 +42,7 @@ namespace gl
         template<class T>
         void bind(const unique_resource<T, texture_resource_deleter>& r) noexcept
         {
-            bind_texture(T::target, r);
+            bind_texture(T::target, view(r));
         }
     }
 

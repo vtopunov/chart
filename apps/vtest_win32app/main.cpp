@@ -73,7 +73,6 @@ int _stdcall wWinMain(instance_t instance, instance_t, wchar_t*, int command_sho
         return EXIT_FAILURE;
     }
 
-
     debug("create subwindow");
     const auto subwindow 
         = builder

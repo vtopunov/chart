@@ -16,7 +16,7 @@
     <ClInclude Include="polynomial.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="buffer.h" />
-    <ClInclude Include="resouce.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="null.h" />
     <ClInclude Include="buffer_view.h" />
     <ClInclude Include="size2d.h" />
@@ -40,5 +40,6 @@
     <ClInclude Include="fmt.h" />
     <ClInclude Include="round.h" />
     <ClInclude Include="static_vector.h" />
+    <ClInclude Include="unique_function.h" />
   </ItemGroup>
 </Project>

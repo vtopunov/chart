@@ -2,7 +2,6 @@
 
 #include <string_view>
 
-#include <core/ordered_overload.h>
 #include <core/member_detector.h>
 #include <core/size_type.h>
 #include <core/span.h>
@@ -38,7 +37,7 @@ namespace private_detail_size_bytes
     using namespace ordered_overload;
 
     template<class T>
-    constexpr size_t size_of() noexcept
+    [[nodiscard]] constexpr size_t size_of() noexcept
     {
         using type_t = std::remove_cvref_t<T>;
 
@@ -52,8 +51,8 @@ namespace private_detail_size_bytes
         }
     }
 
-    template<class C>
-    constexpr auto value_type_size() -> decltype(size_of<value_type_t<C>>())
+    template<class C> 
+    [[nodiscard]] constexpr auto value_type_size() -> decltype(size_of<value_type_t<C>>())
     {
         return size_of<value_type_t<C>>();
     }
@@ -335,7 +334,7 @@ constexpr std::basic_string_view<T> to_string_view(const const_buffer_view buffe
     return buffer.template as_str<T>();
 }
 
-inline void* zero_memory(buffer_view buffer) noexcept
+inline void zero_memory(buffer_view buffer) noexcept
 {
-    return memset(buffer.data(), 0, buffer.size());
+    memset(buffer.data(), 0, buffer.size());
 }

@@ -2,9 +2,8 @@
 
 #include <chrono>
 
-#include <core/ordered_overload.h>
-
 #include <ui/event.h>
+
 
 namespace ui
 {
@@ -26,59 +25,44 @@ namespace ui
         return std::nullopt;
     }
 
-
-    template<class Processor>
-    struct event_callback_instance
+    template<class T>
+    event_result_opt_t do_event_match(T& p, const event& e) noexcept
     {
-        static_assert(!std::is_reference_v<Processor>);
-
-        static event_result_opt_t callback(void* data, const event& e) noexcept
+        switch (e.style())
         {
-            D_ASSERT(data);
-            auto& processor = *static_cast<Processor*>(data);
-
-            switch (e.style())
-            {
 #if defined(D_OS_WINDOWS)
-                case event_style::size:               return call_event(processor, event_for<event_style::size>(e));
-                case event_style::mouse_wheel:        return call_event(processor, event_for<event_style::mouse_wheel>(e));
-                case event_style::mouse_double_click: return call_event(processor, event_for<event_style::mouse_double_click>(e));
+            case event_style::size:               return call_event(p, event_for<event_style::size>(e));
+            case event_style::mouse_wheel:        return call_event(p, event_for<event_style::mouse_wheel>(e));
+            case event_style::mouse_double_click: return call_event(p, event_for<event_style::mouse_double_click>(e));
 #endif
-                case event_style::mouse_move:         return call_event(processor, event_for<event_style::mouse_move>(e));
-                case event_style::mouse_down:         return call_event(processor, event_for<event_style::mouse_down>(e));
-                case event_style::mouse_up:           return call_event(processor, event_for<event_style::mouse_up>(e));
+            case event_style::mouse_move:         return call_event(p, event_for<event_style::mouse_move>(e));
+            case event_style::mouse_down:         return call_event(p, event_for<event_style::mouse_down>(e));
+            case event_style::mouse_up:           return call_event(p, event_for<event_style::mouse_up>(e));
 
-                default: 
-                    break;
-            }
-
-            return call_event(processor, e);
+            default:
+                break;
         }
-    };
+
+        return call_event(p, e);
+    }
 
     template<class Processor>
-    constexpr event_callback_t event_callback_v{ event_callback_instance<std::remove_reference_t<Processor>>::callback };
-
-    template<event_style SelE, class Processor>
-    struct one_event_callback_instance
+    struct event_match
     {
         static_assert(!std::is_reference_v<Processor>);
 
-        static event_result_opt_t callback(void* data, const event& e) noexcept
+        Processor processor;
+
+        event_result_opt_t operator () (const event& e) noexcept
         {
-            D_ASSERT(data);
-            auto& processor = *static_cast<std::remove_reference_t<Processor>*>(data);
+            using processor_lvalue_reference_t 
+                = std::add_lvalue_reference_t<std::remove_reference_t<remove_reference_wrapper_t<Processor>>>;
 
-            if (SelE == e.style())
-            {
-                return call_event(processor, event_for<SelE>(e));
-            }
-
-            return std::nullopt;
+            return do_event_match(static_cast<processor_lvalue_reference_t>(processor), e);
         }
     };
 
-    template<event_style SelE, class Processor>
-    constexpr event_callback_t one_event_callback_v{ one_event_callback_instance<SelE, std::remove_reference_t<Processor>>::callback };
+    template<class T>
+    event_match(T)->event_match<std::remove_reference_t<T>>;
 }
 

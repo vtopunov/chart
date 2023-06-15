@@ -4,6 +4,7 @@
 #include <core/member_detector.h>
 #include <core/limits.h>
 
+
 namespace private_detail_null_compare
 {
     namespace private_private_detail_null_compare
@@ -212,14 +213,14 @@ namespace private_detail_null_compare
     namespace private_private_detail_null_compare
     {
         template<class T>
-        constexpr bool eq_null(const T& value) noexcept
+        [[nodiscard]] constexpr bool eq_null(const T& value) noexcept
         {
             using private_detail_null_type::null_v;
             return value == static_cast<T>(null_v<T>);
         }
 
         template<class T>
-        constexpr bool not_eq_null(const T& value) noexcept
+        [[nodiscard]] constexpr bool not_eq_null(const T& value) noexcept
         {
             using private_detail_null_type::null_v;
             return value != static_cast<T>(null_v<T>);

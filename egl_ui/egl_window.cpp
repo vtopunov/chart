@@ -1,6 +1,6 @@
 #include "egl_window.h"
 
-#include <egl_ui/window.h>
+#include <egl_ui/ui_window.h>
 
 
 namespace egl_ui
@@ -23,7 +23,7 @@ namespace egl_ui
             D_ASSERT_OR_UNUSED(eglTerminate(r.display));
         }
 
-        constexpr window_resource_collector close{};
+        constexpr ui_window_resource_collector close{};
         close(r.ui);
     }
 }

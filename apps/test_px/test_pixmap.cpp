@@ -38,7 +38,7 @@ void test_pixmap() noexcept
 
     static_assert(!px::is_pixspan<rgba_pixmap>::value);
     static_assert(px::is_space_type<rgba_pixmap>::value);
-    static_assert(px::is_data_pointer<rgba_pixmap>::value);
+    static_assert(is_data_pointer<rgba_pixmap>::value);
     static_assert(px::is_convertible_space<rgba_pixmap, pix32space>::value);
     static_assert(px::is_compatible_pixspacecontainer_v<rgba_pixmap, pix32space>);
 

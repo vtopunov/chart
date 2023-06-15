@@ -2,7 +2,10 @@
 
 #include <optional>
 
+#include <core/unique_function.h>
+
 #include <os/fwd.h>
+
 
 namespace ui
 {
@@ -19,8 +22,6 @@ namespace ui
     class event;
 
     using event_result_t = ptrdiff_t;
-
     using event_result_opt_t = D_CONDITIONAL_OS_WINDOWS(std::optional<event_result_t>, std::nullopt_t);
-
-    using event_callback_t = event_result_opt_t(*)(void*, const event&);
+    using event_callback_t = unique_function<event_result_opt_t (const event&)>;
 }

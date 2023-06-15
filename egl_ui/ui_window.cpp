@@ -1,22 +1,24 @@
-#include "window.h"
+#include "ui_window.h"
 
 #include <ui/window.h>
 
 namespace egl_ui
 {
-    void window_resource_collector::operator () (const window_resource& ui) const noexcept
+    void ui_window_resource_collector::operator () (const ui_window_resource& ui) const noexcept
     {
         ui::close(ui.render_wnd);
         ui::close(ui.app_wnd);
     }
 
-    window create_window(os::module_handle_t module) noexcept
+    ui_window create_window(const ui_window_parametrs& param) noexcept
     {
-        window result;
+        ui_window result;
         auto& w = as_mutable(result.r());
 
-        ui::window_builder builder;
-        builder.module(module);
+        ui::window_builder builder{};
+        builder
+            .module(param.module)
+            .geometry(param.geometry);
 
         const auto sizes = ui::desktop_sizes();
         static_assert(std::is_unsigned_v<decltype(sizes.width())>);

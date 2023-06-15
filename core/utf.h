@@ -130,7 +130,7 @@ namespace private_detail_decode_utf
     }
 
     template<size_t Size, class FirstIt, class LastIt>
-    constexpr bool in_size(FirstIt first, LastIt last) noexcept
+    [[nodiscard]] constexpr bool in_size(FirstIt first, LastIt last) noexcept
     {
         static_assert(is_safe_narrowing_conversion<ptrdiff_t>(Size));
 

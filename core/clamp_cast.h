@@ -76,7 +76,7 @@ namespace private_detail_clamp_cast
     struct static_cast_fn
     {
         template<class Source>
-        constexpr Target operator () (Source v) const noexcept
+        [[nodiscard]] constexpr Target operator () (Source v) const noexcept
         {
             return static_cast<Target>(v);
         }

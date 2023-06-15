@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/string_char.h>
-#include <core/resouce.h>
+#include <core/resource.h>
 #include <core/buffer_view.h>
 #include <core/zstring_view.h>
 #include <core/utf.h>

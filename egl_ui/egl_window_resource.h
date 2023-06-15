@@ -3,8 +3,9 @@
 #include <gl/color.h>
 
 #include <egl_ui/egl_window_resource_fwd.h>
-#include <egl_ui/window_resource.h>
+#include <egl_ui/ui_window_resource.h>
 #include <egl_ui/egl_descriptors.h>
+
 
 namespace egl_ui
 {
@@ -26,7 +27,7 @@ namespace egl_ui
             }
         };
 
-        window_resource ui;
+        ui_window_resource ui;
 
         display_descriptor_t display;
         surface_descriptor_t surface;
@@ -50,6 +51,8 @@ namespace egl_ui
             return ui;
         }
     };
+
+    static_assert(std::is_same_v<null_t<egl_window_resource>, egl_window_resource::null_type>);
 
     [[nodiscard]]
     D_CONDITIONAL_OS_WINDOWS(constexpr, inline) os::window_handle_t app_window(const egl_window_resource& egl) noexcept

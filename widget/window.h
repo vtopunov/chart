@@ -7,53 +7,42 @@
 #include <widget/window_fwd.h>
 #include <widget/shaders.h>
 
+
 namespace widget
 {
-    struct window
+    struct window : public egl_window
     {
-        const egl_window egl;
-        shaders shaders;
-        buffer_t temp_buffer;
-        pxsize2d user_sizes_cache;
+        shaders shaders{};
+        buffer_t temp_buffer{};
+        pxsize2d user_sizes_cache{};
 
-        constexpr operator viewport_rectangle() const noexcept
-        {
-            return egl;
-        }
+        constexpr window(egl_window&& egl) noexcept
+            : egl_window{ std::move(egl) }
+        {}
 
-        constexpr operator os::const_module_handle_t() const noexcept
-        {
-            return app();
-        }
+        D_DISABLE_COPY_MOVE(window);
 
         constexpr operator buffer_view () const noexcept
         {
             return temp_buffer_view();
         }
 
+        [[nodiscard]]
         constexpr buffer_view temp_buffer_view() const noexcept
         {
             return as_mutable(temp_buffer);
         }
 
+        [[nodiscard]]
         constexpr os::const_module_handle_t app() const noexcept
         {
-            return egl;
+            return *this;
         }
 
+        [[nodiscard]]
         constexpr pxsize2d user_sizes() const noexcept
         {
             return user_sizes_cache;
         }
     };
-
-    template<class T>
-    constexpr auto is_cpmv_v = std::disjunction_v<
-        std::is_copy_constructible<T>,
-        std::is_copy_assignable<T>,
-        std::is_move_constructible<T>,
-        std::is_move_assignable<T>
-    >;
-
-    static_assert(!is_cpmv_v<window>);
 }

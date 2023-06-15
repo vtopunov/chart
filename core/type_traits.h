@@ -69,20 +69,40 @@ template<class T>
 using remove_unsigned_t = conditional_op_t<std::is_unsigned_v<T>, std::make_signed_t, T>;
 
 
-template<class T>
+template <class T>
+struct remove_reference_wrapper 
+{
+    using type = T;
+};
+
+template <class T>
+struct remove_reference_wrapper<std::reference_wrapper<T>>
+{
+    using type = T;
+};
+
+template <class T>
+struct remove_reference_wrapper<const T> : remove_reference_wrapper<T>
+{};
+
+template <class T>
+using remove_reference_wrapper_t = typename remove_reference_wrapper<T>::type;
+
+
+template<class T> [[nodiscard]]
 constexpr decltype(auto) as_unsigned_or(const T& value) noexcept
 {
     static_assert(std::is_arithmetic_v<T>);
     return static_cast<unsigned_or_t<T>>(value);
 }
 
-template<class T>
+template<class T> [[nodiscard]]
 constexpr decltype(auto) as_unsigned(const T& value) noexcept
 {
     return static_cast<std::make_unsigned_t<T>>(value);
 }
 
-template<class T>
+template<class T> [[nodiscard]]
 constexpr std::enable_if_t<std::is_arithmetic_v<T>, remove_unsigned_t<T>> as_signed(const T& value) noexcept
 {
     return static_cast<remove_unsigned_t<T>>(value);

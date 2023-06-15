@@ -35,7 +35,7 @@ void test_file_mmap() noexcept
             
             const auto w_size = write
             (
-                file::wo_open(file_name, file::w_open_mode::open), 
+                file::wo_open(file_name, file::w_open_mode::rewrite), 
                 content, 
                 content_size
             );

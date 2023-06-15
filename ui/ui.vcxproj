@@ -14,21 +14,23 @@
     <ClInclude Include="app.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="event_fwd.h" />
+    <ClInclude Include="event_processor_fwd.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="event_processor.h" />
     <ClInclude Include="event_loop.h" />
     <ClInclude Include="event_matching.h" />
-    <ClInclude Include="event_processors_container.h" />
+    <ClInclude Include="event_processors_storage.h" />
     <ClInclude Include="type_window.h" />
     <ClInclude Include="window.h" />
     <ClInclude Include="show_command.h" />
+    <ClInclude Include="window_constants.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="app.cpp" />
     <ClCompile Include="event_loop.cpp" />
     <ClCompile Include="event_processor.cpp" />
-    <ClCompile Include="event_processors_container.cpp" />
+    <ClCompile Include="event_processors_storage.cpp" />
     <ClCompile Include="type_window.cpp" />
     <ClCompile Include="window.cpp" />
     <ClCompile Include="window_procedure_impl.cpp" />

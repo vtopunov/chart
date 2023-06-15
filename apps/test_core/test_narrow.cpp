@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <cstdint> 
 
+
 void test_narrow() noexcept
 {
     enum class u16_enum : uint16_t
@@ -16,6 +17,13 @@ void test_narrow() noexcept
 
     enum class i32_enum : int32_t
     {};
+
+    static_assert(is_narrowing_v<int16_t, int32_t>);
+    static_assert(!is_narrowing_v<int16_t, int16_t>);
+    static_assert(!is_narrowing_v<int32_t, int16_t>);
+    static_assert(is_narrowing_or_same_v<int16_t, int32_t>);
+    static_assert(is_narrowing_or_same_v<int16_t, int16_t>);
+    static_assert(!is_narrowing_or_same_v<int32_t, int16_t>);
 
     static_assert(!is_safe_numeric_conversion_v<uint32_t, int32_t>);
     static_assert(!is_safe_numeric_conversion_v<int32_t, uint32_t>);

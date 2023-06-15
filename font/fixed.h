@@ -4,6 +4,7 @@
 
 #include <core/narrow.h>
 
+
 namespace font
 {
     template<class T, size_t FractBits>
@@ -65,15 +66,27 @@ namespace font
     template<class Out, class T, size_t FractBits>
     constexpr Out ceil_to(const fixed<T, FractBits>& fp) noexcept
     {
-        if constexpr (std::disjunction_v<std::is_unsigned<Out>, std::is_unsigned<T>>)
+        using fixed_type = fixed<T, FractBits>;
+
+        constexpr auto ceil_fraction = [] (const fixed_type& fp) noexcept
         {
-            return narrow_cast<Out>(fp.discard_fraction() + !!fp.fraction());
-        }
-        else
-        {
-            static_assert(std::is_integral_v<Out>);
-            return narrow_cast<Out>(fp.discard_fraction() + is_positive(fp) && !!fp.fraction());
-        }
+            constexpr auto has_fraction = [] (const fixed_type& fp) noexcept
+            {
+                return !!fp.fraction();
+            };
+
+            if constexpr (std::disjunction_v<std::is_unsigned<Out>, std::is_unsigned<T>>)
+            {
+                return has_fraction(fp);
+            }
+            else
+            {
+                static_assert(std::is_integral_v<Out>);
+                return is_positive(fp) && has_fraction(fp);
+            }
+        };
+
+        return narrow_cast<Out>(fp.discard_fraction() + ceil_fraction(fp));
     }
 
 

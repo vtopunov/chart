@@ -3,7 +3,7 @@
 #include <debug/debug.h>
 
 #include <gl/draw.h>
-#include <egl_ui/run.h>
+#include <egl_ui/event_loop.h>
 
 using namespace std::chrono;
 using namespace std::chrono_literals;
@@ -20,6 +20,7 @@ namespace
     constexpr duration_t anima_working_period{ 6 * anima_lerp_period };
     constexpr duration_t anima_paused_period{ anima_working_period };
 
+    [[nodiscard]]
     constexpr duration_rep_t oscillating_time(duration_rep_t time, duration_rep_t period) noexcept
     {
         const auto count = time / period;
@@ -29,6 +30,7 @@ namespace
         return oscillating_sign * (time - bound);
     }
 
+    [[nodiscard]]
     constexpr gl::rgba_colorf_t anima_color(duration_t now) noexcept
     {
         constexpr auto period = anima_lerp_period.count();
@@ -100,6 +102,7 @@ namespace
             draw_figure(now);
         }
 
+        [[nodiscard]]
         ui::milliseconds_t operator () (ui::idle_event) const noexcept
         {
             constexpr auto anima_period = anima_working_period + anima_paused_period;
@@ -136,6 +139,6 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    return run(processor.egl, processor);
+    return ui::run_event_loop(processor.egl, processor);
 }
 

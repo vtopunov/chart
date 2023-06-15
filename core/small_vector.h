@@ -20,19 +20,16 @@ constexpr It back_move(It to, It back) noexcept
 
     if constexpr (is_trivially_copyable)
     {
-        if (back != to)
-        {
-            auto temp = std::move(*back);
-            std::copy(to, back, std::next(to));
-            std::swap(*to, temp);
-        }
+        auto temp = std::move(*back);
+        std::copy(to, back, std::next(to));
+        *to = std::move(temp);
     }
     else
     {
         while (back != to)
         {
             auto& temp = *back;
-            std::swap(*--back, temp);
+            swap(*--back, temp);
         }
     }
 
@@ -46,7 +43,7 @@ constexpr size_type optimal_memory_growth(size_type value) noexcept
     constexpr size_type factor = 2;
     constexpr auto max_size = numeric_max_v<size_type>;
     constexpr auto overflow = max_size / factor;
-    return (value > overflow) ? max_size : (factor * value);
+    return (value < overflow) ? (factor * value) : max_size;
 }
 
 template<class size_type> [[nodiscard]]
@@ -102,7 +99,7 @@ public:
         {
             const auto ok = _try_reallocate(right.size());
             D_ASSERT(ok);
-            if (!ok)
+            if (D_UNLIKELY(!ok)) D_ATTRIB_UNLIKELY
             {
                 return;
             }
@@ -131,7 +128,7 @@ public:
 
     self& operator = (const self& right) noexcept
     {
-        if (this != std::addressof(right))
+        if (D_LIKELY(this != std::addressof(right))) D_ATTRIB_LIKELY
         {
             D_ASSERT_OR_UNUSED(try_assign(right));
         }
@@ -147,7 +144,7 @@ public:
 
     self& operator = (self&& right) noexcept
     {
-        if (this != std::addressof(right))
+        if (D_LIKELY(this != std::addressof(right))) D_ATTRIB_LIKELY
         {
             if (right.is_static())
             {
@@ -173,7 +170,7 @@ public:
 
         if (right.size() > capacity())
         {
-            if (!_try_reallocate(right.size()))
+            if (D_UNLIKELY(!_try_reallocate(right.size()))) D_ATTRIB_UNLIKELY
             {
                 return false;
             }
@@ -196,7 +193,7 @@ public:
 
         const auto position_index = (position - data_);
 
-        if (const auto last = try_emplace_back(std::forward<Args>(args)...))
+        if (D_LIKELY(const auto last = try_emplace_back(std::forward<Args>(args)...))) D_ATTRIB_LIKELY
         {
             return back_move(data_ + position_index, last);
         }
@@ -310,7 +307,7 @@ public:
     template<class... Args>
     [[nodiscard]] pointer try_emplace_back(Args&&... args) noexcept
     {
-        if (_try_indeterminate_reserve(size() + 1_uz))
+        if (D_LIKELY(_try_indeterminate_reserve(size() + 1_uz))) D_ATTRIB_LIKELY
         {
             const auto last = data_ + size_;
             new (last) value_type{ std::forward<Args>(args)... };
@@ -322,9 +319,11 @@ public:
     }
 
     template<class... Args>
-    void emplace_back(Args&&... args) noexcept
+    reference emplace_back(Args&&... args) noexcept
     {
-        D_ASSERT_OR_UNUSED(try_emplace_back(std::forward<Args>(args)...));
+        const auto last = try_emplace_back(std::forward<Args>(args)...);
+        D_ASSERT(last);
+        return *last;
     }
 
     void pop_back() noexcept
@@ -550,7 +549,7 @@ private:
     {
         D_ASSERT(new_capacity > static_size);
 
-        if (buffer_type temp{buffer_construct, new_capacity})
+        if (buffer_type temp{buffer_construct, new_capacity}; D_LIKELY(temp)) D_ATTRIB_LIKELY
         {
             size_ = _uninitialized_move_to(temp);
             _dynamic_attach(temp);

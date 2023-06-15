@@ -6,6 +6,7 @@
 
 #include <gl/shader.h>
 
+
 namespace gl
 {
     constexpr size_t default_alignment{ 4_uz };
@@ -87,6 +88,9 @@ namespace gl
 
         pxsize2d sizes;
     };
+
+    static_assert(std::is_same_v<null_t<texture2d_resources>, texture2d_resources::null_type>);
+    static_assert(std::is_same_v<view_t<texture2d_resources>, texture2d_resources::view_type>);
 
     using texture2d = unique_resource<texture2d_resources, texture_resource_deleter>;
 

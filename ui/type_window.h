@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/zstring_view.h>
-#include <core/resouce.h>
+#include <core/resource.h>
 
 #include <ui/app.h>
 

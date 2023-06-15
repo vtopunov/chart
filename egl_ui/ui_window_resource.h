@@ -13,14 +13,14 @@
 
 namespace egl_ui
 {
-    struct window_resource
+    struct ui_window_resource
     {
         struct null_type
         {
             [[nodiscard]]
-            constexpr operator window_resource() const noexcept
+            constexpr operator ui_window_resource() const noexcept
             {
-                return window_resource
+                return ui_window_resource
                 {
                         .app{ nullptr },
 
@@ -69,32 +69,33 @@ namespace egl_ui
         }
     };
 
-    using nullui_t = null_t<window_resource>;
-    constexpr nullui_t nullui = null_v<window_resource>;
+    using nullui_t = null_t<ui_window_resource>;
+    static_assert(std::is_same_v<nullui_t, ui_window_resource::null_type>);
+    constexpr nullui_t nullui{};
 
 
 #if defined(D_OS_WINDOWS)
     [[nodiscard]]
-    constexpr os::window_handle_t app_window(const window_resource& ui) noexcept
+    constexpr os::window_handle_t app_window(const ui_window_resource& ui) noexcept
     {
         return ui.app_wnd;
     }
 
     [[nodiscard]]
-    constexpr os::window_handle_t render_window(const window_resource& ui) noexcept
+    constexpr os::window_handle_t render_window(const ui_window_resource& ui) noexcept
     {
         return ui.render_wnd;
     }
 
 #elif defined(D_OS_ANDROID)
     [[nodiscard]]
-    inline os::window_handle_t app_window(const window_resource& w) noexcept
+    inline os::window_handle_t app_window(const ui_window_resource& w) noexcept
     {
         return  ui::app_window(w.app);
     }
 
     [[nodiscard]]
-    inline os::window_handle_t render_window(const window_resource& w) noexcept
+    inline os::window_handle_t render_window(const ui_window_resource& w) noexcept
     {
         return  ui::app_window(w.app);
     }

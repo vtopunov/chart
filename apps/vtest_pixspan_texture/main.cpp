@@ -2,7 +2,7 @@
 
 #include <debug/debug.h>
 
-#include <egl_ui/run.h>
+#include <egl_ui/event_loop.h>
 
 #include <file/file_asset.h>
 
@@ -101,7 +101,7 @@ int app_main(os::module_handle_t app) noexcept
         }
     }
 
-    return run(egl);
+    return ui::run_event_loop(egl);
 }
 
 

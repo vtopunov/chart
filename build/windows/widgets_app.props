@@ -3,6 +3,10 @@
   <Import Project="base_egl_ui_app.props" />
   
   <ItemGroup>
+    <ResourceCompile Include="$(RepoDir)\apps\fonts\OpenSans_Regular.rc" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <ProjectReference Include="$(RepoDir)\widget\widget.vcxproj">
       <Project>{b40aa82a-1cab-4743-ade5-3ae8a9a4470b}</Project>
     </ProjectReference>

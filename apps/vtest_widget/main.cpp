@@ -55,7 +55,7 @@ namespace
             .text{ u8"Привет мир!" },
         };
 
-        void operator () (window_configuration& cfg) noexcept
+        void operator () (const widget_initializer& ini) noexcept
         {
             b0.clicked = [this] () noexcept
             {
@@ -72,7 +72,7 @@ namespace
                 clicked(this->b2);
             };
 
-            exit_b.clicked = [app = cfg.window().app()] () noexcept
+            exit_b.clicked = [app = ini.window().app()] () noexcept
             {
                 ui::quit(app);
             };
@@ -93,5 +93,9 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    return widget::run<main_widget>(app);
+    auto window = widget::window_builder{}
+        .module(app)
+        .build();
+
+    return widget::run<main_widget>(window);
 }

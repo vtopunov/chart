@@ -14,6 +14,16 @@ namespace px
         {
             return {};
         }
+
+        [[nodiscard]] constexpr bool operator == (const line_size_opt&) const
+        {
+            return true;
+        }
+
+        [[nodiscard]] constexpr bool operator != (const line_size_opt&) const
+        {
+            return false;
+        }
     };
 
     template<>
@@ -38,15 +48,12 @@ namespace px
             return line_size_;
         }
 
+        [[nodiscard]] constexpr bool operator == (const line_size_opt&) const = default;
+        [[nodiscard]] constexpr bool operator != (const line_size_opt&) const = default;
+
     private:
         size_t line_size_{};
     };
-
-    template<size_t Test, size_t Base>
-    using is_compatible_align_t = std::conjunction<std::negation<px::is_dynamic_alignment<Test>>, px::is_dynamic_alignment<Base>>;
-
-    template<size_t Test, size_t Base>
-    constexpr auto is_compatible_align_v = is_compatible_align_t<Test, Base>::value;
 
     template<size_t PxSize, size_t Alignment = default_alignment>
     class pixspace : private line_size_opt<px::is_dynamic_alignment_v<Alignment>>
@@ -58,13 +65,19 @@ namespace px
         static constexpr auto dynamic_alignment_is_enabled = dynamic_alignment_is_enabled_t::value;
         using line_size_type = line_size_opt<dynamic_alignment_is_enabled>;
 
+        template<size_t TestAlign>
+        static constexpr auto is_compatible_pixspace_v = std::conjunction_v<
+            std::negation<px::is_dynamic_alignment<TestAlign>>,
+            dynamic_alignment_is_enabled_t
+        >;
+
         constexpr pixspace() noexcept = default;
 
         constexpr pixspace(const pixspace&) noexcept = default;
 
-        template<size_t Align, std::enable_if_t <is_compatible_align_v<Align, alignment>, int > = 0 >
+        template<size_t Align, std::enable_if_t<is_compatible_pixspace_v<Align>, int> = 0>
         constexpr pixspace(const pixspace<px_size, Align>& right) noexcept
-            : line_size_type{ right._line_size_opt(dynamic_alignment_is_enabled_t{}) }
+            : line_size_type{ _clone_line_size_opt(right, dynamic_alignment_is_enabled_t{}) }
             , sizes_{ right.sizes() }
         {}
 
@@ -90,10 +103,10 @@ namespace px
 
         constexpr pixspace& operator = (const pixspace&) noexcept = default;
 
-        template<size_t Align, std::enable_if_t<is_compatible_align_v<Align, alignment>, int> = 0>
+        template<size_t Align, std::enable_if_t<is_compatible_pixspace_v<Align>, int> = 0>
         constexpr pixspace& operator = (const pixspace<px_size, Align>& right) noexcept
         {
-            line_size_type::operator = (right._line_size_opt(dynamic_alignment_is_enabled_t{}));
+            line_size_type::operator = (_clone_line_size_opt(right, dynamic_alignment_is_enabled_t{}));
             sizes_ = right.sizes();
             return *this;
         }
@@ -141,15 +154,20 @@ namespace px
             return sizes_.height();
         }
 
+        [[nodiscard]] constexpr bool operator == (const pixspace&) const = default;
+        [[nodiscard]] constexpr bool operator != (const pixspace&) const = default;
+
     private:
-        consteval line_size_opt<false> _line_size_opt(std::false_type) const
+        template<size_t Align> 
+        [[nodiscard]] static constexpr line_size_opt<false> _clone_line_size_opt(const pixspace<px_size, Align>&, std::false_type)
         {
-            return {};   
+            return {};
         }
 
-        constexpr line_size_opt<true> _line_size_opt(std::true_type) const
+        template<size_t Align>
+        [[nodiscard]] static constexpr line_size_opt<true> _clone_line_size_opt(const pixspace<px_size, Align>& space, std::true_type)
         {
-            return line_size();
+            return space.line_size();
         }
 
     private:
@@ -157,7 +175,7 @@ namespace px
     };
 
     template<size_t PxSize, size_t Alignment>
-    constexpr const pixspace<PxSize, Alignment>& space(const pixspace<PxSize, Alignment>& c) noexcept
+    [[nodiscard]] constexpr const pixspace<PxSize, Alignment>& space(const pixspace<PxSize, Alignment>& c) noexcept
     {
         return c;
     }

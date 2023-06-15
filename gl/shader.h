@@ -3,7 +3,7 @@
 #include <string_view>
 
 #include <core/assert.h>
-#include <core/resouce.h>
+#include <core/resource.h>
 #include <core/zstring_view.h>
 
 #include <gl/glsl_typeid.h>

@@ -77,6 +77,9 @@ namespace file
         }
     };
 
+    static_assert(std::is_same_v<null_t<file_mmap_resource>, file_mmap_resource::null_type>);
+    static_assert(std::is_same_v<view_t<file_mmap_resource>, file_mmap_resource::view_type>);
+
     struct file_mmap_resource_deleter
     {
         void operator () (file_mmap_resource resource) const noexcept;

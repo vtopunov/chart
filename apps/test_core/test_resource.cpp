@@ -1,7 +1,7 @@
 #include <functional>
 #include <chrono>
 
-#include <core/resouce.h>
+#include <core/resource.h>
 #include <core/assert.h>
 
 namespace
@@ -54,11 +54,11 @@ namespace
         return node(safe)->next;
     }
 
-    struct tested_resouce
+    struct tested_resource
     {
-        tested_resouce() noexcept = default;
+        tested_resource() noexcept = default;
 
-        tested_resouce(int right) noexcept
+        tested_resource(int right) noexcept
             : value{ right }
         {}
 
@@ -68,25 +68,25 @@ namespace
         }
 
         int value = 0;
-        std::function<void(const tested_resouce&)> check_close;
+        std::function<void(const tested_resource&)> check_close;
     };
 
-    struct tested_resouce_deleter
+    struct tested_resource_deleter
     {
-        void operator () (const tested_resouce& resouce) const noexcept
+        void operator () (const tested_resource& resource) const noexcept
         {
-            if (resouce.check_close)
+            if (resource.check_close)
             {
-                resouce.check_close(resouce);
+                resource.check_close(resource);
             }
         }
     };
 
-    using tested_unique = unique_resource<tested_resouce, tested_resouce_deleter>;
-    using tested_shared = shared_resource<tested_resouce, tested_resouce_deleter>;
+    using tested_unique = unique_resource<tested_resource, tested_resource_deleter>;
+    using tested_shared = shared_resource<tested_resource, tested_resource_deleter>;
 
-    static_assert(std::is_same_v<null_t<tested_unique>, null_t<tested_resouce>>);
-    static_assert(std::is_same_v<null_t<tested_shared>, null_t<tested_resouce>>);
+    static_assert(std::is_same_v<null_t<tested_unique>, null_t<tested_resource>>);
+    static_assert(std::is_same_v<null_t<tested_shared>, null_t<tested_resource>>);
 
     struct verifiable_resource
     {
@@ -98,12 +98,23 @@ namespace
         }
     };
 
+    static_assert(std::is_trivially_copyable_v<verifiable_resource>);
+    static_assert(std::is_trivially_copyable_v<skip_op>);
+
     using verifiable_unique = unique_resource<verifiable_resource, skip_op>;
     using verifiable_linked = shared_resource<verifiable_resource, skip_op>;
 
-    static_assert(!std::is_same_v<null_t<tested_resouce>, null_t<verifiable_resource>>);
+    static_assert(std::is_move_constructible_v<verifiable_unique> && std::is_move_assignable_v<verifiable_unique>);
+    static_assert(!std::is_copy_constructible_v<verifiable_unique>&& !std::is_copy_assignable_v<verifiable_unique>);
+    static_assert(!std::is_trivially_move_assignable_v<verifiable_unique>&& !std::is_trivially_move_constructible_v<verifiable_unique>);
+
+    static_assert(!std::is_same_v<null_t<tested_resource>, null_t<verifiable_resource>>);
     static_assert(std::is_same_v<null_t<verifiable_unique>, null_t<verifiable_resource>>);
     static_assert(std::is_same_v<null_t<verifiable_linked>, null_t<verifiable_resource>>);
+    static_assert(std::is_same_v<resource_type_t<tested_unique>, tested_resource>);
+    static_assert(std::is_same_v<resource_type_t<tested_shared>, tested_resource>);
+    static_assert(std::is_same_v<resource_type_t<const tested_unique>, tested_resource>);
+    static_assert(std::is_same_v<resource_type_t<const tested_shared>, tested_resource>);
 }
 
 void test_resource() noexcept
@@ -165,11 +176,11 @@ void test_resource() noexcept
         check(h1, 1);
     }
 
-    {   // smart resouce closure
+    {   // smart resource closure
         int closed_value = 0;
         {
             tested_shared h2{ resource_construct, 2 };
-            unsafe(h2).h.check_close = [&closed_value] (const tested_resouce& closing_handle) noexcept
+            unsafe(h2).h.check_close = [&closed_value] (const tested_resource& closing_handle) noexcept
             {
                 D_ASSERT(closed_value != 2 && closing_handle.value == 2);
                 closed_value = closing_handle.value;
@@ -187,7 +198,7 @@ void test_resource() noexcept
     { // assignment initialization 
         int h2_closed_value = 0;
         tested_shared h2{ resource_construct, 2 };
-        unsafe(h2).h.check_close = [&h2_closed_value] (const tested_resouce& closing_handle) noexcept
+        unsafe(h2).h.check_close = [&h2_closed_value] (const tested_resource& closing_handle) noexcept
         {
             D_ASSERT(h2_closed_value != 2 && closing_handle.value == 2);
             h2_closed_value = closing_handle.value;
@@ -202,7 +213,7 @@ void test_resource() noexcept
         tested_shared h2{ resource_construct, 2 };
 
         int h1_closed_value = 0;
-        unsafe(h1).h.check_close = [&h1_closed_value] (const tested_resouce& closing_handle) noexcept
+        unsafe(h1).h.check_close = [&h1_closed_value] (const tested_resource& closing_handle) noexcept
         {
             D_ASSERT(h1_closed_value != 1 && closing_handle.value == 1);
             h1_closed_value = closing_handle.value;
@@ -266,7 +277,7 @@ void test_resource() noexcept
             check(h2, ch2, 2);
             check(h1, ch1, 1);
 
-            unsafe(h2).h.check_close = [&h2_closed_value] (const tested_resouce& closing_handle) noexcept
+            unsafe(h2).h.check_close = [&h2_closed_value] (const tested_resource& closing_handle) noexcept
             {
                 D_ASSERT(h2_closed_value != 2 && closing_handle.value == 2);
                 h2_closed_value = closing_handle.value;
@@ -279,7 +290,7 @@ void test_resource() noexcept
     {
         int h1_closed_value = 0;
 
-        void operator () (const tested_resouce& closing_handle) noexcept
+        void operator () (const tested_resource& closing_handle) noexcept
         {
             D_ASSERT(h1_closed_value != 1 && closing_handle.value == 1);
             h1_closed_value = closing_handle.value;

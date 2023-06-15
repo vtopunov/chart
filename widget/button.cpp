@@ -133,9 +133,9 @@ namespace widget
         return event_result::idle;
     }
 
-    void button::operator()(window_configuration& cfg) const noexcept
+    void button::operator()(widget_initializer& ini) const noexcept
     {
-        cfg.build()
+        ini.cfg()
             .gray_texture_mix_color_shdr()
             .colored_rectangle_shdr()
             .pix8_temp_buffer();

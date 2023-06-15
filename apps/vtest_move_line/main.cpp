@@ -4,9 +4,10 @@
 
 #include <px/algorithm.h>
 
-#include <egl_ui/run.h>
+#include <egl_ui/event_loop.h>
 
 #include <utility/shaders_library.h>
+
 
 namespace
 {
@@ -71,7 +72,7 @@ namespace
 
         draw_line(360, 295, 590, 295); // 0
         draw_line(360, 300, 590, 300);
-        draw_line(590, 305, 360, 305);
+        draw_line(360, 305, 590, 305);
 
         draw_line(360, 315, 590, 325); // 0-
         draw_line(360, 320, 590, 330);
@@ -218,7 +219,7 @@ namespace
         int run()
         {
             draw();
-            return egl_ui::run(egl_, *this);
+            return ui::run_event_loop(egl_, *this);
         }
 
     private:

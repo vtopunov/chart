@@ -1,4 +1,4 @@
-#include <widget/window_configuration.h>
+#include <widget/widget_initializer.h>
 
 #include <debug/debug.h>
 
@@ -21,34 +21,17 @@ namespace widget
         }
     }
 
-    bool widget::window_configuration::configure() noexcept
-    {
-        for (const auto configure : configurations)
-        {
-            if (cfgs_ & 1)
-            {
-                if (D_UNLIKELY(!configure(window_))) D_ATTRIB_UNLIKELY
-                {
-                    return false;
-                }
-            }
-            cfgs_ >>= 1;
-        }
-
-        return true;
-    }
-
-    bool window_configuration::configure_gray_texture_mix_color_shdr(widget::window& w) noexcept
+    bool widget_initializer::configuration_accumulator::configure_gray_texture_mix_color_shdr(widget::window& w) noexcept
     {
         return shaders_error_report_if_not(w.shaders.gray_texture_mix_color.initialize(sizes(w)));
     }
 
-    bool window_configuration::configure_colored_rectangle_shdr(widget::window& w) noexcept
+    bool widget_initializer::configuration_accumulator::configure_colored_rectangle_shdr(widget::window& w) noexcept
     {
         return shaders_error_report_if_not(w.shaders.colored_rectangle.initialize(sizes(w)));
     }
 
-    bool window_configuration::configure_pix8_temp_buffer(widget::window& w) noexcept
+    bool widget_initializer::configuration_accumulator::configure_pix8_temp_buffer(widget::window& w) noexcept
     {
         const auto require_size_bytes
             = pix8space{ sizes(w) }

@@ -3,6 +3,8 @@
 #include <utility>
 
 #include <core/warnings.h>
+#include <core/ordered_overload.h>
+
 
 #ifdef _MSC_VER
 #define D_FORCE_INLINE inline __forceinline
@@ -89,6 +91,7 @@ constexpr bool is_null_or_empty(const T* string) noexcept
     return !string || !*string;
 }
 
+
 template<class T, class U>
 constexpr T& min_eq(T& value, U&& new_value) noexcept
 {
@@ -110,3 +113,63 @@ constexpr T& max_eq(T& value, U&& new_value) noexcept
 
     return value;
 }
+
+
+template<class Fn, class Arg, class = void>
+struct function_filter
+{
+    Fn fn;
+};
+
+template <class Fn, class Arg>
+struct function_filter<Fn, Arg, std::void_t<decltype(std::declval<Fn&>()(std::declval<Arg>()))>>
+{
+    Fn fn;
+
+    decltype(auto) operator () (Arg arg) noexcept
+    {
+        return fn(std::move(arg));
+    }
+};
+
+
+namespace private_detail_swap
+{
+    using namespace ordered_overload;
+
+    template<class L, class R>
+    constexpr auto swap_impl(L& left, R& right, _order<_3>) noexcept -> decltype(as_reference((std::swap<R>(right, left), right)))
+    {
+        std::swap<R>(right, left);
+        return right;
+    }
+
+    template<class L, class R>
+    constexpr auto swap_impl(L& left, R& right, _order<_2>) noexcept -> decltype(as_reference((std::swap<L>(left, right), left)))
+    {
+        std::swap<L>(left, right);
+        return left;
+    }
+
+    template<class L, class R>
+    constexpr auto swap_impl(L& left, R& right, _order<_1>) noexcept -> decltype(as_reference((right.swap(left), right)))
+    {
+        right.swap(left);
+        return right;
+    }
+
+    template<class L, class R>
+    constexpr auto swap_impl(L& left, R& right, _order<_0>) noexcept -> decltype(as_reference((left.swap(right), left)))
+    {
+        left.swap(right);
+        return left;
+    }
+
+    template<class L, class R>
+    constexpr auto swap(L& left, R& right) noexcept -> decltype(swap_impl(left, right, _start))
+    {
+        return swap_impl(left, right, _start);
+    }
+}
+
+using private_detail_swap::swap;

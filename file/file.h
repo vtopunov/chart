@@ -2,9 +2,7 @@
 
 #include <compare>
 
-#include <core/resouce.h>
-
-#include <os/fwd.h>
+#include <core/resource.h>
 
 #include <file/path.h>
 
@@ -13,7 +11,7 @@ namespace file
 {
     enum class w_open_mode
     {
-        open,
+        rewrite,
         truncate,
         append
     };
@@ -68,6 +66,7 @@ namespace file
     };
 
     using invalidfile_t = null_t<file_resource>;
+    static_assert(std::is_same_v<invalidfile_t, file_resource::null_type>);
     constexpr invalidfile_t invalidfile{};
 
     struct ro_file_resource : file_resource

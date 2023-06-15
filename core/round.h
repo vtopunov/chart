@@ -28,7 +28,7 @@ namespace private_detail_round_cast
     };
 
     template<class Target, class Source, class Fn>
-    Target round_cast_impl(Source v, Fn fn) noexcept
+    [[nodiscard]] Target round_cast_impl(Source v, Fn fn) noexcept
     {
         using source_t = std::remove_cvref_t<Source>;
 
@@ -50,14 +50,14 @@ namespace private_detail_round_cast
     }
 
     template<class Target, class Source>
-    Target round_cast(Source v) noexcept
+    [[nodiscard]] Target round_cast(Source v) noexcept
     {
         constexpr round_fn<Target> fn{};
         return round_cast_impl<Target>(v, fn);
     }
 
     template<class Target, class Source>
-    Target trunc_cast(Source v) noexcept
+    [[nodiscard]] Target trunc_cast(Source v) noexcept
     {
         constexpr trunc_fn<Target> fn{};
         return round_cast_impl<Target>(v, fn);

@@ -2,12 +2,9 @@
 
 #include <string>
 
-#include <core/rectangle.h>
 #include <core/small_vector.h>
 
-#include <px/fwd.h>
-
-#include <ui/show_command.h>
+#include <ui/window_constants.h>
 #include <ui/type_window.h>
 
 
@@ -23,122 +20,77 @@ namespace ui
         {
             return current;
         }
-
-        constexpr bool is_root() const noexcept
-        {
-            return !parent;
-        }
     };
 
-    using window_container = small_vector<window_dependency, 6_uz>;
+    using window_set = small_vector<window_dependency, 6_uz>;
 
-    struct window_childrens
+    struct siblings_window
     {
-        using container_type = window_container;
-        using reference = container_type::const_reference;
+        using const_reference = window_set::const_reference;
 
         size_t position;
-        const container_type* contaner;
+        const window_set* storage;
         window_handle_t parent;
 
         [[nodiscard]]
-        constexpr window_childrens begin() const noexcept
+        constexpr siblings_window begin() const noexcept
         {
             return *this;
         }
 
+        struct end_t {};
+
         [[nodiscard]]
-        constexpr null_t<window_childrens> end() const noexcept
+        constexpr end_t end() const noexcept
         {
             return {};
         }
 
         [[nodiscard]]
-        constexpr explicit operator bool() const noexcept
+        constexpr bool has_value() const noexcept
         {
-            return position < std::size(*contaner) && parent == value().parent;
+            return position < std::size(*storage) && parent == value().parent;
         }
 
-        constexpr window_childrens& operator++() noexcept
+        [[nodiscard]]
+        constexpr explicit operator bool() const noexcept
+        {
+            return has_value();
+        }
+
+        [[nodiscard]]
+        constexpr bool operator != (end_t) const noexcept
+        {
+            return has_value();
+        }
+
+        constexpr siblings_window& operator++() noexcept
         {
             ++position;
             return *this;
         }
 
         [[nodiscard]]
-        constexpr reference value() const noexcept
+        constexpr const_reference value() const noexcept
         {
             D_WARNING_PUSH;
             D_WARNING_DISABLE_MSVC(W_unchecked_subscript_operator);
-            return (*contaner)[position];
+            return (*storage)[position];
             D_WARNING_POP;
         }
 
         [[nodiscard]]
-        constexpr reference operator*() const noexcept
+        constexpr const_reference operator*() const noexcept
         {
             return value();
         }
     };
 
     [[nodiscard]]
-    window_childrens childrens(window_handle_t parent) noexcept;
-
-    struct window_roots
-    {
-        using container_type = window_container;
-        using reference = container_type::const_reference;
-
-        size_t position;
-        const container_type* contaner;
-
-        [[nodiscard]]
-        constexpr window_roots begin() const noexcept
-        {
-            return *this;
-        }
-
-        [[nodiscard]]
-        constexpr null_t<window_roots> end() const noexcept
-        {
-            return {};
-        }
-
-        [[nodiscard]]
-        constexpr explicit operator bool() const noexcept
-        {
-            return position < std::size(*contaner);
-        }
-
-        constexpr window_roots& operator++() noexcept
-        {
-            while ((++position) < std::size(*contaner))
-            {
-                if (value().is_root())
-                    break;
-            }
-
-            return *this;
-        }
-
-        [[nodiscard]]
-        constexpr reference value() const noexcept
-        {
-            D_WARNING_PUSH;
-            D_WARNING_DISABLE_MSVC(W_unchecked_subscript_operator);
-            return (*contaner)[position];
-            D_WARNING_POP;
-        }
-
-        [[nodiscard]]
-        constexpr reference operator*() const noexcept
-        {
-            return value();
-        }
-    };
+    siblings_window childrens(window_handle_t parent) noexcept;
 
     [[nodiscard]]
-    window_roots roots() noexcept;
+    siblings_window roots() noexcept;
 
     bool show(window_handle_t window, int cmd) noexcept;
 
@@ -153,6 +105,8 @@ namespace ui
     }
 
     bool close(window_handle_t window) noexcept;
+
+    bool window_text(window_handle_t window, wzstring_view text) noexcept;
 
     [[nodiscard]]
     pxrectangle geometry(window_handle_t window) noexcept;
@@ -174,16 +128,6 @@ namespace ui
     };
 
     using window = unique_resource<window_handle_t, window_resource_deleter>;
-
-    namespace private_detail_window
-    {
-        using native_px_t = int;
-        
-        constexpr auto cw_usedefault = static_cast<native_px_t>(0x80000000);
-        constexpr auto px_usedefault = static_cast<pxside_t>(cw_usedefault);
-    }
-
-    using private_detail_window::px_usedefault;
 
     class window_builder
     {
@@ -260,7 +204,7 @@ namespace ui
         mutable type_window_builder type_builder_{};
         mutable shared_type_window cached_type_{};
         std::wstring title_;
-        pxrectangle geometry_{ px_usedefault, 0_px, px_usedefault, 0_px };
+        pxrectangle geometry_{ rc_usedefault };
         window_handle_t parent_{ nullptr };
     };
 }

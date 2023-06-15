@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="test_round.cpp" />
     <ClCompile Include="test_static_vector.cpp" />
+    <ClCompile Include="test_view.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

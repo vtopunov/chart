@@ -1,9 +1,10 @@
 
 extern void test_ordered_overload() noexcept;
 extern void test_type_traits() noexcept;
-extern void test_value_type() noexcept;
 extern void test_zero() noexcept;
+extern void test_view() noexcept;
 extern void test_utility() noexcept;
+extern void test_value_type() noexcept;
 extern void test_clamp_cast() noexcept;
 extern void test_round() noexcept;
 extern void test_size_type() noexcept;
@@ -32,9 +33,10 @@ int main() noexcept
 {
     test_ordered_overload();
     test_type_traits();
-    test_value_type();
     test_zero();
+    test_view();
     test_utility();
+    test_value_type();
     test_clamp_cast();
     test_round();
     test_size_type();
