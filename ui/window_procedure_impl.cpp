@@ -4,6 +4,7 @@
 #include <ui/window.h>
 #include <ui/event_processors_storage.h>
 
+
 namespace ui
 {
     namespace
@@ -40,18 +41,15 @@ namespace ui
 
         switch (message)
         {
-            case WM_QUIT:
-                break;
-
             case WM_DESTROY:
             {
                 close(window);
             }
             break;
 
-            default:
+            default: [[likely]]
             {
-                for (const auto& processor : event_processors_global().lock())
+                for (const auto& processor : event_processors_global().lock()) [[likely]]
                 {
                     if (processor.window == window)
                     {

@@ -1,4 +1,5 @@
 ﻿#include <numbers>
+#include <cmath>
 
 #include <core/small_vector.h>
 #include <core/lerp.h>
@@ -7,8 +8,7 @@
 #include <utility/px.h>
 
 #include <widget/run.h>
-
-#include <debug/debug.h>
+#include <widget/button.h>
 
 #include <px/algorithm.h>
 
@@ -23,42 +23,24 @@ using px::point2d_real;
 
 namespace
 {
-    real_t sinc(real_t x) noexcept
+    using stretchable_pxrectangle = ::rectangle<pxside_t, pxoff_t>;
+
+    constexpr auto n_points = 400_uz;
+
+    void sin_vector_initialize(small_vector<point2d_real>& v) noexcept
     {
-        constexpr real_t near_zero_eps{ 0.0004 }; // (eps*120)^(1/4)
-
-        if (abs(x) > near_zero_eps)
-        {
-            return sin(x) / x;
-        }
-        else
-        {
-            return 1 - x * x / 6;
-        }
-    }
-
-    bool sinc_vector_initialize(small_vector<point2d_real>& v) noexcept
-    {
-        constexpr auto size = 800_uz;
-
-        if (!v.try_reserve(size))
-        {
-            e_debug("sinc_vector_initialize: out of memory");
-            return false;
-        }
-
-        constexpr auto abscissa_max = 8 * std::numbers::pi_v<real_t>;
+        constexpr auto abscissa_max = 12 * std::numbers::pi_v<real_t>;
         constexpr num_range abscissa_range{ -abscissa_max, abscissa_max };
-        constexpr num_range index_range{ 0_uz, size - 1_uz };
+        constexpr num_range index_range{ 0_uz, n_points - 1_uz };
         constexpr auto abscissa = lerp(index_range, abscissa_range);
 
+        D_ASSERT(0u == v.size());
+        D_ASSERT(n_points <= v.capacity());
         for (size_t i = index_range._0; i <= index_range._1; ++i)
         {
             const auto x = abscissa(i);
             v.emplace_back(x, sin(x));
         }
-
-        return true;
     };
 
     using range_real = num_range<real_t>;
@@ -83,23 +65,26 @@ namespace
     using point2drange_real = point2d<range_real>;
 
     template<size_t axis>
-    void correct(point2drange_real& ranges) noexcept
+    void correct(point2drange_real& ranges, bool w_output) noexcept
     {
         constexpr range_real default_range{ 0.0, 1.0 };
 
         auto& range = get<axis>(ranges);
         if (!range_is_valid(range))
         {
-            range = default_range;
+            if(w_output)
+            {
+                constexpr vec2 axis_letters{ 'X', 'Y' };
+                w_debug
+                (
+                    "invalid {} axis range: [{}, {}]",
+                    get<axis>(axis_letters),
+                    range._0,
+                    range._1
+                );
+            }
 
-            constexpr vec2 axis_letters{ 'X', 'Y' };
-            w_debug
-            (
-                "invalid {} axis range: [{}, {}]",
-                get<axis>(axis_letters),
-                range._0,
-                range._1
-            );
+            range = default_range;
         }
     }
 
@@ -123,8 +108,11 @@ namespace
             expand(values_range.ref_y(), pt.y());
         }
 
-        correct<0>(values_range);
-        correct<1>(values_range);
+        {
+            const auto w_output = !!line.size();
+            correct<0>(values_range, w_output);
+            correct<1>(values_range, w_output);
+        }
 
         return values_range;
     }
@@ -140,10 +128,10 @@ namespace
 
     struct coordinate_transformation : vec2<polynomial2<real_t>>
     {
-        template<class Pt>
-        constexpr point2d_real operator () (const Pt& pt) const noexcept
+        template<class T>
+        constexpr point2d_real operator () (const vec2<T>& v) const noexcept
         {
-            return { _0(pt._0), _1(pt._1) };
+            return { _0(v._0), _1(v._1) };
         }
     };
 
@@ -182,22 +170,42 @@ namespace
     }
 
     template<class Pos, class Sz>
-    constexpr pxsize2d clamp_sizes(const rectangle<Pos, Sz>& r, pxsize2d max_sizes) noexcept
+    constexpr pxsize2d clamp_sizes(const rectangle<Pos, Sz>& r, pxsize2d window_sizes) noexcept
     {
         using overpxoff_t = int64_t;
+        static_assert(std::is_signed_v<Sz>);
         static_assert(sizeof(overpxoff_t) > sizeof(Pos));
         static_assert(sizeof(overpxoff_t) > sizeof(Sz));
         static_assert(sizeof(overpxoff_t) > sizeof(pxside_t));
 
-        constexpr auto clamp_len = [] (overpxoff_t position, overpxoff_t len, overpxoff_t maxlen) noexcept
+        constexpr auto clamp_len = [] (overpxoff_t position, overpxoff_t fixlen, overpxoff_t len) noexcept
         {
-            return narrow_cast<pxside_t>(std::min(position + len, maxlen) - position);
+            len -= position;
+            if (D_UNLIKELY(len < 0LL)) D_ATTRIB_UNLIKELY
+                return 0_px;
+
+            if (fixlen <= 0LL)
+            {
+                len += fixlen;
+
+                if (D_UNLIKELY(len < 0LL)) D_ATTRIB_UNLIKELY
+                    return 0_px;
+            }
+            else
+            {
+                if (fixlen < len)
+                {
+                    len = fixlen;
+                }
+            }
+
+            return narrow_cast<pxside_t>(len);
         };
 
         return
         {
-            clamp_len(r.x(), r.width(), max_sizes.width()),
-            clamp_len(r.y(), r.height(), max_sizes.height())
+            clamp_len(r.x(), r.width(), window_sizes.width()),
+            clamp_len(r.y(), r.height(), window_sizes.height())
         };
     }
 
@@ -205,39 +213,46 @@ namespace
     {
         struct chart_line
         {
+            using container_of_points = small_vector<point2d_real>;
+
             static constexpr auto background_color = gl::colors::white_f;
             static constexpr auto line_color = gl::colors::red_f;
-            static constexpr pxsize2d max_sizes{ fill_vec2(numeric_max_v<pxside_t>) };
 
-            class values_container : public small_vector<point2d_real>
+            class range_cache
             {
-                static constexpr auto nan_value = numeric_nan_v<real_t>;
-                static constexpr auto nan_values_range = fill_to<point2d>(fill_to<num_range>(nan_value));
+                static constexpr num_range invalid_range{ numeric_max_v<real_t>, numeric_lowest_v<real_t> };
+                static constexpr auto invalid_cache = fill_to<point2d>(invalid_range);
 
             public:
-                point2drange_real values_range() const noexcept
+                point2drange_real update_and_get(const_span_point2d_real line) noexcept
                 {
-                    if (need_to_update_cache())
+                    if (need_to_update())
                     {
-                        values_range_cache_ = calculate_values_range(*this);
+                        cache_ = calculate_values_range(line);
                     }
 
-                    return values_range_cache_;
+                    return cache_;
                 }
 
-            private:
-                bool need_to_update_cache() const noexcept
+                constexpr void clear() noexcept
                 {
-                    return std::isnan(values_range_cache_._0._0);
+                    cache_ = invalid_cache;
                 }
 
             private:
-                mutable point2drange_real values_range_cache_{ nan_values_range };
+                constexpr bool need_to_update() const noexcept
+                {
+                    return invalid_range._0 == cache_._0._0;
+                }
+
+            private:
+                point2drange_real cache_{ invalid_cache };
             };
 
-            pxrectangle geometry{ .position{}, .sizes{ max_sizes } };
-            values_container values{};
+            stretchable_pxrectangle geometry{};
+            container_of_points points{};
             gl::texture2d texture_cache{};
+            range_cache values_range_cache{};
 
             bool operator () (widget_initializer& ini) noexcept
             {
@@ -256,19 +271,33 @@ namespace
                 return true;
             }
 
-            constexpr event_result operator () (const ui::size_event&) noexcept
+            event_result operator () (const ui::size_event&) noexcept
             {
+                //debug("size event: {}x{}", e.width(), e.height());
                 return event_result::redraw;
+            }
+
+            void clear_texture_cache() noexcept
+            {
+                texture_cache = gl::sizes(std::move(texture_cache), 0_px, 0_px);
+            }
+
+            void clear_cache() noexcept
+            {
+                values_range_cache.clear();
+                clear_texture_cache();
             }
 
             void draw(const window& w) noexcept
             {
                 if (const auto chart_sizes = clamp_sizes(geometry, w.user_sizes()); chart_sizes != sizes(texture_cache))
                 {
+                    //debug("redraw: {}x{}", chart_sizes.width(), chart_sizes.height());
+
                     const auto chart_image = px::zeros_pix8space(w.temp_buffer_view(), chart_sizes);
-                    draw_polyline(chart_image, values, calculate_coordinate_transformation
+                    draw_polyline(chart_image, points, calculate_coordinate_transformation
                     (
-                        values.values_range(),
+                        values_range_cache.update_and_get(points),
                         calculate_pix_range(chart_sizes)
                     ));
                     texture_cache = gl::write(std::move(texture_cache), chart_image);
@@ -285,15 +314,80 @@ namespace
             }
         };
 
-        chart_line line{};
-
-        bool operator () (const widget_initializer&) noexcept
+        widget::button b_plot
         {
-            if (!sinc_vector_initialize(line.values))
+            .geometry
             {
-                e_debug("initialize chart error");
+                .position{25_px, 20_px},
+                .sizes{150_px, 50_px}
+            },
+            .text{ u8"Построить" }
+        };
+
+        widget::button b_clear
+        {
+            .geometry
+            {
+                .position{185_px, 20_px},
+                .sizes{150_px, 50_px}
+            },
+            .text{ u8"Очистить" }
+        };
+
+        widget::button b_exit
+        {
+            .geometry
+            {
+                .position{345_px, 20_px},
+                .sizes{150_px, 50_px}
+            },
+            .text{ u8"Выход" }
+        };
+
+        chart_line line
+        {
+            .geometry
+            {
+                .position{20_px, 90_px},
+                .sizes{-20_pxz, -20_pxz}
+            }
+        };
+
+        chart_line::container_of_points points{};
+
+        bool operator () (const widget_initializer& ini) noexcept
+        {
+            if (D_UNLIKELY(!points.try_reserve(n_points))) D_ATTRIB_UNLIKELY
+            {
+                e_debug("chart line values: out of memory");
                 return false;
             }
+
+            sin_vector_initialize(points);
+
+            b_plot.clicked = [this]() noexcept
+            {
+                if (!line.points.size())
+                {
+                    line.points = std::move(points);
+                }
+
+                line.clear_cache();
+            };
+
+            b_clear.clicked = [this]() noexcept
+            {
+                if (line.points.size())
+                {
+                    points = std::move(line.points);
+                    line.clear_cache();
+                }
+            };
+
+            b_exit.clicked = [app = ini.window().app()]() noexcept
+            {
+                ui::quit(app);
+            };
 
             return true;
         }
@@ -301,7 +395,7 @@ namespace
         template<class Fn>
         decltype(auto) apply(Fn fn) noexcept
         {
-            return fn(line);
+            return fn(b_plot, b_clear, b_exit, line);
         }
     };
 }
@@ -309,10 +403,5 @@ namespace
 
 int main() noexcept
 {
-    auto window = widget::window_builder{}
-        .sizes(1001_px, 157_px)
-        .command_show(ui::show_command::normal)
-        .build();
-
-    return widget::run<chart_widget>(window);
+    return widget::run<chart_widget>(nullptr);
 }

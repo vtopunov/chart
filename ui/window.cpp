@@ -224,7 +224,7 @@ namespace ui
             cached_type_ = type_builder_.build();
         }
 
-        if (cached_type_)
+        if (D_LIKELY(cached_type_)) D_ATTRIB_LIKELY
         {
             result = window
             {
@@ -246,7 +246,7 @@ namespace ui
                 )
             };
 
-            if (result)
+            if (D_LIKELY(result)) D_ATTRIB_LIKELY
             {
                 auto& window_set = windows_global();
 
@@ -259,7 +259,7 @@ namespace ui
                 );
 
                 D_ASSERT(ok);
-                if (!ok)
+                if (D_UNLIKELY(!ok)) D_ATTRIB_UNLIKELY
                 {
                     result.reset();
                 }

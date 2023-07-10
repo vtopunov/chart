@@ -406,6 +406,7 @@ namespace
 
         void test_move(vector_test& v, void (*move_op) (small_vector_type&, small_vector_type&)) noexcept
         {
+            const auto size = small_v_.size();
             const auto data = small_v_.data();
             const auto is_static = small_v_.is_static();
 
@@ -415,12 +416,11 @@ namespace
 
             move_op(small_v_, v.small_v_);
 
-            test_ = std::move(v.test_);
-
             if (is_static)
             {
                 if (v_is_static)
                 {
+                    test_ = std::move(v.test_);
                     v.test_.clear();
 
                     D_ASSERT(v.small_v_.size() == 0_uz);
@@ -433,11 +433,12 @@ namespace
                 }
                 else
                 {
+                    test_ = std::move(v.test_);
                     v.test_.clear();
 
                     D_ASSERT(v.small_v_.size() == 0_uz);
                     D_ASSERT(v.small_v_.data() != v_data);
-                    D_ASSERT(v.small_v_.is_dynamic());
+                    D_ASSERT(v.small_v_.is_static());
 
                     D_ASSERT(small_v_.size() == v_size);
                     D_ASSERT(small_v_.data() == v_data);
@@ -448,6 +449,7 @@ namespace
             {
                 if (v_is_static)
                 {
+                    test_ = std::move(v.test_);
                     v.test_.clear();
 
                     D_ASSERT(v.small_v_.size() == 0_uz);
@@ -460,7 +462,9 @@ namespace
                 }
                 else
                 {
-                    D_ASSERT(v.small_v_.size() == 0_uz);
+                    test_.swap(v.test_);
+
+                    D_ASSERT(v.small_v_.size() == size);
                     D_ASSERT(v.small_v_.data() == data);
                     D_ASSERT(v.small_v_.is_dynamic());
 
@@ -591,6 +595,46 @@ namespace
             test_erase(index, n);
             test_shrink_to_fit();
         }
+
+        void test_release_buffer() noexcept
+        {
+            const auto data = small_v_.data();
+            const auto capacity = small_v_.capacity();
+            const auto is_static = small_v_.is_static();
+          
+            auto res_buffer = small_v_.release_buffer();
+            
+            test_.clear();
+            test_.shrink_to_fit();
+
+            if (is_static)
+            {
+                D_ASSERT(!res_buffer.data());
+                D_ASSERT(!res_buffer.size());
+            }
+            else
+            {
+                D_ASSERT(data == res_buffer.data());
+                D_ASSERT(capacity == res_buffer.size());
+            }
+
+            test_is_static(true);
+            test_state();
+        }
+
+        void test_attach_buffer() noexcept
+        {
+            buffer<T> buf{ buffer_construct, 3u * small_v_.capacity() };
+            D_ASSERT(buf);
+
+            const auto new_data = buf.data();
+            const auto new_capacity = buf.size();
+            small_v_.attach_buffer(std::move(buf));
+            D_ASSERT(new_data == small_v_.data());
+            D_ASSERT(new_capacity == small_v_.capacity());
+
+            test_state();
+        }
     };
 
     template<class T, class TestT>
@@ -678,6 +722,21 @@ namespace
             test.test_is_static(false);
         };
 
+        using inits_t = void(*)(test_type&);
+
+        static constexpr inits_t all_inits[]
+        {
+            static_empty_init,
+            dynamic_empty_init,
+            static_prefull_init,
+            static_full_init,
+            dynamic_static_prefull_init,
+            dynamic_static_full_init,
+            dynamic_min_init,
+            dynamic_ext_min_init,
+            dynamic_medium_init
+        };
+
         static void test_copy_constructor(test_type& left, test_type& right) noexcept
         {
             left.test_copy_constuctor(std::as_const(right));
@@ -700,23 +759,9 @@ namespace
 
         static void test_constructors_and_assignment_op() noexcept
         {
-            using op1_t = void(*)(test_type&);
             using op2_t = void(*)(test_type&, test_type&);
 
-            constexpr op1_t inits[]
-            {
-                static_empty_init,
-                dynamic_empty_init,
-                static_prefull_init,
-                static_full_init,
-                dynamic_static_prefull_init,
-                dynamic_static_full_init,
-                dynamic_min_init,
-                dynamic_ext_min_init,
-                dynamic_medium_init
-            };
-
-            for (const auto right_init : inits)
+            for (const auto right_init : all_inits)
             {
                 {
                     constexpr op2_t constructor_tests[]
@@ -733,7 +778,7 @@ namespace
                     }
                 }
 
-                for (const auto left_init : inits)
+                for (const auto left_init : all_inits)
                 {
                     {
                         constexpr op2_t assignment_op_tests[]
@@ -853,6 +898,26 @@ namespace
             }
         }
 
+        static void test_attach_buffer() noexcept
+        {
+            for (const auto init : all_inits)
+            {
+                test_type test;
+                init(test);
+                test.test_attach_buffer();
+            }
+        }
+
+        static void test_release_buffer() noexcept
+        {
+            for (const auto init : all_inits)
+            {
+                test_type test;
+                init(test);
+                test.test_release_buffer();
+            }
+        }
+
         static void test_all() noexcept
         {
             for (size_t i = n_static - 1; i < n_static + 3; ++i)
@@ -868,6 +933,8 @@ namespace
             test_shrink_erase();
             test_switch_erase();
             test_erase_random();
+            test_attach_buffer();
+            test_release_buffer();
         }
     };
 }

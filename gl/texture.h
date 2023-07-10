@@ -90,7 +90,7 @@ namespace gl
     };
 
     static_assert(std::is_same_v<null_t<texture2d_resources>, texture2d_resources::null_type>);
-    static_assert(std::is_same_v<view_t<texture2d_resources>, texture2d_resources::view_type>);
+    static_assert(std::is_same_v<view_t<texture2d_resources>, const texture2d_resources::view_type>);
 
     using texture2d = unique_resource<texture2d_resources, texture_resource_deleter>;
 
@@ -120,6 +120,23 @@ namespace gl
 
     [[nodiscard]]
     texture2d write(texture2d texture, pxsize2d sizes, texture_format format, const void* pixels) noexcept;
+
+    [[nodiscard]]
+    inline texture2d sizes(texture2d tex, pxsize2d sizes) noexcept
+    {
+        return
+        {
+            resource_construct,
+            tex.release(),
+            sizes
+        };
+    }
+
+    [[nodiscard]]
+    inline texture2d sizes(texture2d tex, pxside_t w, pxside_t h) noexcept
+    {
+        return sizes(std::move(tex), pxsize2d{ w, h });
+    }
 
     template<size_t PxSize>
     struct texpix_traits 

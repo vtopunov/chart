@@ -4,8 +4,6 @@
 #include <core/member_detector.h>
 
 
-template<class T>
-using decl_view_t = typename T::view_type;
 
 
 namespace private_detail_view
@@ -24,13 +22,18 @@ namespace private_detail_view
     >;
 
     template<class T>
-    using view_by_copy_t = std::conditional_t<is_view_by_copy<T>::value, T, std::add_lvalue_reference_t<std::add_const_t<T>>>;
+    using view_by_copy_t = std::conditional_t
+    <
+        is_view_by_copy<T>::value, 
+        std::add_const_t<T>, 
+        std::add_lvalue_reference_t<std::add_const_t<T>>
+    >;
+
+    template<class T>
+    using decl_view_t = std::add_const_t<typename T::view_type>;
 
     template <class T>
     using view_t = detected_or_t<view_by_copy_t<T>, decl_view_t, T>;
-
-    template <class T>
-    constexpr bool is_view_v = std::disjunction_v<is_detected<decl_view_t, T>, is_view_by_copy<T>>;
 }
 
 template<class T>
@@ -38,9 +41,6 @@ using view_by_copy_t = private_detail_view::view_by_copy_t<std::remove_cvref_t<T
 
 template <class T>
 using view_t = private_detail_view::view_t<std::remove_cvref_t<T>>;
-
-template <class T>
-constexpr bool is_view_v = private_detail_view::is_view_v<std::remove_cvref_t<T>>;
 
 template<class T> [[nodiscard]]
 constexpr view_t<T> view(const T& r) noexcept

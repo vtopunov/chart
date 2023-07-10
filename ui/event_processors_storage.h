@@ -38,13 +38,11 @@ namespace ui
 
         static constexpr size_t static_size{ 8_uz };
         using vector_type = small_vector<event_processor_note, static_size>;
-        using back_vector_type = small_vector<event_processor_note, 1_uz>;
+        using back_vector_type = small_vector<event_processor_note>;
 
         bool destroy_processor(event_processor_resource processor) noexcept;
 
         size_t close_window(window_handle_t window) noexcept;
-
-        void reset() noexcept;
 
         [[nodiscard]] event_processor_resource create(window_handle_t window, event_callback_t callback) noexcept;
 

@@ -33,14 +33,16 @@ namespace ui
         template<size_t N>
         bool destroy_processor_force(small_vector<event_processor_note, N>& items, event_processor_resource processor) noexcept
         {
-            const auto last = items.cend();
-
-            for (auto it = items.begin(); it != last; ++it)
             {
-                if (it->processor == processor)
+                const auto last = items.cend();
+
+                for (auto it = items.cbegin(); it != last; ++it)
                 {
-                    items.erase(it);
-                    return true;
+                    if (it->processor == processor)
+                    {
+                        items.erase(it);
+                        return true;
+                    }
                 }
             }
 
@@ -109,23 +111,6 @@ namespace ui
         }
 
         return count;
-    }
-
-    void event_processors_storage::reset() noexcept
-    {
-        if (lock_)
-        {
-            first_garbage_ = std::addressof(items_.front());
-
-            for (auto& item : items_)
-            {
-                item.mark_as_garbage();
-            }
-        }
-        else
-        {
-            items_.clear();
-        }
     }
 
     event_processor_resource event_processors_storage::create(window_handle_t window, event_callback_t callback) noexcept

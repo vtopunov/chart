@@ -48,15 +48,21 @@ namespace widget
                 , widget{ std::forward<Args>(args)... }
             {}
 
+#ifdef D_OS_WINDOWS
             std::nullopt_t operator () (const ui::size_event& e) noexcept
             {
-                widget_window.user_sizes_cache = e.sizes();
-                D_ASSERT(widget_window.user_sizes_cache.width() <= width(widget_window));
-                D_ASSERT(widget_window.user_sizes_cache.height() <= height(widget_window));
+                const auto new_size = e.sizes();
+                if (new_size.width() > 0_px && new_size.height() > 0_px) [[likely]]
+                {
+                    widget_window.user_sizes_cache = new_size;
+                    D_ASSERT(widget_window.user_sizes_cache.width() <= width(widget_window));
+                    D_ASSERT(widget_window.user_sizes_cache.height() <= height(widget_window));
+                    combined_event_result |= apply_event(widget, e);
+                }
 
-                combined_event_result |= apply_event(widget, e);
                 return std::nullopt;
             }
+#endif
 
             template<ui::event_style Style>
             std::nullopt_t operator () (const ui::specialized_event<Style>& e) noexcept
@@ -67,10 +73,8 @@ namespace widget
 
             ui::milliseconds_t operator () (ui::idle_event) noexcept
             {
-                if (event_result::redraw == (combined_event_result & event_result::redraw))
+                if (e_extract(combined_event_result, event_result::redraw))
                 {
-                    combined_event_result &= ~event_result::redraw;
-
                     const egl_painting_owner painting_lock{ widget_window };
                     apply_draw(widget, widget_window);
                 }
@@ -109,31 +113,21 @@ namespace widget
         bool initialize(window& wnd, Widget& wgt) noexcept
         {
             widget_initializer ini{ wnd };
-            return call_initialize(ini, wgt)
+
+            return wnd
+                && call_initialize(ini, wgt)
                 && wgt.apply([&ini, &wnd] (auto&... widgets) noexcept
-                {
-                    return (call_initialize(ini, widgets) && ... && true);
-                }) && configure(wnd, ini.cfg());
+            {
+                return (call_initialize(ini, widgets) && ... && true);
+            }) && configure(wnd, ini.cfg());
         }
     }
 
     template<class Widget, class... Args>
     int run(widget::window& widget_window, Args&&... args) noexcept
     {
-        if (!widget_window)
-        {
-            e_debug
-            (
-                "window error: window error: {}, egl error: {}",
-                ui::error_code(),
-                eglGetError()
-            );
-            return EXIT_FAILURE;
-        }
-
         private_detail_run::processor<Widget> processor{ widget_window, std::forward<Args>(args)... };
-
-        if (!private_detail_run::initialize(widget_window, processor.widget))
+        if (D_UNLIKELY(!private_detail_run::initialize(widget_window, processor.widget))) D_ATTRIB_UNLIKELY
         {
             e_debug
             (
@@ -145,5 +139,15 @@ namespace widget
         }
 
         return ui::run_event_loop(widget_window, processor);
+    }
+
+    template<class Widget, class... Args>
+    int run(os::module_handle_t app, Args&&... args) noexcept
+    {
+        auto window = widget::window_builder{}
+            .module(app)
+            .build();
+
+        return run<Widget>(window, std::forward<Args>(args)...);
     }
 }

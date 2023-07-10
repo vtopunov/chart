@@ -5,7 +5,6 @@
 //
 
 #include "SampleApplication.h"
-
 #include "EGLWindow.h"
 #include "random_utils.h"
 
@@ -90,13 +89,13 @@ int SampleApplication::run()
         return -1;
     }
 
-    mRunning   = true;
+    mRunning = true;
     int result = 0;
 
     if (!initialize())
     {
         mRunning = false;
-        result   = -1;
+        result = -1;
     }
 
     mTimer->start();
@@ -105,7 +104,7 @@ int SampleApplication::run()
     while (mRunning)
     {
         double elapsedTime = mTimer->getElapsedTime();
-        double deltaTime   = elapsedTime - prevTime;
+        double deltaTime = elapsedTime - prevTime;
 
         step(static_cast<float>(deltaTime), elapsedTime);
 
@@ -117,21 +116,6 @@ int SampleApplication::run()
             if (event.Type == Event::EVENT_CLOSED)
             {
                 exit();
-            }
-
-            if (event.Type == Event::EVENT_RESIZED)
-            {
-                mOSWindow->getWidth();
-
-                SetWindowPos
-                (
-                    mOSWindow->getNativeWindow(), 
-                    nullptr, 0, 0, 
-                    mOSWindow->getWidth(),
-                    mOSWindow->getHeight(), 
-                    SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOREDRAW | SWP_NOMOVE | SWP_NOSENDCHANGING  
-                );
-                break;
             }
         }
 

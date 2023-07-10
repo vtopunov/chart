@@ -111,17 +111,17 @@ namespace image
         return underlying_cast<png_errno>(spng_decode_image(png, out.data(), out.size(), to_underlying(format), 0));
     }
 
-    pix32result png_decode_to_r8g8b8a8(const_buffer_view image, buffer_t& temp) noexcept
+    r8g8b8a8_result png_decode_to_r8g8b8a8(const_buffer_view image, buffer_t& temp) noexcept
     {
         constexpr auto png_format = png_format::RGBA8;
 
-        if (!image || !image.size())
+        if (D_UNLIKELY(!image || !image.size())) D_ATTRIB_UNLIKELY
         {
             return png_errno::PNG_SIZE;
         }
 
         const auto png = png_instance();
-        if (!png)
+        if (D_UNLIKELY(!png)) D_ATTRIB_UNLIKELY
         {
             return png_errno::PNG_MEM;
         }
@@ -134,44 +134,48 @@ namespace image
             return png_errno::PNG_OK != new_errc;
         };
 
-        if (accept_errc(png_set_buffer(png, image)))
+        if (D_UNLIKELY(accept_errc(png_set_buffer(png, image)))) D_ATTRIB_UNLIKELY
         {
             return errc;
         }
 
         const png_header png_header{ png };
-        if (accept_errc(png_header.error_code()))
+        if (D_UNLIKELY(accept_errc(png_header.error_code()))) D_ATTRIB_UNLIKELY
         {
             return errc;
         }
 
         size_t size = 0;
-        if (accept_errc(png_decoded_image_size(png, png_format, &size)))
+        if (D_UNLIKELY(accept_errc(png_decoded_image_size(png, png_format, &size)))) D_ATTRIB_UNLIKELY
         {
             return errc;
         }
 
-        if (!size)
+        if (D_UNLIKELY(!size)) D_ATTRIB_UNLIKELY
         {
             return png_errno::PNG_SIZE;
         }
 
         const pix32space space{ png_header.sizes() };
-        if (space.size_bytes() != size)
+        if (D_UNLIKELY(space.size_bytes() != size)) D_ATTRIB_UNLIKELY
         {
             return png_errno::PNG_SIZE;
         }
 
-        if (!temp.try_reserve(size))
+        if (D_UNLIKELY(!temp.try_reserve(size))) D_ATTRIB_UNLIKELY
         {
             return png_errno::PNG_MEM;
         }
 
-        if (accept_errc(png_decode_image(png, png_format, temp)))
+        if (D_UNLIKELY(accept_errc(png_decode_image(png, png_format, temp)))) D_ATTRIB_UNLIKELY
         {
             return errc;
         }
 
-        return space;
+        return 
+        { 
+            static_cast<r8g8b8a8_result::const_pointer>(temp.cvoid_data()), 
+            space
+        };
     }
 }

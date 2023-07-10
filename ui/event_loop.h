@@ -80,11 +80,12 @@ namespace ui
 
                 while (PeekMessageW(pmsg, nullptr, 0u, 0u, pm_remove)) [[unlikely]]
                 {
-                    process_message(pmsg);
                     if (event_style::quit == e_style(pmsg)) [[unlikely]]
                     {
                         return exit_status(pmsg);
                     }
+
+                    process_message(pmsg);
                 }
             }
         }
@@ -142,7 +143,7 @@ namespace ui
             }
 
             [[nodiscard]]
-            D_FORCE_INLINE bool poll(const ui::milliseconds_t& timeout) noexcept
+            D_FORCEINLINE bool poll(const ui::milliseconds_t& timeout) noexcept
             {
                 return ALooper_pollAll
                 (

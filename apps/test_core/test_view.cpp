@@ -47,22 +47,46 @@ namespace
     };
 
     template<class T>
-    constexpr auto view_by_copy_is_same_v = std::is_same_v<view_by_copy_t<T>, T>;
+    using is_qualified = std::disjunction<
+        std::is_reference<T>,
+        std::is_pointer<T>,
+        std::is_const<T>,
+        std::is_volatile<T>
+    >;
 
     template<class T>
-    constexpr auto view_by_copy_is_same_cref_v = std::is_same_v<view_by_copy_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>;
+    constexpr auto test_view_by_copy_v = std::conjunction_v<
+        std::negation<is_qualified<T>>,
+        private_detail_view::is_view_by_copy<T>,
+        std::is_same<view_by_copy_t<T>, std::add_const_t<T>>,
+        std::is_same<view_t<T>, std::add_const_t<T>>
+    >;
 
     template<class T>
-    constexpr auto view_is_same_v = std::is_same_v<view_t<T>, T>;
+    constexpr auto test_view_by_cref_v = std::conjunction_v<
+        std::negation<is_qualified<T>>,
+        std::negation<private_detail_view::is_view_by_copy<T>>,
+        std::is_same<view_by_copy_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>,
+        std::is_same<view_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>
+    >;
 
     template<class T>
-    constexpr auto view_is_same_cref_v = std::is_same_v<view_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>;
+    constexpr auto test_view_with_copy_v = std::conjunction_v<
+        std::negation<is_qualified<T>>,
+        private_detail_view::is_view_by_copy<T>,
+        std::is_same<view_by_copy_t<T>, std::add_const_t<T>>,
+        std::is_same<private_detail_view::decl_view_t<T>, std::add_const_t<typename T::view_type>>,
+        std::is_same<view_t<T>, std::add_const_t<typename T::view_type>>
+    >;
 
     template<class T>
-    constexpr bool test_decl_view_v = std::is_same_v<decl_view_t<T>, typename T::view_type>;
-
-    template<class T>
-    constexpr auto view_is_same_decl_v = std::is_same_v<view_t<T>, decl_view_t<T>>;
+    constexpr auto test_view_with_cref_v = std::conjunction_v<
+        std::negation<is_qualified<T>>,
+        std::negation<private_detail_view::is_view_by_copy<T>>,
+        std::is_same<view_by_copy_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>,
+        std::is_same<private_detail_view::decl_view_t<T>, std::add_const_t<typename T::view_type>>,
+        std::is_same<view_t<T>, std::add_const_t<typename T::view_type>>
+    >;
 }
 
 void test_view() noexcept
@@ -94,73 +118,25 @@ void test_view() noexcept
     {
         using private_detail_view::small_size_v;        
 
-        static_assert(view_by_copy_is_same_v<long double>);
-        static_assert(view_by_copy_is_same_v<intmax_t>);
-        static_assert(view_by_copy_is_same_v<uintmax_t>);
+        static_assert(test_view_by_copy_v<long double>);
+        static_assert(test_view_by_copy_v<intmax_t>);
+        static_assert(test_view_by_copy_v<uintmax_t>);
 
-        static_assert(view_by_copy_is_same_v<bytes_array<small_size_v - 1u>>);
-        static_assert(view_by_copy_is_same_v<bytes_array<small_size_v>>);
-        static_assert(view_by_copy_is_same_cref_v<bytes_array<small_size_v + 1u>>);
+        static_assert(test_view_by_copy_v<bytes_array<small_size_v - 1u>>);
+        static_assert(test_view_by_copy_v<bytes_array<small_size_v>>);
+        static_assert(test_view_by_cref_v<bytes_array<small_size_v + 1u>>);
 
-        static_assert(view_by_copy_is_same_v<bytes_array_with_view<small_size_v - 1u>>);
-        static_assert(view_by_copy_is_same_v<bytes_array_with_view<small_size_v>>);
-        static_assert(view_by_copy_is_same_cref_v<bytes_array_with_view<small_size_v + 1u>>);
+        static_assert(test_view_with_copy_v<bytes_array_with_view<small_size_v - 1u>>);
+        static_assert(test_view_with_copy_v<bytes_array_with_view<small_size_v>>);
+        static_assert(test_view_with_cref_v<bytes_array_with_view<small_size_v + 1u>>);
 
-        static_assert(view_by_copy_is_same_cref_v<bytes_array_with_copy_op<small_size_v - 1u>>);
-        static_assert(view_by_copy_is_same_cref_v<bytes_array_with_copy_op<small_size_v>>);
-        static_assert(view_by_copy_is_same_cref_v<bytes_array_with_copy_op<small_size_v + 1u>>);
+        static_assert(test_view_by_cref_v<bytes_array_with_copy_op<small_size_v - 1u>>);
+        static_assert(test_view_by_cref_v<bytes_array_with_copy_op<small_size_v>>);
+        static_assert(test_view_by_cref_v<bytes_array_with_copy_op<small_size_v + 1u>>);
 
-        static_assert(view_by_copy_is_same_cref_v<bytes_array_with_copy_op_and_view<small_size_v - 1u>>);
-        static_assert(view_by_copy_is_same_cref_v<bytes_array_with_copy_op_and_view<small_size_v>>);
-        static_assert(view_by_copy_is_same_cref_v<bytes_array_with_copy_op_and_view<small_size_v + 1u>>);
-
-        static_assert(view_is_same_v<long double>);
-        static_assert(view_is_same_v<intmax_t>);
-        static_assert(view_is_same_v<uintmax_t>);
-
-        static_assert(view_is_same_v<bytes_array<small_size_v - 1u>>);
-        static_assert(view_is_same_v<bytes_array<small_size_v>>);
-        static_assert(view_is_same_cref_v<bytes_array<small_size_v + 1u>>);
-
-        static_assert(test_decl_view_v<bytes_array_with_view<small_size_v - 1u>>);
-        static_assert(test_decl_view_v<bytes_array_with_view<small_size_v>>);
-        static_assert(test_decl_view_v<bytes_array_with_view<small_size_v + 1u>>);
-
-        static_assert(view_is_same_decl_v<bytes_array_with_view<small_size_v - 1u>>);
-        static_assert(view_is_same_decl_v<bytes_array_with_view<small_size_v>>);
-        static_assert(view_is_same_decl_v<bytes_array_with_view<small_size_v + 1u>>);
-
-        static_assert(view_is_same_cref_v<bytes_array_with_copy_op<small_size_v - 1u>>);
-        static_assert(view_is_same_cref_v<bytes_array_with_copy_op<small_size_v>>);
-        static_assert(view_is_same_cref_v<bytes_array_with_copy_op<small_size_v + 1u>>);
-
-        static_assert(test_decl_view_v<bytes_array_with_copy_op_and_view<small_size_v - 1u>>);
-        static_assert(test_decl_view_v<bytes_array_with_copy_op_and_view<small_size_v>>);
-        static_assert(test_decl_view_v<bytes_array_with_copy_op_and_view<small_size_v + 1u>>);
-
-        static_assert(view_is_same_decl_v<bytes_array_with_copy_op_and_view<small_size_v - 1u>>);
-        static_assert(view_is_same_decl_v<bytes_array_with_copy_op_and_view<small_size_v>>);
-        static_assert(view_is_same_decl_v<bytes_array_with_copy_op_and_view<small_size_v + 1u>>);
-
-        static_assert(is_view_v<long double>);
-        static_assert(is_view_v<intmax_t>);
-        static_assert(is_view_v<uintmax_t>);
-
-        static_assert(is_view_v<bytes_array<small_size_v - 1u>>);
-        static_assert(is_view_v<bytes_array<small_size_v>>);
-        static_assert(!is_view_v<bytes_array<small_size_v + 1u>>);
-
-        static_assert(is_view_v<bytes_array_with_view<small_size_v - 1u>>);
-        static_assert(is_view_v<bytes_array_with_view<small_size_v>>);
-        static_assert(is_view_v<bytes_array_with_view<small_size_v + 1u>>);
-
-        static_assert(!is_view_v<bytes_array_with_copy_op<small_size_v - 1u>>);
-        static_assert(!is_view_v<bytes_array_with_copy_op<small_size_v>>);
-        static_assert(!is_view_v<bytes_array_with_copy_op<small_size_v + 1u>>);
-
-        static_assert(is_view_v<bytes_array_with_copy_op_and_view<small_size_v - 1u>>);
-        static_assert(is_view_v<bytes_array_with_copy_op_and_view<small_size_v>>);
-        static_assert(is_view_v<bytes_array_with_copy_op_and_view<small_size_v + 1u>>);
+        static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_v - 1u>>);
+        static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_v>>);
+        static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_v + 1u>>);
     }
 
     {

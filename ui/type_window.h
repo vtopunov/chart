@@ -63,8 +63,10 @@ namespace ui
         unique_type_window build() noexcept;
 
     private:
+        [[nodiscard]]
         tagWNDCLASSEXW* wndcls() noexcept;
 
+        [[nodiscard]]
         const tagWNDCLASSEXW* cwndcls() const noexcept;
 
     private:

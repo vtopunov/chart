@@ -182,11 +182,11 @@ namespace gl
 
     bool compile(shaders_program_resource program, source_view source, shader_type type) noexcept
     {
-        if (const auto shader = create_shader(type))
+        if (const auto shader = create_shader(type); D_LIKELY(shader)) D_ATTRIB_LIKELY
         {
             set_source(shader, source);
 
-            if (compile(shader))
+            if (D_LIKELY(compile(shader))) D_ATTRIB_LIKELY
             {
                 attach_shader(program, shader);
                 return true;
@@ -235,15 +235,14 @@ namespace gl
         auto program = create_shaders_program();
         D_ASSERT(program);
 
-        if (program)
+        if (D_LIKELY(program)) D_ATTRIB_LIKELY
         {
             const auto vertext_ok = compile(program, vertex, shader_type::vertex);
             const auto fragment_ok = vertext_ok && compile(program, fragment, shader_type::fragment);
             const auto link_ok = fragment_ok && link(program);
 
             D_ASSERT(link_ok);
-
-            if (!link_ok)
+            if (D_UNLIKELY(!link_ok)) D_ATTRIB_UNLIKELY
             {
                 program.reset();
             }

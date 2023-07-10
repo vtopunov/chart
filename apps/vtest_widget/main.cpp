@@ -93,9 +93,5 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    auto window = widget::window_builder{}
-        .module(app)
-        .build();
-
-    return widget::run<main_widget>(window);
+    return widget::run<main_widget>(app);
 }

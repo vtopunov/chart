@@ -264,7 +264,7 @@ namespace px
 
     using pix8map = pixmap<u8tint_t>;
 
-    static_assert(std::is_same_v<view_t<pix8map>, pix8map::view_type>);
+    static_assert(std::is_same_v<view_t<pix8map>, const pix8map::view_type>);
 }
 
 using px::pixmap;

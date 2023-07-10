@@ -45,7 +45,9 @@ namespace font
         return sizes(face, size2d{ 0_px, px });
     }
 
-    struct cursor : point2d<fixed_t>
+    using fixed_point2d = point2d<fixed_t>;
+
+    struct cursor : fixed_point2d
     {
         template<class X, class Y>
         [[nodiscard]] static constexpr cursor instance(X x, Y y) noexcept
@@ -103,14 +105,16 @@ namespace font
 
         constexpr void add(const metrics& glyph) noexcept
         {
-            if (glyph.success_bit)
+            D_ASSERT(success_bit);
+
+            if (D_LIKELY(glyph.success_bit)) D_ATTRIB_LIKELY
             {
                 width = width + glyph.width;
                 top = std::min(top, glyph.top);
                 bottom = std::max(bottom, glyph.bottom);
             }
 
-            success_bit = success_bit && glyph.success_bit;
+            success_bit = glyph.success_bit;
         }
 
         constexpr explicit operator bool() const noexcept
@@ -127,7 +131,7 @@ namespace font
     {
         const auto processor = [&tm, face](charmax_t ch) noexcept
         {
-            if (tm.success_bit)
+            if (D_LIKELY(tm.success_bit)) D_ATTRIB_LIKELY
             {
                 tm.add(char_metrics(face, ch));
             }

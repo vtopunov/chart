@@ -15,7 +15,7 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    const auto texture = png_texture_from_asset_or_file(_PATH("grid_9x9.png"));
+    const auto texture = png_texture_from_asset(_PATH("grid_9x9.png"));
     if (!texture)
     {
         e_debug("create png texture error: {}", glGetError());
@@ -47,7 +47,7 @@ int app_main(os::module_handle_t app) noexcept
         {
             for (pxside_t x = 0_px; x < viewport.width(); x += dx)
             {
-                shaders.vert.u_position.store(point2d{ x, y });
+                shaders.vert.u_position.store(x, y);
                 vb.draw();
             }
         }

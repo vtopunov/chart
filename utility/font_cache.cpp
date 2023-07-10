@@ -1,21 +1,71 @@
 #include "font_cache.h"
 
 #include <filesystem>
+#include <variant>
 
 #include <utility/cache_storage.h>
 
 #include <debug/debug.h>
 
 #include <file/file_asset.h>
+#include <file/file_mmap.h>
+
 
 namespace font_cache
 {
     namespace
     {
+        struct asset_or_file_mmap
+        {
+            using mmap_variants_t = std::variant<std::monostate, file::asset_mmap, file::file_mmap>;
+
+            mmap_variants_t mmap_variants;
+
+            [[nodiscard]]
+            constexpr explicit operator bool() const noexcept
+            {
+                return !!mmap_variants.index();
+            }
+
+            [[nodiscard]]
+            constexpr operator const_buffer_view() const noexcept
+            {
+                const auto p = std::addressof(mmap_variants);
+
+                if (const auto p_asset = std::get_if<file::asset_mmap>(p); D_LIKELY(p_asset)) D_ATTRIB_LIKELY
+                {
+                    return view(*p_asset);
+                }
+
+                if (const auto p_file = std::get_if<file::file_mmap>(p))
+                {
+                    return view(*p_file);
+                }
+
+                return {};
+            }
+        };
+
+        [[nodiscard]]
+        asset_or_file_mmap mmap_asset_or_file(file::path_zstring_view name) noexcept
+        {
+            if (auto asset_mmap = file::asset::mmap(name); D_LIKELY(asset_mmap)) D_ATTRIB_LIKELY
+            {
+                return { .mmap_variants{ std::move(asset_mmap) } };
+            }
+
+            if (auto file_mmap = file::mmap(name))
+            {
+                return { .mmap_variants{ std::move(file_mmap) } };
+            }
+
+            return {};
+        }
+
         struct mmap_item
         {
             file::path_string name;
-            file::asset_or_file_mmap_t mmap;
+            asset_or_file_mmap mmap;
 
             struct by_name
             {
@@ -24,7 +74,7 @@ namespace font_cache
                 [[nodiscard]]
                 constexpr bool operator () (const mmap_item& item) const noexcept
                 {
-                    return name == item.name;
+                    return item.name == name;
                 }
             };
         };
@@ -88,29 +138,29 @@ namespace font_cache
         }
     }
 
-    void cache_deref::operator()(const font::face_descriptor_t face) const noexcept
+    void cache_deref::operator()(const face_resource face) const noexcept
     {
         if (face)
         {
             auto& mmaps = global_mmaps_cache();
             auto& faces = global_faces_cache();
 
-            const auto item = faces.select(face_item::by_face{ face });
-            D_ASSERT(item);
-            item->deref(faces);
+            auto& item = faces[face.cache_index];
+            item.deref(faces);
 
-            const auto mmap_id = item->mmap_id;
+            const auto mmap_id = item.mmap_id;
             D_ASSERT(mmap_id < mmaps.size());
             mmaps[mmap_id].deref(mmaps);
         }
     }
     
-    font_cache::face load_font(file::path_string_view name, const px::pxside_t size) noexcept
+    font_cache::face load_font(file::path_zstring_view name, const px::pxside_t size) noexcept
     {
+        const file::path_string_view name_sv{ name.c_str() };
         auto& mmaps = global_mmaps_cache();
         auto& faces = global_faces_cache();
 
-        auto cached_mmap = mmaps.select(mmap_item::by_name{ name });
+        auto cached_mmap = mmaps.select(mmap_item::by_name{ name_sv });
 
         faces_pointer cached_face{ nullptr };
         if(cached_mmap)
@@ -127,7 +177,7 @@ namespace font_cache
             }
             else if (garbage)
             {
-                if (!font::size(garbage->face, size))
+                if (D_UNLIKELY(!font::size(garbage->face, size))) D_ATTRIB_UNLIKELY
                 {
                     return {};
                 }
@@ -139,25 +189,22 @@ namespace font_cache
         if(!cached_face)
         {
             const_buffer_view font_storage;
-            file::path_string file_name;
-            file::asset_or_file_mmap_t file_mmap;
+            asset_or_file_mmap file_mmap;
 
             if (cached_mmap)
             {
-                font_storage = cached_mmap->mmap;
+                font_storage = view(cached_mmap->mmap);
             }
             else
             {
-                file_name = name;
-
-                file_mmap = file::asset_or_file_mmap(file_name);
+                file_mmap = mmap_asset_or_file(name);
                 if (D_UNLIKELY(!file_mmap)) D_ATTRIB_UNLIKELY
                 {
-                    e_debug(_PATH("can't open font file: {}"), file_name);
+                    e_debug(_PATH("can't open font file: {}"), name_sv);
                     return {};
                 }
 
-                font_storage = file_mmap;
+                font_storage = view(file_mmap);
             }
 
             auto face = font::create_face(font_storage, size);
@@ -166,7 +213,7 @@ namespace font_cache
                 e_debug
                 (
                     _PATH("create font face error: font file = {}, font size = {}"), 
-                    file_name, 
+                    name_sv,
                     size
                 );
                 return {};
@@ -174,7 +221,7 @@ namespace font_cache
 
             if (!cached_mmap)
             {
-                cached_mmap = mmaps.try_emplace(std::move(file_name), std::move(file_mmap));
+                cached_mmap = mmaps.try_emplace(file::path_string(name_sv), std::move(file_mmap));
                 if (D_UNLIKELY(!cached_mmap)) D_ATTRIB_UNLIKELY 
                 {
                     e_debug("load_font: out of memory");
@@ -195,7 +242,8 @@ namespace font_cache
         return
         {
             resource_construct,
-            cached_face->face
+            cached_face->face,
+            faces.index(cached_face)
         };
     }
 }

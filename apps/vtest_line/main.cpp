@@ -149,11 +149,11 @@ namespace
         draw_antialiasing_line(image, 5, 550, 240, 335);
 
 #ifdef D_OS_WINDOWS
-        /* {
+        {
             const auto test_image = file::mmap(_PATH("test_blob.bin"));
             D_ASSERT(test_image.r().size() == image.size());
             D_ASSERT(!memcmp(test_image.r().data(), image.data(), image.size()));
-        }*/
+        }
 #endif
 
         auto result_texture = gl::create_texture2d(image);

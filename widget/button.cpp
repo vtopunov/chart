@@ -10,6 +10,22 @@ namespace widget
 {
     namespace
     {
+        [[nodiscard]] constexpr bool contains(const pxrectangle& r, const ui::pointer_event& p) noexcept
+        {
+            constexpr auto contains1d = [] 
+            (
+                ui::pointer_event::value_type p, 
+                pxrectangle::value_type p0,
+                pxrectangle::size_type dp
+            ) noexcept
+            { 
+                return p >= p0 && p < (p0 + dp);
+            };
+
+            return contains1d(p.x(), r.x(), r.width())
+                && contains1d(p.y(), r.y(), r.height());
+        }
+
         struct button_colors
         {
             gl::rgba_colorf_t frame;
@@ -57,21 +73,27 @@ namespace widget
             };
         }
 
-        constexpr bool update_state(button_state& state, button_state new_state) noexcept
+        [[nodiscard]]
+        constexpr font::fixed_point2d center(const pxrectangle& r) noexcept
         {
-            if (state != new_state)
+            return font::cursor::instance(r.position) + font::cursor::instance(r.sizes) / 2;
+        }
+
+        constexpr bool update_state(button_state& state, const button_state new_state) noexcept
+        {
+            const auto is_update = new_state != state;
+            if (is_update)
             {
                 state = new_state;
-                return true;
             }
 
-            return false;
+            return is_update;
         }
     }
 
     event_result button::operator () (const ui::mouse_down_event& e) noexcept
     {
-        if (geometry.contains(e))
+        if (contains(geometry, e))
         {
             if (update_state(state, button_state::pressed))
             {
@@ -88,7 +110,7 @@ namespace widget
         {
             case button_state::pressed:
             {
-                const auto is_clicked = geometry.contains(e);
+                const auto is_clicked = contains(geometry, e);
 
 #ifdef D_OS_ANDROID
                 state = button_state::free;
@@ -123,7 +145,7 @@ namespace widget
     {
         if (button_state::pressed != state)
         {
-            const auto new_state = geometry.contains(e) ? button_state::hovered : button_state::free;
+            const auto new_state = contains(geometry, e) ? button_state::hovered : button_state::free;
             if (update_state(state, new_state))
             {
                 return event_result::redraw;
@@ -150,12 +172,19 @@ namespace widget
         const auto client_rc = rectangle_without_frame(geometry);
         w.shaders.colored_rectangle.draw(client_rc, colors.body);
 
-        text::draw_to_cache(*this, w.temp_buffer_view(), client_rc.sizes);
-
-        if (texture_text_cache)
+        if (D_LIKELY(text::draw_to_cache(*this, w.temp_buffer_view(), client_rc.sizes))) D_ATTRIB_LIKELY
         {
-            const auto position = (2 * client_rc.position + client_rc.sizes - sizes(texture_text_cache)) / 2;
-            w.shaders.gray_texture_mix_color.draw(position, texture_text_cache, gl::colors::black_f);
+            const auto client_rc_center = center(client_rc);
+            const auto texture_center = text_cache.center();
+            const auto position = client_rc_center - texture_center;
+
+            const point2d px_position
+            { 
+                font::ceil_to<pxside_t>(position.x()), 
+                font::ceil_to<pxside_t>(position.y())
+            };
+
+            w.shaders.gray_texture_mix_color.draw(px_position, text_cache.texture(), gl::colors::black_f);
         }
     }
 }

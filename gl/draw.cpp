@@ -37,9 +37,10 @@ namespace gl
 
         const auto i_stride_bytes = narrow_cast<GLsizei>(stride);
 
-        for (size_t i = 0; i < attributes.size(); ++i)
+        for (size_t i = 0; i < attributes.size(); ++i) D_ATTRIB_LIKELY
         {
-            if (const auto attribute_location = attributes[i]; attribute_location != invalidattribute)
+            if (const auto attribute_location = attributes[i]; 
+                D_LIKELY(attribute_location != invalidattribute)) D_ATTRIB_LIKELY
             {
                 const auto attribute_location_index = to_underlying(attribute_location);
                 const auto [offset_method, tuple_type] = attribute_profiles[i];

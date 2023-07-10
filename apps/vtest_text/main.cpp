@@ -10,12 +10,6 @@
 
 #include <utility/shaders_library.h>
 
-#ifdef D_OS_WINDOWS
-#define D_FONT_NAME(name) _PATH("..\\fonts\\" ## name)
-#else
-#define D_FONT_NAME(name) _PATH(name)
-#endif
-
 
 using namespace std::string_view_literals;
 
@@ -30,7 +24,7 @@ namespace
             return {};
         }
 
-        const auto font_file = file::asset_or_file_mmap(D_FONT_NAME("DroidSerif-Regular.ttf"));
+        const auto font_file = file::asset::mmap(_PATH("OpenSans-Regular.ttf"));
         if (!font_file)
         {
             e_debug("can't open font file");
@@ -43,8 +37,7 @@ namespace
             e_debug("can't create font");
             return {};
         }
-
-        
+   
         {
             using namespace std::string_literals;
             draw_text(image, 3_px, 20_px, face, u8"Привет мир !_!`"s);
@@ -166,7 +159,7 @@ int app_main(os::module_handle_t app) noexcept
             for (pxside_t x = 0; x < w; x += dx)
             {
                 shaders.frag.u_color.store(gl::to_colorf(yx_color_lerp(x)));
-                shaders.vert.u_position.store(point2d{ x, y });
+                shaders.vert.u_position.store(x, y);
 
                 vb.draw();
             }

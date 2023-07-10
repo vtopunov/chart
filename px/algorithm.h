@@ -417,5 +417,17 @@ namespace px
         return draw_antialiasing_line(image, p0, p1, non);
     }
 
+    constexpr antialiasing_line_result draw_antialiasing_line
+    (
+        const pix8span image,
+        const real_t x0, 
+        const real_t y0, 
+        const real_t x1, 
+        const real_t y1
+    ) noexcept
+    {
+        return draw_antialiasing_line(image, point2d{ x0, y0 }, point2d{ x1, y1 });
+    }
+
     D_WARNING_POP
 }

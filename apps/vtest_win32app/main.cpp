@@ -11,8 +11,8 @@ namespace
     {
         return
         {
-            narrow2d_cast<pxpoint2d>( mainwindow_sizes / 4u ),
-            narrow2d_cast<pxsize2d>( mainwindow_sizes / 2u )
+            narrow2d_cast<pxpoint2d>(mainwindow_sizes / 4u),
+            mainwindow_sizes / 2u
         };
     }
 

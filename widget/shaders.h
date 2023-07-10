@@ -41,28 +41,28 @@ namespace widget
 
 #if D_IS_DEBUG
         template<gl::glsl_typeid type_id>
-        constexpr bool is_initialized(const gl::uniform<type_id>& u) noexcept
+        [[nodiscard]] constexpr bool is_initialized(const gl::uniform<type_id>& u) noexcept
         {
             return u.__debug_is_stored();
         }
 
-        constexpr bool is_initialized(const px::uniform_vec2& vec) noexcept
+        [[nodiscard]] constexpr bool is_initialized(const px::uniform_vec2& vec) noexcept
         {
             return is_initialized(vec.uniform);
         }
 
-        constexpr bool is_initialized(const gl::texture_sampler2D& sampler) noexcept
+        [[nodiscard]] constexpr bool is_initialized(const gl::texture_sampler2D& sampler) noexcept
         {
             return is_initialized(sampler.sampler);
         }
 
-        constexpr bool is_initialized(attribute_frame) noexcept
+        [[nodiscard]] constexpr bool is_initialized(attribute_frame) noexcept
         {
             return true;
         }
 
         template<class VS, class FS>
-        constexpr bool all_is_initialized(const shaders_library<VS, FS>& lib) noexcept
+        [[nodiscard]] constexpr bool all_is_initialized(const shaders_library<VS, FS>& lib) noexcept
         {
             bool result{ true };
 

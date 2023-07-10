@@ -108,6 +108,12 @@ public:
         _copy_initialization_elements(right);
     }
 
+    constexpr small_vector(attach_construct_t, buffer_type mem) noexcept
+        : self{}
+    {
+        _dynamic_buffer_construct(mem);
+    }
+
     small_vector(attach_construct_t, self& right) noexcept
         : self{}
     {
@@ -117,8 +123,7 @@ public:
         }
         else
         {
-            _dynamic_construct(right.dynamic_);
-            _dynamic_move_completion(right);
+            _dynamic_construct(right);
         }
     }
 
@@ -153,10 +158,15 @@ public:
             }
             else
             {
-                D_UNUSED(_destroy_elements());
-
-                _dynamic_attach(right.dynamic_);
-                _dynamic_move_completion(right);
+                if (is_static())
+                {
+                    D_UNUSED(_destroy_elements());
+                    _dynamic_construct(right);
+                }
+                else
+                {
+                    _dynamic_swap(right);
+                }
             }
         }
 
@@ -183,6 +193,25 @@ public:
         _copy_initialization_elements(right);
 
         return true;
+    }
+
+    void attach_buffer(buffer_type mem) noexcept
+    {
+        D_ASSERT(mem.size() > capacity());
+        _attach_buffer(mem);
+    }
+
+    [[nodiscard]]
+    buffer_type release_buffer() noexcept
+    {
+        D_UNUSED(_destroy_elements());
+
+        if (is_dynamic())
+        {
+            return _release_buffer();
+        }
+
+        return {};
     }
 
     template<class... Args>
@@ -247,7 +276,6 @@ public:
                 D_ASSERT(last >= first);
                 D_ASSERT(first >= locked_data_);
                 
-
                 const auto last_last = locked_data_ + locked_size_;
                 D_ASSERT(last <= last_last);
 
@@ -494,6 +522,28 @@ private:
         return std::exchange(size_, 0_uz);
     }
 
+    constexpr void _set_dynamic() noexcept
+    {
+        D_ASSERT(dynamic_.size() > static_size);
+        data_ = dynamic_.data();
+    }
+
+    constexpr void _destroy_dynamic() noexcept
+    {
+        D_ASSERT(is_dynamic());
+        data_ = static_;
+        std::destroy_at(std::addressof(dynamic_));
+    }
+
+    [[nodiscard]]
+    buffer_type _release_buffer() noexcept
+    {
+        D_ASSERT(is_dynamic());
+        buffer_type temp{ std::move(dynamic_) };
+        _destroy_dynamic();
+        return temp;
+    }
+
     [[nodiscard]]
     size_type _destroy_elements() noexcept
     {
@@ -508,13 +558,14 @@ private:
 
         if (is_dynamic())
         {
-            data_ = static_;
-            std::destroy_at(std::addressof(dynamic_));
+            _destroy_dynamic();
         }
     }
 
     void _copy_initialization_elements(const_span_type source) noexcept
     {
+        D_ASSERT(0_uz == size_);
+        D_ASSERT(capacity() >= source.size());
         std::uninitialized_copy_n(source.data(), source.size(), data_);
         size_ = source.size();
     }
@@ -527,33 +578,57 @@ private:
         return _destroy_elements();
     }
 
-    constexpr void _dynamic_construct(buffer_type& dynamic) noexcept
+    constexpr void _dynamic_buffer_construct(buffer_type& dynamic) noexcept
     {
+        D_ASSERT(is_static());
         new (std::addressof(dynamic_)) buffer_type(std::move(dynamic));
+        _set_dynamic();
     }
 
-    constexpr void _dynamic_attach(buffer_type& dynamic) noexcept
+    constexpr void _dynamic_buffer_swap(buffer_type& dynamic) noexcept
     {
+        D_ASSERT(is_dynamic());
+        dynamic_.swap(dynamic);
+        _set_dynamic();
+    }
+
+    constexpr void _dynamic_construct(self& right) noexcept
+    {
+        D_ASSERT(0_uz == size_);
+        D_ASSERT(right.is_dynamic());
+        _dynamic_buffer_construct(right.dynamic_);
+        right._destroy_dynamic();
+        size_ = right._release_size();
+    }
+
+    constexpr void _dynamic_swap(self& right) noexcept
+    {
+        D_ASSERT(right.is_dynamic());
+        _dynamic_buffer_swap(right.dynamic_);
+        right._set_dynamic();
+        std::swap(size_, right.size_);
+    }
+
+    void _attach_buffer(buffer_type& mem) noexcept
+    {
+        size_ = _uninitialized_move_to(mem);
+
         if (is_static())
         {
-            _dynamic_construct(dynamic);
+            _dynamic_buffer_construct(mem);
         }
         else
         {
-            dynamic_.swap(dynamic);
+            _dynamic_buffer_swap(mem);
         }
     }
 
     [[nodiscard]]
     bool _try_reallocate(size_type new_capacity) noexcept
     {
-        D_ASSERT(new_capacity > static_size);
-
         if (buffer_type temp{buffer_construct, new_capacity}; D_LIKELY(temp)) D_ATTRIB_LIKELY
         {
-            size_ = _uninitialized_move_to(temp);
-            _dynamic_attach(temp);
-            data_ = dynamic_.data();
+            _attach_buffer(temp);
             return true;
         }
 
@@ -562,18 +637,14 @@ private:
 
     void _switch_to_static() noexcept
     {
-        D_ASSERT(is_dynamic());
-
         class collector
         {
         public:
-            constexpr explicit collector(small_vector& store) noexcept
+            explicit collector(small_vector& store) noexcept
                 : store_{ store }
-                , data_{ std::move(store.dynamic_) }
+                , data_{ store_._release_buffer() }
                 , size_{ store_._release_size() }
-            {
-                store_.data_ = store_.static_;
-            }
+            {}
 
             D_DISABLE_COPY_MOVE(collector);
 
@@ -598,13 +669,6 @@ private:
 
         collector temp{ *this };
         temp.uninitialized_move_to_static();
-    }
-
-    constexpr void _dynamic_move_completion(self& right) noexcept
-    {
-        right.data_ = right.dynamic_.data();
-        data_ = dynamic_.data();
-        size_ = right._release_size();
     }
 
     [[nodiscard]]

@@ -6,10 +6,8 @@
 
 #include <gl/texture.h>
 
-#include <utility/font_cache.h>
-
 #include <widget/widget_initializer.h>
-
+#include <widget/text.h>
 
 namespace widget
 {
@@ -18,14 +16,14 @@ namespace widget
         pxpoint2d position{};
         std::u8string text{};
         font_cache::face font{};
-        gl::texture2d texture_text_cache{};
+        text::drawing_cache text_cache{};
     
         void set_text(std::u8string new_text) noexcept
         {
             if (new_text != text)
             {
                 text = std::move(new_text);
-                texture_text_cache.reset();
+                text_cache.clear();
             }
         }
 

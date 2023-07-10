@@ -130,7 +130,7 @@ namespace font
                     lib = ok ? temp_lib : nullptr;
                     ref_count = ok ? ref_count_initializer_with_cached_ref : ref_count_initializer_without_destroy;
 
-                    if (!ok)
+                    if (D_UNLIKELY(!ok)) D_ATTRIB_UNLIKELY 
                     {
                         D_UNUSED(ref.release());
                         D_UNUSED(cached_ref.release());
@@ -180,7 +180,7 @@ namespace font
 
         font::face face{};
 
-        if (lib)
+        if (D_LIKELY(lib)) D_ATTRIB_LIKELY
         {
             constexpr FT_Long face_index{ 0 };
 
@@ -192,22 +192,22 @@ namespace font
                     narrow_cast<FT_Long>(font_storage.size()),
                     face_index,
                     std::addressof(as_mutable(face.r()))
-                ); errc != FT_Err_Ok)
+                ); D_UNLIKELY(errc != FT_Err_Ok)) D_ATTRIB_UNLIKELY
             {
                 D_UNUSED(face.release());
                 e_debug_ft("FT_New_Memory_Face", errc);
             }
         }
 
-        if (face)
+        if (D_LIKELY(face)) D_ATTRIB_LIKELY
         {
-            if (!font::sizes(face, sizes))
+            if (D_UNLIKELY(!font::sizes(face, sizes))) D_ATTRIB_UNLIKELY
             {
                 face.reset();
             }
         }
 
-        if (face)
+        if (D_LIKELY(face)) D_ATTRIB_LIKELY
         {
             D_UNUSED(lib.release());
         }
@@ -223,7 +223,7 @@ namespace font
                 face,
                 narrow_cast<FT_UInt>(sizes.width()),
                 narrow_cast<FT_UInt>(sizes.height())
-            ); errc != FT_Err_Ok)
+            ); D_UNLIKELY(errc != FT_Err_Ok)) D_ATTRIB_UNLIKELY
         {
             e_debug_ft("FT_Set_Pixel_Sizes", errc);
             return false;
@@ -234,24 +234,30 @@ namespace font
 
     cursor draw_char(pix8span image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept
     {
-        if (const auto end_x = cursor::value_type::instance(image.width()); cursor.x() >= end_x)
+        if (const auto end_x = cursor::value_type::instance(image.width()); D_UNLIKELY(cursor.x() >= end_x)) D_ATTRIB_UNLIKELY
         {
             return invalid_cursor;
         }
 
-        if (!char_code)
+        if (D_UNLIKELY(!char_code)) D_ATTRIB_UNLIKELY
         {
             return invalid_cursor;
         }
 
-        if (const auto errc = FT_Load_Char(face, safe_numeric_cast<FT_ULong>(char_code), FT_LOAD_RENDER); FT_Err_Ok != errc)
+        if (const auto errc 
+            = FT_Load_Char
+            (
+                face, 
+                safe_numeric_cast<FT_ULong>(char_code), 
+                FT_LOAD_RENDER
+            ); D_UNLIKELY(FT_Err_Ok != errc)) D_ATTRIB_UNLIKELY
         {
             e_debug_ft("FT_Load_Char FT_LOAD_RENDER", errc);
             return invalid_cursor;
         }
 
         const auto glyph = face->glyph;
-        if (!glyph)
+        if (D_UNLIKELY(!glyph)) D_ATTRIB_UNLIKELY
         {
             return invalid_cursor;
         }
@@ -259,16 +265,16 @@ namespace font
         const glyph_metrics_wrapper m{ glyph->metrics };
 
         const auto advance_x = m.width();
-        if (!is_positive(advance_x))
+        if (D_UNLIKELY(!is_positive(advance_x))) D_ATTRIB_UNLIKELY
         {
             return invalid_cursor;
         }
 
         const auto& bitmap = glyph->bitmap;
 
-        if (bitmap.width && bitmap.rows)
+        if (D_LIKELY(bitmap.width && bitmap.rows)) D_ATTRIB_LIKELY
         {
-            if (!bitmap.buffer)
+            if (D_UNLIKELY(!bitmap.buffer)) D_ATTRIB_UNLIKELY
             {
                 return invalid_cursor;
             }
@@ -327,19 +333,25 @@ namespace font
     {
         constexpr metrics invalid_metrics{};
 
-        if (!char_code)
+        if (D_UNLIKELY(!char_code)) D_ATTRIB_UNLIKELY
         {
             return invalid_metrics;
         }
 
-        if (const auto errc = FT_Load_Char(face, safe_numeric_cast<FT_ULong>(char_code), FT_LOAD_DEFAULT); FT_Err_Ok != errc)
+        if (const auto errc 
+            = FT_Load_Char
+            (
+                face, 
+                safe_numeric_cast<FT_ULong>(char_code), 
+                FT_LOAD_DEFAULT
+            ); D_UNLIKELY(FT_Err_Ok != errc)) D_ATTRIB_UNLIKELY
         {
             e_debug_ft("FT_Load_Char FT_LOAD_DEFAULT", errc);
             return invalid_metrics;
         }
 
         const auto glyph = face->glyph;
-        if (!glyph)
+        if (D_UNLIKELY(!glyph)) D_ATTRIB_UNLIKELY
         {
             return invalid_metrics;
         }

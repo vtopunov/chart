@@ -10,6 +10,7 @@ namespace gl
             return glsl_typeid::sampler2D == id || glsl_typeid::samplerCube == id;
         }
 
+        [[nodiscard]]
         texture2d gen_texture() noexcept
         {
             texture_descriptor_t d{};
@@ -40,9 +41,10 @@ namespace gl
         }
 
         template<class T>
-        void bind(const unique_resource<T, texture_resource_deleter>& r) noexcept
+        [[nodiscard]] bool bind(const unique_resource<T, texture_resource_deleter>& r) noexcept
         {
             bind_texture(T::target, view(r));
+            return is_correct();
         }
     }
 
@@ -54,69 +56,41 @@ namespace gl
 
     texture2d create_texture2d() noexcept
     {
-        auto tex = gen_texture();
-        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
+        if (auto tex = gen_texture(); D_LIKELY(tex && bind(tex))) D_ATTRIB_LIKELY
         {
-            return {};
+            set_default_parameteri2d();
+            if (D_LIKELY(is_correct())) D_ATTRIB_LIKELY
+            {
+                return tex;
+            }
         }
-
-        bind(tex);
-        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
-        {
-            return {};
-        }
-
-        set_default_parameteri2d();
-        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
-        {
-            return {};
-        }
-
-        return tex;
+    
+        return {};
     }
 
     texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept
     {
-        auto tex = create_texture2d();
-
-        if (tex)
+        if (auto tex = create_texture2d(); D_LIKELY(tex)) D_ATTRIB_LIKELY
         {
             set_image2d(sizes, format, pixels);
-
             if (D_LIKELY(is_correct())) D_ATTRIB_LIKELY
             {
-                tex =
-                {
-                    resource_construct,
-                    tex.release(),
-                    sizes
-                };
-            }
-            else
-            {
-                tex.reset();
+                return gl::sizes(std::move(tex), sizes);
             }
         }
 
-        return tex;
+        return {};
     }
 
     texture2d write(texture2d tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
     {
-        bind(tex);
-
-        if (D_LIKELY(is_correct())) D_ATTRIB_LIKELY
+        if (D_LIKELY(bind(tex))) D_ATTRIB_LIKELY
         {
             set_image2d(sizes, format, pixels);
 
             if (D_LIKELY(is_correct())) D_ATTRIB_LIKELY
             {
-                tex =
-                {
-                    resource_construct,
-                    tex.release(),
-                    sizes
-                };
+                tex = gl::sizes(std::move(tex), sizes);
             }
         }
 

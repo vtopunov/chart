@@ -15,7 +15,14 @@ namespace
 {
     gl::texture2d image_gallery_rendering() noexcept
     {
-        const auto png = image::png_decode_to_r8g8b8a8(file::asset_or_file_mmap(_PATH("grid_9x9.png")));
+        const auto asset = file::asset::mmap(_PATH("grid_9x9.png"));
+        if (!asset)
+        {
+            e_debug("can't open file");
+            return {};
+        }
+
+        const auto png = image::png_decode_to_r8g8b8a8(asset);
         if (!png)
         {
             const auto errc = png.error_code();
@@ -95,7 +102,7 @@ int app_main(os::module_handle_t app) noexcept
         {
             for (pxside_t x = 0; x < surface_sizes.width(); x += dx)
             {
-                shaders.vert.u_position.store(point2d{ x, y });
+                shaders.vert.u_position.store(x, y);
                 vb.draw();
             }
         }

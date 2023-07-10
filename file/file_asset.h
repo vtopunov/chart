@@ -1,45 +1,19 @@
 #pragma once
 
-#include <variant>
+#include <core/buffer_view.h>
+#include <core/resource.h>
 
-#if defined(D_OS_ANDROID)
-#include <os/fwd.h>
-#endif
-
-#include <file/file_mmap.h>
+#include <file/path.h>
 
 
 namespace file
 {
-#if defined(D_OS_ANDROID)
-    struct asset_deleter
+    namespace asset
     {
-        void operator () (os::asset_handle_t asset) const noexcept;
-    };
-
-    enum class asset_mode
-    {
-        unknown,
-        random,
-        streaming,
-        buffer
-    };
-
-    using asset_t = unique_resource<os::asset_handle_t, asset_deleter>;
-
-    asset_t asset_open(path_zstring_view path, asset_mode mode) noexcept;
-
-    const void* data(os::asset_handle_t asset) noexcept;
-
-    size_t size(os::asset_handle_t asset) noexcept;
-#endif
-
-    struct asset_or_file_mmap_resource
-    {
-        using view_type = const_buffer_view;
-
-        struct _private_detail_asset_resource
+        struct asset_mmap_resource
         {
+            using view_type = const_buffer_view;
+
 #if defined(D_OS_ANDROID)
             os::asset_handle_t asset_;
 #endif
@@ -47,48 +21,73 @@ namespace file
             const void* data_;
             size_t size_;
 
-            constexpr operator const_buffer_view() const noexcept
+            struct null_type
             {
-                return { data_, size_ };
+                [[nodiscard]]
+                constexpr operator asset_mmap_resource () const noexcept
+                {
+                    return
+                    {
+#if defined(D_OS_ANDROID)
+                        nullptr,
+                        nullptr,
+                        0_uz
+#else
+                        nullptr,
+                        0_uz                
+#endif
+                    };
+                }
+            };
+
+            [[nodiscard]]
+            constexpr explicit operator bool() const noexcept
+            {
+                return !!size_;
+            }
+
+            [[nodiscard]]
+            constexpr const void* data() const noexcept
+            {
+                return data_;
+            }
+
+            [[nodiscard]]
+            constexpr size_t size() const noexcept
+            {
+                return size_;
+            }
+
+            [[nodiscard]]
+            constexpr const_buffer_view view() const noexcept
+            {
+                return *this;
             }
         };
 
-        std::variant<std::monostate, _private_detail_asset_resource, file_mmap_resource> private_detail_;
+
+        static_assert(std::is_same_v<null_t<asset_mmap_resource>, asset_mmap_resource::null_type>);
+        static_assert(std::is_same_v<view_t<asset_mmap_resource>, const asset_mmap_resource::view_type>);
+
+#if defined(D_OS_ANDROID)
+        struct asset_mmap_resource_deleter
+        {
+            void operator () (const asset_mmap_resource& asset_or_file) const noexcept;
+        };
+
+        using asset_mmap = unique_resource<asset_mmap_resource, asset_mmap_resource_deleter>;
+
+#else
+        using asset_mmap = asset_mmap_resource;
+
+#endif
 
         [[nodiscard]]
-        constexpr explicit operator bool() const noexcept
-        {
-            return 0 != private_detail_.index();
-        }
+        asset_mmap mmap(path_zstring_view path) noexcept;
+    }
 
-        [[nodiscard]]
-        constexpr operator const_buffer_view() const noexcept
-        {
-            const auto p = std::addressof(private_detail_);
-
-            if (const auto asset = std::get_if<_private_detail_asset_resource>(p))
-            {
-                return *asset;
-            }
-
-            if (const auto mmap = std::get_if<file_mmap_resource>(p))
-            {
-                return *mmap;
-            }
-
-            return {};
-        }
-    };
-
-    struct asset_or_file_mmap_resource_deleter
-    {
-        void operator () (const asset_or_file_mmap_resource& asset_or_file) const noexcept;
-    };
-
-    using asset_or_file_mmap_t = unique_resource<asset_or_file_mmap_resource, asset_or_file_mmap_resource_deleter>;
-
-    [[nodiscard]]
-    asset_or_file_mmap_t asset_or_file_mmap(path_zstring_view path) noexcept;
+    using asset::asset_mmap_resource;
+    using asset::asset_mmap;
 }
 
 

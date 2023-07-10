@@ -92,41 +92,26 @@ struct rectangle
     {
         return sizes.height();
     }
-
-    template<class Point>
-    [[nodiscard]] constexpr bool contains(const Point& p) const noexcept
-    {
-        using value_t = std::decay_t<decltype(p.x())>;
-        static_assert(std::is_same_v<value_t, std::decay_t<decltype(p.y())>>);
-
-        constexpr auto contains1d = [] (value_t p, value_type p0, size_type dp) noexcept
-        {
-            return p >= p0 && p < (p0 + dp);
-        };
-
-        return contains1d(p.x(), position.x(), sizes.width())
-            && contains1d(p.y(), position.y(), sizes.height());
-    }
 };
 
-template<class T>
-rectangle(point2d<T>, size2d<unsigned_or_t<T>>)->rectangle<T>;
+template<class T, class U>
+rectangle(point2d<T>, size2d<U>)->rectangle<T, U>;
 
 
-template<class T>
-constexpr typename rectangle<T>::size2d_type sizes(const rectangle<T>& r) noexcept
+template<class T, class U> [[nodiscard]]
+constexpr typename rectangle<T, U>::size2d_type sizes(const rectangle<T, U>& r) noexcept
 {
     return r.sizes;
 }
 
-template<class T>
-constexpr typename rectangle<T>::size_type width(const rectangle<T>& r) noexcept
+template<class T, class U> [[nodiscard]]
+constexpr typename rectangle<T, U>::size_type width(const rectangle<T, U>& r) noexcept
 {
     return r.width();
 }
 
-template<class T>
-constexpr typename rectangle<T>::size_type height(const rectangle<T>& r) noexcept
+template<class T, class U> [[nodiscard]]
+constexpr typename rectangle<T, U>::size_type height(const rectangle<T, U>& r) noexcept
 {
     return r.height();
 }

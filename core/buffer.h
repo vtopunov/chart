@@ -149,7 +149,7 @@ public:
         if (_count() < new_count)
         {
             buffer_void_collection new_buffer{ buffer_construct, new_count };
-            if (!new_buffer)
+            if (D_UNLIKELY(!new_buffer)) D_ATTRIB_UNLIKELY
             {
                 return false;
             }
