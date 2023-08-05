@@ -13,6 +13,9 @@ namespace font
         using value_type = T;
         static constexpr size_t fract_bits{ FractBits };
 
+        static_assert(std::is_integral_v<value_type>);
+        static_assert(fract_bits <= numeric_digits_v<value_type>);
+
         value_type value;
 
         template<class Int>

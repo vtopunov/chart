@@ -20,7 +20,11 @@ namespace widget
         [[nodiscard]]
         window build() const noexcept
         {
-            return create_egl_window(params());
+            return
+            {
+                window_construct,
+                create_egl_window(params())
+            };
         }
     };
 

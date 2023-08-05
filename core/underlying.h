@@ -49,11 +49,33 @@ constexpr E& e_bit_and_eq(E& left, E right) noexcept
     return left;
 }
 
-template<class E> [[nodiscard]]
-constexpr bool e_extract(E& e, const E bits) noexcept
+template<class E>
+constexpr E& e_bit_or_eq(E& left, E right) noexcept
 {
-    return (bits == e_bit_and(e, bits)) && (e_bit_and_eq(e, e_bit_not(bits)), true);
+    left = e_bit_or(left, right);
+    return left;
 }
+
+template<class E> [[nodiscard]]
+constexpr bool e_bit_check(const E e, const E bits) noexcept
+{
+    return (bits == e_bit_and(e, bits));
+}
+
+template<class E>
+constexpr E& e_bit_clear(E& e, const E bits) noexcept
+{
+    return e_bit_and_eq(e, e_bit_not(bits));
+}
+
+template<class E> [[nodiscard]]
+constexpr bool e_bit_extract(E& e, const E bits) noexcept
+{
+    return e_bit_check(e, bits) && (e_bit_clear(e, bits), true);
+}
+
+
+
 
 D_WARNING_POP;
 

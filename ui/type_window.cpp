@@ -5,10 +5,9 @@
 
 #include <ui/window.h>
 
+
 namespace ui
 {
-    extern LRESULT CALLBACK window_procedure(HWND handle, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept;
-
     namespace
     {
         [[nodiscard]]
@@ -79,7 +78,7 @@ namespace ui
 
         if (!pdata->lpfnWndProc)
         {
-            pdata->lpfnWndProc = window_procedure;
+            pdata->lpfnWndProc = ui::window_procedure;
         }
 
         if (!pdata->hCursor)
@@ -157,6 +156,12 @@ namespace ui
     type_window_builder& type_window_builder::background(stock_brush brush) noexcept
     {
         wndcls()->hbrBackground = stock(brush);
+        return *this;
+    }
+
+    type_window_builder& type_window_builder::window_procedure(wndproc_t proc) noexcept
+    {
+        wndcls()->lpfnWndProc = proc;
         return *this;
     }
 

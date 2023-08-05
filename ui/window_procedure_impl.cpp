@@ -9,18 +9,20 @@ namespace ui
 {
     namespace
     {
-        constexpr event_style to_event_style(UINT message) noexcept
+        constexpr event_style to_event_style(uint_t message) noexcept
         {
             return underlying_cast<event_style>(message);
         }
     }
 
-    LRESULT CALLBACK window_procedure(HWND window, UINT message, WPARAM word_parameter, LPARAM long_parameter) noexcept
+    event_result_t D_OS_APICALL window_procedure
+    (
+        window_handle_t window, 
+        uint_t message, 
+        word_parameter_t word_parameter, 
+        long_parameter_t long_parameter
+    ) noexcept
     {
-        static_assert(std::is_same_v<word_parameter_t, WPARAM>);
-        static_assert(std::is_same_v<long_parameter_t, LPARAM>);
-        static_assert(std::is_same_v<event_result_t, LRESULT>);
-
         static_assert(event_style::null == to_event_style(WM_NULL));
         static_assert(event_style::size == to_event_style(WM_SIZE));
         static_assert(event_style::quit == to_event_style(WM_QUIT));
@@ -68,8 +70,6 @@ namespace ui
 
     event_result_t event::do_default_process() const noexcept
     {
-        static_assert(std::is_same_v<event_result_t, LRESULT>);
-
         return DefWindowProcW(window_, to_underlying(style_), word_parameter_, long_parameter_);
     }
 }

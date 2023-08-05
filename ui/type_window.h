@@ -6,7 +6,15 @@
 #include <ui/app.h>
 
 namespace ui
-{    
+{  
+    extern event_result_t D_OS_APICALL window_procedure
+    (
+        window_handle_t window,
+        uint_t message,
+        word_parameter_t word_parameter,
+        long_parameter_t long_parameter
+    ) noexcept;
+
     enum class stock_brush
     {
         white,
@@ -52,6 +60,8 @@ namespace ui
         type_window_builder& module(module_handle_t module) noexcept;
 
         type_window_builder& background(stock_brush brush) noexcept;
+
+        type_window_builder& window_procedure(wndproc_t proc) noexcept;
 
         [[nodiscard]]
         module_handle_t module() const noexcept;

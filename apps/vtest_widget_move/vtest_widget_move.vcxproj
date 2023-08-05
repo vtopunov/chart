@@ -11,13 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{37C5E0A6-7B0D-4D7C-BCE0-95121B76D9F8}</ProjectGuid>
+    <ProjectGuid>{E1A70675-2636-4A5F-88BD-B02508E0328C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>vtest_line</RootNamespace>
+    <RootNamespace>vtest_widgets</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>vtest_line</ProjectName>
+    <ProjectName>vtest_widget_move</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -28,7 +28,7 @@
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\..\build\windows\egl_ui_app.props" />
+  <Import Project="..\..\build\windows\widgets_app.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
@@ -83,14 +83,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\file\file.vcxproj">
-      <Project>{499e20aa-8c6a-4235-a383-4e6d4c5e6aff}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="test_figure.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -35,28 +35,49 @@
 
 
 #if defined(D_OS_WINDOWS)
-namespace private_detail_osfwd
-{
-    using UINT = unsigned int;
-}
-
-#define D_OS_HANDLE_FWD(name) struct name##__; namespace private_detail_osfwd { using name = name##__*; } 
-D_OS_HANDLE_FWD(HINSTANCE);
-D_OS_HANDLE_FWD(HWND);
-#undef D_OS_HANDLE_FWD
-
 struct tagMSG;
 struct tagWNDCLASSEXW;
 
+#define D_OS_APICALL __stdcall
+
+#define D_OS_HANDLE_FWD(name, def) struct name##__; namespace os { using def = name##__*; } 
+D_OS_HANDLE_FWD(HINSTANCE, module_handle_t);
+D_OS_HANDLE_FWD(HWND, window_handle_t);
+#undef D_OS_HANDLE_FWD
+
+namespace os
+{
+    using handle_t = void*;
+    using message_t = tagMSG;
+
+    using dword_t = unsigned long;
+    using word_t = uint16_t;
+
+    using uint_t = unsigned int;
+    using word_parameter_t = size_t;
+    using long_parameter_t = ptrdiff_t;
+    using long_result_t = ptrdiff_t;
+
+    typedef long_result_t (D_OS_APICALL* wndproc_t) (window_handle_t, uint_t, word_parameter_t, long_parameter_t);
+}
+
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_inconsistent_annotation)
-extern "C" __declspec(dllimport) int __stdcall PeekMessageW
+extern "C" __declspec(dllimport) int D_OS_APICALL PeekMessageW
 (
-    tagMSG * lpMsg,
-    private_detail_osfwd::HWND hWnd,
-    private_detail_osfwd::UINT wMsgFilterMin,
-    private_detail_osfwd::UINT wMsgFilterMax,
-    private_detail_osfwd::UINT wRemoveMsg
+    os::message_t * lpMsg,
+    os::window_handle_t hWnd,
+    os::uint_t wMsgFilterMin,
+    os::uint_t wMsgFilterMax,
+    os::uint_t wRemoveMsg
+);
+
+extern "C" __declspec(dllimport) os::long_result_t D_OS_APICALL DefWindowProcW
+(
+    os::window_handle_t hWnd,
+    os::uint_t Msg,
+    os::word_parameter_t wParam,
+    os::long_parameter_t lParam
 );
 D_WARNING_POP
 
@@ -77,15 +98,7 @@ extern "C" int ALooper_pollAll(int timeoutMillis, int* outFd, int* outEvents, vo
 namespace os
 {
 #if defined(D_OS_WINDOWS)
-    using handle_t = void*;
-    using module_handle_t = private_detail_osfwd::HINSTANCE;
-    using window_handle_t = private_detail_osfwd::HWND;
-    using message_t = tagMSG;
-
-    using uint_t = private_detail_osfwd::UINT;
-    using dword_t = unsigned long;
-    using word_t = uint16_t;
-
+    constexpr wndproc_t def_window_proc = DefWindowProcW;
 
 #elif defined(D_OS_ANDROID)
     using module_handle_t = android_app*;

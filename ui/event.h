@@ -10,11 +10,6 @@
 
 namespace ui
 {
-#ifdef D_OS_WINDOWS
-    using word_parameter_t = size_t;
-    using long_parameter_t = ptrdiff_t;
-#endif
-
     struct idle_event {};
 
 

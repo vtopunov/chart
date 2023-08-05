@@ -191,6 +191,13 @@ namespace ui
             return *this;
         }
 
+        window_builder& window_procedure(wndproc_t proc) noexcept
+        {
+            type_builder_.window_procedure(proc);
+            cached_type_.deattach_and_reset();
+            return *this;
+        }
+
         [[nodiscard]]
         module_handle_t module() const noexcept
         {

@@ -20,6 +20,7 @@
     <ClInclude Include="window.h" />
     <ClInclude Include="window_builder.h" />
     <ClInclude Include="widget_initializer.h" />
+    <ClInclude Include="window_fwd.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\utility\utility.vcxproj">

@@ -15,14 +15,22 @@ namespace widget
 {
     namespace private_detail_run
     {
-        template<class Widget, class Event>
-        decltype(auto) apply_event(Widget& widget, const Event& e) noexcept
+        constexpr void combine(event_result& combined_result, const event_result new_result) noexcept
         {
-            return widget.apply([&e] (auto&... widgets) noexcept
+            e_bit_or_eq(combined_result, new_result);
+        }
+
+        constexpr void combine(event_result&, std::nullopt_t) noexcept
+        {}
+
+        template<class Widget, class Event>
+        void apply_event(event_result& combined_result, Widget& widget, const Event& e) noexcept
+        {
+            combine(combined_result, call_event(widget, e));
+
+            widget.apply([&combined_result, &e] (auto&... widgets) noexcept
             {
-                event_result combined_result{ event_result::idle };
-                ((combined_result |= call_event(widgets, e)), ...);
-                return combined_result;
+                (combine(combined_result, call_event(widgets, e)), ...);
             });
         }
 
@@ -35,6 +43,11 @@ namespace widget
             });
         }
 
+        struct processor_construct_t
+        {};
+
+        constexpr processor_construct_t processor_construct{};
+
         template<class Widget>
         struct processor
         {
@@ -43,7 +56,7 @@ namespace widget
             event_result combined_event_result{ event_result::redraw };
 
             template<class... Args>
-            explicit processor(widget::window& window, Args&&... args) noexcept
+            explicit processor(processor_construct_t, widget::window& window, Args&&... args) noexcept
                 : widget_window{ window }
                 , widget{ std::forward<Args>(args)... }
             {}
@@ -57,7 +70,7 @@ namespace widget
                     widget_window.user_sizes_cache = new_size;
                     D_ASSERT(widget_window.user_sizes_cache.width() <= width(widget_window));
                     D_ASSERT(widget_window.user_sizes_cache.height() <= height(widget_window));
-                    combined_event_result |= apply_event(widget, e);
+                    apply_event(combined_event_result, widget, e);
                 }
 
                 return std::nullopt;
@@ -67,19 +80,43 @@ namespace widget
             template<ui::event_style Style>
             std::nullopt_t operator () (const ui::specialized_event<Style>& e) noexcept
             {
-                combined_event_result |= apply_event(widget, e);
+                apply_event(combined_event_result, widget, e);
                 return std::nullopt;
             }
 
             ui::milliseconds_t operator () (ui::idle_event) noexcept
             {
-                if (e_extract(combined_event_result, event_result::redraw))
+#ifdef D_OS_WINDOWS
+                using namespace std::chrono_literals;
+                constexpr std::chrono::steady_clock::duration min_update_time{ 35ms };
+
+                if (e_bit_check(combined_event_result, event_result::redraw))
                 {
-                    const egl_painting_owner painting_lock{ widget_window };
-                    apply_draw(widget, widget_window);
+                    const auto now = std::chrono::steady_clock::now(); 
+
+                    if ((now - widget_window.redraw_time_cache) < min_update_time)
+                    {
+                        return ui::milliseconds_t::zero();
+                    }
+
+                    e_bit_clear(combined_event_result, event_result::redraw);
+                    widget_window.redraw_time_cache = now;
+                    draw();
                 }
+#else
+                if (e_bit_extract(combined_event_result, event_result::redraw))
+                {
+                    draw();
+                }
+#endif
 
                 return ui::infinite;
+            }
+
+            void draw() noexcept
+            {
+                const egl_painting_owner painting_lock{ widget_window };
+                apply_draw(widget, widget_window);
             }
         };
 
@@ -126,7 +163,13 @@ namespace widget
     template<class Widget, class... Args>
     int run(widget::window& widget_window, Args&&... args) noexcept
     {
-        private_detail_run::processor<Widget> processor{ widget_window, std::forward<Args>(args)... };
+        private_detail_run::processor<Widget> processor
+        {
+            private_detail_run::processor_construct,
+            widget_window,
+            std::forward<Args>(args)...
+        };
+
         if (D_UNLIKELY(!private_detail_run::initialize(widget_window, processor.widget))) D_ATTRIB_UNLIKELY
         {
             e_debug

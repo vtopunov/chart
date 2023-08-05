@@ -19,7 +19,15 @@ namespace ui
 {
     using milliseconds_t = std::chrono::milliseconds;
 
-    constexpr auto infinite = milliseconds_t{ D_CONDITIONAL_OS_WINDOWS(0xffffffff, -1) };
+#ifdef D_OS_ANDROID
+    constexpr milliseconds_t infinite{ -1 };
+
+#else
+    static_assert(sizeof(milliseconds_t::rep) > 4);
+    constexpr milliseconds_t infinite{ 0xffffffffLL };
+
+#endif
+
 
     constexpr idle_event idle_event_v{};
 
@@ -70,24 +78,36 @@ namespace ui
             std::byte msg_storage[msg_storage_size]{};
             const auto pmsg = reinterpret_cast<os::message_t*>(std::data(msg_storage));
 
-            for (;;) [[likely]]
+            do
             {
                 const milliseconds_t timeout{ do_idle(idle_processor) };
-                if (timeout > milliseconds_t::zero()) [[unlikely]]
-                {
-                    message_wait_for(timeout);
-                }
 
-                while (PeekMessageW(pmsg, nullptr, 0u, 0u, pm_remove)) [[unlikely]]
+                if (timeout <= milliseconds_t::zero()) [[likely]]
                 {
-                    if (event_style::quit == e_style(pmsg)) [[unlikely]]
+                    if (PeekMessageW(pmsg, nullptr, 0u, 0u, pm_remove))
                     {
-                        return exit_status(pmsg);
+                        process_message(pmsg);
                     }
-
-                    process_message(pmsg);
                 }
-            }
+                else
+                {
+                    ui::private_detail_event_loop::message_wait_for(timeout);
+
+                    while (PeekMessageW(pmsg, nullptr, 0u, 0u, pm_remove))
+                    {
+                        process_message(pmsg);
+
+                        if (event_style::quit == e_style(pmsg))
+                        {
+                            break;
+                        }
+                    }
+                }
+
+            } 
+            while (event_style::quit != e_style(pmsg));
+
+            return exit_status(pmsg);
         }
     }
 
@@ -124,9 +144,9 @@ namespace ui
         auto& target_ref = as_reference(target);
 
         const auto event_bind_holder = event_binder<event_source_t>(source).bind(target_ref);
-        
+
         private_detail_event_loop::sizes_initialization();
-        
+
         return private_detail_event_loop::run_event_loop_impl(target_ref);
     }
 
@@ -186,7 +206,7 @@ namespace ui
 
                 message msg{ app_window(app_) };
 
-                while(D_LIKELY(true))
+                while (D_LIKELY(true))
                 {
                     const milliseconds_t timeout{ do_idle(processor) };
 

@@ -271,6 +271,7 @@ namespace
                 case 1u:
                     new_trace.emplace_back(e.pointer(0));
                     break;
+
                 case 2u:
                 {
                     auto p0 = e.pointer(0);

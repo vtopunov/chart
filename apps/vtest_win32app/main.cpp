@@ -55,7 +55,7 @@ namespace
 
 using instance_t = os::module_handle_t;
 
-int _stdcall wWinMain(instance_t instance, instance_t, wchar_t*, int command_show)
+int D_OS_APICALL wWinMain(instance_t instance, instance_t, wchar_t*, int command_show)
 {
     debug("create main window");
     ui::window_builder builder{};
