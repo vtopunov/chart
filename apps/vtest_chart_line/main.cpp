@@ -1,5 +1,4 @@
-﻿#include <numbers>
-#include <cmath>
+﻿#include <cmath>
 
 #include <core/small_vector.h>
 #include <core/lerp.h>
@@ -29,7 +28,8 @@ namespace
 
     void sin_vector_initialize(small_vector<point2d_real>& v) noexcept
     {
-        constexpr auto abscissa_max = 12 * std::numbers::pi_v<real_t>;
+        constexpr auto pi = 3.141592653589793238462643383279502884L;
+        constexpr auto abscissa_max = static_cast<real_t>(12.0 * pi);
         constexpr num_range abscissa_range{ -abscissa_max, abscissa_max };
         constexpr num_range index_range{ 0_uz, n_points - 1_uz };
         constexpr auto abscissa = lerp(index_range, abscissa_range);
@@ -155,7 +155,7 @@ namespace
         const coordinate_transformation value2px
     ) noexcept
     {
-        if (D_LIKELY(values.size())) D_ATTRIB_LIKELY
+        if (values.size()) [[likely]]
         {
             auto cached_result = px::invalid_antialiasing_line_result_v;
             auto p0 = value2px(values.front());
@@ -181,14 +181,14 @@ namespace
         constexpr auto clamp_len = [] (overpxoff_t position, overpxoff_t fixlen, overpxoff_t len) noexcept
         {
             len -= position;
-            if (D_UNLIKELY(len < 0LL)) D_ATTRIB_UNLIKELY
+            if (len < 0LL) [[unlikely]]
                 return 0_px;
 
             if (fixlen <= 0LL)
             {
                 len += fixlen;
 
-                if (D_UNLIKELY(len < 0LL)) D_ATTRIB_UNLIKELY
+                if (len < 0LL) [[unlikely]]
                     return 0_px;
             }
             else
@@ -271,11 +271,13 @@ namespace
                 return true;
             }
 
+#ifdef D_OS_WINDOWS
             event_result operator () (const ui::size_event&) noexcept
             {
                 //debug("size event: {}x{}", e.width(), e.height());
                 return event_result::redraw;
             }
+#endif
 
             void clear_texture_cache() noexcept
             {
@@ -314,12 +316,20 @@ namespace
             }
         };
 
+        static constexpr pxpoint2d x00{ 20_px, D_CONDITIONAL_OS_ANDROID(50_px, 20_px) };
+        static constexpr pxsize2d button_sizes{ 120_px, 50_px };
+
+        template<size_t n>
+        static constexpr point2d button_position_v
+            = x00 + point2d{ narrow_cast<pxside_t>(n * (5_px + button_sizes.width())), 0_px };
+        
+
         widget::button b_plot
         {
             .geometry
             {
-                .position{25_px, 20_px},
-                .sizes{150_px, 50_px}
+                .position{ button_position_v<0u> },
+                .sizes{ button_sizes }
             },
             .text{ u8"Построить" }
         };
@@ -328,8 +338,8 @@ namespace
         {
             .geometry
             {
-                .position{185_px, 20_px},
-                .sizes{150_px, 50_px}
+                .position{ button_position_v<1u> },
+                .sizes{ button_sizes }
             },
             .text{ u8"Очистить" }
         };
@@ -338,8 +348,8 @@ namespace
         {
             .geometry
             {
-                .position{345_px, 20_px},
-                .sizes{150_px, 50_px}
+                .position{ button_position_v<2u> },
+                .sizes{ button_sizes }
             },
             .text{ u8"Выход" }
         };
@@ -348,7 +358,7 @@ namespace
         {
             .geometry
             {
-                .position{20_px, 90_px},
+                .position{ x00 + point2d{ 0_px, button_sizes.height() + 15_px } },
                 .sizes{-20_pxz, -20_pxz}
             }
         };
@@ -357,7 +367,7 @@ namespace
 
         bool operator () (const widget_initializer& ini) noexcept
         {
-            if (D_UNLIKELY(!points.try_reserve(n_points))) D_ATTRIB_UNLIKELY
+            if (!points.try_reserve(n_points)) [[unlikely]]
             {
                 e_debug("chart line values: out of memory");
                 return false;
@@ -401,7 +411,7 @@ namespace
 }
 
 
-int main() noexcept
+int app_main(os::module_handle_t app) noexcept
 {
-    return widget::run<chart_widget>(nullptr);
+    return widget::run<chart_widget>(app);
 }

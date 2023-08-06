@@ -13,7 +13,7 @@ namespace
     {
         const auto result = image::png_decode_to_r8g8b8a8(image, temp);
 
-        if (D_UNLIKELY(!result)) D_ATTRIB_UNLIKELY
+        if (!result) [[unlikely]]
         {
             const auto errc = result.error_code();
             e_debug("read png: error {}: {}", to_underlying(errc), image::png_error_string(errc).c_str());
@@ -27,7 +27,7 @@ namespace
 gl::texture2d png_texture_from_asset(file::path_zstring_view path, buffer_t& temp) noexcept
 {
     const auto map_file = file::asset::mmap(path);
-    if (D_UNLIKELY(!map_file)) D_ATTRIB_UNLIKELY
+    if (!map_file) [[unlikely]]
     {
         e_debug(_PATH("can't mapping file: {}"), path.c_str());
         return {};

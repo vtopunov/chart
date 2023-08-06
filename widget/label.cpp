@@ -15,7 +15,7 @@ namespace widget
 
     void label::draw(const window& w) noexcept
     {
-        if (D_LIKELY(text::draw_to_cache(*this, w.temp_buffer_view()))) D_ATTRIB_LIKELY
+        if (text::draw_to_cache(*this, w.temp_buffer_view())) [[likely]]
         {
             w.shaders.gray_texture_mix_color.draw(position, text_cache.texture(), gl::colors::black_f);
         }

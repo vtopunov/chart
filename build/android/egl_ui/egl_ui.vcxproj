@@ -23,13 +23,13 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
-    <AndroidAPILevel>android-30</AndroidAPILevel>
+    <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
-    <AndroidAPILevel>android-30</AndroidAPILevel>
+    <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\static_library.props" />
@@ -55,16 +55,22 @@
     <ClInclude Include="..\..\..\egl_ui\egl_config.h" />
     <ClInclude Include="..\..\..\egl_ui\egl_descriptors.h" />
     <ClInclude Include="..\..\..\egl_ui\egl_window.h" />
+    <ClInclude Include="..\..\..\egl_ui\egl_window_builder.h" />
     <ClInclude Include="..\..\..\egl_ui\egl_window_resource.h" />
     <ClInclude Include="..\..\..\egl_ui\egl_window_resource_fwd.h" />
+    <ClInclude Include="..\..\..\egl_ui\event_loop.h" />
     <ClInclude Include="..\..\..\egl_ui\painting_owner.h" />
     <ClInclude Include="..\..\..\egl_ui\run.h" />
-    <ClInclude Include="..\..\..\egl_ui\window.h" />
+    <ClInclude Include="..\..\..\egl_ui\ui_window.h" />
+    <ClInclude Include="..\..\..\egl_ui\ui_window_parametrs.h" />
+    <ClInclude Include="..\..\..\egl_ui\ui_window_resource.h" />
+    <ClInclude Include="..\..\..\egl_ui\viewport_rectangle.h" />
     <ClInclude Include="..\..\..\egl_ui\window_resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\egl_ui\egl_window.cpp" />
-    <ClCompile Include="window.cpp" />
+    <ClCompile Include="..\..\..\egl_ui\egl_window_builder.cpp" />
+    <ClCompile Include="ui_window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

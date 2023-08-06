@@ -3,6 +3,7 @@
 #include <file/path.h>
 #include <font/font.h>
 
+
 namespace font_cache
 {
     struct face_resource

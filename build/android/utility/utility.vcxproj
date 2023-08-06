@@ -23,13 +23,13 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
-    <AndroidAPILevel>android-30</AndroidAPILevel>
+    <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
-    <AndroidAPILevel>android-30</AndroidAPILevel>
+    <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\static_library.props" />
@@ -38,10 +38,12 @@
     <ClInclude Include="$(RepoDir)\utility\shaders_library.h" />
     <ClInclude Include="..\..\..\utility\cache_storage.h" />
     <ClInclude Include="..\..\..\utility\font_cache.h" />
+    <ClInclude Include="..\..\..\utility\px.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(RepoDir)\utility\png.cpp" />
     <ClCompile Include="..\..\..\utility\font_cache.cpp" />
+    <ClCompile Include="..\..\..\utility\px.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\file\file.vcxproj">

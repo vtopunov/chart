@@ -37,7 +37,7 @@ namespace px
         template<class T>
         constexpr T sign_if_not_likely(bool cond, T value) noexcept
         {
-            if (D_LIKELY(cond)) D_ATTRIB_LIKELY
+            if (cond) [[likely]]
             {
                 return value;
             }
@@ -65,7 +65,7 @@ namespace px
                 static_assert(-1_z == z_round_unsafe(-1_z + near_zero_neg));
 
                 const auto bound_d = bound0 + near_zero_neg;
-                if (D_UNLIKELY(value < bound_d)) D_ATTRIB_UNLIKELY
+                if (value < bound_d) [[unlikely]]
                 {
                     return bound0;
                 }
@@ -77,7 +77,7 @@ namespace px
                 static_assert(0_z == z_round_unsafe(1_z + near_zero_p));
 
                 const auto bound_d = bound1 + near_zero_p;
-                if (D_UNLIKELY(bound_d < value)) D_ATTRIB_UNLIKELY
+                if (bound_d < value) [[unlikely]]
                 {
                     return bound1;
                 }
@@ -242,7 +242,7 @@ namespace px
             const auto end_p_y = image.data() + y1_z * line_size_z;
             const auto d_p_y = sign_if_not(direction_is_inc_y, line_size_z);
 
-            if (D_LIKELY(p_y != end_p_y && minus_0_0 < _256_xf && _256_xf < _256_xf_aa_bound)) D_ATTRIB_LIKELY
+            if (p_y != end_p_y && minus_0_0 < _256_xf && _256_xf < _256_xf_aa_bound) [[likely]]
             {
                 const auto index_shade = position_shade::instance_from_real(_256_xf);
                 const auto p_x = p_y + index_shade.index();
@@ -269,9 +269,9 @@ namespace px
 
             for (; p_y != end_p_y; p_y += d_p_y)
             {
-                if (D_LIKELY(minus_0_0 < _256_xf)) D_ATTRIB_LIKELY
+                if (minus_0_0 < _256_xf) [[likely]]
                 {
-                    if (D_LIKELY(_256_xf < _256_xf_aa_bound)) D_ATTRIB_LIKELY
+                    if (_256_xf < _256_xf_aa_bound) [[likely]]
                     {
                         const auto index_shade = position_shade::instance_from_real(_256_xf);
 
@@ -319,7 +319,7 @@ namespace px
             const auto end_p_x = image.data() + x1_z;
             const auto d_p_x = sign_if_not_likely(direction_is_inc_x, 1_z);
 
-            if (D_LIKELY(p_x != end_p_x && minus_0_0 < _256_yf && _256_yf < _256_yf_aa_bound)) D_ATTRIB_LIKELY
+            if (p_x != end_p_x && minus_0_0 < _256_yf && _256_yf < _256_yf_aa_bound) [[likely]]
             {
                 const auto index_shade = position_shade::instance_from_real(_256_yf);
                 const auto p_y = p_x + index_shade.index() * line_size_z;
@@ -346,9 +346,9 @@ namespace px
 
             for (; p_x != end_p_x; p_x += d_p_x)
             {
-                if (D_LIKELY(minus_0_0 < _256_yf)) D_ATTRIB_LIKELY
+                if (minus_0_0 < _256_yf) [[likely]]
                 {
-                    if (D_LIKELY(_256_yf < _256_yf_aa_bound)) D_ATTRIB_LIKELY
+                    if (_256_yf < _256_yf_aa_bound) [[likely]]
                     {
                         const auto index_shade = position_shade::instance_from_real(_256_yf);
                         const auto p_y = p_x + index_shade.index() * line_size_z;

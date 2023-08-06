@@ -56,10 +56,10 @@ namespace gl
 
     texture2d create_texture2d() noexcept
     {
-        if (auto tex = gen_texture(); D_LIKELY(tex && bind(tex))) D_ATTRIB_LIKELY
+        if (auto tex = gen_texture(); tex && bind(tex)) [[likely]]
         {
             set_default_parameteri2d();
-            if (D_LIKELY(is_correct())) D_ATTRIB_LIKELY
+            if (is_correct()) [[likely]]
             {
                 return tex;
             }
@@ -70,10 +70,10 @@ namespace gl
 
     texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept
     {
-        if (auto tex = create_texture2d(); D_LIKELY(tex)) D_ATTRIB_LIKELY
+        if (auto tex = create_texture2d()) [[likely]]
         {
             set_image2d(sizes, format, pixels);
-            if (D_LIKELY(is_correct())) D_ATTRIB_LIKELY
+            if (is_correct()) [[likely]]
             {
                 return gl::sizes(std::move(tex), sizes);
             }
@@ -84,11 +84,11 @@ namespace gl
 
     texture2d write(texture2d tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
     {
-        if (D_LIKELY(bind(tex))) D_ATTRIB_LIKELY
+        if (bind(tex)) [[likely]]
         {
             set_image2d(sizes, format, pixels);
 
-            if (D_LIKELY(is_correct())) D_ATTRIB_LIKELY
+            if (is_correct()) [[likely]]
             {
                 tex = gl::sizes(std::move(tex), sizes);
             }

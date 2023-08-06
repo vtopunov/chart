@@ -20,11 +20,13 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
     <TargetName>$(ProjectName)</TargetName>
+    <AndroidAPILevel>android-25</AndroidAPILevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>Application</ConfigurationType>
     <TargetName>$(ProjectName)</TargetName>
+    <AndroidAPILevel>android-25</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(AndroidTargetsPath)\Android.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -53,7 +55,7 @@
     <ProjectReference Include="$(AppLibName).vcxproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="assets\DroidSerif-Regular.ttf" />
+    <Content Include="assets\OpenSans-Regular.ttf" />
   </ItemGroup>
   <Import Project="$(AndroidTargetsPath)\Android.targets" />
   <ImportGroup Label="ExtensionTargets" />

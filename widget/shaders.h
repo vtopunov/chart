@@ -30,7 +30,7 @@ namespace widget
         template<class VS, class FS>
         bool initialize_lib(shaders_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
         {            
-            if (D_LIKELY(lib.build())) D_ATTRIB_LIKELY
+            if (lib.build()) [[likely]]
             {
                 initialize_lib_uniforms(lib, viewport_sizes);
                 return true;

@@ -115,14 +115,14 @@ namespace ui
 
     event_processor_resource event_processors_storage::create(window_handle_t window, event_callback_t callback) noexcept
     {
-        if (D_UNLIKELY(event_processor_note::garbage_mark == window)) D_ATTRIB_UNLIKELY
+        if (event_processor_note::garbage_mark == window) [[unlikely]]
         {
             return event_processor_resource::null;
         }
 
         event_processor_note* item_opt{ nullptr };
 
-        if (D_UNLIKELY(lock_ && items_.size() == items_.capacity())) D_ATTRIB_UNLIKELY
+        if (lock_ && items_.size() == items_.capacity()) [[unlikely]]
         {
             item_opt = back_items_.try_emplace_back
             (
@@ -131,7 +131,7 @@ namespace ui
                 event_processor_resource::null
             );
         }
-        else D_ATTRIB_LIKELY
+        else [[likely]]
         {
             item_opt = items_.try_emplace_back
             (
@@ -141,7 +141,7 @@ namespace ui
             );
         }
         
-        if (D_UNLIKELY(!item_opt)) D_ATTRIB_UNLIKELY
+        if (!item_opt) [[unlikely]]
         {
             return event_processor_resource::null;
         }
@@ -153,9 +153,9 @@ namespace ui
 
     void event_processors_storage::unlock_and_collecting() noexcept
     {
-        if (D_LIKELY(lock_.unlock())) D_ATTRIB_LIKELY
+        if (lock_.unlock()) [[likely]]
         {
-            if (D_UNLIKELY(first_garbage_)) D_ATTRIB_UNLIKELY
+            if (first_garbage_) [[unlikely]]
             {
                 erase_for_window
                 (
@@ -165,7 +165,7 @@ namespace ui
                 );
             }
 
-            if (D_UNLIKELY(const auto back_size = back_items_.size())) D_ATTRIB_UNLIKELY
+            if (const auto back_size = back_items_.size()) [[unlikely]]
             {
                 bool is_memory{ true };
 

@@ -12,13 +12,13 @@ namespace
 {
     void set_current_directory(const char* path) noexcept
     {
-        if (D_UNLIKELY(is_null_or_empty(path)))
+        if (is_null_or_empty(path)) [[unlikely]]
         {
             e_debug("{}: set_current_directory: path is null or empty", __FILE__);
             return;
         }
 
-        if (D_UNLIKELY(chdir(path)))
+        if (chdir(path)) [[unlikely]]
         {
             e_debug("chdir: path: {}, errno: {}", path, errno);
             return;

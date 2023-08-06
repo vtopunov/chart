@@ -206,13 +206,13 @@ namespace ui
 
                 message msg{ app_window(app_) };
 
-                while (D_LIKELY(true))
+                while (true)
                 {
                     const milliseconds_t timeout{ do_idle(processor) };
 
-                    if (D_UNLIKELY(msg.poll(timeout)))
+                    if (msg.poll(timeout)) [[unlikely]]
                     {
-                        if (D_UNLIKELY(message::process_result::quit == msg.process(app_)))
+                        if (message::process_result::quit == msg.process(app_)) [[unlikely]]
                         {
                             break;
                         }
@@ -225,7 +225,7 @@ namespace ui
             ~app_manager() noexcept;
 
         private:
-            template<class T>
+            template<class Processor>
             struct message_callbacks_instance
             {
                 static_assert(!std::is_reference_v<Processor>);
@@ -260,10 +260,14 @@ namespace ui
         };
     }
 
-    template<class T>
-    int run_event_loop(module_handle_t app, T&& processor) noexcept
+    template<class EventSource, class T>
+    int run_event_loop(const EventSource& source, T&& processor) noexcept
     {
-        const private_detail_event_loop::app_manager app_manager{ app };
+        const private_detail_event_loop::app_manager app_manager
+        { 
+            const_cast<module_handle_t>(static_cast<const_module_handle_t>(source))
+        };
+
         return app_manager.run(processor);
     }
 

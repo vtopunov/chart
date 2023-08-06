@@ -35,13 +35,13 @@ namespace ui
 
         message::process_result message::process(module_handle_t app) const noexcept
         {
-            if (D_LIKELY(source_))
+            if (source_) [[likely]]
             {
                 D_ASSERT(source_->process);
                 source_->process(app, source_);
             }
 
-            if (D_UNLIKELY(app->destroyRequested || window_ != app->window))
+            if (app->destroyRequested || window_ != app->window) [[unlikely]]
             {
                 return process_result::quit;
             }

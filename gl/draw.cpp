@@ -37,10 +37,10 @@ namespace gl
 
         const auto i_stride_bytes = narrow_cast<GLsizei>(stride);
 
-        for (size_t i = 0; i < attributes.size(); ++i) D_ATTRIB_LIKELY
+        for (size_t i = 0; i < attributes.size(); ++i) [[likely]]
         {
             if (const auto attribute_location = attributes[i]; 
-                D_LIKELY(attribute_location != invalidattribute)) D_ATTRIB_LIKELY
+                attribute_location != invalidattribute) [[likely]]
             {
                 const auto attribute_location_index = to_underlying(attribute_location);
                 const auto [offset_method, tuple_type] = attribute_profiles[i];
@@ -69,19 +69,19 @@ namespace gl
             gen_buffer()
         };
 
-        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
+        if (has_error()) [[unlikely]]
         {
             return {};
         }
 
         gl::bind(gl_buffer);
-        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
+        if (has_error()) [[unlikely]]
         {
             return {};
         }
         
         set_array(data);
-        if (D_UNLIKELY(has_error())) D_ATTRIB_UNLIKELY
+        if (has_error()) [[unlikely]]
         {
             return {};
         }

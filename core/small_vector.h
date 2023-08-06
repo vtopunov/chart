@@ -99,7 +99,7 @@ public:
         {
             const auto ok = _try_reallocate(right.size());
             D_ASSERT(ok);
-            if (D_UNLIKELY(!ok)) D_ATTRIB_UNLIKELY
+            if (!ok) [[unlikely]]
             {
                 return;
             }
@@ -133,7 +133,7 @@ public:
 
     self& operator = (const self& right) noexcept
     {
-        if (D_LIKELY(this != std::addressof(right))) D_ATTRIB_LIKELY
+        if (this != std::addressof(right)) [[likely]]
         {
             D_ASSERT_OR_UNUSED(try_assign(right));
         }
@@ -149,7 +149,7 @@ public:
 
     self& operator = (self&& right) noexcept
     {
-        if (D_LIKELY(this != std::addressof(right))) D_ATTRIB_LIKELY
+        if (this != std::addressof(right)) [[likely]]
         {
             if (right.is_static())
             {
@@ -180,7 +180,7 @@ public:
 
         if (right.size() > capacity())
         {
-            if (D_UNLIKELY(!_try_reallocate(right.size()))) D_ATTRIB_UNLIKELY
+            if (!_try_reallocate(right.size())) [[unlikely]]
             {
                 return false;
             }
@@ -222,7 +222,7 @@ public:
 
         const auto position_index = (position - data_);
 
-        if (D_LIKELY(const auto last = try_emplace_back(std::forward<Args>(args)...))) D_ATTRIB_LIKELY
+        if (const auto last = try_emplace_back(std::forward<Args>(args)...)) [[likely]]
         {
             return back_move(data_ + position_index, last);
         }
@@ -335,7 +335,7 @@ public:
     template<class... Args>
     [[nodiscard]] pointer try_emplace_back(Args&&... args) noexcept
     {
-        if (D_LIKELY(_try_indeterminate_reserve(size() + 1_uz))) D_ATTRIB_LIKELY
+        if (_try_indeterminate_reserve(size() + 1_uz)) [[likely]]
         {
             const auto last = data_ + size_;
             new (last) value_type{ std::forward<Args>(args)... };
@@ -626,7 +626,7 @@ private:
     [[nodiscard]]
     bool _try_reallocate(size_type new_capacity) noexcept
     {
-        if (buffer_type temp{buffer_construct, new_capacity}; D_LIKELY(temp)) D_ATTRIB_LIKELY
+        if (buffer_type temp{buffer_construct, new_capacity}) [[likely]]
         {
             _attach_buffer(temp);
             return true;

@@ -115,13 +115,13 @@ namespace image
     {
         constexpr auto png_format = png_format::RGBA8;
 
-        if (D_UNLIKELY(!image || !image.size())) D_ATTRIB_UNLIKELY
+        if (!image || !image.size()) [[unlikely]]
         {
             return png_errno::PNG_SIZE;
         }
 
         const auto png = png_instance();
-        if (D_UNLIKELY(!png)) D_ATTRIB_UNLIKELY
+        if (!png) [[unlikely]]
         {
             return png_errno::PNG_MEM;
         }
@@ -134,40 +134,40 @@ namespace image
             return png_errno::PNG_OK != new_errc;
         };
 
-        if (D_UNLIKELY(accept_errc(png_set_buffer(png, image)))) D_ATTRIB_UNLIKELY
+        if (accept_errc(png_set_buffer(png, image))) [[unlikely]]
         {
             return errc;
         }
 
         const png_header png_header{ png };
-        if (D_UNLIKELY(accept_errc(png_header.error_code()))) D_ATTRIB_UNLIKELY
+        if (accept_errc(png_header.error_code())) [[unlikely]]
         {
             return errc;
         }
 
         size_t size = 0;
-        if (D_UNLIKELY(accept_errc(png_decoded_image_size(png, png_format, &size)))) D_ATTRIB_UNLIKELY
+        if (accept_errc(png_decoded_image_size(png, png_format, &size))) [[unlikely]]
         {
             return errc;
         }
 
-        if (D_UNLIKELY(!size)) D_ATTRIB_UNLIKELY
+        if (!size) [[unlikely]]
         {
             return png_errno::PNG_SIZE;
         }
 
         const pix32space space{ png_header.sizes() };
-        if (D_UNLIKELY(space.size_bytes() != size)) D_ATTRIB_UNLIKELY
+        if (space.size_bytes() != size) [[unlikely]]
         {
             return png_errno::PNG_SIZE;
         }
 
-        if (D_UNLIKELY(!temp.try_reserve(size))) D_ATTRIB_UNLIKELY
+        if (!temp.try_reserve(size)) [[unlikely]]
         {
             return png_errno::PNG_MEM;
         }
 
-        if (D_UNLIKELY(accept_errc(png_decode_image(png, png_format, temp)))) D_ATTRIB_UNLIKELY
+        if (accept_errc(png_decode_image(png, png_format, temp))) [[unlikely]]
         {
             return errc;
         }

@@ -13,7 +13,7 @@ namespace widget
     {
         bool shaders_error_report_if_not(bool conditional) noexcept
         {
-            if (D_UNLIKELY(!conditional)) D_ATTRIB_UNLIKELY
+            if (!conditional) [[unlikely]]
             {
                 e_debug("shaders error: {}", glGetError());
             }
@@ -37,7 +37,7 @@ namespace widget
             = pix8space{ sizes(w) }
             .size_bytes();
 
-        if (D_UNLIKELY(!w.temp_buffer.try_reserve(require_size_bytes))) D_ATTRIB_UNLIKELY
+        if (!w.temp_buffer.try_reserve(require_size_bytes)) [[unlikely]]
         {
             e_debug("out of memory temp buffer: require {} bytes", require_size_bytes);
             return false;

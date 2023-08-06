@@ -1,4 +1,5 @@
 
+extern void test_member_detector() noexcept;
 extern void test_ordered_overload() noexcept;
 extern void test_type_traits() noexcept;
 extern void test_zero() noexcept;
@@ -31,6 +32,7 @@ extern void test_utf() noexcept;
 
 int main() noexcept
 {
+    test_member_detector();
     test_ordered_overload();
     test_type_traits();
     test_zero();

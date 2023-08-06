@@ -14,7 +14,10 @@ namespace egl_ui
     {
         ui_window_parametrs ui_params;
         gl::rgba_colorf_t background{ gl::colors::white_f };
+
+#ifdef D_OS_WINDOWS
         ui::show_command command_show{ ui::show_command::maximazed };
+#endif
     };
 
     [[nodiscard]]
@@ -42,6 +45,7 @@ namespace egl_ui
             return _builder();
         }
 
+#ifdef D_OS_WINDOWS
         constexpr Builder& command_show(ui::show_command command) noexcept
         {
             params_.command_show = command;
@@ -75,6 +79,7 @@ namespace egl_ui
             params_.ui_params.geometry = rc;
             return _builder();
         }
+#endif
 
     protected:
         [[nodiscard]]

@@ -104,7 +104,7 @@ namespace
         constexpr test_callback(test_callback&& right) noexcept
             : id_{ std::exchange(right.id_, invalid) }
         {
-            collect.is_valid(id_);
+            D_ASSERT(collect.is_valid(id_));
         }
 
         constexpr test_callback& operator = (test_callback&& right) noexcept

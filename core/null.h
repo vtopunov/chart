@@ -243,35 +243,34 @@ namespace private_detail_is_nullable
 namespace private_detail_null_instance
 {
     using private_detail_null_type::null_t;
+    using private_detail_has_value::has_value;
+    using private_detail_is_null::is_null;
 
     template<class T>
-    constexpr auto has_cmp_with_null_v = std::conjunction_v<
-        private_detail_is_nullable::is_nullable<T>,
-        std::is_class<null_t<T>>
-    >;
+    constexpr auto cmp_impl_is_required_v = std::is_class_v<null_t<T>>;
 
-    template<class T, std::enable_if_t<has_cmp_with_null_v<T>, int> = 0>
-    [[nodiscard]] constexpr decltype(auto) operator != (const T& value, null_t<T>) noexcept
+    template<class T, std::enable_if_t<cmp_impl_is_required_v<T>, int> = 0>
+    [[nodiscard]] constexpr auto operator != (const T& value, null_t<T>) noexcept -> decltype(has_value(value))
     {
-        return private_detail_has_value::has_value(value);
+        return has_value(value);
     }
 
-    template<class T, std::enable_if_t<has_cmp_with_null_v<T>, int> = 0>
-    [[nodiscard]] constexpr decltype(auto) operator != (null_t<T>, const T& value) noexcept
+    template<class T, std::enable_if_t<cmp_impl_is_required_v<T>, int> = 0>
+    [[nodiscard]] constexpr auto operator != (null_t<T>, const T& value) noexcept -> decltype(has_value(value))
     {
-        return private_detail_has_value::has_value(value);
+        return has_value(value);
     }
  
-    template<class T, std::enable_if_t<has_cmp_with_null_v<T>, int> = 0>
-    [[nodiscard]] constexpr decltype(auto) operator == (const T& value, null_t<T>) noexcept
+    template<class T, std::enable_if_t<cmp_impl_is_required_v<T>, int> = 0>
+    [[nodiscard]] constexpr auto operator == (const T& value, null_t<T>) noexcept -> decltype(is_null(value))
     {
-        return private_detail_is_null::is_null(value);
+        return is_null(value);
     }
 
-    template<class T, std::enable_if_t<has_cmp_with_null_v<T>, int> = 0>
-    [[nodiscard]] constexpr decltype(auto) operator == (null_t<T>, const T& value) noexcept
+    template<class T, std::enable_if_t<cmp_impl_is_required_v<T>, int> = 0>
+    [[nodiscard]] constexpr auto operator == (null_t<T>, const T& value) noexcept -> decltype(is_null(value))
     {
-        return private_detail_is_null::is_null(value);
+        return is_null(value);
     }
 }
 

@@ -194,7 +194,7 @@ namespace widget
     {
         for (const auto configure : cfgs)
         {
-            if (D_UNLIKELY(!configure(window))) D_ATTRIB_UNLIKELY
+            if (!configure(window)) [[unlikely]]
             {
                 return false;
             }

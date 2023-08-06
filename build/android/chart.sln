@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.32510.428
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3rdparty", "3rdparty", "{2F9B7D91-3F38-485A-926B-62B2FC1EEF69}"
 EndProject
@@ -148,6 +148,12 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_move_and_zoom_applib", "apps\vtest_move_and_zoom\vtest_move_and_zoom_applib.vcxproj", "{28A64F39-6796-4BCA-B5E6-0DACA4419810}"
 EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_move_and_zoom", "apps\vtest_move_and_zoom\vtest_move_and_zoom.androidproj", "{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_chart_line", "vtest_chart_line", "{D59B84F6-36A7-471A-9E5E-6F8E786C6A21}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_chart_line_applib", "apps\vtest_chart_line\vtest_chart_line_applib.vcxproj", "{B0964E47-9839-4031-9FB3-0904DB3988F6}"
+EndProject
+Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_chart_line", "apps\vtest_chart_line\vtest_chart_line.androidproj", "{B1FEC6FF-27F7-4876-8335-794741C2AA80}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -401,6 +407,16 @@ Global
 		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}.Release|ARM.ActiveCfg = Release|ARM
 		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}.Release|ARM.Build.0 = Release|ARM
 		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}.Release|ARM.Deploy.0 = Release|ARM
+		{B0964E47-9839-4031-9FB3-0904DB3988F6}.Debug|ARM.ActiveCfg = Debug|ARM
+		{B0964E47-9839-4031-9FB3-0904DB3988F6}.Debug|ARM.Build.0 = Debug|ARM
+		{B0964E47-9839-4031-9FB3-0904DB3988F6}.Release|ARM.ActiveCfg = Release|ARM
+		{B0964E47-9839-4031-9FB3-0904DB3988F6}.Release|ARM.Build.0 = Release|ARM
+		{B1FEC6FF-27F7-4876-8335-794741C2AA80}.Debug|ARM.ActiveCfg = Debug|ARM
+		{B1FEC6FF-27F7-4876-8335-794741C2AA80}.Debug|ARM.Build.0 = Debug|ARM
+		{B1FEC6FF-27F7-4876-8335-794741C2AA80}.Debug|ARM.Deploy.0 = Debug|ARM
+		{B1FEC6FF-27F7-4876-8335-794741C2AA80}.Release|ARM.ActiveCfg = Release|ARM
+		{B1FEC6FF-27F7-4876-8335-794741C2AA80}.Release|ARM.Build.0 = Release|ARM
+		{B1FEC6FF-27F7-4876-8335-794741C2AA80}.Release|ARM.Deploy.0 = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -462,6 +478,9 @@ Global
 		{7E36C66F-2FE2-40DF-9250-C1E6B369E8DC} = {41B10E82-3141-4F27-859E-E16086E7F3CB}
 		{28A64F39-6796-4BCA-B5E6-0DACA4419810} = {7E36C66F-2FE2-40DF-9250-C1E6B369E8DC}
 		{E46D6EDD-F637-4F53-B421-AFA3D0227F0D} = {7E36C66F-2FE2-40DF-9250-C1E6B369E8DC}
+		{D59B84F6-36A7-471A-9E5E-6F8E786C6A21} = {41B10E82-3141-4F27-859E-E16086E7F3CB}
+		{B0964E47-9839-4031-9FB3-0904DB3988F6} = {D59B84F6-36A7-471A-9E5E-6F8E786C6A21}
+		{B1FEC6FF-27F7-4876-8335-794741C2AA80} = {D59B84F6-36A7-471A-9E5E-6F8E786C6A21}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6BA0FE90-5B90-4621-9483-7FC05A6F0C49}

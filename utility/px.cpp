@@ -12,7 +12,7 @@ namespace px
             const auto space_size_bytes = space.size_bytes();
             const auto buffer_size_bytes = size_bytes(buffer);
 
-            if (D_UNLIKELY(space_size_bytes > buffer_size_bytes)) D_ATTRIB_UNLIKELY
+            if (space_size_bytes > buffer_size_bytes) [[unlikely]]
             {
                 w_debug("out of buffer: require {} bytes, reserved {} bytes", space_size_bytes, buffer_size_bytes);
 

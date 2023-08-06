@@ -97,7 +97,7 @@ namespace egl_ui
 
         r.ui = create_window(params.ui_params).release();
 
-        if (D_LIKELY(r.ui)) D_ATTRIB_LIKELY
+        if (r.ui) [[likely]]
         {
 #if defined(D_OS_WINDOWS)
             D_WARNING_PUSH;
@@ -120,7 +120,7 @@ namespace egl_ui
         }
 
         EGLConfig config{ nullptr };
-        if (D_LIKELY(r.display && eglInitialize(r.display, nullptr, nullptr) && eglBindAPI(EGL_OPENGL_ES_API))) D_ATTRIB_LIKELY
+        if (r.display && eglInitialize(r.display, nullptr, nullptr) && eglBindAPI(EGL_OPENGL_ES_API)) [[likely]]
         {
             constexpr EGLint config_attributes[] =
             {
@@ -136,7 +136,7 @@ namespace egl_ui
             EGLint config_count{ 0 };
             const auto choose_ok = eglChooseConfig(r.display, config_attributes, &config, 1, &config_count);
 
-            if (D_UNLIKELY(!choose_ok || (config_count != 1))) D_ATTRIB_UNLIKELY
+            if (!choose_ok || (config_count != 1)) [[unlikely]]
             {
                 config = nullptr;
             }
@@ -144,7 +144,7 @@ namespace egl_ui
 
         const auto extensions = query_extensions(r.display);
 
-        if (D_LIKELY(config)) D_ATTRIB_LIKELY
+        if (config) [[likely]]
         {
             attributes_builder<D_CONDITIONAL_OS_WINDOWS(2_uz, 1_uz)> surface_attributes;
 
@@ -166,7 +166,7 @@ namespace egl_ui
             ));
         }
 
-        if (D_LIKELY(r.surface)) D_ATTRIB_LIKELY
+        if (r.surface) [[likely]]
         {
             attributes_builder<D_CONDITIONAL_OS_WINDOWS(3_uz, 2_uz)> context_attributes;
 
@@ -188,7 +188,7 @@ namespace egl_ui
         }
 
 
-        if (D_LIKELY(r.context && eglMakeCurrent(r.display, r.surface, r.surface, r.context))) D_ATTRIB_LIKELY
+        if (r.context && eglMakeCurrent(r.display, r.surface, r.surface, r.context)) [[likely]]
         {
             gl_enable_transparent();
             r.background = params.background;

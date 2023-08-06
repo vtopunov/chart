@@ -16,8 +16,36 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\apps\test_core\main.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_buffer.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_buffer_view.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_clamp_cast.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_color.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_lerp.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_lerp_color.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_member_detector.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_narrow.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_null.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_num_range.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_ordered_overload.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_point2d.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_rational.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_rectangle.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_resource.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_round.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_size2d.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_size_type.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_small_vector.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_span.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_static_vector.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_type_traits.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_utf.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_utility.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_value_type.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_vec2.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_view.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_zero.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_zstring_view.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BF9FBC59-47DD-402B-A56E-8C7A864CEFF6}</ProjectGuid>
@@ -32,19 +60,18 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
-    <AndroidAPILevel>android-30</AndroidAPILevel>
+    <AndroidAPILevel>android-31</AndroidAPILevel>
     <UseOfStl>c++_shared</UseOfStl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
-    <AndroidAPILevel>android-30</AndroidAPILevel>
+    <AndroidAPILevel>android-31</AndroidAPILevel>
     <UseOfStl>c++_shared</UseOfStl>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\..\build\app_library.props" />
-  <Import Project="$(RepoAppsDir)\test_core\files.pros" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <ClCompile>
       <PreprocessorDefinitions>__ANDROID_API__=$(AndroidAPILevelNumber);%(PreprocessorDefinitions)</PreprocessorDefinitions>

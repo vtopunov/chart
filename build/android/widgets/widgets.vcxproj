@@ -23,13 +23,13 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
-    <AndroidAPILevel>android-30</AndroidAPILevel>
+    <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
-    <AndroidAPILevel>android-30</AndroidAPILevel>
+    <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\static_library.props" />
@@ -38,13 +38,18 @@
     <ClInclude Include="$(RepoDir)\widget\label.h" />
     <ClInclude Include="$(RepoDir)\widget\run.h" />
     <ClInclude Include="$(RepoDir)\widget\text.h" />
+    <ClInclude Include="..\..\..\widget\event_result.h" />
     <ClInclude Include="..\..\..\widget\shaders.h" />
+    <ClInclude Include="..\..\..\widget\widget_initializer.h" />
     <ClInclude Include="..\..\..\widget\window.h" />
+    <ClInclude Include="..\..\..\widget\window_builder.h" />
+    <ClInclude Include="..\..\..\widget\window_fwd.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(RepoDir)\widget\button.cpp" />
     <ClCompile Include="$(RepoDir)\widget\label.cpp" />
     <ClCompile Include="$(RepoDir)\widget\text.cpp" />
+    <ClCompile Include="..\..\..\widget\widget_initializer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\utility\utility.vcxproj">

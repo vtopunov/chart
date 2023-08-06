@@ -2,12 +2,18 @@
 
 #include <debug/debug.h>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
+namespace
+{
+    #include <ft2build.h>
+    #include FT_FREETYPE_H
+}
 
 
 namespace font
 {
+    struct s_face_descriptor : FT_FaceRec_
+    {};
+
     namespace
     {
         template<class T, size_t FractBits>
@@ -130,7 +136,7 @@ namespace font
                     lib = ok ? temp_lib : nullptr;
                     ref_count = ok ? ref_count_initializer_with_cached_ref : ref_count_initializer_without_destroy;
 
-                    if (D_UNLIKELY(!ok)) D_ATTRIB_UNLIKELY 
+                    if (!ok) [[unlikely]]
                     {
                         D_UNUSED(ref.release());
                         D_UNUSED(cached_ref.release());
@@ -157,32 +163,42 @@ namespace font
             inline static library_descriptor_t lib{ nullptr };
             inline static size_t ref_count{ ref_count_initializer_without_destroy };
         };
+
+        struct ft_face_deleter
+        {
+            void operator()(FT_Face face) const noexcept
+            {
+                if (face)
+                {
+                    [[maybe_unused]]
+                    const library::library_ref library_deref
+                    {
+                        resource_construct,
+                            library::dtor_state::enabled
+                    };
+
+                    FT_Done_Face(face);
+                }
+            }
+        };
     }
 
     void face_deleter::operator()(face_descriptor_t face) const noexcept
     {
-        if (face)
-        {
-            [[maybe_unused]]
-            const library::library_ref library_deref
-            {
-                resource_construct,
-                library::dtor_state::enabled
-            };
-
-            FT_Done_Face(face);
-        }
+        constexpr ft_face_deleter ft_deleter{};
+        ft_deleter(face);
     }
 
     face create_face(const_buffer_view font_storage, pxsize2d sizes) noexcept
     {
         auto lib = library::instance();
 
-        font::face face{};
+        face result_face{};
 
-        if (D_LIKELY(lib)) D_ATTRIB_LIKELY
+        if (lib) [[likely]]
         {
             constexpr FT_Long face_index{ 0 };
+            unique_resource<FT_Face, ft_face_deleter> ft_face{};
 
             if (const auto errc
                 = FT_New_Memory_Face
@@ -191,28 +207,34 @@ namespace font
                     font_storage.as_ptr<FT_Byte>(),
                     narrow_cast<FT_Long>(font_storage.size()),
                     face_index,
-                    std::addressof(as_mutable(face.r()))
-                ); D_UNLIKELY(errc != FT_Err_Ok)) D_ATTRIB_UNLIKELY
+                    std::addressof(as_mutable(ft_face.r()))
+                ); errc != FT_Err_Ok) [[unlikely]]
             {
-                D_UNUSED(face.release());
+                ft_face.reset();
                 e_debug_ft("FT_New_Memory_Face", errc);
             }
+
+            result_face = face
+            {
+                resource_construct,
+                static_cast<face_descriptor_t>(ft_face.release())
+            };
         }
 
-        if (D_LIKELY(face)) D_ATTRIB_LIKELY
+        if (result_face) [[likely]]
         {
-            if (D_UNLIKELY(!font::sizes(face, sizes))) D_ATTRIB_UNLIKELY
+            if (!font::sizes(result_face, sizes)) [[unlikely]]
             {
-                face.reset();
+                result_face.reset();
             }
         }
 
-        if (D_LIKELY(face)) D_ATTRIB_LIKELY
+        if (result_face) [[likely]]
         {
             D_UNUSED(lib.release());
         }
 
-        return face;
+        return result_face;
     }
 
     bool sizes(face_descriptor_t face, pxsize2d sizes) noexcept
@@ -223,7 +245,7 @@ namespace font
                 face,
                 narrow_cast<FT_UInt>(sizes.width()),
                 narrow_cast<FT_UInt>(sizes.height())
-            ); D_UNLIKELY(errc != FT_Err_Ok)) D_ATTRIB_UNLIKELY
+            ); errc != FT_Err_Ok) [[unlikely]]
         {
             e_debug_ft("FT_Set_Pixel_Sizes", errc);
             return false;
@@ -234,12 +256,12 @@ namespace font
 
     cursor draw_char(pix8span image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept
     {
-        if (const auto end_x = cursor::value_type::instance(image.width()); D_UNLIKELY(cursor.x() >= end_x)) D_ATTRIB_UNLIKELY
+        if (const auto end_x = cursor::value_type::instance(image.width()); cursor.x() >= end_x) [[unlikely]]
         {
             return invalid_cursor;
         }
 
-        if (D_UNLIKELY(!char_code)) D_ATTRIB_UNLIKELY
+        if (!char_code) [[unlikely]]
         {
             return invalid_cursor;
         }
@@ -250,14 +272,14 @@ namespace font
                 face, 
                 safe_numeric_cast<FT_ULong>(char_code), 
                 FT_LOAD_RENDER
-            ); D_UNLIKELY(FT_Err_Ok != errc)) D_ATTRIB_UNLIKELY
+            ); FT_Err_Ok != errc) [[unlikely]]
         {
             e_debug_ft("FT_Load_Char FT_LOAD_RENDER", errc);
             return invalid_cursor;
         }
 
         const auto glyph = face->glyph;
-        if (D_UNLIKELY(!glyph)) D_ATTRIB_UNLIKELY
+        if (!glyph) [[unlikely]]
         {
             return invalid_cursor;
         }
@@ -265,16 +287,16 @@ namespace font
         const glyph_metrics_wrapper m{ glyph->metrics };
 
         const auto advance_x = m.width();
-        if (D_UNLIKELY(!is_positive(advance_x))) D_ATTRIB_UNLIKELY
+        if (!is_positive(advance_x)) [[unlikely]]
         {
             return invalid_cursor;
         }
 
         const auto& bitmap = glyph->bitmap;
 
-        if (D_LIKELY(bitmap.width && bitmap.rows)) D_ATTRIB_LIKELY
+        if (bitmap.width && bitmap.rows) [[likely]]
         {
-            if (D_UNLIKELY(!bitmap.buffer)) D_ATTRIB_UNLIKELY
+            if (!bitmap.buffer) [[unlikely]]
             {
                 return invalid_cursor;
             }
@@ -333,7 +355,7 @@ namespace font
     {
         constexpr metrics invalid_metrics{};
 
-        if (D_UNLIKELY(!char_code)) D_ATTRIB_UNLIKELY
+        if (!char_code) [[unlikely]]
         {
             return invalid_metrics;
         }
@@ -344,14 +366,14 @@ namespace font
                 face, 
                 safe_numeric_cast<FT_ULong>(char_code), 
                 FT_LOAD_DEFAULT
-            ); D_UNLIKELY(FT_Err_Ok != errc)) D_ATTRIB_UNLIKELY
+            ); FT_Err_Ok != errc) [[unlikely]]
         {
             e_debug_ft("FT_Load_Char FT_LOAD_DEFAULT", errc);
             return invalid_metrics;
         }
 
         const auto glyph = face->glyph;
-        if (D_UNLIKELY(!glyph)) D_ATTRIB_UNLIKELY
+        if (!glyph) [[unlikely]]
         {
             return invalid_metrics;
         }

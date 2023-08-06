@@ -172,7 +172,7 @@ namespace widget
         const auto client_rc = rectangle_without_frame(geometry);
         w.shaders.colored_rectangle.draw(client_rc, colors.body);
 
-        if (D_LIKELY(text::draw_to_cache(*this, w.temp_buffer_view(), client_rc.sizes))) D_ATTRIB_LIKELY
+        if (text::draw_to_cache(*this, w.temp_buffer_view(), client_rc.sizes)) [[likely]]
         {
             const auto client_rc_center = center(client_rc);
             const auto texture_center = text_cache.center();

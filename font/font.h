@@ -10,14 +10,12 @@
 
 #include <font/fixed.h>
 
-extern "C" 
-{
-    typedef struct FT_FaceRec_* private_detail_font_face_descriptor_t;
-}
 
 namespace font
 {
-    using face_descriptor_t = private_detail_font_face_descriptor_t;
+    struct s_face_descriptor;
+
+    using face_descriptor_t = s_face_descriptor*;
 
     using charmax_t = char32_t;
     using fixed_t = fixed<int64_t, 6_uz>;
@@ -107,7 +105,7 @@ namespace font
         {
             D_ASSERT(success_bit);
 
-            if (D_LIKELY(glyph.success_bit)) D_ATTRIB_LIKELY
+            if (glyph.success_bit) [[likely]]
             {
                 width = width + glyph.width;
                 top = std::min(top, glyph.top);
@@ -131,7 +129,7 @@ namespace font
     {
         const auto processor = [&tm, face](charmax_t ch) noexcept
         {
-            if (D_LIKELY(tm.success_bit)) D_ATTRIB_LIKELY
+            if (tm.success_bit) [[likely]]
             {
                 tm.add(char_metrics(face, ch));
             }

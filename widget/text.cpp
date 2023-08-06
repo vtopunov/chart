@@ -31,7 +31,7 @@ namespace widget
         bool drawing_cache::draw(buffer_view buffer, font::face_descriptor_t face, std::u8string_view text, pxsize2d sizes) noexcept
         {
             const auto tm = font::text_metrics(initial_tm(face), face, text);
-            if (D_UNLIKELY(!tm)) D_ATTRIB_UNLIKELY
+            if (!tm) [[unlikely]]
             {
                 return false;
             }
@@ -44,7 +44,7 @@ namespace widget
             );
 
             const auto y_cursor = font::draw_text(pixs, 0_px, -tm.top, face, text).y();
-            if (D_UNLIKELY(invalid_y == y_cursor)) D_ATTRIB_UNLIKELY
+            if (invalid_y == y_cursor) [[unlikely]]
             {
                 return false;
             }
@@ -58,7 +58,7 @@ namespace widget
                 texture_ = gl::create_texture2d(pixs);
             }
 
-            if (D_UNLIKELY(gl::sizes(texture_) != pixs.sizes())) D_ATTRIB_UNLIKELY
+            if (gl::sizes(texture_) != pixs.sizes()) [[unlikely]]
             {
                 return false;
             }

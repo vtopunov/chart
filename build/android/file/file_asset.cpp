@@ -9,85 +9,75 @@
 
 namespace file
 {
-    namespace
+    namespace asset
     {
-        os::asset_handle_t asset_open(AAssetManager* am, path_zstring_view path, asset_mode mode) noexcept
+
+        namespace
         {
-            return (am) ? AAssetManager_open(am, path.c_str(), to_underlying(mode)) : nullptr;
-        }
-    }
-
-    void asset_deleter::operator()(os::asset_handle_t asset) const noexcept
-    {
-        if (asset)
-        {
-            AAsset_close(asset);
-        }
-    }
-
-    asset_t asset_open(path_zstring_view path, asset_mode mode) noexcept
-    {
-        return 
-        {
-            resource_construct,
-            asset_open(common::asset_manager(), path, mode)
-        };
-    }
-
-    const void* data(os::asset_handle_t asset) noexcept
-    {
-        return AAsset_getBuffer(asset);
-    }
-    
-    size_t size(os::asset_handle_t asset) noexcept
-    {
-        return safe_numeric_cast<size_t>(clamp_to_unsigned(AAsset_getLength(asset)));
-    }
-
-    void asset_or_file_mmap_resource_deleter::operator()(const asset_or_file_mmap_resource& asset_or_file) const noexcept
-    {
-        const auto p = std::addressof(asset_or_file.private_detail_);
-        if (const auto passet = std::get_if<asset_or_file_mmap_resource::_private_detail_asset_resource>(p))
-        {
-            constexpr asset_deleter close{};
-            close(passet->asset_);
-        }
-        else if(const auto pmmap = std::get_if<file_mmap_resource>(p))
-        {
-            constexpr file_mmap_resource_deleter close{};
-            close(*pmmap);
-        }
-    }
-
-    asset_or_file_mmap_t asset_or_file_mmap(path_zstring_view path) noexcept
-    {
-        asset_or_file_mmap_t result;
-
-        auto& p = as_mutable(result.r().private_detail_);
-        
-        if (auto asset = asset_open(path, asset_mode::buffer))
-        {
-            const auto data = file::data(asset);
-            const auto size = file::size(asset);
-
-            if (data && size)
+            os::asset_handle_t asset_open(AAssetManager* am, path_zstring_view path) noexcept
             {
-                p = asset_or_file_mmap_resource::_private_detail_asset_resource
-                { 
-                    .asset_{ asset.release() },
-                    .data_{ data },
-                    .size_{ size }
+                return (am) ? AAssetManager_open(am, path.c_str(), AASSET_MODE_BUFFER) : nullptr;
+            }
+
+            struct asset_deleter
+            {
+                void operator()(os::asset_handle_t asset) const noexcept
+                {
+                    if (asset)
+                    {
+                        AAsset_close(asset);
+                    }
+                }
+            };
+
+            using asset_t = unique_resource<os::asset_handle_t, asset_deleter>;
+
+            asset_t asset_open(path_zstring_view path) noexcept
+            {
+                return
+                {
+                    resource_construct,
+                    asset_open(common::asset_manager(), path)
                 };
             }
-        }
-        else
-        {
-            if (auto file = mmap(path))
+
+            const void* data(os::asset_handle_t asset) noexcept
             {
-                p = file.release();
+                return AAsset_getBuffer(asset);
+            }
+
+            size_t size(os::asset_handle_t asset) noexcept
+            {
+                return safe_numeric_cast<size_t>(clamp_to_unsigned(AAsset_getLength(asset)));
             }
         }
 
-        return result;
+        void asset_mmap_resource_deleter::operator()(const asset_mmap_resource& asset) const noexcept
+        {
+            constexpr asset_deleter close{};
+            close(asset.asset_);
+        }
+
+        asset_mmap mmap(path_zstring_view path) noexcept
+        {
+            if (auto asset = asset_open(path)) [[likely]]
+            {
+                if (const auto a_data = data(asset)) [[likely]]
+                {
+                    if (const auto a_size = size(asset)) [[likely]]
+                    {
+                        return
+                        {
+                            resource_construct,
+                            asset.release(),
+                            a_data,
+                            a_size
+                        };
+                    }
+                }
+            }
+
+            return {};
+        }
     }
 }

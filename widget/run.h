@@ -121,9 +121,9 @@ namespace widget
         };
 
 
-        template<class Fn, class... Args>
+        template<class Fn, class Arg>
         using return_t = std::remove_cv_t<
-            decltype(std::declval<std::add_lvalue_reference_t<Fn>>()(std::declval<std::add_lvalue_reference_t<Args...>>()))
+            decltype(std::declval<std::add_lvalue_reference_t<Fn>>()(std::declval<std::add_lvalue_reference_t<Arg>>()))
         >;
 
         template<class T>
@@ -153,7 +153,7 @@ namespace widget
 
             return wnd
                 && call_initialize(ini, wgt)
-                && wgt.apply([&ini, &wnd] (auto&... widgets) noexcept
+                && wgt.apply([&ini] (auto&... widgets) noexcept
             {
                 return (call_initialize(ini, widgets) && ... && true);
             }) && configure(wnd, ini.cfg());
@@ -170,7 +170,7 @@ namespace widget
             std::forward<Args>(args)...
         };
 
-        if (D_UNLIKELY(!private_detail_run::initialize(widget_window, processor.widget))) D_ATTRIB_UNLIKELY
+        if (!private_detail_run::initialize(widget_window, processor.widget)) [[unlikely]]
         {
             e_debug
             (

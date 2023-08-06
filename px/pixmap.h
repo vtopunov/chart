@@ -52,7 +52,7 @@ namespace px
             : space_type{ space }
             , buffer_{ buffer_construct, space.size_bytes() }
         {
-            if (D_LIKELY(buffer_)) D_ATTRIB_LIKELY
+            if (buffer_) [[likely]]
             {
                 zero_memory(*this);
             }
@@ -66,7 +66,7 @@ namespace px
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
-            if (D_LIKELY(buffer_.try_reserve(space.size_bytes()))) D_ATTRIB_LIKELY
+            if (buffer_.try_reserve(space.size_bytes())) [[likely]]
             {
                 zero_memory(*this);
             }

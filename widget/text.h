@@ -63,7 +63,7 @@ namespace widget
                 if (!w.font)
                 {
                     w.font = font_cache::load_font(default_font_name, default_font_size);
-                    if (D_UNLIKELY(!w.font)) D_ATTRIB_UNLIKELY
+                    if (!w.font) [[unlikely]]
                     {
                         error_load_default_font_report();
                         return false;

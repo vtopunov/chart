@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">  
-  <Import Project="..\includes.props" />
+  <Import Project="..\cl_compile.props" />
   
   <ItemDefinitionGroup>
     <ClCompile>
@@ -16,6 +16,7 @@
       <SDLCheck>true</SDLCheck>
       <SupportJustMyCode>false</SupportJustMyCode>
       <WarningLevel>Level4</WarningLevel>
+      <BuildStlModules>false</BuildStlModules>
     </ClCompile>
   </ItemDefinitionGroup>
   
@@ -27,7 +28,6 @@
   
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
     <ClCompile>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FunctionLevelLinking>true</FunctionLevelLinking>

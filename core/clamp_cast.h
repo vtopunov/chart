@@ -105,10 +105,10 @@ namespace private_detail_clamp_cast
         constexpr auto target_min_source = static_cast<source_t>(round_target_min);
         constexpr auto target_max_source = static_cast<source_t>(round_target_max);
 
-        if (D_UNLIKELY(v <= target_min_source)) D_ATTRIB_UNLIKELY
+        if (v <= target_min_source) [[unlikely]]
             return round_target_min;
 
-        if (D_UNLIKELY(v >= target_max_source)) D_ATTRIB_UNLIKELY
+        if (v >= target_max_source) [[unlikely]]
             return round_target_max;
 
         return fn(v);

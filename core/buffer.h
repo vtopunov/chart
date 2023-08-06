@@ -149,7 +149,7 @@ public:
         if (_count() < new_count)
         {
             buffer_void_collection new_buffer{ buffer_construct, new_count };
-            if (D_UNLIKELY(!new_buffer)) D_ATTRIB_UNLIKELY
+            if (!new_buffer) [[unlikely]]
             {
                 return false;
             }
@@ -179,7 +179,7 @@ private:
 
         void* result{ nullptr };
 
-        if (D_LIKELY(size <= overflow)) D_ATTRIB_LIKELY 
+        if (size <= overflow) [[likely]]
         {
             using std::malloc;
 

@@ -16,7 +16,6 @@ constexpr std::underlying_type_t<E> to_underlying(E e) noexcept
 template<class Target, class Source> [[nodiscard]]
 constexpr Target underlying_cast(Source source) noexcept
 {
-    static_assert(std::disjunction_v<std::is_enum<Target>, std::is_enum<Source>>);
     static_assert(std::is_same_v<remove_cve_t<Target>, remove_cveref_t<Source>>);
     return static_cast<Target>(source);
 }

@@ -32,7 +32,7 @@ namespace font_cache
             {
                 const auto p = std::addressof(mmap_variants);
 
-                if (const auto p_asset = std::get_if<file::asset_mmap>(p); D_LIKELY(p_asset)) D_ATTRIB_LIKELY
+                if (const auto p_asset = std::get_if<file::asset_mmap>(p)) [[likely]]
                 {
                     return view(*p_asset);
                 }
@@ -49,7 +49,7 @@ namespace font_cache
         [[nodiscard]]
         asset_or_file_mmap mmap_asset_or_file(file::path_zstring_view name) noexcept
         {
-            if (auto asset_mmap = file::asset::mmap(name); D_LIKELY(asset_mmap)) D_ATTRIB_LIKELY
+            if (auto asset_mmap = file::asset::mmap(name)) [[likely]]
             {
                 return { .mmap_variants{ std::move(asset_mmap) } };
             }
@@ -177,7 +177,7 @@ namespace font_cache
             }
             else if (garbage)
             {
-                if (D_UNLIKELY(!font::size(garbage->face, size))) D_ATTRIB_UNLIKELY
+                if (!font::size(garbage->face, size)) [[unlikely]]
                 {
                     return {};
                 }
@@ -198,7 +198,7 @@ namespace font_cache
             else
             {
                 file_mmap = mmap_asset_or_file(name);
-                if (D_UNLIKELY(!file_mmap)) D_ATTRIB_UNLIKELY
+                if (!file_mmap) [[unlikely]]
                 {
                     e_debug(_PATH("can't open font file: {}"), name_sv);
                     return {};
@@ -208,7 +208,7 @@ namespace font_cache
             }
 
             auto face = font::create_face(font_storage, size);
-            if (D_UNLIKELY(!face)) D_ATTRIB_UNLIKELY
+            if (!face) [[unlikely]]
             {
                 e_debug
                 (
@@ -222,7 +222,7 @@ namespace font_cache
             if (!cached_mmap)
             {
                 cached_mmap = mmaps.try_emplace(file::path_string(name_sv), std::move(file_mmap));
-                if (D_UNLIKELY(!cached_mmap)) D_ATTRIB_UNLIKELY 
+                if (!cached_mmap) [[unlikely]]
                 {
                     e_debug("load_font: out of memory");
                     return {};
@@ -230,7 +230,7 @@ namespace font_cache
             }
 
             cached_face = faces.try_emplace(std::move(face), mmaps.index(cached_mmap), size);
-            if (D_UNLIKELY(!cached_face)) D_ATTRIB_UNLIKELY
+            if (!cached_face) [[unlikely]]
             {
                 e_debug("load_font: out of memory");
                 return {};
