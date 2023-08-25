@@ -4,11 +4,41 @@
 
 #include <core/buffer_view.h>
 
+#include <px/fwd.h>
+
+#include <gl/color.h>
 #include <gl/shader.h>
 #include <gl/vertex.h>
 
+
 namespace gl
 {
+    inline void viewport(pxsize2d sizes) noexcept
+    {
+        glViewport
+        (
+            0, 0,
+            narrow_cast<GLsizei>(sizes.width()),
+            narrow_cast<GLsizei>(sizes.height())
+        );
+    }
+
+    inline void clear(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) noexcept
+    {
+        glClearColor(red, green, blue, alpha);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    inline void clear(GLfloat red, GLfloat green, GLfloat blue) noexcept
+    {
+        clear(red, green, blue, 1.0f);
+    }
+
+    inline void clear(rgba_colorf_t color) noexcept
+    {
+        clear(color.r, color.g, color.b, color.a);
+    }
+
     enum class draw_mode : GLenum
     {
         points = GL_POINTS,

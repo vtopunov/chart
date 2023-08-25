@@ -2,9 +2,10 @@
 
 #include <debug/debug.h>
 
-#include <egl_ui/event_loop.h>
+#include <egl_ui/egl_ui_owner.h>
 
 #include <utility/shaders_library.h>
+
 
 namespace
 {
@@ -33,7 +34,7 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = create_egl_window(app);
+    const auto egl = create_egl_ui(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -57,15 +58,17 @@ int app_main(os::module_handle_t app) noexcept
 
     shaders.use();
     shaders.vert.u_size.store(sizes(texture));
-    shaders.vert.u_viewport.store(sizes(egl));
+    shaders.vert.u_viewport.store(egl.viewport);
     shaders.frag.s_texture.store(texture);
 
     {
-        const egl_painting_owner painting_lock{ egl };
+        const egl_painting_owner painting_owner{ egl };
+        gl::viewport(egl.viewport);
+        gl::clear(gl::colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();
 
-        const auto [w, h] = sizes(egl);
+        const auto [w, h] = egl.viewport;
         const auto dx = width(texture) + 1_px;
         const auto dy = height(texture) + 1_px;
 

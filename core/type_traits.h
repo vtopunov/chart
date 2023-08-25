@@ -71,6 +71,23 @@ using unsigned_or_t = conditional_op_t<std::is_integral_v<T>, std::make_unsigned
 template<class T>
 using remove_unsigned_t = conditional_op_t<std::is_unsigned_v<T>, std::make_signed_t, T>;
 
+template<class T>
+struct add_const_pointer {};
+
+template<class T>
+struct add_const_pointer<T*>
+{
+    using type = const T*;
+};
+
+template<class T>
+struct add_const_pointer<T*const>
+{
+    using type = const T*const;
+};
+
+template<class T>
+using add_const_pointer_t = typename add_const_pointer<T>::type;
 
 template <class T>
 struct remove_reference_wrapper 

@@ -49,4 +49,5 @@
 #define W_do_not_use_reinterpret_cast                                  26490
 #define W_use_constexpr                                                26498
 #define W_enum_is_unscoped__prefer_enum_class                          26812
+#define W_use_bitwise_and_to_check_enum_flags                          26813
 #define W_inconsistent_annotation                                      28251

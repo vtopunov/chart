@@ -2,11 +2,9 @@
 
 #include <string>
 
-#include <ui/event_fwd.h>
-
 #include <gl/texture.h>
 
-#include <widget/widget_initializer.h>
+#include <widget/fwd.h>
 #include <widget/text.h>
 
 namespace widget
@@ -27,8 +25,8 @@ namespace widget
             }
         }
 
-        void operator () (widget_initializer& ini) const noexcept;
+        window_configation operator () (const init_event&) const noexcept;
 
-        void draw(const window& w) noexcept;
+        void operator () (const redraw_event& e) noexcept;
     };
 }

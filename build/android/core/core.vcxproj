@@ -56,7 +56,6 @@
     <ClInclude Include="$(RepoDir)\core\point2d.h" />
     <ClInclude Include="$(RepoDir)\core\polynomial.h" />
     <ClInclude Include="$(RepoDir)\core\rational.h" />
-    <ClInclude Include="$(RepoDir)\core\resouce.h" />
     <ClInclude Include="$(RepoDir)\core\size2d.h" />
     <ClInclude Include="$(RepoDir)\core\size_type.h" />
     <ClInclude Include="$(RepoDir)\core\small_vector.h" />
@@ -75,6 +74,7 @@
     <ClInclude Include="..\..\..\core\color_fwd.h" />
     <ClInclude Include="..\..\..\core\fmt.h" />
     <ClInclude Include="..\..\..\core\rectangle.h" />
+    <ClInclude Include="..\..\..\core\resource.h" />
     <ClInclude Include="..\..\..\core\resource_fwd.h" />
     <ClInclude Include="..\..\..\core\round.h" />
     <ClInclude Include="..\..\..\core\static_vector.h" />

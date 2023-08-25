@@ -1,6 +1,7 @@
 #include "type_window.h"
 
 #include <core/narrow.h>
+
 #include <os/os.h>
 
 #include <ui/window.h>
@@ -8,6 +9,23 @@
 
 namespace ui
 {
+    void gdi_object_deleter::operator()(gdi_object_handle_t o) const noexcept
+    {
+        if (o)
+        {
+            D_ASSERT_OR_UNUSED(DeleteObject(o));
+        }
+    }
+
+    unique_brush create_brush(rgba_color32_t color) noexcept
+    {
+        return
+        {
+            resource_construct,
+            CreateSolidBrush(RGB(color.r, color.g, color.b))
+        };
+    }
+
     namespace
     {
         [[nodiscard]]
@@ -53,6 +71,11 @@ namespace ui
         }
     }
 
+    struct type_window_parameters : WNDCLASSEXW
+    {
+        shared_resource<HBRUSH, gdi_object_deleter> background_brush{};
+    };
+
     void window_type_resource_deleter::operator()(type_window_resource type) const noexcept
     {
         if (type)
@@ -62,13 +85,39 @@ namespace ui
         }
     }
 
+    type_window_builder::type_window_builder() noexcept
+    {
+        using base_type = WNDCLASSEXW;
+
+        const auto pdata = _p_params();
+        static_assert(std::is_base_of_v<base_type, std::remove_cvref_t<decltype(*pdata)>>);
+
+        std::construct_at(pdata);
+        pdata->cbSize = sizeof(base_type);
+        pdata->style = CS_DBLCLKS;
+    }
+
+    type_window_builder::type_window_builder(const type_window_builder& builder) noexcept
+    {
+        std::construct_at(_p_params(), *builder._c_p_params());
+    }
+
+    type_window_builder::~type_window_builder() noexcept
+    {
+        std::destroy_at(_p_params());
+    }
+
+    type_window_builder& type_window_builder::operator=(const type_window_builder& builder) noexcept
+    {
+        *_p_params() = *builder._c_p_params();
+        return *this;
+    }
+
     unique_type_window type_window_builder::build_as(wzstring_view name) noexcept
     {
-        const auto pdata = wndcls();
-        pdata->cbSize = sizeof(*pdata);
+        const auto pdata = _p_params();
         pdata->lpszClassName = name.c_str();
         D_ASSERT(!is_null_or_empty(pdata->lpszClassName));
-        pdata->style |= CS_DBLCLKS;
 
         if (!pdata->hInstance)
         {
@@ -128,45 +177,62 @@ namespace ui
         return build_as(pname);
     }
     
-    tagWNDCLASSEXW* type_window_builder::wndcls() noexcept
+    type_window_parameters* type_window_builder::_p_params() noexcept
     {
-        return as_mutable_pointer(cwndcls());
+        return as_mutable_pointer(_c_p_params());
     }
     
-    const tagWNDCLASSEXW* type_window_builder::cwndcls() const noexcept
+    const type_window_parameters* type_window_builder::_c_p_params() const noexcept
     {
-        static_assert(wndclass_len >= sizeof(tagWNDCLASSEXW));
-        static_assert(wndclass_align >= alignof(tagWNDCLASSEXW));
-        return reinterpret_cast<const tagWNDCLASSEXW*>(storage_);
+        static_assert(param_len >= sizeof(type_window_parameters));
+        static_assert(param_align >= alignof(type_window_parameters));
+        return reinterpret_cast<const type_window_parameters*>(storage_);
     }
-
 
     type_window_builder& type_window_builder::style(uint_t style) noexcept
     {
-        wndcls()->style = style;
+        _p_params()->style = style;
         return *this;
     }
 
     type_window_builder& type_window_builder::module(module_handle_t module) noexcept
     {
-        wndcls()->hInstance = module;
+        _p_params()->hInstance = module;
         return *this;
     }
 
     type_window_builder& type_window_builder::background(stock_brush brush) noexcept
     {
-        wndcls()->hbrBackground = stock(brush);
+        _p_params()->hbrBackground = stock(brush);
+        return *this;
+    }
+
+    type_window_builder& type_window_builder::background(unique_brush brush) noexcept
+    {
+        const auto pdata = _p_params();
+        pdata->hbrBackground = brush;
+        pdata->background_brush = std::move(brush);
         return *this;
     }
 
     type_window_builder& type_window_builder::window_procedure(wndproc_t proc) noexcept
     {
-        wndcls()->lpfnWndProc = proc;
+        _p_params()->lpfnWndProc = proc;
         return *this;
+    }
+
+    uint_t type_window_builder::style() const noexcept
+    {
+        return _c_p_params()->style;
     }
 
     module_handle_t type_window_builder::module() const noexcept
     {
-        return cwndcls()->hInstance;
+        return _c_p_params()->hInstance;
+    }
+
+    const_brush_handle_t type_window_builder::background() const noexcept
+    {
+        return _c_p_params()->hbrBackground;
     }
 }

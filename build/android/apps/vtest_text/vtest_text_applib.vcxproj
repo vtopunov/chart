@@ -33,21 +33,21 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\..\build\egl_ui_app_library.props" />
+  <PropertyGroup>
+    <AppName>$([System.String]::Copy('$(ProjectName)').Replace('_applib',''))</AppName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AppSrcDir>$(RepoAppsDir)\$(AppName)</AppSrcDir>
+  </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\apps\vtest_text\main.cpp" />
+    <ClCompile Include="$(AppSrcDir)\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\egl_ui\egl_ui.vcxproj">
-      <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\file\file.vcxproj">
       <Project>{41a1fae5-2cd8-4894-a1b8-af520fbf3239}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\font\font.vcxproj">
       <Project>{32516e1e-1547-4010-9df2-656fed1ac2d4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\gl\gl.vcxproj">
-      <Project>{40eaf3cf-7215-4353-9a89-883b91118195}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

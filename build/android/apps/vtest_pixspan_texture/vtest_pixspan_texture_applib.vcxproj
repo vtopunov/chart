@@ -40,15 +40,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\egl_ui\egl_ui.vcxproj">
-      <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\utility\utility.vcxproj">
       <Project>{47c90779-22f4-49a5-8b9f-b5d799e5d3b5}</Project>
     </ProjectReference>
   </ItemGroup>
+  <PropertyGroup>
+    <AppName>$([System.String]::Copy('$(ProjectName)').Replace('_applib',''))</AppName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AppSrcDir>$(RepoAppsDir)\$(AppName)</AppSrcDir>
+  </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\apps\vtest_pixspan_texture\main.cpp" />
+    <ClCompile Include="$(AppSrcDir)\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

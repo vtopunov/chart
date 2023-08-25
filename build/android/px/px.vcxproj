@@ -46,7 +46,7 @@
     <ClInclude Include="$(RepoDir)\px\pixspace.h" />
     <ClInclude Include="$(RepoDir)\px\pixspan.h" />
     <ClInclude Include="$(RepoDir)\px\pxalignment.h" />
-    <ClInclude Include="$(RepoDir)\px\pxfwd.h" />
+    <ClInclude Include="..\..\..\px\fwd.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -6,13 +6,10 @@
 
 #include <px/fwd.h>
 
-#include <ui/event_fwd.h>
+#include <ui/fwd.h>
 
 namespace ui
 {
-    struct idle_event {};
-
-
 #if defined(D_OS_WINDOWS)
     class event
     {
@@ -139,7 +136,7 @@ namespace ui
             return to_event_style(action_ & action_mask);
         }
 
-    protected:        
+    protected:
         [[nodiscard]]
         constexpr int32_t action() const noexcept
         {
@@ -236,7 +233,7 @@ namespace ui
         }
     };
 
-#if defined(D_OS_WINDOWS)
+#ifdef D_OS_WINDOWS
     D_WARNING_PUSH;
     D_WARNING_DISABLE_MSVC(W_enum_is_unscoped__prefer_enum_class);
 
@@ -359,7 +356,43 @@ namespace ui
     class specialized_event<event_style::mouse_move> : public mouse_event
     {};
 
-#if defined(D_OS_WINDOWS)
+#ifdef D_OS_ANDROID
+    [[nodiscard]]
+    constexpr cmd_event_style to_cmd_event_style(int32_t cmd) noexcept
+    {
+        return underlying_cast<cmd_event_style>(cmd);
+    }
+
+    class cmd_event
+    {
+    public:
+        constexpr cmd_event(cmd_event_style style) noexcept
+            : style_{ style }
+        {}
+
+        [[nodiscard]]
+        constexpr cmd_event_style style() const noexcept
+        {
+            return style_;
+        }
+
+    private:
+        cmd_event_style style_;
+    };
+
+    template<cmd_event_style>
+    class specialized_cmd_event : public cmd_event
+    {};
+
+    template<cmd_event_style style> [[nodiscard]]
+    constexpr const specialized_cmd_event<style>& cmd_event_for(const cmd_event& e) noexcept
+    {
+        D_ASSERT(style == e.style());
+        return static_cast<const specialized_cmd_event<style>&>(e);
+    }
+#endif
+
+#ifdef D_OS_WINDOWS
     template<>
     class specialized_event<event_style::size> : public event
     {
@@ -417,6 +450,7 @@ namespace ui
     template<>
     class specialized_event<event_style::mouse_double_click> : public mouse_event
     {};
+
 #endif
 
 

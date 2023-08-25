@@ -7,7 +7,6 @@
 namespace gl
 {
     using rgba_colorf_t = rgba_color<GLfloat>;
-    using rgba_colorf_view = typename rgba_colorf_t::view_type;
 
     template<class T>
     [[nodiscard]] constexpr rgba_colorf_t to_colorf(const rgba_color<T>& source) noexcept

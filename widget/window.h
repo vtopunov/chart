@@ -4,56 +4,68 @@
 
 #include <core/buffer_view.h>
 
-#include <egl_ui/egl_window.h>
+#include <egl_ui/egl_ui_owner.h>
 
-#include <widget/window_fwd.h>
+#include <widget/fwd.h>
 #include <widget/shaders.h>
 
 
 namespace widget
 {
-    struct window_construct_t
-    {};
+    namespace colors
+    {
+        using namespace ::color_literals;
 
-    constexpr window_construct_t window_construct{};
+        constexpr auto dialog_color = 0xf0f0f0_rgb;
+        constexpr auto gl_dialog_color_f = gl::to_colorf(dialog_color);
+    }
 
-    struct window : public egl_window
+    struct window : egl_ui_owner
     {
         shaders shaders{};
         buffer_t temp_buffer{};
 
 #ifdef D_OS_WINDOWS
-        pxsize2d user_sizes_cache{};
+        pxsize2d content_sizes_cache{};
         std::chrono::steady_clock::time_point redraw_time_cache{};
 #endif
 
-        constexpr window(window_construct_t, egl_window&& egl) noexcept
-            : egl_window{ std::move(egl) }
-        {}
-
-        D_DISABLE_COPY_MOVE(window);
-
         constexpr operator buffer_view () const noexcept
-        {
-            return temp_buffer_view();
-        }
-
-        [[nodiscard]]
-        constexpr buffer_view temp_buffer_view() const noexcept
         {
             return as_mutable(temp_buffer);
         }
+    };
 
-        [[nodiscard]]
-        constexpr os::const_module_handle_t app() const noexcept
+    [[nodiscard]]
+    constexpr pxsize2d content_sizes(const window& w) noexcept
+    {
+        return D_CONDITIONAL_OS_WINDOWS(w.content_sizes_cache, w.viewport);
+    }
+
+
+    struct window_builder : egl_ui::egl_ui_gatherer<window_builder>
+    {
+#ifdef D_OS_WINDOWS
+        window_builder() noexcept
         {
-            return *this;
+            background(ui::create_brush(colors::dialog_color));
+            D_ASSERT(background());
         }
+#endif
 
         [[nodiscard]]
-        constexpr pxsize2d user_sizes() const noexcept
+        window build() const noexcept
         {
-            return D_CONDITIONAL_OS_WINDOWS(user_sizes_cache, sizes(*this));
+#ifdef D_OS_WINDOWS
+            if (background()) [[likely]]
+            {
+                return { create_egl_ui(_c_params()) };
+            }
+
+            return {};
+#else
+            return { create_egl_ui(_c_params()) };
+#endif
         }
     };
 }

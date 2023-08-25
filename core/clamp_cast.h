@@ -104,11 +104,13 @@ namespace private_detail_clamp_cast
 
         constexpr auto target_min_source = static_cast<source_t>(round_target_min);
         constexpr auto target_max_source = static_cast<source_t>(round_target_max);
+        static_assert(round_target_min == static_cast<target_t>(target_min_source));
+        static_assert(round_target_max == static_cast<target_t>(target_max_source));
 
-        if (v <= target_min_source) [[unlikely]]
+        if (v < target_min_source) [[unlikely]]
             return round_target_min;
 
-        if (v >= target_max_source) [[unlikely]]
+        if (target_max_source < v) [[unlikely]]
             return round_target_max;
 
         return fn(v);

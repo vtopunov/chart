@@ -36,7 +36,7 @@ namespace
             return 0L;
         }
 
-        ui::milliseconds_t operator () (ui::idle_event) noexcept
+        ui::milliseconds operator () (ui::idle_event) noexcept
         {
             const auto now = clock_t::now();
 

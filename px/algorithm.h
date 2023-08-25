@@ -8,6 +8,7 @@
 namespace px
 {
     D_WARNING_PUSH;
+    D_WARNING_DISABLE_MSVC(W_use_bitwise_and_to_check_enum_flags)
     D_WARNING_DISABLE_MSVC(W_variable_is_uninitialized);
     D_WARNING_DISABLE_MSVC(W_converting_from_floating_point_to_unsigned_integral);
     D_WARNING_DISABLE_MSVC(W_do_not_use_pointer_arithmetic);

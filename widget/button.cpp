@@ -2,7 +2,8 @@
 
 #include <ui/event.h>
 
-#include <widget/window.h>
+#include <widget/window_configation.h>
+#include <widget/event.h>
 #include <widget/text.h>
 
 
@@ -12,13 +13,13 @@ namespace widget
     {
         [[nodiscard]] constexpr bool contains(const pxrectangle& r, const ui::pointer_event& p) noexcept
         {
-            constexpr auto contains1d = [] 
+            constexpr auto contains1d = []
             (
-                ui::pointer_event::value_type p, 
+                ui::pointer_event::value_type p,
                 pxrectangle::value_type p0,
                 pxrectangle::size_type dp
             ) noexcept
-            { 
+            {
                 return p >= p0 && p < (p0 + dp);
             };
 
@@ -69,7 +70,7 @@ namespace widget
             return
             {
                 .position{ r.position + frame_sizes },
-                .sizes{ r.sizes - 2 * frame_sizes }
+                .sizes{ r.sizes - 2u * frame_sizes }
             };
         }
 
@@ -106,41 +107,24 @@ namespace widget
 
     event_result button::operator () (const ui::mouse_up_event& e) noexcept
     {
-        switch (state)
+        if (button_state::pressed == state)
         {
-            case button_state::pressed:
+            const auto is_clicked = contains(geometry, e);
+
+            state = D_CONDITIONAL_OS_WINDOWS(((is_clicked) ? button_state::hovered : button_state::free), button_state::free);
+
+            if (is_clicked && clicked)
             {
-                const auto is_clicked = contains(geometry, e);
-
-#ifdef D_OS_ANDROID
-                state = button_state::free;
-#else
-                state = (is_clicked) ? button_state::hovered : button_state::free;
-#endif
-
-                if (is_clicked && clicked)
-                {
-                    clicked();
-                }
-
-                return event_result::redraw;
+                clicked();
             }
 
-#ifdef D_OS_ANDROID
-            case button_state::hovered:
-            {
-                state = button_state::free;
-                return event_result::redraw;
-            }
-#endif
-
-            default:
-                break;
+            return event_result::redraw;
         }
 
         return event_result::idle;
     }
 
+#ifdef D_OS_WINDOWS
     event_result button::operator () (const ui::mouse_move_event& e) noexcept
     {
         if (button_state::pressed != state)
@@ -155,36 +139,37 @@ namespace widget
         return event_result::idle;
     }
 
-    void button::operator()(widget_initializer& ini) const noexcept
+#endif
+
+    window_configation button::operator()(const init_event&) const noexcept
     {
-        ini.cfg()
-            .gray_texture_mix_color_shdr()
-            .colored_rectangle_shdr()
-            .pix8_temp_buffer();
+        return enable_gray_texture_mix_color_shdr
+            | enable_colored_rectangle_shdr
+            | enable_pix8_temp_buffer;
     }
 
-    void button::draw(const window& w) noexcept
+    void button::operator()(const redraw_event& e) noexcept
     {
         const auto colors = button_colors::instance(state);
 
-        w.shaders.colored_rectangle.draw(geometry, colors.frame);
+        e.shaders.colored_rectangle.draw(geometry, colors.frame);
 
         const auto client_rc = rectangle_without_frame(geometry);
-        w.shaders.colored_rectangle.draw(client_rc, colors.body);
+        e.shaders.colored_rectangle.draw(client_rc, colors.body);
 
-        if (text::draw_to_cache(*this, w.temp_buffer_view(), client_rc.sizes)) [[likely]]
+        if (text::draw_to_cache(*this, e, client_rc.sizes)) [[likely]]
         {
             const auto client_rc_center = center(client_rc);
             const auto texture_center = text_cache.center();
             const auto position = client_rc_center - texture_center;
 
             const point2d px_position
-            { 
-                font::ceil_to<pxside_t>(position.x()), 
+            {
+                font::ceil_to<pxside_t>(position.x()),
                 font::ceil_to<pxside_t>(position.y())
             };
 
-            w.shaders.gray_texture_mix_color.draw(px_position, text_cache.texture(), gl::colors::black_f);
+            e.shaders.gray_texture_mix_color.draw(px_position, text_cache.texture(), gl::colors::black_f);
         }
     }
 }

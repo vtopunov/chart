@@ -30,12 +30,9 @@ namespace file
                     {
 #if defined(D_OS_ANDROID)
                         nullptr,
+#endif
                         nullptr,
                         0_uz
-#else
-                        nullptr,
-                        0_uz                
-#endif
                     };
                 }
             };

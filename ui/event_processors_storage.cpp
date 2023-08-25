@@ -58,6 +58,11 @@ namespace ui
 
     bool event_processors_storage::destroy_processor(event_processor_resource processor) noexcept
     {
+        if (nulleventprocessor == processor)
+        {
+            return false;
+        }
+
         if (lock_)
         {
             for (auto& item : items_)

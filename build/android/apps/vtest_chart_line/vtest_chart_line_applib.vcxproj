@@ -38,19 +38,19 @@
       <AdditionalOptions>-lm %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
+  <PropertyGroup>
+    <AppName>$([System.String]::Copy('$(ProjectName)').Replace('_applib',''))</AppName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AppSrcDir>$(RepoAppsDir)\$(AppName)</AppSrcDir>
+  </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\egl_ui\egl_ui.vcxproj">
-      <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\gl\gl.vcxproj">
-      <Project>{40eaf3cf-7215-4353-9a89-883b91118195}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\widgets\widgets.vcxproj">
-      <Project>{f005696a-a08c-4a10-95eb-b7ef15cf7c26}</Project>
-    </ProjectReference>
+    <ClCompile Include="$(AppSrcDir)\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\apps\vtest_chart_line\main.cpp" />
+    <ProjectReference Include="..\..\widget\widget.vcxproj">
+      <Project>{f005696a-a08c-4a10-95eb-b7ef15cf7c26}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -3,12 +3,9 @@
 #include <functional>
 #include <string>
 
-#include <ui/event_fwd.h>
-
 #include <gl/texture.h>
 
-#include <widget/event_result.h>
-#include <widget/widget_initializer.h>
+#include <widget/fwd.h>
 #include <widget/text.h>
 
 
@@ -41,10 +38,13 @@ namespace widget
 
         event_result operator () (const ui::mouse_down_event& e) noexcept;
         event_result operator () (const ui::mouse_up_event& e) noexcept;
-        event_result operator () (const ui::mouse_move_event& e) noexcept;
-       
-        void operator () (widget_initializer& cfg) const noexcept;
 
-        void draw(const window& w) noexcept;
+#ifdef D_OS_WINDOWS
+        event_result operator () (const ui::mouse_move_event& e) noexcept;
+#endif       
+
+        window_configation operator () (const init_event&) const noexcept;
+
+        void operator () (const redraw_event& e) noexcept;
     };
 }

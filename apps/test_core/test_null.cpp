@@ -8,13 +8,6 @@
 
 namespace
 {
-    struct skip_op
-    {
-        template<class T>
-        void operator () (T&&) const noexcept
-        {}
-    };
-
     struct test_struct
     {
         void* ptr;
@@ -68,6 +61,7 @@ void test_null() noexcept
         static_assert(std::is_same_v<testnull_t, null_t<const test_struct>>);
         static_assert(std::is_same_v<null_t<testnull_t>, testnull_t>);
         static_assert(std::is_same_v<null_t<const testnull_t>, testnull_t>);
+        static_assert(!is_nullable_v<test_struct>);
     }
 
     {
@@ -86,19 +80,23 @@ void test_null() noexcept
     }
 
     {
-        unique_resource<test_struct, skip_op> default_unique;
+        using unique_test_struct = unique_resource<test_struct, nothing>;
+        unique_test_struct default_unique;
         D_ASSERT(!default_unique.r().b);
         D_ASSERT(!default_unique.r().i);
         D_ASSERT(!default_unique.r().ptr);
         D_ASSERT(!default_unique.r().ms.count());
+        static_assert(!is_nullable_v<unique_test_struct>);
     }
 
     {
-        shared_resource<test_struct, skip_op> default_shared;
+        using shared_test_struct = shared_resource<test_struct, nothing>;
+        shared_test_struct default_shared;
         D_ASSERT(!default_shared.r().b);
         D_ASSERT(!default_shared.r().i);
         D_ASSERT(!default_shared.r().ptr);
         D_ASSERT(!default_shared.r().ms.count());
+        static_assert(!is_nullable_v<shared_test_struct>);
     }
 
     {
@@ -106,6 +104,8 @@ void test_null() noexcept
         nullable_with_bool_op var = nullnullable;
         D_ASSERT(!var);
         static_assert(is_nullable_v<nullable_with_bool_op>);
+        static_assert(is_nullable_v<unique_resource<nullable_with_bool_op, nothing>>);
+        static_assert(is_nullable_v<shared_resource<nullable_with_bool_op, nothing>>);
         D_ASSERT(!has_value(var));
         D_ASSERT(is_null(var));
         D_ASSERT(var == nullnullable);
@@ -143,6 +143,9 @@ void test_null() noexcept
         static_assert(null_v<e_invalid_null> == e_invalid_null::invalid);
         static_assert(null_v<e_null> == e_null::null);
         static_assert(null_v<e_invalid> == e_invalid::invalid);
+        static_assert(is_nullable_v<e_invalid_null>);
+        static_assert(is_nullable_v<e_null>);
+        static_assert(is_nullable_v<e_invalid>);
     }
 
     D_ASSERT(!errno);

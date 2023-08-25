@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 #include <os/os_detection.h>
 
 #ifdef D_OS_WINDOWS
@@ -17,14 +19,14 @@
 
 namespace ui
 {
-    using milliseconds_t = std::chrono::milliseconds;
+    using milliseconds = std::chrono::milliseconds;
 
 #ifdef D_OS_ANDROID
-    constexpr milliseconds_t infinite{ -1 };
+    constexpr milliseconds infinite{ -1 };
 
 #else
-    static_assert(sizeof(milliseconds_t::rep) > 4);
-    constexpr milliseconds_t infinite{ 0xffffffffLL };
+    static_assert(sizeof(milliseconds::rep) > 4);
+    constexpr milliseconds infinite{ 0xffffffffLL };
 
 #endif
 
@@ -39,7 +41,7 @@ namespace ui
     }
 
     [[nodiscard]]
-    constexpr milliseconds_t do_idle(no_overloaded) noexcept
+    constexpr milliseconds do_idle(no_overloaded) noexcept
     {
         return infinite;
     }
@@ -51,7 +53,7 @@ namespace ui
         constexpr auto msg_storage_size = 48_uz;
         constexpr uint_t pm_remove{ 1u };
 
-        void message_wait_for(milliseconds_t timeout) noexcept;
+        void message_wait_for(milliseconds timeout) noexcept;
 
         void process_message(const os::message_t* msg) noexcept;
 
@@ -80,9 +82,9 @@ namespace ui
 
             do
             {
-                const milliseconds_t timeout{ do_idle(idle_processor) };
+                const milliseconds timeout{ do_idle(idle_processor) };
 
-                if (timeout <= milliseconds_t::zero()) [[likely]]
+                if (timeout <= milliseconds::zero()) [[likely]]
                 {
                     if (PeekMessageW(pmsg, nullptr, 0u, 0u, pm_remove))
                     {
@@ -111,42 +113,35 @@ namespace ui
         }
     }
 
-    template<class EventSource>
-    class event_binder;
 
-    template<>
-    class event_binder<window_handle_t>
+    struct default_event_binder
     {
-    public:
-        constexpr event_binder(window_handle_t window) noexcept
-            : window_{ window }
-        {}
-
         template<class EventTarget>
         [[nodiscard]] event_processor bind(EventTarget& target) const noexcept
         {
             return create_event_processor
             (
-                window_,
+                window,
                 event_match{ std::ref(target) }
             );
         }
 
-    private:
-        window_handle_t window_;
+        const window_handle_t window;
     };
+
+    template<class T>
+    using decl_event_binder_type_t = std::add_const_t<typename T::event_binder_type>;
+
+    template<class T>
+    using event_binder_type_t = detected_or_t<const default_event_binder, decl_event_binder_type_t, T>;
 
     template<class EventSource, class EventTarget>
     int run_event_loop(const EventSource& source, EventTarget&& target) noexcept
     {
-        using event_source_t = resource_type_t<std::remove_cvref_t<EventSource>>;
-
+        using event_binder_type = event_binder_type_t<resource_type_t<std::remove_cvref_t<EventSource>>>;
         auto& target_ref = as_reference(target);
-
-        const auto event_bind_holder = event_binder<event_source_t>(source).bind(target_ref);
-
+        const auto event_bind_holder = event_binder_type{source}.bind(target_ref);
         private_detail_event_loop::sizes_initialization();
-
         return private_detail_event_loop::run_event_loop_impl(target_ref);
     }
 
@@ -163,7 +158,7 @@ namespace ui
             }
 
             [[nodiscard]]
-            D_FORCEINLINE bool poll(const ui::milliseconds_t& timeout) noexcept
+            D_FORCEINLINE bool poll(ui::milliseconds timeout) noexcept
             {
                 return ALooper_pollAll
                 (
@@ -174,14 +169,8 @@ namespace ui
                 ) >= 0;
             }
 
-            enum class process_result
-            {
-                continue_processing,
-                quit
-            };
-
             [[nodiscard]]
-            process_result process(module_handle_t app) const noexcept;
+            bool process(module_handle_t app) const noexcept;
 
         private:
             window_handle_t window_;
@@ -189,86 +178,57 @@ namespace ui
             int events_{ 0 };
         };
 
-
-        class app_manager
+        template<class Processor>
+        struct message_callbacks_instance
         {
-        public:
-            D_DISABLE_COPY_MOVE(app_manager);
+            static_assert(!std::is_reference_v<Processor>);
 
-            constexpr app_manager(module_handle_t app) noexcept
-                : app_{ app }
+            static void cmd_callback(module_handle_t app, int32_t cmd) noexcept
+            {
+                const ui::cmd_event e{ to_cmd_event_style(cmd) };
+                do_cmd_event_match(processor_ref(app), e);
+            }
+
+            [[nodiscard]]
+            static int input_event_callback(module_handle_t app, AInputEvent* input_e) noexcept
+            {
+                if (const ui::event e { input_e })
+                {
+                    do_event_match(processor_ref(app), e);
+                }
+
+                return 0;
+            }
+
+            static Processor& processor_ref(const_module_handle_t app) noexcept
+            {
+                return *static_cast<Processor*>(user_data(app));;
+            }
+        };
+
+        template<class Processor>
+        int run_event_loop(module_handle_t app, Processor& processor) noexcept
+        {
+            using message_callbacks_instance_t = message_callbacks_instance<std::remove_reference_t<Processor>>;
+            set_user_data(app, as_mutable_pointer(std::addressof(processor)));
+            set_cmd_callback(app, message_callbacks_instance_t::cmd_callback);
+            set_input_event_callback(app, message_callbacks_instance_t::input_event_callback);
+
+            for (message msg{ app_window_handle(app) }; !msg.poll(do_idle(processor)) || msg.process(app); )
             {}
 
-            template<class Processor> [[nodiscard]]
-            int run(Processor& processor) const noexcept
-            {
-                set_processor(processor);
-
-                message msg{ app_window(app_) };
-
-                while (true)
-                {
-                    const milliseconds_t timeout{ do_idle(processor) };
-
-                    if (msg.poll(timeout)) [[unlikely]]
-                    {
-                        if (message::process_result::quit == msg.process(app_)) [[unlikely]]
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                return EXIT_SUCCESS;
-            }
-
-            ~app_manager() noexcept;
-
-        private:
-            template<class Processor>
-            struct message_callbacks_instance
-            {
-                static_assert(!std::is_reference_v<Processor>);
-
-                static void cmd_callback(module_handle_t, int32_t) noexcept
-                {}
-
-                [[nodiscard]]
-                static int input_event_callback(module_handle_t app, AInputEvent* input_e) noexcept
-                {
-                    if (const ui::event e{ input_e })
-                    {
-                        Processor& processor_ref = *static_cast<Processor*>(user_data(app));
-                        do_event_match(processor_ref, e);
-                    }
-
-                    return 0;
-                }
-            };
-
-            template<class Processor>
-            void set_processor(Processor& processor) const noexcept
-            {
-                using message_callbacks_instance_t = message_callbacks_instance<std::remove_reference_t<Processor>>;
-                set_user_data(app_, as_mutable_pointer(std::addressof(processor)));
-                set_cmd_callback(app_, message_callbacks_instance_t::cmd_callback);
-                set_input_event_callback(app_, message_callbacks_instance_t::input_event_callback);
-            }
-
-        private:
-            module_handle_t app_;
-        };
+            return EXIT_SUCCESS;
+        }
     }
 
     template<class EventSource, class T>
-    int run_event_loop(const EventSource& source, T&& processor) noexcept
+    int run_event_loop(const EventSource& source, T&& target) noexcept
     {
-        const private_detail_event_loop::app_manager app_manager
-        { 
-            const_cast<module_handle_t>(static_cast<const_module_handle_t>(source))
-        };
-
-        return app_manager.run(processor);
+        return private_detail_event_loop::run_event_loop
+        (
+            const_cast<module_handle_t>(static_cast<const_module_handle_t>(source)), 
+            as_reference(target)
+        );
     }
 
 #endif

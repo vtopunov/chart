@@ -8,6 +8,8 @@
 #include <os/os_windows.h>
 
 static_assert(std::is_same_v<os::handle_t, HANDLE>);
+static_assert(std::is_same_v<os::gdi_object_handle_t, HGDIOBJ>);
+static_assert(std::is_same_v<os::brush_handle_t, HBRUSH>);
 static_assert(std::is_same_v<os::module_handle_t, HMODULE>);
 static_assert(std::is_same_v<os::window_handle_t, HWND>);
 static_assert(std::is_same_v<os::file_descriptor_t, HANDLE>);

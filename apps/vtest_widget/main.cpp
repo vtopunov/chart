@@ -13,8 +13,8 @@ namespace
         {
             .geometry
             {
-                .position{30_px, 50_px},
-                .sizes{150_px, 50_px}
+                .position{30_px, 60_px},
+                .sizes{150_px, 60_px}
             },
             .text{ u8"Button №1" }
         };
@@ -24,7 +24,7 @@ namespace
             .geometry
             {
                 .position{30_px, 150_px},
-                .sizes{150_px, 50_px}
+                .sizes{150_px, 60_px}
             },
             .text{ u8"Button №2" },
         };
@@ -33,8 +33,8 @@ namespace
         {
             .geometry
             {
-                .position{30_px, 250_px},
-                .sizes{150_px, 50_px}
+                .position{30_px, 240_px},
+                .sizes{150_px, 60_px}
             },
             .text{ u8"Button №3" },
         };
@@ -43,19 +43,19 @@ namespace
         {
             .geometry
             {
-                .position{30_px, 350_px},
-                .sizes{150_px, 50_px}
+                .position{30_px, 330_px},
+                .sizes{150_px, 60_px}
             },
             .text{ u8"Exit" },
         };
 
         label lb
         {
-            .position{30_px, 450_px},
+            .position{30_px, 420_px},
             .text{ u8"Привет мир!" },
         };
 
-        void operator () (const widget_initializer& ini) noexcept
+        void operator () (const init_event& e) noexcept
         {
             b0.clicked = [this] () noexcept
             {
@@ -72,7 +72,7 @@ namespace
                 clicked(this->b2);
             };
 
-            exit_b.clicked = [app = ini.window().app()] () noexcept
+            exit_b.clicked = [app = ui::app_module_handle(e)] () noexcept
             {
                 ui::quit(app);
             };

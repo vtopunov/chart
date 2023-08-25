@@ -1,9 +1,8 @@
 #pragma once
 
-#include <utility>
-
 #include <core/resource_fwd.h>
 #include <core/intrusive_list.h>
+#include <core/utility.h>
 #include <core/view.h>
 #include <core/null.h>
 
@@ -12,6 +11,7 @@ struct resource_construct_t
 {};
 
 constexpr resource_construct_t resource_construct{};
+
 
 template <class T, class D>
 class unique_resource
@@ -104,7 +104,6 @@ public:
         [[maybe_unused]]
         unique_resource temp{ std::move(*this) };
     }
-
 
 private:
     resource_type resource_;

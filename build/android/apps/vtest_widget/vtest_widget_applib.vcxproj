@@ -33,14 +33,17 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\..\build\egl_ui_app_library.props" />
+  <PropertyGroup>
+    <AppName>$([System.String]::Copy('$(ProjectName)').Replace('_applib',''))</AppName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AppSrcDir>$(RepoAppsDir)\$(AppName)</AppSrcDir>
+  </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\apps\vtest_widget\main.cpp" />
+    <ClCompile Include="$(AppSrcDir)\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\egl_ui\egl_ui.vcxproj">
-      <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\widgets\widgets.vcxproj">
+    <ProjectReference Include="..\..\widget\widget.vcxproj">
       <Project>{f005696a-a08c-4a10-95eb-b7ef15cf7c26}</Project>
     </ProjectReference>
   </ItemGroup>

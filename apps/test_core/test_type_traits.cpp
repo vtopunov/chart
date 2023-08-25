@@ -101,5 +101,19 @@ void test_type_traits() noexcept
         static_assert(std::is_same_v<unsigned_or_t<unsigned>, unsigned>);
     }
 
+    {
+        static_assert(std::is_same_v<add_const_pointer_t<void*>, const void*>);
+        static_assert(std::is_same_v<add_const_pointer_t<const void*>, const void*>);
+        static_assert(std::is_same_v<add_const_pointer_t<void* const>, const void* const>);
+        static_assert(std::is_same_v<add_const_pointer_t<const void* const>, const void* const>);
+        static_assert(std::is_same_v<add_const_pointer_t<void**>, void* const*>);
+        static_assert(std::is_same_v<add_const_pointer_t<void* const*>, void* const*>);
+        static_assert(std::is_same_v<add_const_pointer_t<void**const>, void* const* const>);
+        static_assert(std::is_same_v<add_const_pointer_t<void* const* const>, void* const* const>);
+        static_assert(std::is_same_v<add_const_pointer_t<const void**>, const void* const*>);
+        static_assert(std::is_same_v<add_const_pointer_t<const void**const>, const void* const* const>);
+        static_assert(std::is_same_v<add_const_pointer_t<const void* const* const>, const void* const* const>);
+    }
+
     D_ASSERT(!errno);
 }

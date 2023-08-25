@@ -7,17 +7,9 @@ namespace widget
 {
     namespace private_detail_shaders_library
     {
-        template<class T>
-        void initialize_ro_uniform(const px::uniform_vec2& vec, ::vec2<T> p) noexcept
-        {
-            D_ASSERT(!vec.uniform.__debug_is_stored());
-            vec.store(std::move(p));
-            D_ONLY_DEBUG(vec.uniform.__debug_set_ro());
-        }
-
         inline void initialize_viewport(const vert::positioned_frame& vert, pxsize2d sizes) noexcept
         {
-            initialize_ro_uniform(vert.u_viewport, sizes);
+            vert.u_viewport.store(sizes);
         }
 
         template<class VS, class FS>
@@ -30,7 +22,7 @@ namespace widget
         template<class VS, class FS>
         bool initialize_lib(shaders_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
         {            
-            if (lib.build()) [[likely]]
+            if (lib || lib.build()) [[likely]]
             {
                 initialize_lib_uniforms(lib, viewport_sizes);
                 return true;
@@ -99,7 +91,7 @@ namespace widget
             return private_detail_shaders_library::initialize_lib(lib, viewport_sizes);
         }
 
-        void draw(pxpoint2d position, gl::texture2d_resources texture, gl::rgba_colorf_view colorf) const noexcept
+        void draw(pxpoint2d position, gl::texture2d_resources texture, gl::rgba_colorf_t colorf) const noexcept
         {
             lib.use();
             lib.frag.u_color.store(colorf);

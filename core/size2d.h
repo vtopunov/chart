@@ -61,6 +61,18 @@ struct size2d : vec2<T>
     {
         return _1;
     }
+
+    [[nodiscard]]
+    constexpr size2d with_width(T value) const noexcept
+    {
+        return { std::move(value), _1};
+    }
+
+    [[nodiscard]]
+    constexpr size2d with_height(T value) const noexcept
+    {
+        return { _0, std::move(value) };
+    }
 };
 
 template<class T>

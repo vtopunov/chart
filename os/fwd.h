@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstdint>
-#include <type_traits>
 
 #include <core/warnings.h>
+#include <core/type_traits.h>
 
 #include <os/os_detection.h>
 #include <os/undef.h>
@@ -36,11 +36,11 @@
 
 #if defined(D_OS_WINDOWS)
 struct tagMSG;
-struct tagWNDCLASSEXW;
 
 #define D_OS_APICALL __stdcall
 
 #define D_OS_HANDLE_FWD(name, def) struct name##__; namespace os { using def = name##__*; } 
+D_OS_HANDLE_FWD(HBRUSH, brush_handle_t);
 D_OS_HANDLE_FWD(HINSTANCE, module_handle_t);
 D_OS_HANDLE_FWD(HWND, window_handle_t);
 #undef D_OS_HANDLE_FWD
@@ -48,6 +48,7 @@ D_OS_HANDLE_FWD(HWND, window_handle_t);
 namespace os
 {
     using handle_t = void*;
+    using gdi_object_handle_t = handle_t;
     using message_t = tagMSG;
 
     using dword_t = unsigned long;
@@ -109,15 +110,16 @@ namespace os
 
 #endif
 
-    using const_module_handle_t = std::add_pointer_t<std::add_const_t<std::remove_pointer_t<module_handle_t>>>;
+    D_ONLY_OS_WINDOWS(using const_brush_handle_t = add_const_pointer_t<brush_handle_t>);
+    using const_module_handle_t = add_const_pointer_t<module_handle_t>;
     using file_descriptor_t = D_CONDITIONAL_OS_WINDOWS(handle_t, int);
-
 
     namespace private_detail_osfwd_test
     {
         template<class Handle>
         constexpr bool handle_type_is_valid_v = std::conjunction_v<std::is_pointer<Handle>, std::is_class<std::remove_pointer_t<Handle>>>;
 
+        D_ONLY_OS_WINDOWS(static_assert(handle_type_is_valid_v<brush_handle_t>));
         static_assert(handle_type_is_valid_v<window_handle_t>);
         static_assert(handle_type_is_valid_v<module_handle_t>);
     }

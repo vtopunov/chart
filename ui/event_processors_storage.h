@@ -133,7 +133,9 @@ namespace ui
 
             constexpr event_processor_resource operator () () noexcept
             {
-                return underlying_cast<event_processor_resource>(++current_);
+                const auto result = underlying_cast<event_processor_resource>(++current_);
+                D_ASSERT(nulleventprocessor != result);
+                return result;
             }
 
         private:

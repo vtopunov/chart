@@ -7,7 +7,7 @@
 #include <debug/debug.h>
 
 #include <utility/shaders_library.h>
-#include <egl_ui/event_loop.h>
+#include <egl_ui/egl_ui_owner.h>
 
 
 namespace
@@ -390,33 +390,37 @@ namespace
         [[nodiscard]]
         bool initialize(os::module_handle_t app) noexcept
         {
-            egl_ = create_egl_window(app);
+            egl_ = create_egl_ui(app);
             if (!egl_)
             {
                 return false;
             }
 
-            const auto viewport = sizes(egl_);
+            return reinitialize();
+        }
 
-            texture_ = pix8map_generate(viewport / 4u);
+        [[nodiscard]]
+        bool reinitialize() noexcept
+        {
+            texture_ = pix8map_generate(egl_.viewport / 4u);
             if (!texture_)
             {
                 return false;
             }
 
-            if (!shaders_.initialize(viewport, texture_))
+            if (!shaders_.initialize(egl_.viewport, texture_))
             {
                 return false;
             }
 
-            area_ = default_area(viewport);
+            area_ = default_area(egl_.viewport);
             return true;
         }
 
 #if defined(D_OS_WINDOWS)
         std::nullopt_t operator () (const ui::mouse_wheel& e) noexcept
         {
-            if (const auto new_area = area_.with_zoom_increase(e.rot(), sizes(egl_)); new_area != area_)
+            if (const auto new_area = area_.with_zoom_increase(e.rot(), egl_.viewport); new_area != area_)
             {
                 area_ = new_area;
                 need_redraw_ = true;
@@ -427,11 +431,10 @@ namespace
 
         std::nullopt_t operator () (const ui::mouse_double_click&) noexcept
         {
-            area_ = default_area(sizes(egl_));
+            area_ = default_area(egl_.viewport);
             need_redraw_ = true;
             return std::nullopt;
         }
-
 #endif
 
         std::nullopt_t operator () (const ui::mouse_move_event& e) noexcept
@@ -446,10 +449,9 @@ namespace
 
             const auto gesture = mouse_trace_.new_gesture(e);
 
-
             if (gesture.has_move())
             {
-                if (const auto new_area = area_.with_shift(gesture.move, sizes(egl_)); new_area != area_)
+                if (const auto new_area = area_.with_shift(gesture.move, egl_.viewport); new_area != area_)
                 {
                     area_ = new_area;
                     need_redraw_ = true;
@@ -458,7 +460,7 @@ namespace
 
             if (gesture.has_zoom())
             {
-                if (const auto new_area = area_.with_zoom_multiplier(gesture.zoom, sizes(egl_)); new_area != area_)
+                if (const auto new_area = area_.with_zoom_multiplier(gesture.zoom, egl_.viewport); new_area != area_)
                 {
                     area_ = new_area;
                     need_redraw_ = true;
@@ -474,7 +476,39 @@ namespace
             return std::nullopt;
         }
 
-        ui::milliseconds_t operator () (ui::idle_event) noexcept
+#ifdef D_OS_ANDROID
+        void operator () (ui::content_rect_changed_event)
+        {
+            const auto new_viewport = app_ui_viewport_request(egl_);
+            if (!new_viewport)
+            {
+                ui_fatal_debug(egl_, "content rect error: ui error: {}, egl error: {}",
+                    ui::error_code(), eglGetError());
+                return;
+            }
+
+            if (new_viewport != egl_.viewport)
+            {
+                egl_.viewport = new_viewport;
+
+                if (!reinitialize())
+                {
+                    ui_fatal_debug(egl_, "reinitialize viewport error: ui error: {}, egl error: {}",
+                        ui::error_code(), eglGetError());
+                    return;
+                }
+            }
+
+            return;
+        }
+#endif
+
+        void operator () (ui::redraw_needed_event) noexcept
+        {
+            need_redraw_ = true;
+        }
+
+        ui::milliseconds operator () (ui::idle_event) noexcept
         {
             if (need_redraw_)
             {
@@ -494,8 +528,11 @@ namespace
     private:
         void draw() const noexcept
         {
-            const egl_painting_owner painting_lock{ egl_ };
-            shaders_.draw(area_.geometry(sizes(egl_)));
+            const egl_painting_owner painting_owner{ egl_ };
+            gl::viewport(egl_.viewport);
+            gl::clear(gl::colors::white_f);
+
+            shaders_.draw(area_.geometry(egl_.viewport));
         }
 
         [[nodiscard]]
@@ -514,16 +551,18 @@ namespace
         public:
             bool initialize(pxsize2d viewport, gl::texture2d_resource texture) noexcept
             {
-                if (!lib.build())
+                const auto was_successful
+                    = lib || lib.build();
+
+                if (was_successful)
                 {
-                    return false;
+                    lib.use();
+                    lib.frag.s_texture.store(texture);
+                    lib.frag.u_color.store(1.0f, 0.5f, 0.5f, 1.0f);
+                    lib.vert.u_viewport.store(viewport);
                 }
 
-                lib.use();
-                lib.frag.s_texture.store(texture);
-                lib.frag.u_color.store(1.0f, 0.5f, 0.5f, 1.0f);
-                lib.vert.u_viewport.store(viewport);
-                return true;
+                return was_successful;
             }
 
             template<class T>
@@ -539,7 +578,7 @@ namespace
             shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
         };
 
-        egl_window egl_{};
+        egl_ui_owner egl_{};
         shaders_lib shaders_{};
         gl::texture2d texture_;
         mouse_tracker mouse_trace_{};

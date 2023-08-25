@@ -254,21 +254,18 @@ namespace
             gl::texture2d texture_cache{};
             range_cache values_range_cache{};
 
-            bool operator () (widget_initializer& ini) noexcept
+            widget::window_configation operator () (const widget::init_event&) noexcept
             {
                 texture_cache = gl::create_texture2d();
                 if (!texture_cache)
                 {
                     e_debug("chart_line: create texture error: {}", glGetError());
-                    return false;
+                    return widget::badcfg;
                 }
 
-                ini.cfg()
-                    .gray_texture_mix_color_shdr()
-                    .colored_rectangle_shdr()
-                    .pix8_temp_buffer();
-
-                return true;
+                return enable_gray_texture_mix_color_shdr 
+                    | enable_colored_rectangle_shdr 
+                    | enable_pix8_temp_buffer;
             }
 
 #ifdef D_OS_WINDOWS
@@ -290,13 +287,13 @@ namespace
                 clear_texture_cache();
             }
 
-            void draw(const window& w) noexcept
+            void operator () (const widget::redraw_event& e) noexcept
             {
-                if (const auto chart_sizes = clamp_sizes(geometry, w.user_sizes()); chart_sizes != sizes(texture_cache))
+                if (const auto chart_sizes = clamp_sizes(geometry, content_sizes(e)); chart_sizes != sizes(texture_cache))
                 {
                     //debug("redraw: {}x{}", chart_sizes.width(), chart_sizes.height());
 
-                    const auto chart_image = px::zeros_pix8space(w.temp_buffer_view(), chart_sizes);
+                    const auto chart_image = px::zeros_pix8space(e, chart_sizes);
                     draw_polyline(chart_image, points, calculate_coordinate_transformation
                     (
                         values_range_cache.update_and_get(points),
@@ -311,8 +308,8 @@ namespace
                     .sizes{ sizes(texture_cache) }
                 };
 
-                w.shaders.colored_rectangle.draw(view_geometry, background_color);
-                w.shaders.gray_texture_mix_color.draw(view_geometry.position, texture_cache, line_color);
+                e.shaders.colored_rectangle.draw(view_geometry, background_color);
+                e.shaders.gray_texture_mix_color.draw(view_geometry.position, texture_cache, line_color);
             }
         };
 
@@ -323,7 +320,6 @@ namespace
         static constexpr point2d button_position_v
             = x00 + point2d{ narrow_cast<pxside_t>(n * (5_px + button_sizes.width())), 0_px };
         
-
         widget::button b_plot
         {
             .geometry
@@ -365,7 +361,7 @@ namespace
 
         chart_line::container_of_points points{};
 
-        bool operator () (const widget_initializer& ini) noexcept
+        bool operator () (const widget::init_event& ini) noexcept
         {
             if (!points.try_reserve(n_points)) [[unlikely]]
             {
@@ -394,7 +390,7 @@ namespace
                 }
             };
 
-            b_exit.clicked = [app = ini.window().app()]() noexcept
+            b_exit.clicked = [app = ui::app_module_handle(ini)]() noexcept
             {
                 ui::quit(app);
             };

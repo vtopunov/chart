@@ -9,8 +9,16 @@
   </ItemDefinitionGroup>
   
   <ItemGroup>
-    <ProjectReference Include="$(AndroidRepoDir)\entry_point\entry_point.vcxproj">
+    <ProjectReference Include="$(AndroidRepoDir)\entry_point\entry_point\entry_point.vcxproj">
       <Project>{8f08613c-d40b-4589-aa40-e4ec8f39632a}</Project>
+    </ProjectReference>
+    
+    <ProjectReference Include="$(AndroidRepoDir)\egl_ui\egl_ui.vcxproj">
+      <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
+    </ProjectReference>
+    
+    <ProjectReference Include="$(AndroidRepoDir)\gl\gl.vcxproj">
+      <Project>{40eaf3cf-7215-4353-9a89-883b91118195}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

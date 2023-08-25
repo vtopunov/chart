@@ -111,7 +111,7 @@ namespace file
     uint64_t size(file_resource file) noexcept
     {
         struct stat data { .st_size{} };
-        const auto is_success = !::fstat(file_resource_to_native(file), &data);
-        return  is_success ? narrow_cast<uint64_t>(data.st_size) : 0ull;;
+        const auto was_successful = !::fstat(file_resource_to_native(file), &data);
+        return  was_successful ? narrow_cast<uint64_t>(data.st_size) : 0ull;
     }
 }

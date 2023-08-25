@@ -4,8 +4,6 @@
 #include <core/member_detector.h>
 
 
-
-
 namespace private_detail_view
 {
     constexpr auto small_size_v = 4u * sizeof(size_t);

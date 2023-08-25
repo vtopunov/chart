@@ -4,6 +4,7 @@
 
 #include <gl/config.h>
 
+
 namespace gl
 {
     using vec2i = vec2<GLint>;
@@ -195,27 +196,27 @@ namespace gl
     {
         switch (id)
         {
-            case glsl_typeid::vec4f:
-            case glsl_typeid::vec4i:
-            case glsl_typeid::vec4b:
-            case glsl_typeid::mat2f:
-                return 4_uz;
+            case glsl_typeid::vec2f:
+            case glsl_typeid::vec2i:
+            case glsl_typeid::vec2b:
+                return 2_uz;
 
             case glsl_typeid::vec3f:
             case glsl_typeid::vec3i:
             case glsl_typeid::vec3b:
                 return 3_uz;
 
-            case glsl_typeid::vec2f:
-            case glsl_typeid::vec2i:
-            case glsl_typeid::vec2b:
-                return 2_uz;
-
-            case glsl_typeid::mat4f:
-                return 4_uz * 4_uz;
+            case glsl_typeid::vec4f:
+            case glsl_typeid::vec4i:
+            case glsl_typeid::vec4b:
+            case glsl_typeid::mat2f:
+                return 4_uz;
 
             case glsl_typeid::mat3f:
                 return 3_uz * 3_uz;
+
+            case glsl_typeid::mat4f:
+                return 4_uz * 4_uz;
 
             default:
                 break;

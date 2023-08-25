@@ -3,8 +3,10 @@
 #include <unistd.h>
 
 #include <core/narrow.h>
+#include <core/clamp_cast.h>
 
 #include "private/private_file.h"
+
 
 namespace file
 {
@@ -14,7 +16,7 @@ namespace file
         constexpr size_t signed_io_result_to_size_t(T result) noexcept
         {
             static_assert(std::is_signed_v<T>);
-            return narrow_cast<size_t>(std::max(result, zero_v<T>));
+            return narrow_cast<size_t>(clamp_to_unsigned(result));
         }
     }
 

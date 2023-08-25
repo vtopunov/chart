@@ -13,7 +13,6 @@
   <ItemGroup>
     <ClInclude Include="app.h" />
     <ClInclude Include="debug.h" />
-    <ClInclude Include="event_fwd.h" />
     <ClInclude Include="event_processor_fwd.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="event.h" />

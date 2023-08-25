@@ -55,17 +55,22 @@ namespace ui
 
         [[nodiscard]] constexpr pxsize2d sizes(const RECT& rect) noexcept
         {
+            static_assert(std::is_unsigned_v<pxside_t>);
+            
             constexpr auto side_length = [] (auto p0, auto p1) noexcept
             {
                 D_ASSERT(p1 >= p0);
                 return narrow_cast<pxside_t>(p1 - p0);
             };
+        
+            pxsize2d result{ side_length(rect.left, rect.right), 0_px };
 
-            return
+            if (result.width()) [[likely]]
             {
-                side_length(rect.left, rect.right),
-                side_length(rect.top, rect.bottom)
-            };
+                result = result.with_height(side_length(rect.top, rect.bottom));
+            }
+
+            return result;
         }
 
         [[nodiscard]]
@@ -90,7 +95,7 @@ namespace ui
         {
             static window_handle_t in_process_of_destruction{ nullptr };
 
-            if (window != in_process_of_destruction)
+            if (window != in_process_of_destruction) [[likely]]
             {
                 event_processors_global().close_window(window);
 
@@ -138,6 +143,25 @@ namespace ui
 
             return false;
         }
+
+#if D_IS_DEBUG
+        [[nodiscard]]
+        pxsize2d display_resolution() noexcept
+        {
+            DEVMODEW dev{};
+            EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &dev);
+            return narrow2d_cast<pxsize2d>(dev.dmPelsWidth, dev.dmPelsHeight);
+        }
+
+        [[nodiscard]]
+        inline bool is_maximum_resolution(pxsize2d sizes) noexcept
+        {
+            const auto resolution = ui::display_resolution();
+            return sizes.width() >= resolution.width()
+                && sizes.height() >= resolution.height();
+        }
+
+#endif 
     }
 
     pxrectangle geometry(window_handle_t window) noexcept
@@ -163,7 +187,9 @@ namespace ui
 
     pxsize2d desktop_sizes() noexcept
     {
-        return sizes(geometry(::GetDesktopWindow()));
+        const auto sizes = ::sizes(ui::geometry(::GetDesktopWindow()));
+        D_ASSERT(is_maximum_resolution(sizes) || !"Resolution is not high dpi. Add <dpiAware>true</dpiAware> in manifest.");
+        return sizes;
     }
 
     bool close(window_handle_t window) noexcept
@@ -200,7 +226,7 @@ namespace ui
         return !!ShowWindow(window, cmd);
     }
 
-    window window_builder::build() const noexcept
+    window create_window(const window_parameters& params) noexcept
     {
         constexpr auto px_to_native = [] (pxside_t px) noexcept
         {
@@ -219,29 +245,26 @@ namespace ui
 
         window result;
 
-        if (!cached_type_)
-        {
-            cached_type_ = type_builder_.build();
-        }
+        prepare(params);
 
-        if (cached_type_) [[likely]]
+        if (params.cached_type) [[likely]]
         {
             result = window
             {
                 resource_construct,
                 CreateWindowExW
                 (
-                    0,
-                    cached_type_.r().name_id,
-                    title_.c_str(),
-                    select_window_style(!!parent_),
-                    px_to_native(geometry_.x()),
-                    px_to_native(geometry_.y()),
-                    px_to_native(geometry_.width()),
-                    px_to_native(geometry_.height()),
-                    parent_,
+                    0u,
+                    params.cached_type.r().name_id,
+                    params.title.c_str(),
+                    select_window_style(params.parent),
+                    px_to_native(params.geometry.x()),
+                    px_to_native(params.geometry.y()),
+                    px_to_native(params.geometry.width()),
+                    px_to_native(params.geometry.height()),
+                    params.parent,
                     nullptr,
-                    cached_type_.r().module,
+                    mutable_app_module_handle(params),
                     nullptr
                 )
             };
@@ -252,10 +275,10 @@ namespace ui
 
                 const auto ok = !!window_set.try_emplace
                 (
-                    std::upper_bound(window_set.cbegin(), window_set.cend(), by_parent{ parent_ }),
+                    std::upper_bound(window_set.cbegin(), window_set.cend(), by_parent{ params.parent }),
                     result.r(),
-                    parent_,
-                    cached_type_
+                    params.parent,
+                    params.cached_type
                 );
 
                 D_ASSERT(ok);

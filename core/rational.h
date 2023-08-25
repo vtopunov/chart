@@ -4,6 +4,9 @@
 
 #include <core/span.h>
 
+using doublemax_t = long double;
+
+
 template<class T>
 struct rational
 {
@@ -17,7 +20,7 @@ struct rational
     //
 
     using int_type = T;
-    static_assert( std::is_integral_v<int_type> );
+    static_assert(std::is_integral_v<int_type>);
 
     int_type num;
     int_type den;
@@ -58,7 +61,7 @@ struct rational
 };
 
 template<class T>
-rational(T, T)->rational<T>;
+rational(T, T) -> rational<T>;
 
 template <class T>
 struct rational_detector : std::false_type
@@ -127,37 +130,37 @@ constexpr rational<T> inverse(const rational<T> value) noexcept
 template<class Target, class Source> [[nodiscard]]
 constexpr Target rational_cast(const Source src) noexcept
 {
-    if constexpr ( is_rational_v<Source> )
+    if constexpr (is_rational_v<Source>)
     {
         D_ASSERT(src.den);
 
-        if constexpr ( is_rational_v<Target> )
+        if constexpr (is_rational_v<Target>)
         {
             using int_type = typename Target::int_type;
             return
             {
-                narrow_cast<int_type>( src.num ),
-                narrow_cast<int_type>( src.den )
+                narrow_cast<int_type>(src.num),
+                narrow_cast<int_type>(src.den)
             };
         }
         else
         {
-            if constexpr ( std::is_integral_v<Target> )
+            if constexpr (std::is_integral_v<Target>)
             {
-                return narrow_cast<Target>( src.num / src.den );
+                return narrow_cast<Target>(src.num / src.den);
             }
             else
             {
-                static_assert( std::is_floating_point_v<Target> );
-                return narrow_cast<Target>( src.num ) / narrow_cast<Target>( src.den );
+                static_assert(std::is_floating_point_v<Target>);
+                return static_cast<Target>(narrow_cast<doublemax_t>(src.num) / narrow_cast<doublemax_t>(src.den));
             }
         }
     }
     else
     {
-        static_assert( is_rational_v<Target> && std::is_integral_v<Source> );
+        static_assert(is_rational_v<Target> && std::is_integral_v<Source>);
         using int_type = typename Target::int_type;
-        return Target::from_int(narrow_cast<int_type>( src ));
+        return Target::from_int(narrow_cast<int_type>(src));
     }
 }
 
@@ -248,7 +251,7 @@ constexpr std::enable_if_t
     rational<T>
 > operator - (const rational<T> left, const rational<T> right) noexcept
 {
-    return left + ( -right );
+    return left + (-right);
 }
 
 template<class T> [[nodiscard]]
@@ -259,8 +262,8 @@ constexpr rational<T> operator * (const rational<T> left, const rational<T> righ
 
     return
     {
-        ( left.num / gcd_left ) * ( right.num / gcd_right ),
-        ( left.den / gcd_right ) * ( right.den / gcd_left )
+        (left.num / gcd_left) * (right.num / gcd_right),
+        (left.den / gcd_right) * (right.den / gcd_left)
     };
 }
 
@@ -277,7 +280,7 @@ operator * (const rational<T> left, const U right) noexcept
 
     return
     {
-        left.num * ( right_num / gcd_right ),
+        left.num * (right_num / gcd_right),
         left.den / gcd_right
     };
 }
@@ -309,7 +312,7 @@ operator / (const rational<T> left, const U right) noexcept
     return
     {
         left.num / gcd_right,
-        left.den * ( right_num / gcd_right )
+        left.den * (right_num / gcd_right)
     };
 }
 
@@ -338,7 +341,7 @@ constexpr bool operator < (const rational<T> left, const rational<T> right) noex
     const auto mul_left = right.den / gcd;
     const auto mul_right = left.den / gcd;
 
-    return left.num * mul_left < right.num* mul_right;
+    return left.num * mul_left < right.num * mul_right;
 }
 
 template<class T> [[nodiscard]]
@@ -373,19 +376,19 @@ constexpr rational<T> rational<T>::from_string(span<const char> string) noexcept
     bool isdot = false;
     size_t index = 0;
 
-    for ( const auto c : string )
+    for (const auto c : string)
     {
-        if ( !is_digit(c) )
+        if (!is_digit(c))
         {
-            if constexpr ( std::is_signed_v<T> )
+            if constexpr (std::is_signed_v<T>)
             {
-                if ( !index && c == '-' )
+                if (!index && c == '-')
                 {
                     continue;
                 }
             }
 
-            if ( c == '.' )
+            if (c == '.')
             {
                 isdot = true;
                 continue;
@@ -395,12 +398,12 @@ constexpr rational<T> rational<T>::from_string(span<const char> string) noexcept
             return r;
         }
 
-        const char digit = ( c - '0' );
+        const char digit = (c - '0');
 
-        if ( ( r.num > ( max_v - digit ) / 10 ) || ( r.den > max_v / 10 ) )
+        if ((r.num > (max_v - digit) / 10) || (r.den > max_v / 10))
         {
             D_ASSERT(!"sint overflow");
-            if ( isdot )
+            if (isdot)
             {
                 break;
             }
@@ -413,7 +416,7 @@ constexpr rational<T> rational<T>::from_string(span<const char> string) noexcept
         r.num *= 10;
         r.num += digit;
 
-        if ( isdot )
+        if (isdot)
         {
             r.den *= 10;
         }
@@ -421,9 +424,9 @@ constexpr rational<T> rational<T>::from_string(span<const char> string) noexcept
         ++index;
     }
 
-    if constexpr ( std::is_signed_v<T> )
+    if constexpr (std::is_signed_v<T>)
     {
-        if ( r.num && string.size() && string.front() == '-' )
+        if (r.num && string.size() && string.front() == '-')
         {
             r.num = -r.num;
         }
@@ -434,15 +437,15 @@ constexpr rational<T> rational<T>::from_string(span<const char> string) noexcept
 
 namespace rational_literals
 {
-    template<char ... chars> [[nodiscard]]
-    constexpr rational<ptrdiff_t> operator"" _r() noexcept
+    template<char ... chars> 
+    [[nodiscard]] constexpr rational<ptrdiff_t> operator"" _r() noexcept
     {
         constexpr char string[] = { chars... };
         return rational<ptrdiff_t>::from_string(string);
     }
 
-    template<char ... chars> [[nodiscard]]
-    constexpr rational<size_t> operator"" _ur() noexcept
+    template<char ... chars> 
+    [[nodiscard]] constexpr rational<size_t> operator"" _ur() noexcept
     {
         constexpr char string[] = { chars... };
         return rational<size_t>::from_string(string);

@@ -74,23 +74,23 @@ namespace
         };
     }
 
-    class random_texure_widget
+    class simple_widget
     {
         static constexpr auto invalid_mouse_pos = fill_to<point2d>(numeric_max_v<ui::pointer_event::value_type>);
 
     public:
         [[nodiscard]]
-        bool operator () (const widget_initializer & ini) noexcept
+        bool operator () (const widget::init_event& ini) noexcept
         {
-            viewport_sizes_ = sizes(ini.window());
+            viewport_ = ini.viewport;
 
-            texture_ = pix8map_generate(viewport_sizes_ / 2u);
+            texture_ = pix8map_generate(viewport_ / 2u);
             if (!texture_)
             {
                 return false;
             }
 
-            if (!shaders_.initialize(viewport_sizes_, texture_))
+            if (!shaders_.initialize(viewport_, texture_))
             {
                 return false;
             }
@@ -106,7 +106,7 @@ namespace
             return event_result::redraw;
         }
 
-        event_result operator () (const ui::mouse_move_event & e) noexcept
+        event_result operator () (const ui::mouse_move_event& e) noexcept
         {
             if (!e.keys().is_left())
             {
@@ -129,7 +129,7 @@ namespace
                         (
                             position_ + d_mouse,
                             sizes(texture_),
-                            viewport_sizes_
+                            viewport_
                         );
 
                         if (new_postion != position_)
@@ -150,7 +150,7 @@ namespace
             return std::nullopt;
         } 
 
-        void draw(const widget::window&) const noexcept
+        void operator () (const widget::redraw_event&) const noexcept
         {
             shaders_.draw(position_);
         }
@@ -163,7 +163,7 @@ namespace
 
         constexpr void position_by_default() noexcept
         {
-            position_ = narrow2d_cast<pxoff2d>((viewport_sizes_ - sizes(texture_)) / 2u);
+            position_ = narrow2d_cast<pxoff2d>((viewport_ - sizes(texture_)) / 2u);
         }
 
     private:
@@ -196,7 +196,7 @@ namespace
             shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
         };
 
-        pxsize2d viewport_sizes_{};
+        egl_ui::viewport_size2d viewport_{};
         shaders_lib shaders_{};
         gl::texture2d texture_{};
         ui::pointer_event::point2d_type mouse_pos_{ invalid_mouse_pos };
@@ -213,7 +213,7 @@ namespace
         }
 
     private:
-        random_texure_widget widget_{};
+        simple_widget widget_{};
     };
 }
 

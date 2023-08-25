@@ -1,7 +1,5 @@
 #pragma once
 
-#include <chrono>
-
 #include <ui/event.h>
 
 
@@ -45,6 +43,51 @@ namespace ui
 
         return call_event(p, e);
     }
+
+#if defined(D_OS_ANDROID)
+    struct nullcmdevent_result_t {};
+
+    constexpr nullcmdevent_result_t nullcmdevent_result{};
+
+
+    template<class T, cmd_event_style es>
+    auto call_cmd_event(T& function, const specialized_cmd_event<es>& e) noexcept -> decltype((function(e), nullcmdevent_result))
+    {
+        function(e);
+        return nullcmdevent_result;
+    }
+
+    template<class T>
+    auto call_cmd_event(T& function, const cmd_event& e) noexcept -> decltype((function(e), nullcmdevent_result))
+    {
+        function(e);
+        return nullcmdevent_result;
+    }
+
+    template<class T>
+    constexpr nullcmdevent_result_t call_cmd_event(T&, no_overload_for<cmd_event>) noexcept
+    {
+        return nullcmdevent_result;
+    }
+
+    template<class T>
+    nullcmdevent_result_t do_cmd_event_match(T& p, const cmd_event& e) noexcept
+    {
+        switch (e.style())
+        {
+            case cmd_event_style::redraw_needed:
+                return call_cmd_event(p, cmd_event_for<cmd_event_style::redraw_needed>(e));
+            case cmd_event_style::content_rect_changed: 
+                return call_cmd_event(p, cmd_event_for<cmd_event_style::content_rect_changed>(e));
+
+            default:
+                break;
+        }
+
+        return call_cmd_event(p, e);
+    }
+
+#endif
 
     template<class Processor>
     struct event_match

@@ -2,13 +2,16 @@
 
 #include <px/algorithm.h>
 
-#include <egl_ui/event_loop.h>
+#include <egl_ui/egl_ui_owner.h>
 
+#ifdef D_OS_WINDOWS
 #include <file/file_mmap.h>
+#endif
 
 #include <utility/shaders_library.h>
 
 #include "test_figure.h"
+
 
 namespace
 {
@@ -97,7 +100,7 @@ namespace
 
 int app_main(os::module_handle_t app) noexcept
 {
-    const auto egl = create_egl_window(app);
+    const auto egl = create_egl_ui(app);
     if (!egl)
     {
         e_debug("create window error: window error: {}, egl error: {}",
@@ -120,11 +123,13 @@ int app_main(os::module_handle_t app) noexcept
     }
     
     {
-        const egl_painting_owner painting_lock{ egl };
+        const egl_painting_owner painting_owner{ egl };
+        gl::viewport(egl.viewport);
+        gl::clear(gl::colors::white_f);
 
         shaders.use();
         shaders.frag.s_texture.store(texture);
-        shaders.vert.u_viewport.store(sizes(egl));
+        shaders.vert.u_viewport.store(egl.viewport);
         shaders.vert.u_position.store(30_px, 50_px);
         shaders.vert.u_size.store(sizes(texture));
         shaders.vert.a_frame.draw();

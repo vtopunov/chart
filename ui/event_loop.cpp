@@ -9,7 +9,7 @@ namespace ui
 {
     namespace private_detail_event_loop
     {
-        void message_wait_for(milliseconds_t timeout) noexcept
+        void message_wait_for(milliseconds timeout) noexcept
         {
             static_assert(INFINITE == infinite.count());
             
