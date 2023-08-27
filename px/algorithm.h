@@ -23,8 +23,7 @@ namespace px
         constexpr real_t _256_0{ 256.0 };
         constexpr auto eps = _0_5 / _256_0;
         constexpr auto _256_plus = _256_0 + eps;
-        constexpr auto _256_0_0_bound = -512.0 + eps;
-        static_assert(1 == (static_cast<int64_t>(-_256_0_0_bound) >> 8));
+        constexpr auto _256_0_0_bound = -255.0 - eps;
 
         using image_pointer_t = pix8span::pointer;
         using shade_t = std::remove_cv_t<std::remove_pointer_t<image_pointer_t>>;

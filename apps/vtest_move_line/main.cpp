@@ -4,11 +4,12 @@
 
 #include <px/algorithm.h>
 
-#include <egl_ui/event_loop.h>
+#include <egl_ui/egl_ui_owner.h>
 
 #include <utility/shaders_library.h>
 
 #include "../vtest_line/test_figure.h"
+
 
 namespace
 {
@@ -25,7 +26,7 @@ namespace
                     line.y0 + dd.y(),
                     line.x1 + dd.x(),
                     line.y1 + dd.y()
-                );
+                 );
             }
         }
 
@@ -41,14 +42,31 @@ namespace
 
     class main_processor
     {
+        static constexpr auto background_color = colors::cyan;
+        static constexpr auto gl_background_color_f = gl::to_colorf(background_color);
+
     public:
         [[nodiscard]]
         bool initialize(os::module_handle_t app) noexcept
         {
-            egl_ = egl_window_builder{}
-                 .module(app)
-                 .background(gl::colors::cyan_f)
-                 .build();
+#ifdef D_OS_WINDOWS
+            {
+                auto brush = ui::create_brush(background_color);
+                if (!brush)
+                {
+                    return false;
+                }
+
+                egl_ = egl_ui_builder{}
+                    .module(app)
+                    .background(std::move(brush))
+                    .build();
+            } 
+            
+#else
+            egl_ = create_egl_ui(app);
+
+#endif
 
             if (!egl_)
             {
@@ -60,13 +78,12 @@ namespace
                 return false;
             }
 
-            if (!shaders_.initialize(sizes(egl_)))
+            if (!shaders_.initialize(egl_.viewport))
             {
                 return false;
             }
 
             mouse_trace_finish();
-
             return true;
         }
 
@@ -120,7 +137,7 @@ namespace
             return std::nullopt;
         }
 
-        ui::milliseconds_t operator () (ui::idle_event) noexcept
+        ui::milliseconds operator () (ui::idle_event) noexcept
         {
             if (need_redraw_)
             {
@@ -140,7 +157,10 @@ namespace
     private:
         void draw() const noexcept
         {
-            const egl_painting_owner painting_lock{ egl_ };
+            const egl_painting_owner painting_owner{ egl_ };
+            gl::viewport(egl_.viewport);
+            gl::clear(gl_background_color_f);
+
             shaders_.draw(texture_);
         }
 
@@ -186,7 +206,7 @@ namespace
 
         bool lines_rendering_by_default() noexcept
         {
-            return lines_rendering({ 0_px, 0_px });
+            return lines_rendering({ 0_pxz, 0_pxz });
         }
 
     private:
@@ -218,7 +238,7 @@ namespace
             shaders_library<vert::positioned_texture, frag::inverted_texture> lib{};
         };
 
-        egl_window egl_{};
+        egl_ui_owner egl_{};
         shaders_lib shaders_{};
         gl::texture2d texture_{};
         ui::pointer_event::point2d_type mouse_pos_{};
