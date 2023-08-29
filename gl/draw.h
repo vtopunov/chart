@@ -18,8 +18,8 @@ namespace gl
         glViewport
         (
             0, 0,
-            narrow_cast<GLsizei>(sizes.width()),
-            narrow_cast<GLsizei>(sizes.height())
+            narrow<GLsizei>(sizes.width()),
+            narrow<GLsizei>(sizes.height())
         );
     }
 
@@ -52,7 +52,7 @@ namespace gl
 
     inline void draw_arrays(draw_mode mode, ptrdiff_t first, size_t count) noexcept
     {
-        glDrawArrays(to_underlying(mode), narrow_cast<GLint>(first), narrow_cast<GLsizei>(count));
+        glDrawArrays(to_underlying(mode), narrow<GLint>(first), narrow<GLsizei>(count));
     }
 
     template<class T>
@@ -63,7 +63,7 @@ namespace gl
         glDrawElements
         (
             to_underlying(mode),
-            narrow_cast<GLsizei>(size),
+            narrow<GLsizei>(size),
             to_underlying(type_id),
             indices
         );

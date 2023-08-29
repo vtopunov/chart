@@ -239,7 +239,7 @@ namespace
         size_t remove_test_if(Pr pr) noexcept
         {
             const auto items_end = items + count;
-            const auto count_of_removed = narrow_cast<size_t>(items_end - std::remove_if(items, items_end, pr));
+            const auto count_of_removed = narrow<size_t>(items_end - std::remove_if(items, items_end, pr));
             D_ASSERT(count_of_removed <= count);
             count -= count_of_removed;
             return count_of_removed;

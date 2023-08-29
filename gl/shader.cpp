@@ -22,14 +22,14 @@ namespace gl
         {
             GLint size{ 0 };
             glGetShaderiv(to_underlying(shader), GL_INFO_LOG_LENGTH, &size);
-            return narrow_cast<size_t>(size);
+            return narrow<size_t>(size);
         }
 
         size_t compile_log_read(shader_resource shader, span<GLchar> chars) noexcept
         {
-            auto size = narrow_cast<GLsizei>(chars.size());
+            auto size = narrow<GLsizei>(chars.size());
             glGetShaderInfoLog(to_underlying(shader), size, &size, chars.data());
-            return narrow_cast<size_t>(size);
+            return narrow<size_t>(size);
         }
 
         [[nodiscard]]
@@ -70,7 +70,7 @@ namespace gl
             (
                 to_underlying(program),
                 location,
-                narrow_cast<GLsizei>(name_buffer.capacity()),
+                narrow<GLsizei>(name_buffer.capacity()),
                 &name_size,
                 &size,
                 &type_id,
@@ -80,7 +80,7 @@ namespace gl
             const string_view name
             {
                 std::as_const(name_buffer).data(),
-                narrow_cast<size_t>(name_size)
+                narrow<size_t>(name_size)
             };
 
             const auto test0 = (size == 1_uz);
@@ -141,14 +141,14 @@ namespace gl
             static_assert(std::is_signed_v<decltype(location)>);
             static_assert(std::is_unsigned_v<location_index_t>);
             static_assert(std::is_same_v<location_index_t, std::underlying_type_t<LocationType>>);
-            return narrow_cast<LocationType>(location);
+            return narrow<LocationType>(location);
         }
     }
 
     void set_source(shader_resource shader, source_view source) noexcept
     {
         const auto source_data = source.data();
-        const auto source_length = narrow_cast<GLint>(source.size());
+        const auto source_length = narrow<GLint>(source.size());
         glShaderSource(to_underlying(shader), 1, &source_data, &source_length);
     }
 

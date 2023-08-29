@@ -114,7 +114,7 @@ public:
     [[nodiscard]]
     constexpr size_t index(const_pointer p) const noexcept
     {
-        const auto id = narrow_cast<size_t>(p - storage_.data());
+        const auto id = narrow<size_t>(p - storage_.data());
         D_ASSERT(id < storage_.size());
         return id;
     }

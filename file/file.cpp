@@ -152,6 +152,6 @@ namespace file
     {
         LARGE_INTEGER result{};
         const auto is_success = !!GetFileSizeEx(file.fd, &result);
-        return is_success ? narrow_cast<uint64_t>(result.QuadPart) : 0ull;
+        return is_success ? narrow<uint64_t>(result.QuadPart) : 0ull;
     }
 }

@@ -24,7 +24,7 @@ constexpr T tint_max() noexcept
         else
         {
             static_assert(std::is_integral_v<T>);
-            return narrow_cast<T>(byte_max);
+            return narrow<T>(byte_max);
         }
     }
 }
@@ -187,12 +187,12 @@ constexpr Target color_tint_cast(Source source) noexcept
             if constexpr (std::is_integral_v<Source>)
             {
                 constexpr auto source_max = tint_max<Source>();
-                constexpr auto ratio = target_max / narrow_cast<Target>(source_max);
-                return ratio * narrow_cast<Target>(source);
+                constexpr auto ratio = target_max / narrow<Target>(source_max);
+                return ratio * narrow<Target>(source);
             }
             else
             {
-                return narrow_cast<Target>(source);
+                return narrow<Target>(source);
             }
         }
     }
@@ -203,7 +203,7 @@ constexpr Target color_tint_cast(Source source) noexcept
 
         if constexpr (target_is_integral && source_is_integral)
         {
-            return narrow_cast<Target>(source);
+            return narrow<Target>(source);
         }
         else
         {
@@ -242,7 +242,7 @@ constexpr Target color_cast(const Source& src) noexcept
         else
         {
             static_assert(std::is_integral_v<Source>);
-            const auto argb_uint32 = narrow_cast<u32argb_t>(src);
+            const auto argb_uint32 = narrow<u32argb_t>(src);
             const auto rgba_color32 = u32argb_to_color(argb_uint32);
             return color_cast<Target>(rgba_color32);
         }
@@ -252,7 +252,7 @@ constexpr Target color_cast(const Source& src) noexcept
         static_assert(std::is_integral_v<Target> && is_rgba_color_v<Source>);
         const auto rgba_color32 = color_cast<rgba_color32_t>(src);
         const auto argb_uint32 = color32_to_uint(rgba_color32);
-        return narrow_cast<Target>(argb_uint32);
+        return narrow<Target>(argb_uint32);
     }
 }
 
@@ -385,8 +385,8 @@ namespace private_detail_argb_color
 
                 return simplify
                 (
-                    narrow_cast<common_t>(left),
-                    narrow_cast<common_t>(right)
+                    narrow<common_t>(left),
+                    narrow<common_t>(right)
                 );
             }
             else
@@ -437,13 +437,13 @@ namespace color_literals
     [[nodiscard]]
     constexpr rgba_color32_t operator "" _rgb(unsigned long long rgb) noexcept
     {
-        return u32rgb_to_color(narrow_cast<u32argb_t>(rgb));
+        return u32rgb_to_color(narrow<u32argb_t>(rgb));
     }
 
     [[nodiscard]]
     constexpr rgba_color32_t operator "" _argb(unsigned long long argb) noexcept
     {
-        return u32argb_to_color(narrow_cast<u32argb_t>(argb));
+        return u32argb_to_color(narrow<u32argb_t>(argb));
     }
 }
 

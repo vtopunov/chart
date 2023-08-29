@@ -199,7 +199,7 @@ namespace
                 }
             }
 
-            return narrow_cast<pxside_t>(len);
+            return narrow<pxside_t>(len);
         };
 
         return
@@ -318,7 +318,7 @@ namespace
 
         template<size_t n>
         static constexpr point2d button_position_v
-            = x00 + point2d{ narrow_cast<pxside_t>(n * (5_px + button_sizes.width())), 0_px };
+            = x00 + point2d{ narrow<pxside_t>(n * (5_px + button_sizes.width())), 0_px };
         
         widget::button b_plot
         {

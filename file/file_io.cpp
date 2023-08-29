@@ -46,7 +46,7 @@ namespace file
     {
         native_io_size_t result{ 0u };
 
-        if ( !ReadFile(file.fd, data, narrow_cast<native_io_size_t>(size), &result, nullptr) )
+        if ( !ReadFile(file.fd, data, narrow<native_io_size_t>(size), &result, nullptr) )
         {
             if ( result == size )
             {
@@ -61,7 +61,7 @@ namespace file
     {
         native_io_size_t result{ 0u };
 
-        if ( !WriteFile(file.fd, data, narrow_cast<native_io_size_t>( size ), &result, nullptr) )
+        if ( !WriteFile(file.fd, data, narrow<native_io_size_t>( size ), &result, nullptr) )
         {
             if ( result == size )
             {

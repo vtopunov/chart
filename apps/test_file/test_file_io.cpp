@@ -12,7 +12,7 @@ namespace
     constexpr std::string_view test_data{ "0123456789" };
 
     constexpr auto block_size = test_data.size() * sizeof(*test_data.data());
-    constexpr auto block_offset = narrow_cast<file::off_t>( block_size );
+    constexpr auto block_offset = narrow<file::off_t>( block_size );
 
     constexpr size_t size_blocks(size_t n_blocks) noexcept
     {
@@ -99,7 +99,7 @@ namespace
     {
         constexpr auto n_blocks = 7_uz;
         constexpr auto file_size = size_blocks(n_blocks);
-        constexpr auto end_offset = narrow_cast<file::off_t>( file_size );
+        constexpr auto end_offset = narrow<file::off_t>( file_size );
 
         test_write(n_blocks, file::w_open_mode::truncate);
         test_read(n_blocks);

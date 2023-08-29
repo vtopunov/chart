@@ -80,7 +80,7 @@ template<template<class> class Vec, class T>
     std::is_base_of_v<vec2<T>, Vec<T>>, Vec<remove_unsigned_t<T>>
 > as_signed(const Vec<T>& vec) noexcept
 {
-    return { as_signed(std::move(vec._0)), as_signed(std::move(vec._1)) };
+    return { as_signed(vec._0), as_signed(vec._1) };
 }
 
 template<template<class> class Vec, class T>
@@ -240,19 +240,19 @@ template<class T, class U>
 }
 
 template<class OutT, class InT>
-[[nodiscard]] constexpr OutT narrow2d_cast(InT x, InT y) noexcept
+[[nodiscard]] constexpr OutT narrow2d(InT x, InT y) noexcept
 {
     using value_t = value_type_t<OutT>;
 
     return
     {
-        narrow_cast<value_t>(std::move(x)),
-        narrow_cast<value_t>(std::move(y))
+        narrow<value_t>(std::move(x)),
+        narrow<value_t>(std::move(y))
     };
 }
 
 template<class OutT, class InT>
-[[nodiscard]] constexpr OutT narrow2d_cast(vec2<InT> in) noexcept
+[[nodiscard]] constexpr OutT narrow2d(vec2<InT> in) noexcept
 {
-    return narrow2d_cast<OutT>(std::move(in._0), std::move(in._1));
+    return narrow2d<OutT>(std::move(in._0), std::move(in._1));
 }

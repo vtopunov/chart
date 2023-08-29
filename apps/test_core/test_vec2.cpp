@@ -97,22 +97,22 @@ void test_vec2() noexcept
     }
 
     {
-        constexpr auto vec_size = narrow2d_cast<vec2<size_t>>(vec2{ 3, 4 });
+        constexpr auto vec_size = narrow2d<vec2<size_t>>(vec2{ 3, 4 });
         static_assert(std::is_same_v<std::remove_const_t<decltype(vec_size)>, vec2<size_t>>);
         static_assert(std::is_same_v<std::remove_const_t<decltype(vec_size._0)>, size_t>);
         static_assert(vec_size._0 == 3_uz);
         static_assert(vec_size._1 == 4_uz);
         test_view(vec_size);
 
-        constexpr auto vec_ptrdiff = narrow2d_cast<vec2<ptrdiff_t>>(vec_size);
+        constexpr auto vec_ptrdiff = narrow2d<vec2<ptrdiff_t>>(vec_size);
         static_assert(std::is_same_v<std::remove_const_t<decltype(vec_ptrdiff)>, vec2<ptrdiff_t>>);
         static_assert(std::is_same_v<std::remove_const_t<decltype(vec_ptrdiff._0)>, ptrdiff_t>);
         static_assert(vec_ptrdiff._0 == 3);
         static_assert(vec_ptrdiff._1 == 4);
-        static_assert(narrow2d_cast<vec2<size_t>>(vec_ptrdiff) == vec_size);
+        static_assert(narrow2d<vec2<size_t>>(vec_ptrdiff) == vec_size);
         test_view(vec_ptrdiff);
 
-        const auto stdvec = narrow2d_cast<std::vector<int>>(vec_ptrdiff);
+        const auto stdvec = narrow2d<std::vector<int>>(vec_ptrdiff);
         D_ASSERT(stdvec.size() == 2_uz);
         D_ASSERT(stdvec[0] == 3);
         D_ASSERT(stdvec[1] == 4);

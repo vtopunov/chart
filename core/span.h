@@ -183,7 +183,7 @@ public:
 
     template<class C, std::enable_if_t<is_compatible_v<C>, int> = 0>
     constexpr span(C& c) noexcept
-        : base_type{ std::data(c), narrow_cast<size_type>(std::size(c)) }
+        : base_type{ std::data(c), narrow<size_type>(std::size(c)) }
     {}
 
     constexpr span& operator = (const span&) noexcept = default;

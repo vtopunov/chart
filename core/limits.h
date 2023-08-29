@@ -12,6 +12,9 @@ template<class T>
 constexpr auto numeric_min_v = std::numeric_limits<T>::min();
 
 template<class T>
+constexpr auto numeric_eps_v = std::numeric_limits<T>::epsilon();
+
+template<class T>
 constexpr auto numeric_lowest_v = std::numeric_limits<T>::lowest();
 
 template<class T>

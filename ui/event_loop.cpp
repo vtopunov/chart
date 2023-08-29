@@ -17,7 +17,7 @@ namespace ui
             (
                 0u,
                 nullptr,
-                narrow_cast<dword_t>(std::min(infinite, timeout).count()),
+                narrow<dword_t>(std::min(infinite, timeout).count()),
                 QS_ALLEVENTS,
                 MWMO_ALERTABLE
             );

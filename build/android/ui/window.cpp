@@ -12,7 +12,7 @@ namespace ui
         template<class T>
         constexpr pxside_t to_px(T value) noexcept
         {
-            return narrow_cast<pxside_t>(clamp_to_unsigned(value));
+            return narrow<pxside_t>(clamp_to_unsigned(value));
         }
     }
 

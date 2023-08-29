@@ -26,7 +26,7 @@ namespace px
             }
             else
             {
-                uniform.store(narrow2d_cast<value_tuple_type>(std::move(p)));
+                uniform.store(narrow2d<value_tuple_type>(std::move(p)));
             }
         }
 
@@ -41,8 +41,8 @@ namespace px
             {
                 uniform.store
                 (
-                    narrow_cast<value_type>(std::move(p0)),
-                    narrow_cast<value_type>(std::move(p1))
+                    narrow<value_type>(std::move(p0)),
+                    narrow<value_type>(std::move(p1))
                 );
             }
         }

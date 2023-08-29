@@ -48,7 +48,7 @@ namespace file
 
             size_t size(os::asset_handle_t asset) noexcept
             {
-                return safe_numeric_cast<size_t>(clamp_to_unsigned(AAsset_getLength(asset)));
+                return numeric_cast<size_t>(clamp_to_unsigned(AAsset_getLength(asset)));
             }
         }
 

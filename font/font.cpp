@@ -205,7 +205,7 @@ namespace font
                 (
                     lib,
                     font_storage.as_ptr<FT_Byte>(),
-                    narrow_cast<FT_Long>(font_storage.size()),
+                    narrow<FT_Long>(font_storage.size()),
                     face_index,
                     std::addressof(as_mutable(ft_face.r()))
                 ); errc != FT_Err_Ok) [[unlikely]]
@@ -243,8 +243,8 @@ namespace font
             = FT_Set_Pixel_Sizes
             (
                 face,
-                narrow_cast<FT_UInt>(sizes.width()),
-                narrow_cast<FT_UInt>(sizes.height())
+                narrow<FT_UInt>(sizes.width()),
+                narrow<FT_UInt>(sizes.height())
             ); errc != FT_Err_Ok) [[unlikely]]
         {
             e_debug_ft("FT_Set_Pixel_Sizes", errc);
@@ -270,7 +270,7 @@ namespace font
             = FT_Load_Char
             (
                 face, 
-                safe_numeric_cast<FT_ULong>(char_code), 
+                numeric_cast<FT_ULong>(char_code), 
                 FT_LOAD_RENDER
             ); FT_Err_Ok != errc) [[unlikely]]
         {
@@ -305,17 +305,17 @@ namespace font
 
             size2d sizes
             {
-                narrow_cast<pxside_t>(bitmap.width),
-                narrow_cast<pxside_t>(bitmap.rows)
+                narrow<pxside_t>(bitmap.width),
+                narrow<pxside_t>(bitmap.rows)
             };
 
-            const auto line_size = narrow_cast<size_t>(bitmap.pitch);
+            const auto line_size = narrow<size_t>(bitmap.pitch);
 
             auto position = cursor + m.bearing();
 
             if (is_negative(position.x()))
             {
-                const auto buffer_offset = narrow_cast<pxside_t>(-position.x().discard_fraction());
+                const auto buffer_offset = narrow<pxside_t>(-position.x().discard_fraction());
                 if (buffer_offset >= sizes.width())
                 {
                     return invalid_cursor;
@@ -328,13 +328,13 @@ namespace font
 
             if (is_negative(position.y()))
             {
-                const auto line_offset = narrow_cast<pxside_t>(-position.y().discard_fraction());
+                const auto line_offset = narrow<pxside_t>(-position.y().discard_fraction());
                 if (line_offset >= sizes.height())
                 {
                     return invalid_cursor;
                 }
 
-                buffer += (line_size * safe_numeric_cast<size_t>(line_offset));
+                buffer += (line_size * numeric_cast<size_t>(line_offset));
                 sizes.ref_height() -= line_offset;
                 position.ref_y() = {};
             }
@@ -364,7 +364,7 @@ namespace font
             = FT_Load_Char
             (
                 face, 
-                safe_numeric_cast<FT_ULong>(char_code), 
+                numeric_cast<FT_ULong>(char_code), 
                 FT_LOAD_DEFAULT
             ); FT_Err_Ok != errc) [[unlikely]]
         {

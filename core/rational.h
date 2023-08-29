@@ -139,20 +139,20 @@ constexpr Target rational_cast(const Source src) noexcept
             using int_type = typename Target::int_type;
             return
             {
-                narrow_cast<int_type>(src.num),
-                narrow_cast<int_type>(src.den)
+                narrow<int_type>(src.num),
+                narrow<int_type>(src.den)
             };
         }
         else
         {
             if constexpr (std::is_integral_v<Target>)
             {
-                return narrow_cast<Target>(src.num / src.den);
+                return narrow<Target>(src.num / src.den);
             }
             else
             {
                 static_assert(std::is_floating_point_v<Target>);
-                return static_cast<Target>(narrow_cast<doublemax_t>(src.num) / narrow_cast<doublemax_t>(src.den));
+                return static_cast<Target>(narrow<doublemax_t>(src.num) / narrow<doublemax_t>(src.den));
             }
         }
     }
@@ -160,7 +160,7 @@ constexpr Target rational_cast(const Source src) noexcept
     {
         static_assert(is_rational_v<Target> && std::is_integral_v<Source>);
         using int_type = typename Target::int_type;
-        return Target::from_int(narrow_cast<int_type>(src));
+        return Target::from_int(narrow<int_type>(src));
     }
 }
 

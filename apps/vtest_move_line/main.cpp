@@ -16,7 +16,7 @@ namespace
     gl::texture2d lines_rendering(const pix8span image, const pxoff2d d) noexcept
     {
         {
-            const auto dd = narrow2d_cast<px::point2d_real>(d);
+            const auto dd = narrow2d<px::point2d_real>(d);
             for (const auto& line : vtest_line_figure::figure)
             {
                 draw_antialiasing_line

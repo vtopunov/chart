@@ -62,7 +62,7 @@ namespace private_detail_size_bytes
         -> decltype(value_type_size<C>(), std::size(c), 0_uz)
     {
         constexpr auto type_size = value_type_size<C>();
-        return size_mul<type_size>(narrow_cast<size_t>(std::size(c)));
+        return size_mul<type_size>(narrow<size_t>(std::size(c)));
     }
 
     template<class C>

@@ -21,13 +21,13 @@ namespace px
         [[nodiscard]]
         constexpr pxside_t operator"" _px(unsigned long long side) noexcept
         {
-            return narrow_cast<pxside_t>(side);
+            return narrow<pxside_t>(side);
         }
 
         [[nodiscard]]
         constexpr pxoff_t operator"" _pxz(unsigned long long side) noexcept
         {
-            return narrow_cast<pxoff_t>(side);
+            return narrow<pxoff_t>(side);
         }
     }
 }

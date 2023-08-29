@@ -31,17 +31,17 @@ namespace ui
     event::_coordinate_value_type event::_x_coordinate(size_t index) const noexcept
     {
         D_ASSERT(index < _size());
-        return safe_numeric_cast<_coordinate_value_type>(AMotionEvent_getX(input_e_, index));
+        return numeric_cast<_coordinate_value_type>(AMotionEvent_getX(input_e_, index));
     }
 
     event::_coordinate_value_type event::_y_coordinate(size_t index) const noexcept
     {
         D_ASSERT(index < _size());
-        return safe_numeric_cast<_coordinate_value_type>(AMotionEvent_getY(input_e_, index));
+        return numeric_cast<_coordinate_value_type>(AMotionEvent_getY(input_e_, index));
     }
     
     size_t event::_size() const noexcept
     {
-        return safe_numeric_cast<size_t>(AMotionEvent_getPointerCount(input_e_));
+        return numeric_cast<size_t>(AMotionEvent_getPointerCount(input_e_));
     }
 }

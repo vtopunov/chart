@@ -18,7 +18,7 @@ namespace gl
             glBufferData
             (
                 GL_ARRAY_BUFFER,
-                narrow_cast<GLsizeiptr>(std::size(data)),
+                narrow<GLsizeiptr>(std::size(data)),
                 std::data(data),
                 GL_STATIC_DRAW
             );
@@ -35,7 +35,7 @@ namespace gl
     {
         D_ASSERT(attributes.size() <= attribute_profiles.size());
 
-        const auto i_stride_bytes = narrow_cast<GLsizei>(stride);
+        const auto i_stride_bytes = narrow<GLsizei>(stride);
 
         for (size_t i = 0; i < attributes.size(); ++i) [[likely]]
         {
@@ -48,7 +48,7 @@ namespace gl
                 glVertexAttribPointer
                 (
                     attribute_location_index,
-                    narrow_cast<GLint>(glsl_tuple_size(tuple_type)),
+                    narrow<GLint>(glsl_tuple_size(tuple_type)),
                     to_underlying(glsl_tuple_element_typeid(tuple_type)),
                     GL_FALSE,
                     i_stride_bytes,

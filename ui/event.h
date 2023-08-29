@@ -442,7 +442,7 @@ namespace ui
         [[nodiscard]]
         constexpr double rot() const noexcept
         {
-            return narrow_cast<double>(delta()) / min_mouse_wheel_delta;
+            return narrow<double>(delta()) / min_mouse_wheel_delta;
         }
     };
 

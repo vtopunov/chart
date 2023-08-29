@@ -16,7 +16,7 @@ namespace file
         constexpr size_t signed_io_result_to_size_t(T result) noexcept
         {
             static_assert(std::is_signed_v<T>);
-            return narrow_cast<size_t>(clamp_to_unsigned(result));
+            return narrow<size_t>(clamp_to_unsigned(result));
         }
     }
 

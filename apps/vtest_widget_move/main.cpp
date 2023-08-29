@@ -64,8 +64,8 @@ namespace
     [[nodiscard]]
     constexpr pxoff2d clamp_position(pxoff2d position, pxsize2d fig_sizes, pxsize2d viewport) noexcept
     {
-        const auto min_position = -narrow2d_cast<pxoff2d>(fig_sizes);
-        const auto max_position = narrow2d_cast<pxoff2d>(viewport);
+        const auto min_position = -narrow2d<pxoff2d>(fig_sizes);
+        const auto max_position = narrow2d<pxoff2d>(viewport);
 
         return
         {
@@ -163,7 +163,7 @@ namespace
 
         constexpr void position_by_default() noexcept
         {
-            position_ = narrow2d_cast<pxoff2d>((viewport_ - sizes(texture_)) / 2u);
+            position_ = narrow2d<pxoff2d>((viewport_ - sizes(texture_)) / 2u);
         }
 
     private:

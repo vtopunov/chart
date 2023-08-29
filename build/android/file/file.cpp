@@ -112,6 +112,6 @@ namespace file
     {
         struct stat data { .st_size{} };
         const auto was_successful = !::fstat(file_resource_to_native(file), &data);
-        return  was_successful ? narrow_cast<uint64_t>(data.st_size) : 0ull;
+        return  was_successful ? narrow<uint64_t>(data.st_size) : 0ull;
     }
 }

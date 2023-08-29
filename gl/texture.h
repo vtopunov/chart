@@ -231,7 +231,7 @@ namespace gl
 
         void store(specialized_texture_resource<target> texture) const noexcept
         {
-            glActiveTexture(narrow_cast<GLenum>(GL_TEXTURE0 + value));
+            glActiveTexture(narrow<GLenum>(GL_TEXTURE0 + value));
             bind_texture(target, texture);
             sampler.store(value);
         }
@@ -244,7 +244,7 @@ namespace gl
             return
             {
                 sampler_location,
-                narrow_cast<sampler_value_type>(get_sampler_number(program, sampler_location.location))
+                narrow<sampler_value_type>(get_sampler_number(program, sampler_location.location))
             };
         }
     };

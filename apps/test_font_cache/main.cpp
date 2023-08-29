@@ -134,7 +134,7 @@ namespace
             {
                 auto& font = fonts[i];
                 D_ASSERT(!font);
-                font = font_cache::load_font(new_name, narrow_cast<pxside_t>(max_px - i));
+                font = font_cache::load_font(new_name, narrow<pxside_t>(max_px - i));
                 D_ASSERT(font);
                 views[i] = font;
                 test_cached_faces(views);

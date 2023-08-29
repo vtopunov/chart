@@ -43,7 +43,7 @@ namespace file
                 [[nodiscard]]
                 size_t size() const noexcept
                 {
-                    return safe_numeric_cast<size_t>(SizeofResource(module, resource_info));
+                    return numeric_cast<size_t>(SizeofResource(module, resource_info));
                 }
             };
 

@@ -259,7 +259,7 @@ public:
             [[nodiscard]]
             constexpr size_type _set_removed_data(pointer removed_data) noexcept
             {
-                const auto new_size = narrow_cast<size_t>(removed_data - locked_data_);
+                const auto new_size = narrow<size_t>(removed_data - locked_data_);
                 locked_data_ = removed_data;
                 
                 const auto count_of_erased = locked_size_ - new_size;

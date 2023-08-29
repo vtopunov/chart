@@ -11,7 +11,37 @@
 
 
 namespace
-{
+{             
+    template<template<class> class Vec, class T>
+    [[nodiscard]] constexpr std::enable_if_t<
+        std::is_base_of_v<vec2<T>, Vec<T>>, Vec<T>
+    > vabs(const Vec<T>& v) noexcept
+    {
+        return { constexpr_abs(v._0), constexpr_abs(v._1) };
+    }
+
+    template<template<class> class Vec, class T>
+    [[nodiscard]] constexpr std::enable_if_t<
+        std::is_base_of_v<vec2<T>, Vec<T>>, Vec<T>
+    > vclamp(const Vec<T>& v, const Vec<T>& v0, const Vec<T>& v1) noexcept
+    {
+        return 
+        {
+            std::clamp(v._0, v0._0, v1._0),
+            std::clamp(v._1, v0._1, v1._1),
+        };
+    }
+
+    template<class T> [[nodiscard]]
+    pxoff2d vtrunc_to_px(const vec2<T>& p) noexcept
+    {
+        return
+        {
+            trunc_cast<pxoff_t>(p._0),
+            trunc_cast<pxoff_t>(p._1)
+        };
+    }
+
     template<class L, class R>
     [[nodiscard]] constexpr decltype(auto) sqr_distance(const point2d<L>& p0, const point2d<R>& p1) noexcept
     {
@@ -19,91 +49,15 @@ namespace
         return to_unsigned_or(dpt.x() * dpt.x()) + to_unsigned_or(dpt.y() * dpt.y());
     };
 
-    using zoom_value_t = uint64_t;
-    static_assert(sizeof(zoom_value_t) > sizeof(pxside_t));
-
-    [[nodiscard]] constexpr zoom_value_t zoom_value_for_full_srceen(pxsize2d viewport) noexcept
-    {
-        return static_cast<zoom_value_t>(viewport.width()) * viewport.height();
-    }
-
-    struct figure_zoom
-    {
-        using value_type = zoom_value_t;
-
-        value_type value{ 0u };
-
-        [[nodiscard]]
-        constexpr figure_zoom with_clamp(pxsize2d viewport) const noexcept
-        {
-            constexpr auto max_zoom = [] (pxsize2d viewport) noexcept -> value_type
-            {
-                constexpr auto px_digits = numeric_digits_v<pxoff_t>;
-                constexpr auto gl_max_mantissa = numeric_max_v<pxoff_t> >> (px_digits - std::min(numeric_digits_v<GLfloat>, px_digits));
-                const auto [min_dim, max_dim] = std::minmax(viewport.width(), viewport.height());
-                return std::min(min_dim, gl_max_mantissa / max_dim) * zoom_value_for_full_srceen(viewport);
-            };
-
-            constexpr auto min_zoom = [] (pxsize2d viewport) noexcept -> value_type
-            {
-                return std::max(viewport.width(), viewport.height());
-            };
-
-            const auto new_value = std::clamp(value, min_zoom(viewport), max_zoom(viewport));
-            return { .value{ new_value } };
-        }
-
-        [[nodiscard]]
-        figure_zoom with_increase(double rot) const noexcept
-        {
-            constexpr double mul{ 0.05 };
-            const auto dvalue = static_cast<value_type>(value * pow(mul, abs(rot)));
-            const auto new_value = signbit(rot) ? value - dvalue : value + dvalue;
-            return { .value{ new_value } };
-        }
-
-        [[nodiscard]]
-        figure_zoom with_multiplier(double mul) const noexcept
-        {
-            D_ASSERT(!signbit(mul));
-            const auto new_value = static_cast<value_type>(value * abs(mul));
-            return { .value{ new_value } };
-        }
-
-        [[nodiscard]]
-        constexpr pxsize2d operator () (pxsize2d viewport) const noexcept
-        {
-            return narrow2d_cast<pxsize2d>(value / viewport.height(), value / viewport.width());
-        }
-
-        [[nodiscard]]
-        constexpr bool operator == (const figure_zoom&) const noexcept = default;
-
-        [[nodiscard]]
-        constexpr bool operator != (const figure_zoom&) const noexcept = default;
-    };
-
-    [[nodiscard]]
-    constexpr figure_zoom full_screen_zoom(pxsize2d viewport) noexcept
-    {
-        return { .value{ zoom_value_for_full_srceen(viewport) } };
-    }
-
     struct figure_center_position
     {
         pxoff2d position{};
 
         [[nodiscard]]
-        static constexpr figure_center_position instance(pxsize2d viewport) noexcept
-        {
-            return { .position{ narrow2d_cast<pxoff2d>(viewport / 2_px) } };
-        }
-
-        [[nodiscard]]
         constexpr figure_center_position with_clamp(pxsize2d fig_sizes, pxsize2d viewport) const noexcept
         {
-            const auto min_position = -narrow2d_cast<pxoff2d>((fig_sizes + fill_vec2(1_px)) / 2_px);
-            const auto max_position = narrow2d_cast<pxoff2d>((fig_sizes + 2_px * viewport) / 2_px);
+            const auto min_position = -narrow2d<pxoff2d>((fig_sizes + fill_vec2(1_px)) / 2_px);
+            const auto max_position = narrow2d<pxoff2d>((fig_sizes + 2_px * viewport) / 2_px);
 
             return
             {
@@ -124,7 +78,7 @@ namespace
         [[nodiscard]]
         constexpr pxoff2d left_top(pxsize2d fig_sizes) const noexcept
         {
-            return (2 * position - narrow2d_cast<pxoff2d>(fig_sizes)) / 2;
+            return (2 * position - narrow2d<pxoff2d>(fig_sizes)) / 2;
         }
 
         [[nodiscard]]
@@ -138,16 +92,15 @@ namespace
     struct figure_area
     {
         figure_center_position position{};
-        figure_zoom zoom{};
+        pxsize2d sizes{};
 
         [[nodiscard]]
-        constexpr rectangle<px::pxoff_t> geometry(pxsize2d viewport) const noexcept
+        constexpr rectangle<px::pxoff_t> geometry() const noexcept
         {
-            const auto fig_sizes = zoom(viewport);
             return
             {
-                .position{ position.left_top(fig_sizes) },
-                .sizes{ fig_sizes }
+                .position{ position.left_top(sizes) },
+                .sizes{ sizes }
             };
         }
 
@@ -156,33 +109,50 @@ namespace
         {
             return
             {
-                .position{ position.with_shift(shift).with_clamp(zoom(viewport), viewport) },
-                .zoom{ zoom }
+                .position{ position.with_shift(shift).with_clamp(sizes, viewport) },
+                .sizes{ sizes }
             };
         }
 
         [[nodiscard]]
-        figure_area with_zoom(figure_zoom new_zoom, pxsize2d viewport) const noexcept
+        constexpr figure_area with_zoom(pxoff2d zoom) const noexcept
         {
+            constexpr auto min_zoom = [] (pxoff2d ssizes) noexcept
+            {
+                D_ASSERT(ssizes.x() >= 1_pxz);
+                D_ASSERT(ssizes.y() >= 1_pxz);
+                return fill_to<point2d>(1_pxz) - ssizes;
+            };
+
+            constexpr auto max_zoom = [] (pxoff2d ssizes) noexcept
+            {
+                constexpr auto gl_numeric_max = [] () noexcept
+                {
+                    constexpr auto px_digits = numeric_digits_v<pxoff_t>;
+                    return numeric_max_v<pxoff_t> >> (px_digits - std::min(numeric_digits_v<GLfloat>, px_digits));
+                } ();
+
+                D_ASSERT(ssizes.x() <= gl_numeric_max);
+                D_ASSERT(ssizes.y() <= gl_numeric_max);
+                return fill_to<point2d>(gl_numeric_max) - ssizes;
+            };
+
+            const auto ssizes = narrow2d<pxoff2d>(sizes);
+        
             return
             {
-                .position{ position.with_clamp(new_zoom(viewport), viewport) },
-                .zoom{ new_zoom }
+                .position{ position },
+                .sizes{ narrow2d<pxsize2d>(ssizes + vclamp(zoom, min_zoom(ssizes), max_zoom(ssizes))  ) }
             };
         }
 
         [[nodiscard]]
-        figure_area with_zoom_increase(double rot, pxsize2d viewport) const noexcept
+        figure_area with_zoom_increase(double rot) const noexcept
         {
-            const auto new_zoom = zoom.with_increase(rot).with_clamp(viewport);
-            return with_zoom(new_zoom, viewport);
-        }
-
-        [[nodiscard]]
-        figure_area with_zoom_multiplier(double mul, pxsize2d viewport) const noexcept
-        {
-            const auto new_zoom = zoom.with_multiplier(mul).with_clamp(viewport);
-            return with_zoom(new_zoom, viewport);
+            constexpr double mul{ 0.05 };
+            const auto sign = 1 - 2 * std::signbit(rot);
+            const auto step_mul = sign * pow(mul, abs(rot));
+            return with_zoom(vtrunc_to_px(sizes * step_mul));
         }
 
         [[nodiscard]]
@@ -195,33 +165,41 @@ namespace
 
     struct gesture
     {
-        pxoff2d move{ 0, 0 };
-        double zoom{ numeric_nan_v<double> };
+        pxoff2d move{ 0_pxz, 0_pxz };
+        pxoff2d zoom{ 0_pxz, 0_pxz };
 
-        template<class T> [[nodiscard]]
-        gesture with_move(const point2d<T>& p) const noexcept
+        template<class M, class Z> 
+        [[nodiscard]] static gesture instance(const point2d<M>& move, const point2d<Z>& zoom) noexcept
         {
-            return
-            {
-                .move
-                {
-                    trunc_cast<pxoff_t>(p.x()),
-                    trunc_cast<pxoff_t>(p.y())
-                },
-                .zoom{ zoom }
+            return 
+            { 
+                .move{ vtrunc_to_px(move) }, 
+                .zoom{ vtrunc_to_px(zoom) }
             };
+        }
+
+        template<class T> 
+        [[nodiscard]] static gesture instance(const point2d<T>& move) noexcept
+        {
+            return { .move{ vtrunc_to_px(move) } };
         }
 
         [[nodiscard]]
         constexpr bool has_move() const noexcept
         {
-            return move.x() || move.y();
+            return has_offset(move);
         }
 
         [[nodiscard]]
-        bool has_zoom() const noexcept
+        constexpr bool has_zoom() const noexcept
         {
-            return std::isnormal(zoom);
+            return has_offset(zoom);
+        }
+
+        [[nodiscard]]
+        static constexpr bool has_offset(pxoff2d offset) noexcept
+        {
+            return offset.x() || offset.y();
         }
     };
 
@@ -230,46 +208,32 @@ namespace
     public:
         using point2d_type = ui::pointer_event::point2d_type;
         using value_type = point2d_type::value_type;
-        using trace_slice_t = static_vector<point2d_type, 2u>;
+        using finger_positions_t = static_vector<point2d_type, 2u>;
 
         [[nodiscard]]
         gesture new_gesture(const ui::mouse_move_event& e) noexcept
         {
-            trace_slice_t new_trace{};
-            write_trace_slice(new_trace, e, trace_);
-            const auto result = make_gesture(trace_, new_trace);
-            trace_ = std::move(new_trace);
+            finger_positions_t new_positions{};
+            write_positions(new_positions, e, positions_);
+            const auto result = make_gesture(positions_, new_positions);
+            positions_ = std::move(new_positions);
             return result;
         }
 
         void finish() noexcept
         {
-            trace_.clear();
+            positions_.clear();
         }
 
     private:
-        [[nodiscard]]
-        static constexpr point2d<double> center(const trace_slice_t& trace) noexcept
-        {
-            D_ASSERT(2u == trace.size());
-            return 0.5 * (trace[0] + trace[1]);
-        }
-
-        [[nodiscard]]
-        static double diagonal_length(const trace_slice_t& trace) noexcept
-        {
-            D_ASSERT(2u == trace.size());
-            return sqrt(sqr_distance(trace[0], trace[1]));
-        }
-
-        static void write_trace_slice(trace_slice_t& new_trace, const ui::pointer_event& e, const trace_slice_t& order) noexcept
+        static void write_positions(finger_positions_t& new_positions, const ui::pointer_event& e, const finger_positions_t& order) noexcept
         {
             D_ASSERT(2u == order.capacity());
 
             switch (e.size())
             {
                 case 1u:
-                    new_trace.emplace_back(e.pointer(0));
+                    new_positions.emplace_back(e.pointer(0));
                     break;
 
                 case 2u:
@@ -285,8 +249,8 @@ namespace
                         }
                     }
 
-                    new_trace.emplace_back(p0);
-                    new_trace.emplace_back(p1);
+                    new_positions.emplace_back(p0);
+                    new_positions.emplace_back(p1);
                     break;
                 }
 
@@ -296,54 +260,73 @@ namespace
         }
 
         [[nodiscard]]
-        static constexpr gesture make_gesture(const trace_slice_t& trace0, const trace_slice_t& trace1) noexcept
+        static constexpr gesture make_gesture(const finger_positions_t& positions0, const finger_positions_t& positions1) noexcept
         {
-            D_ASSERT(2u == trace0.capacity());;
-            D_ASSERT(2u == trace1.capacity());;
-
-            gesture result{};
-
-            if (trace0.size() && trace1.size())
+            constexpr auto move_zoom_gesture = [] (const finger_positions_t& positions0, const finger_positions_t& positions1) noexcept
             {
-                const auto is_trace01 = (2u == trace0.size());
-                const auto is_trace11 = (2u == trace1.size());
-
-                if (is_trace01 && is_trace11)
+                constexpr auto center = [] (const finger_positions_t& positions) noexcept
                 {
-                    {
-                        const auto c0 = center(trace0);
-                        const auto c1 = center(trace1);
-                        result = result.with_move(c1 - c0);
-                    }
+                    D_ASSERT(2u == positions.size());
+                    return 0.5 * (positions[0] + positions[1]);
+                };
 
-                    {
-                        constexpr auto min_diagonal_length = 0.71;
-                        const auto len0 = diagonal_length(trace0);
-                        if (len0 > min_diagonal_length)
-                        {
-                            const auto len1 = diagonal_length(trace1);
-                            if (len1 > min_diagonal_length)
-                            {
-                                result.zoom = len1 / len0;
-                            }
-                        }
+                const auto center0 = center(positions0);
+                const auto center1 = center(positions1);
+                return center1 - center0;
+            };
 
-                    }
+            constexpr auto zoom_gesture = [] (const finger_positions_t& positions0, const finger_positions_t& positions1) noexcept
+            {
+                constexpr auto distance = [] (const finger_positions_t& positions) noexcept
+                {
+                    D_ASSERT(2u == positions.size());
+                    const auto d_poistions = narrow2d<point2d<double>>(positions[1]) - positions[0];
+                    return vabs(d_poistions);
+                };
+
+                const auto distance0 = distance(positions0);
+                const auto distance1 = distance(positions1);
+                return distance1 - distance0;
+            };
+
+            constexpr auto move_gesture = [] (const finger_positions_t& positions0, const finger_positions_t& positions1) noexcept
+            {
+                D_ASSERT(1u == positions0.size());
+                D_ASSERT(1u == positions1.size());
+                return as_signed(positions1[0] - positions0[0]);
+            };
+
+
+            D_ASSERT(2u == positions0.capacity());
+            D_ASSERT(2u == positions1.capacity());
+
+            if (positions0.size() && positions1.size())
+            {
+                const auto is_positions0 = (2u == positions0.size());
+                const auto is_positions1 = (2u == positions1.size());
+
+                if (is_positions0 && is_positions1)
+                {
+                    return gesture::instance
+                    (
+                        move_zoom_gesture(positions0, positions1),
+                        zoom_gesture(positions0, positions1)
+                    );
                 }
                 else
                 {
-                    if (!is_trace01 && !is_trace11)
+                    if (!is_positions0 && !is_positions1)
                     {
-                        result = result.with_move(as_signed(trace1[0] - trace0[0]));
+                        return gesture::instance(move_gesture(positions0, positions1));
                     }
                 }
             }
 
-            return result;
+            return {};
         }
 
     private:
-        trace_slice_t trace_{};
+        finger_positions_t positions_{};
     };
 
     [[nodiscard]]
@@ -420,7 +403,7 @@ namespace
 #if defined(D_OS_WINDOWS)
         std::nullopt_t operator () (const ui::mouse_wheel& e) noexcept
         {
-            if (const auto new_area = area_.with_zoom_increase(e.rot(), egl_.viewport); new_area != area_)
+            if (const auto new_area = area_.with_zoom_increase(e.rot()); new_area != area_)
             {
                 area_ = new_area;
                 need_redraw_ = true;
@@ -460,7 +443,7 @@ namespace
 
             if (gesture.has_zoom())
             {
-                if (const auto new_area = area_.with_zoom_multiplier(gesture.zoom, egl_.viewport); new_area != area_)
+                if (const auto new_area = area_.with_zoom(gesture.zoom); new_area != area_)
                 {
                     area_ = new_area;
                     need_redraw_ = true;
@@ -532,16 +515,17 @@ namespace
             gl::viewport(egl_.viewport);
             gl::clear(gl::colors::white_f);
 
-            shaders_.draw(area_.geometry(egl_.viewport));
+            shaders_.draw(area_.geometry());
         }
 
         [[nodiscard]]
         static figure_area default_area(pxsize2d viewport) noexcept
         {
+            const auto sizes = viewport / 2u;
             return
             {
-                .position{ figure_center_position::instance(viewport) },
-                .zoom{ full_screen_zoom(viewport).with_multiplier(0.5) }
+                .position{ narrow2d<pxoff2d>(sizes) },
+                .sizes{ sizes }
             };
         }
 

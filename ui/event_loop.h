@@ -162,7 +162,7 @@ namespace ui
             {
                 return ALooper_pollAll
                 (
-                    narrow_cast<int>(timeout.count()),
+                    narrow<int>(timeout.count()),
                     nullptr,
                     &events_,
                     (void**)&source_

@@ -59,7 +59,7 @@ namespace file
                 FILE_MAP_READ, 
                 0u, 
                 0u, 
-                safe_numeric_cast<SIZE_T>(p.size_)
+                numeric_cast<SIZE_T>(p.size_)
             );
         }
 

@@ -16,7 +16,7 @@ namespace px
             {
                 w_debug("out of buffer: require {} bytes, reserved {} bytes", space_size_bytes, buffer_size_bytes);
 
-                const auto height = narrow_cast<pxside_t>((buffer_size_bytes / space.px_size) / space.line_size());
+                const auto height = narrow<pxside_t>((buffer_size_bytes / space.px_size) / space.line_size());
                 static_assert(!pix8space::dynamic_alignment_is_enabled);
                 space = { space.width(), height };
             }

@@ -41,7 +41,7 @@ namespace ui
 
             return
             {
-                narrow_cast<size_t>(std::lower_bound(first, c.cend(), by_parent{ parent }) - first),
+                narrow<size_t>(std::lower_bound(first, c.cend(), by_parent{ parent }) - first),
                 std::addressof(c),
                 parent
             };
@@ -60,7 +60,7 @@ namespace ui
             constexpr auto side_length = [] (auto p0, auto p1) noexcept
             {
                 D_ASSERT(p1 >= p0);
-                return narrow_cast<pxside_t>(p1 - p0);
+                return narrow<pxside_t>(p1 - p0);
             };
         
             pxsize2d result{ side_length(rect.left, rect.right), 0_px };
@@ -78,7 +78,7 @@ namespace ui
         {
             return
             {
-                .position{ narrow2d_cast<pxpoint2d>(rect.left, rect.top) },
+                .position{ narrow2d<pxpoint2d>(rect.left, rect.top) },
                 .sizes{ sizes(rect) }
             };
         }
@@ -150,7 +150,7 @@ namespace ui
         {
             DEVMODEW dev{};
             EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &dev);
-            return narrow2d_cast<pxsize2d>(dev.dmPelsWidth, dev.dmPelsHeight);
+            return narrow2d<pxsize2d>(dev.dmPelsWidth, dev.dmPelsHeight);
         }
 
         [[nodiscard]]
@@ -233,7 +233,7 @@ namespace ui
             using namespace private_detail_window_constants;
             static_assert(std::is_same_v<decltype(CW_USEDEFAULT), native_px_t>);
             static_assert(CW_USEDEFAULT == cw_usedefault);
-            return (px == px_usedefault) ? cw_usedefault : narrow_cast<native_px_t>(px);
+            return (px == px_usedefault) ? cw_usedefault : narrow<native_px_t>(px);
         };
 
         constexpr auto select_window_style = [] (bool has_parent) noexcept

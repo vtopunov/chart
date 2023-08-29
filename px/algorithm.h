@@ -89,7 +89,7 @@ namespace px
         constexpr vec2<ptrdiff_t> round_range(bool direction_is_inc, pxside_t size, real_t v0, real_t v1) noexcept
         {
             const auto bound0 = 0_z - !direction_is_inc;
-            const auto bound1 = bound0 + narrow_cast<ptrdiff_t>(size);
+            const auto bound1 = bound0 + narrow<ptrdiff_t>(size);
 
             return
             {
@@ -152,14 +152,14 @@ namespace px
                     if (dp == (2_z * line_size_z + 1_z))
                     {
                         const auto inv_shade = inv(shade);
-                        const auto mean_shade = narrow_cast<shade_t>((inv_shade + new_shade) / 2u);
+                        const auto mean_shade = narrow<shade_t>((inv_shade + new_shade) / 2u);
                         new_p[-line_size_z] = mean_shade;
                         return;
                     } 
                     
                     if (dp == (1_z - line_size_z))
                     {
-                        const auto mean_shade = narrow_cast<shade_t>((shade + new_shade) / 2u);
+                        const auto mean_shade = narrow<shade_t>((shade + new_shade) / 2u);
                         p[1_z] = mean_shade;
                         return;
                     }
@@ -175,7 +175,7 @@ namespace px
                     if (dp == (line_size_z + 2_z))
                     {
                         const auto inv_shade = inv(shade);
-                        const auto mean_shade = narrow_cast<shade_t>((inv_shade + new_shade) / 2u);
+                        const auto mean_shade = narrow<shade_t>((inv_shade + new_shade) / 2u);
                         new_p[-1_z] = mean_shade;
                         return;
                     }
@@ -184,7 +184,7 @@ namespace px
                     {
                         const auto inv_shade = inv(shade);
                         const auto inv_new_shade = inv(new_shade);
-                        const auto mean_shade = narrow_cast<shade_t>((inv_shade + inv_new_shade) / 2u);
+                        const auto mean_shade = narrow<shade_t>((inv_shade + inv_new_shade) / 2u);
                         new_p[line_size_z - 1_z] = mean_shade;
                         return;
                     }
@@ -218,7 +218,7 @@ namespace px
 
         constexpr auto invalid_result = invalid_antialiasing_line_result_v;
 
-        const auto line_size_z = narrow_cast<ptrdiff_t>(image.line_size());
+        const auto line_size_z = narrow<ptrdiff_t>(image.line_size());
 
         const auto [dx, dy] = p1 - p0;
 

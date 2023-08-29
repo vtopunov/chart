@@ -5,6 +5,7 @@
 #include <core/underlying.h>
 #include <core/zero.h>
 
+
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
 
@@ -152,7 +153,7 @@ namespace private_detail_narrow
     }
 
     template<class Target, class Source>
-    [[nodiscard]] constexpr Target narrow_cast0(const Source& v) noexcept
+    [[nodiscard]] constexpr Target narrow0(const Source& v) noexcept
     {
         if constexpr (is_safe_numeric_conversion_v<Target, Source>)
         {
@@ -166,26 +167,26 @@ namespace private_detail_narrow
     }
 
     template<class Target, class Source>
-    [[nodiscard]] constexpr Target narrow_cast(const Source& v) noexcept
+    [[nodiscard]] constexpr Target narrow(const Source& v) noexcept
     {
         if constexpr (std::is_enum_v<Source>)
         {
             static_assert(!std::is_enum_v<Target>);
-            return narrow_cast0<Target>(to_underlying(v));
+            return narrow0<Target>(to_underlying(v));
         }
         else if constexpr (std::is_enum_v<Target>)
         {
             using target_underlying_t = std::underlying_type_t<Target>;
-            return static_cast<Target>(narrow_cast0<target_underlying_t>(v));
+            return static_cast<Target>(narrow0<target_underlying_t>(v));
         }
         else
         {
-            return narrow_cast0<Target>(v);
+            return narrow0<Target>(v);
         }
     }
 
     template<class Target, class Source>
-    [[nodiscard]] constexpr Target safe_numeric_cast(const Source& v) noexcept
+    [[nodiscard]] constexpr Target numeric_cast(const Source& v) noexcept
     {
         static_assert(is_safe_numeric_conversion_v<Target, Source>);
 
@@ -209,20 +210,20 @@ namespace private_detail_narrow
     [[nodiscard]] constexpr decltype(auto) to_unsigned_or(const T& value) noexcept
     {
         static_assert(std::is_arithmetic_v<T>);
-        return narrow_cast<unsigned_or_t<T>>(value);
+        return narrow<unsigned_or_t<T>>(value);
     }
 
     template<class T>
     [[nodiscard]] constexpr decltype(auto) to_unsigned(const T& value) noexcept
     {
-        return narrow_cast<std::make_unsigned_t<T>>(value);
+        return narrow<std::make_unsigned_t<T>>(value);
     }
 
     template<class T>
     [[nodiscard]] constexpr decltype(auto) to_signed(const T& value) noexcept
     {
         static_assert(std::is_arithmetic_v<T>);
-        return narrow_cast<remove_unsigned_t<T>>(value);
+        return narrow<remove_unsigned_t<T>>(value);
     }
 }
 
@@ -231,8 +232,8 @@ using private_detail_narrow::is_narrowing_or_same_v;
 using private_detail_narrow::is_safe_numeric_conversion_v;
 using private_detail_narrow::is_safe_numeric_not_same_conversion_v;
 using private_detail_narrow::is_safe_narrowing_conversion;
-using private_detail_narrow::narrow_cast;
-using private_detail_narrow::safe_numeric_cast;
+using private_detail_narrow::narrow;
+using private_detail_narrow::numeric_cast;
 using private_detail_narrow::to_unsigned_or;
 using private_detail_narrow::to_unsigned;
 using private_detail_narrow::to_signed;

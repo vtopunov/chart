@@ -113,7 +113,7 @@ namespace gl
     [[nodiscard]]
     constexpr location_int_t location_as_int(uniform_location location) noexcept
     {
-        return narrow_cast<location_int_t>(location);
+        return narrow<location_int_t>(location);
     }
 
     [[nodiscard]]

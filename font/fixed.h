@@ -21,13 +21,13 @@ namespace font
         template<class Int>
         [[nodiscard]] static constexpr std::enable_if_t<std::is_integral_v<Int>, fixed> instance(Int int_value) noexcept
         {
-            return { safe_numeric_cast<value_type>(int_value) << fract_bits };
+            return { numeric_cast<value_type>(int_value) << fract_bits };
         }
 
         template<class NewT>
         [[nodiscard]] static constexpr fixed instance(fixed<NewT, FractBits> fix_value) noexcept
         {
-            return { narrow_cast<NewT>(fix_value.value) };
+            return { narrow<NewT>(fix_value.value) };
         }
 
         [[nodiscard]]
@@ -63,7 +63,7 @@ namespace font
     constexpr Out trunc_to(const fixed<T, FractBits>& fp) noexcept
     {
         static_assert(std::is_integral_v<Out>);
-        return narrow_cast<Out>(fp.discard_fraction());
+        return narrow<Out>(fp.discard_fraction());
     }
 
     template<class Out, class T, size_t FractBits>
@@ -89,7 +89,7 @@ namespace font
             }
         };
 
-        return narrow_cast<Out>(fp.discard_fraction() + ceil_fraction(fp));
+        return narrow<Out>(fp.discard_fraction() + ceil_fraction(fp));
     }
 
 

@@ -8,7 +8,7 @@ void test_rectangle() noexcept
 
     constexpr point2d p0{1, 2};
     constexpr size2d sz{2u, 3u};
-    constexpr auto p1 = p0 + narrow2d_cast<point2d<int>>(sz);
+    constexpr auto p1 = p0 + narrow2d<point2d<int>>(sz);
 
     constexpr rectangle rc{p0, sz};
 

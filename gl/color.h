@@ -34,13 +34,13 @@ namespace gl
         [[nodiscard]]
         constexpr rgba_colorf_t operator "" _glrgb(unsigned long long rgb) noexcept
         {
-            return gl::to_colorf(u32rgb_to_color(narrow_cast<u32argb_t>(rgb)));
+            return gl::to_colorf(u32rgb_to_color(narrow<u32argb_t>(rgb)));
         }
 
         [[nodiscard]]
         constexpr rgba_colorf_t operator "" _glargb(unsigned long long argb) noexcept
         {
-            return gl::to_colorf(u32argb_to_color(narrow_cast<u32argb_t>(argb)));
+            return gl::to_colorf(u32argb_to_color(narrow<u32argb_t>(argb)));
         }
     }
 }
