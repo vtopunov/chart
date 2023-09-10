@@ -1,80 +1,54 @@
 #pragma once
 
-#include <widget/window.h>
+#include <functional>
+
+#include <ui/event.h>
+
+#include <egl_ui/viewport_size2d.h>
 
 
 namespace widget
 {
-    struct init_event : window 
-    {
-        using result_type = window_configation;
-    };
-
-    struct redraw_event : window 
-    {};
-
-    template<class E>
-    using decl_event_result_type_t = typename E::result_type;
-
-    template<class E>
-    using event_result_type_t = detected_or_t<event_result, decl_event_result_type_t, E>;
-
-    template<class Fn, class Arg>
-    using event_proccessor_return_t = std::remove_cv_t<
-        decltype(std::declval<std::add_lvalue_reference_t<Fn>>()(std::declval<std::add_lvalue_reference_t<Arg>>()))
-    >;
-
-    template<class T, class E>
-    std::enable_if_t<std::is_same_v<event_proccessor_return_t<T, E>, void>> call_widget_event
-    (
-        event_result_type_t<E>&, 
-        T& function, 
-        const E& e
-    ) noexcept
-    {
-        function(e);
-    }
-
-    template<class T, class E>
-    std::enable_if_t<std::is_same_v<event_proccessor_return_t<T, E>, bool>> call_widget_event
-    (
-        event_result_type_t<E>& result,
-        T& function,
-        const E& e
-    ) noexcept
-    {
-        result |= function(e);
-    }
-
-    template<class T, class E>
-    std::enable_if_t<std::is_enum_v<event_proccessor_return_t<T, E>>> call_widget_event
-    (
-        event_result_type_t<E>& result,
-        T& function,
-        const E& e
-    )
-    {
-        result |= function(e);
-    }
-
-    struct no_overloaded_event
+    namespace helpers
     {
         template<class T>
-        constexpr no_overloaded_event(const T&) noexcept
-        {
-            static_assert(std::is_enum_v<event_result_type_t<T>>);
-        }
-    };
+        constexpr auto is_nothrow_copiable_v = std::conjunction_v<
+            std::is_nothrow_copy_constructible<T>,
+            std::is_nothrow_copy_assignable<T>
+        >;
 
-    struct no_overloaded_event_result
-    {
         template<class T>
-        constexpr no_overloaded_event_result(const T&) noexcept
-        {
-            static_assert(std::is_enum_v<T>);
-        }
-    };
+        using cref_wrap_if_need_t = std::conditional_t<
+            is_nothrow_copiable_v<T>, T,
+            std::reference_wrapper<std::add_const_t<T>>
+        >;
 
-    constexpr void call_widget_event(no_overloaded_event_result, no_overloaded, no_overloaded_event) noexcept
-    {}
+        template<class T>
+        using cref_if_need_t = std::conditional_t<
+            is_nothrow_copiable_v<T>, T,
+            std::add_lvalue_reference_t<std::add_const_t<T>>
+        >;
+    }
+
+    template<class... Args>
+    class redraw_event
+    {
+    public:
+        using tuple_type = std::tuple<Args...>;
+        using cref_wrap_tuple_type = std::tuple<helpers::cref_wrap_if_need_t<Args>...>;
+
+        template<class... IniArgs>
+        constexpr explicit redraw_event(const IniArgs&... args) noexcept
+            : tuple_{ args... }
+        {}
+
+        template<class T>
+        constexpr helpers::cref_if_need_t<T> get() const noexcept
+        {
+            return std::get<helpers::cref_wrap_if_need_t<T>>(tuple_);
+        }
+
+    private:
+        cref_wrap_tuple_type tuple_{};
+    };
 }

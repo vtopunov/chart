@@ -38,9 +38,11 @@
     <ClInclude Include="$(RepoDir)\widget\label.h" />
     <ClInclude Include="$(RepoDir)\widget\run.h" />
     <ClInclude Include="$(RepoDir)\widget\text.h" />
+    <ClInclude Include="..\..\..\widget\draw_context.h" />
+    <ClInclude Include="..\..\..\widget\draw_context_elements.h" />
     <ClInclude Include="..\..\..\widget\event.h" />
+    <ClInclude Include="..\..\..\widget\event_matching.h" />
     <ClInclude Include="..\..\..\widget\shaders.h" />
-    <ClInclude Include="..\..\..\widget\window_configation.h" />
     <ClInclude Include="..\..\..\widget\window.h" />
     <ClInclude Include="..\..\..\widget\fwd.h" />
   </ItemGroup>
@@ -48,7 +50,7 @@
     <ClCompile Include="$(RepoDir)\widget\button.cpp" />
     <ClCompile Include="$(RepoDir)\widget\label.cpp" />
     <ClCompile Include="$(RepoDir)\widget\text.cpp" />
-    <ClCompile Include="..\..\..\widget\window_configation.cpp" />
+    <ClCompile Include="..\..\..\widget\draw_context_elements.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\utility\utility.vcxproj">

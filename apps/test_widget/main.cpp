@@ -1,11 +1,10 @@
-
+extern void test_draw_context() noexcept;
 extern void test_event_matching() noexcept;
-extern void test_event_processors_storage() noexcept;
 
 
 int main() noexcept
 {
+    test_draw_context();
     test_event_matching();
-    test_event_processors_storage();
     return 0;
 }

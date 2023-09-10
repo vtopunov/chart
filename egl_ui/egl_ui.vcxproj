@@ -15,6 +15,7 @@
     <ClInclude Include="egl_config.h" />
     <ClInclude Include="egl_context.h" />
     <ClInclude Include="egl_ui_owner.h" />
+    <ClInclude Include="viewport_size2d.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="egl_context.cpp" />

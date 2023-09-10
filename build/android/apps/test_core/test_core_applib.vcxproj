@@ -38,6 +38,7 @@
     <ClCompile Include="..\..\..\..\apps\test_core\test_small_vector.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_span.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_static_vector.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_tuple_algorithm.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_type_traits.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_utf.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_utility.cpp" />

@@ -5,6 +5,7 @@
 #include <core/unique_function.h>
 
 #include <os/fwd.h>
+#include <px/fwd.h>
 
 
 namespace ui
@@ -36,6 +37,8 @@ namespace ui
 #endif
 
     class event;
+    class pointer_event;
+    class mouse_event;
 
     using event_result_t = ptrdiff_t;
     using event_result_opt_t = D_CONDITIONAL_OS_WINDOWS(std::optional<event_result_t>, std::nullopt_t);
@@ -94,4 +97,10 @@ namespace ui
     struct redraw_needed_event {};
 
 #endif
+
+    constexpr bool window_sizes_is_valid(pxsize2d sizes) noexcept
+    {
+        static_assert(std::is_unsigned_v<decltype(sizes.height())>);
+        return !!sizes.height();
+    }
 }

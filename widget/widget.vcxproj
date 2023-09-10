@@ -12,14 +12,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="button.h" />
-    <ClInclude Include="event.h" />
+    <ClInclude Include="draw_context.h" />
+    <ClInclude Include="event_matching.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="label.h" />
+    <ClInclude Include="event.h" />
     <ClInclude Include="run.h" />
     <ClInclude Include="shaders.h" />
+    <ClInclude Include="draw_context_elements.h" />
     <ClInclude Include="text.h" />
     <ClInclude Include="window.h" />
-    <ClInclude Include="window_configation.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\utility\utility.vcxproj">
@@ -29,8 +31,8 @@
   <ItemGroup>
     <ClCompile Include="button.cpp" />
     <ClCompile Include="label.cpp" />
+    <ClCompile Include="draw_context_elements.cpp" />
     <ClCompile Include="text.cpp" />
-    <ClCompile Include="window_configation.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

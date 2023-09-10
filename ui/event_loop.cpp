@@ -5,6 +5,7 @@
 #include <ui/window.h>
 #include <ui/event_processors_storage.h>
 
+
 namespace ui
 {
     namespace private_detail_event_loop

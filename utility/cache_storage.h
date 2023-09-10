@@ -15,7 +15,9 @@ public:
         template<class... Args>
         constexpr value_type(Args&&... args) noexcept
             : T{ std::forward<Args>(args)... }
-        {}
+        {
+            static_assert(std::is_nothrow_constructible_v<T, Args...>);
+        }
 
         constexpr void ref() noexcept
         {
@@ -41,7 +43,7 @@ public:
             return ref_count_;
         }
 
-        constexpr void deref(cache_storage& cache)
+        constexpr void deref(cache_storage& cache) noexcept
         {
             if (!is_unused())
             {
@@ -86,6 +88,8 @@ public:
     template<class... Args>
     [[nodiscard]] pointer try_emplace(Args&&... args) noexcept
     {
+        static_assert(std::is_nothrow_constructible_v<value_type, Args...>);
+
         if (size() == capacity())
         {
             if (const auto garbage_for_rewrite = garbage())

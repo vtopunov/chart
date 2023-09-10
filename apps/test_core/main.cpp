@@ -3,6 +3,7 @@ extern void test_member_detector() noexcept;
 extern void test_ordered_overload() noexcept;
 extern void test_type_traits() noexcept;
 extern void test_zero() noexcept;
+extern void test_tuple_algorithm() noexcept;
 extern void test_view() noexcept;
 extern void test_utility() noexcept;
 extern void test_value_type() noexcept;
@@ -36,6 +37,7 @@ int main() noexcept
     test_ordered_overload();
     test_type_traits();
     test_zero();
+    test_tuple_algorithm();
     test_view();
     test_utility();
     test_value_type();

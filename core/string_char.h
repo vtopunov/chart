@@ -2,6 +2,7 @@
 
 #include <core/value_type.h>
 
+
 namespace private_detail_string_char
 {
     template<class C>

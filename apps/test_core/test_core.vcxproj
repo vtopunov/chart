@@ -33,6 +33,10 @@
     <ClCompile Include="test_small_vector.cpp" />
     <ClCompile Include="test_span.cpp" />
     <ClCompile Include="test_static_vector.cpp" />
+    <ClCompile Include="test_tuple_algorithm.cpp">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ThirdPartyDir)\ctti\include;$(RepoDir);$(ThirdPartyDir)\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ThirdPartyDir)\ctti\include;$(RepoDir);$(ThirdPartyDir)\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <ClCompile Include="test_type_traits.cpp" />
     <ClCompile Include="test_utf.cpp" />
     <ClCompile Include="test_utility.cpp" />

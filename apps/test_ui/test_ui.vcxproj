@@ -78,6 +78,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="test_event_matching.cpp" />
     <ClCompile Include="test_event_processors_storage.cpp" />
   </ItemGroup>
   <ItemGroup>

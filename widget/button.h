@@ -3,9 +3,9 @@
 #include <functional>
 #include <string>
 
-#include <gl/texture.h>
-
 #include <widget/fwd.h>
+#include <widget/event.h>
+#include <widget/shaders.h>
 #include <widget/text.h>
 
 
@@ -43,8 +43,18 @@ namespace widget
         event_result operator () (const ui::mouse_move_event& e) noexcept;
 #endif       
 
-        window_configation operator () (const init_event&) const noexcept;
+        using redraw_event_type = redraw_event<
+            shaders::gray_texture_mix_color,
+            shaders::colored_rectangle,
+            buffer_view
+        >;
 
-        void operator () (const redraw_event& e) noexcept;
+        void operator () (redraw_event_type e) noexcept;
+
+        template<class Fn>
+        decltype(auto) apply(Fn fn) noexcept
+        {
+            return fn();
+        }
     };
 }

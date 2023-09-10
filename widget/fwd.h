@@ -10,9 +10,6 @@ namespace widget
 {
     struct window;
 
-    struct init_event;
-    struct redraw_event;
-
     enum class window_configation : size_t 
     {
         nocfg,
@@ -21,7 +18,6 @@ namespace widget
 
     constexpr auto nocfg = window_configation::nocfg;
     constexpr auto badcfg = window_configation::badcfg;
-
 
     constexpr window_configation operator | (window_configation left, window_configation right) noexcept
     {
@@ -35,13 +31,14 @@ namespace widget
 
     constexpr window_configation& operator |= (window_configation& left, bool right) noexcept
     {
-        if (!right)
+        if (!right) [[unlikely]]
         {
             left = badcfg;
         }
 
         return left;
     }
+
 
     enum class event_result : size_t
     {

@@ -2,10 +2,6 @@
 
 #include <ui/event.h>
 
-#include <widget/window_configation.h>
-#include <widget/event.h>
-#include <widget/text.h>
-
 
 namespace widget
 {
@@ -141,23 +137,16 @@ namespace widget
 
 #endif
 
-    window_configation button::operator()(const init_event&) const noexcept
-    {
-        return enable_gray_texture_mix_color_shdr
-            | enable_colored_rectangle_shdr
-            | enable_pix8_temp_buffer;
-    }
-
-    void button::operator()(const redraw_event& e) noexcept
+    void button::operator()(redraw_event_type e) noexcept
     {
         const auto colors = button_colors::instance(state);
 
-        e.shaders.colored_rectangle.draw(geometry, colors.frame);
+        e.get<shaders::colored_rectangle>().draw(geometry, colors.frame);
 
         const auto client_rc = rectangle_without_frame(geometry);
-        e.shaders.colored_rectangle.draw(client_rc, colors.body);
+        e.get<shaders::colored_rectangle>().draw(client_rc, colors.body);
 
-        if (text::draw_to_cache(*this, e, client_rc.sizes)) [[likely]]
+        if (text::draw_to_cache(*this, e.get<buffer_view>(), client_rc.sizes)) [[likely]]
         {
             const auto client_rc_center = center(client_rc);
             const auto texture_center = text_cache.center();
@@ -169,7 +158,7 @@ namespace widget
                 font::ceil_to<pxside_t>(position.y())
             };
 
-            e.shaders.gray_texture_mix_color.draw(px_position, text_cache.texture(), gl::colors::black_f);
+            e.get<shaders::gray_texture_mix_color>().draw(px_position, text_cache.texture(), gl::colors::black_f);
         }
     }
 }

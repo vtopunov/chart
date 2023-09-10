@@ -13,9 +13,8 @@
 #else
 #include <ui/fwd.h>
 
-#include <px/fwd.h>
-
 #endif
+
 
 namespace ui
 {
@@ -351,10 +350,4 @@ namespace ui
     };
 
 #endif
-
-    constexpr bool window_sizes_is_valid(pxsize2d sizes) noexcept
-    {
-        static_assert(std::is_unsigned_v<decltype(sizes.height())>);
-        return !!sizes.height();
-    }
 }

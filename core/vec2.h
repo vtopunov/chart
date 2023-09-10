@@ -41,7 +41,7 @@ struct vec2
 };
 
 template<class T>
-vec2(T, T)->vec2<T>;
+vec2(T, T) -> vec2<T>;
 
 template<size_t Index, class T>
 [[nodiscard]] constexpr const T& get(const vec2<T>& v) noexcept
@@ -112,6 +112,19 @@ template<template<class> class Vec, class T>
     };
 }
 
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr std::enable_if_t<
+    std::is_base_of_v<vec2<T>, Vec<T>>, Vec<T>
+> vabs(const Vec<T>& v) noexcept
+{
+    return { constexpr_abs(v._0), constexpr_abs(v._1) };
+}
+
+template<class V0, class V1> 
+[[nodiscard]] constexpr auto inner_product(const V0& v0, const V1& v1) noexcept -> decltype(v0._0 * v1._0 + v0._1 * v1._1)
+{
+    return v0._0 * v1._0 + v0._1 * v1._1;
+}
 
 template<class T>
 [[nodiscard]] constexpr std::enable_if_t<

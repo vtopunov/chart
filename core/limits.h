@@ -5,6 +5,7 @@
 #undef min
 #undef max
 
+
 template<class T>
 constexpr auto numeric_max_v = std::numeric_limits<T>::max();
 

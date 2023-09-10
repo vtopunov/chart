@@ -6,37 +6,41 @@
 
 #include <egl_ui/egl_ui_owner.h>
 
-#include <widget/event.h>
-#include <widget/window_configation.h>
+#include <widget/draw_context.h>
+#include <widget/event_matching.h>
 
 
 namespace widget
 {
     namespace private_detail_run
     {
-        template<class Widget, class Event>
-        void apply_event(event_result_type_t<Event>& result, Widget& widget, const Event& e) noexcept
-        {
-            call_widget_event(result, widget, e);
-
-            widget.apply([&result, &e] (auto&... widgets) noexcept
-            {
-                (call_widget_event(result, widgets, e), ...);
-            });
-        }
-
         struct processor_construct_t
         {};
 
         constexpr processor_construct_t processor_construct{};
 
         template<class Widget>
+        bool initialize(const widget::window& window, Widget& widget) noexcept
+        {
+            window_configation cfg{ nocfg };
+            apply_event(cfg, widget, window);
+            return badcfg != cfg;
+        }
+
+        template<class Widget>
         struct processor
         {
             Widget widget;
+            widget_common_draw_context_t<Widget> common_draw_context{};
+            D_ONLY_OS_WINDOWS(std::chrono::steady_clock::time_point redraw_time_cache{});
             widget::window& widget_window;
-            D_ONLY_OS_ANDROID(window_configation cfg{ nocfg });
             event_result combined_event_result{ event_result::redraw };
+
+            template<class Fn>
+            decltype(auto) apply(Fn fn) noexcept
+            {
+                return fn(common_draw_context, widget);
+            }
 
             template<class... Args>
             explicit processor(processor_construct_t, widget::window& window, Args&&... args) noexcept
@@ -50,10 +54,9 @@ namespace widget
                 const auto new_size = e.sizes();
                 if (new_size.width() > 0_px && new_size.height() > 0_px) [[likely]]
                 {
-                    widget_window.content_sizes_cache = new_size;
-                    D_ASSERT(widget_window.content_sizes_cache.width() <= widget_window.viewport.width());
-                    D_ASSERT(widget_window.content_sizes_cache.height() <= widget_window.viewport.height());
-                    apply_event(combined_event_result, widget, e);
+                    D_ASSERT(new_size.width() <= widget_window.viewport.width());
+                    D_ASSERT(new_size.height() <= widget_window.viewport.height());
+                    apply_event(combined_event_result, *this, e);
                 }
 
                 return std::nullopt;
@@ -75,9 +78,9 @@ namespace widget
                     {
                         widget_window.viewport = new_viewport;
 
-                        if (!configure(widget_window, cfg)) [[unlikely]]
+                        if (!initialize_or_update_common_draw_context())
                         {
-                            ui_fatal_debug(widget_window, "reinitialize viewport error: ui error: {}, egl error: {}",
+                            ui_fatal_debug(widget_window, "update draw context error: ui error: {}, egl error: {}",
                                 ui::error_code(), eglGetError());
                             return;
                         }
@@ -95,7 +98,7 @@ namespace widget
             template<ui::event_style Style>
             std::nullopt_t operator () (const ui::specialized_event<Style>& e) noexcept
             {
-                apply_event(combined_event_result, widget, e);
+                apply_event(combined_event_result, *this, e);
                 return std::nullopt;
             }
 
@@ -109,13 +112,13 @@ namespace widget
                 {
                     const auto now = std::chrono::steady_clock::now();
 
-                    if ((now - widget_window.redraw_time_cache) < min_update_time)
+                    if ((now - redraw_time_cache) < min_update_time)
                     {
                         return ui::milliseconds::zero();
                     }
 
                     e_bit_clear(combined_event_result, event_result::redraw);
-                    widget_window.redraw_time_cache = now;
+                    redraw_time_cache = now;
                     draw();
                 }
 
@@ -135,17 +138,18 @@ namespace widget
                 const egl_painting_owner painting_owner{ widget_window };
                 gl::viewport(widget_window.viewport);
                 gl::clear(colors::gl_dialog_color_f);
-                apply_event(combined_event_result, widget, static_cast<const redraw_event&>(widget_window));
+                apply_event(combined_event_result, widget, common_draw_context);
             }
 
             bool initialize() noexcept
             {
-#ifndef D_OS_ANDROID
-                window_configation cfg{ nocfg };
-#endif
+                return initialize_or_update_common_draw_context()
+                    && private_detail_run::initialize(widget_window, widget);
+            }
 
-                apply_event(cfg, widget, static_cast<const init_event&>(widget_window));
-                return configure(widget_window, cfg);
+            bool initialize_or_update_common_draw_context() noexcept
+            {
+                return private_detail_run::initialize(widget_window, common_draw_context);
             }
         };
     }

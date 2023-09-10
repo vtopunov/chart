@@ -2,25 +2,14 @@
 
 #include <core/null.h>
 
-#include <os/os_detection.h>
-
 #include <ui/window.h>
 #include <ui/event_loop.h>
+
+#include <egl_ui/viewport_size2d.h>
 
 
 namespace egl_ui
 {
-    struct viewport_size2d : pxsize2d
-    {
-        constexpr explicit operator bool() const noexcept
-        {
-            return ui::window_sizes_is_valid(*this);
-        }
-    };
-
-    static constexpr viewport_size2d no_viewport{ 0_px, 0_px };
-    static_assert(!no_viewport);
-
     struct app_ui_owner : ui::app_owner
     {
 #if defined(D_OS_WINDOWS)
@@ -75,6 +64,11 @@ namespace egl_ui
         constexpr explicit operator bool() const noexcept
         {
             return !!viewport;
+        }
+
+        constexpr operator viewport_size2d () const noexcept
+        {
+            return viewport;
         }
     };
 

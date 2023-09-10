@@ -55,7 +55,7 @@ namespace
             .text{ u8"Привет мир!" },
         };
 
-        void operator () (const init_event& e) noexcept
+        void operator () (os::const_module_handle_t app) noexcept
         {
             b0.clicked = [this] () noexcept
             {
@@ -72,7 +72,7 @@ namespace
                 clicked(this->b2);
             };
 
-            exit_b.clicked = [app = ui::app_module_handle(e)] () noexcept
+            exit_b.clicked = [app] () noexcept
             {
                 ui::quit(app);
             };

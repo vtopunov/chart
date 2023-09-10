@@ -1,13 +1,10 @@
 #pragma once
 
-#include <chrono>
-
-#include <core/buffer_view.h>
+#include <gl/color.h>
 
 #include <egl_ui/egl_ui_owner.h>
 
 #include <widget/fwd.h>
-#include <widget/shaders.h>
 
 
 namespace widget
@@ -21,27 +18,7 @@ namespace widget
     }
 
     struct window : egl_ui_owner
-    {
-        shaders shaders{};
-        buffer_t temp_buffer{};
-
-#ifdef D_OS_WINDOWS
-        pxsize2d content_sizes_cache{};
-        std::chrono::steady_clock::time_point redraw_time_cache{};
-#endif
-
-        constexpr operator buffer_view () const noexcept
-        {
-            return as_mutable(temp_buffer);
-        }
-    };
-
-    [[nodiscard]]
-    constexpr pxsize2d content_sizes(const window& w) noexcept
-    {
-        return D_CONDITIONAL_OS_WINDOWS(w.content_sizes_cache, w.viewport);
-    }
-
+    {};
 
     struct window_builder : egl_ui::egl_ui_gatherer<window_builder>
     {

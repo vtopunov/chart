@@ -7,6 +7,7 @@
 #include <core/utility.h>
 #include <core/size_type.h>
 
+
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_avoid_malloc_and_free)
 

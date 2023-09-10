@@ -81,6 +81,19 @@ size2d(T, T)->size2d<T>;
 template<class T>
 size2d(const vec2<T>&)->size2d<T>;
 
+
+template<class T>
+[[nodiscard]] constexpr const size2d<T>& as_size2d(const size2d<T>& sizes) noexcept
+{
+    return sizes;
+}
+
+template<class T>
+[[nodiscard]] constexpr size2d<T>& as_size2d(size2d<T>& sizes) noexcept
+{
+    return sizes;
+}
+
 template<class T>
 [[nodiscard]] constexpr T width(const size2d<T>& sizes) noexcept
 {

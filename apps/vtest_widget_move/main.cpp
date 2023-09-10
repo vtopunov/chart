@@ -1,12 +1,11 @@
-﻿#include <random>
-#include <variant>
+﻿#include <variant>
 
 #include <core/round.h>
 
-#include <debug/debug.h>
-
 #include <utility/shaders_library.h>
 #include <widget/run.h>
+
+#include <pix8map_test_texture_generate.h>
 
 using namespace std::chrono_literals;
 using widget::event_result;
@@ -14,43 +13,6 @@ using widget::event_result;
 
 namespace
 {
-    [[nodiscard]]
-    gl::texture2d pix8map_generate(pxsize2d sizes) noexcept
-    {
-        using pixmap_t = pix8map;
-
-        pixmap_t tex_mem{ sizes };
-        if (!tex_mem)
-        {
-            e_debug("out of memory");
-            return {};
-        }
-
-        std::default_random_engine content_generator{};
-
-        {
-            const auto width = tex_mem.width();
-            for (auto line_it : tex_mem)
-            {
-                for (const auto end = line_it + width; line_it < end; line_it += pixmap_t::alignment)
-                {
-                    const auto value = content_generator();
-                    static_assert(pixmap_t::alignment == sizeof(value));
-                    memcpy(line_it, &value, sizeof(value));
-                }
-            }
-        }
-
-        auto texture = gl::create_texture2d(tex_mem);
-        if (!texture)
-        {
-            e_debug("create texture error: {}", glGetError());
-            return {};
-        }
-
-        return texture;  
-    }
-
     pxoff2d mouse_pointer_distance_px(const ui::pointer_event::point2d_type& p0, const ui::pointer_event::point2d_type& p1) noexcept
     {
         const auto d_mouse = as_signed(p1 - p0);
@@ -80,11 +42,11 @@ namespace
 
     public:
         [[nodiscard]]
-        bool operator () (const widget::init_event& ini) noexcept
+        bool operator () (const widget::window& w) noexcept
         {
-            viewport_ = ini.viewport;
+            viewport_ = w.viewport;
 
-            texture_ = pix8map_generate(viewport_ / 2u);
+            texture_ = pix8map_test_texture_generate(viewport_ / 2u);
             if (!texture_)
             {
                 return false;
@@ -150,9 +112,15 @@ namespace
             return std::nullopt;
         } 
 
-        void operator () (const widget::redraw_event&) const noexcept
+        void operator () (widget::redraw_event<>) const noexcept
         {
             shaders_.draw(position_);
+        }
+
+        template<class Fn>
+        decltype(auto) apply(Fn fn) noexcept
+        {
+            return fn();
         }
 
     private:

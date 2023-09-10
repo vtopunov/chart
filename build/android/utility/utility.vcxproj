@@ -39,11 +39,13 @@
     <ClInclude Include="..\..\..\utility\cache_storage.h" />
     <ClInclude Include="..\..\..\utility\font_cache.h" />
     <ClInclude Include="..\..\..\utility\px.h" />
+    <ClInclude Include="..\..\..\utility\user_gesture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="$(RepoDir)\utility\png.cpp" />
     <ClCompile Include="..\..\..\utility\font_cache.cpp" />
     <ClCompile Include="..\..\..\utility\px.cpp" />
+    <ClCompile Include="..\..\..\utility\user_gesture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\file\file.vcxproj">

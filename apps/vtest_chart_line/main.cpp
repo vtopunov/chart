@@ -14,7 +14,6 @@
 
 using namespace std::string_view_literals;
 
-using widget::window;
 using widget::event_result;
 
 using px::real_t;
@@ -254,18 +253,16 @@ namespace
             gl::texture2d texture_cache{};
             range_cache values_range_cache{};
 
-            widget::window_configation operator () (const widget::init_event&) noexcept
+            bool operator () (const widget::window&) noexcept
             {
                 texture_cache = gl::create_texture2d();
                 if (!texture_cache)
                 {
                     e_debug("chart_line: create texture error: {}", glGetError());
-                    return widget::badcfg;
+                    return false;
                 }
 
-                return enable_gray_texture_mix_color_shdr 
-                    | enable_colored_rectangle_shdr 
-                    | enable_pix8_temp_buffer;
+                return true;
             }
 
 #ifdef D_OS_WINDOWS
@@ -287,13 +284,20 @@ namespace
                 clear_texture_cache();
             }
 
-            void operator () (const widget::redraw_event& e) noexcept
+            using redraw_event_type = widget::redraw_event<
+                widget::shaders::gray_texture_mix_color,
+                widget::shaders::colored_rectangle,
+                buffer_view,
+                content_sizes_cache
+            >;
+
+            void operator () (redraw_event_type e) noexcept
             {
-                if (const auto chart_sizes = clamp_sizes(geometry, content_sizes(e)); chart_sizes != sizes(texture_cache))
+                if (const auto chart_sizes = clamp_sizes(geometry, e.get<content_sizes_cache>()); chart_sizes != sizes(texture_cache))
                 {
                     //debug("redraw: {}x{}", chart_sizes.width(), chart_sizes.height());
 
-                    const auto chart_image = px::zeros_pix8space(e, chart_sizes);
+                    const auto chart_image = px::zeros_pix8space(e.get<buffer_view>(), chart_sizes);
                     draw_polyline(chart_image, points, calculate_coordinate_transformation
                     (
                         values_range_cache.update_and_get(points),
@@ -308,8 +312,14 @@ namespace
                     .sizes{ sizes(texture_cache) }
                 };
 
-                e.shaders.colored_rectangle.draw(view_geometry, background_color);
-                e.shaders.gray_texture_mix_color.draw(view_geometry.position, texture_cache, line_color);
+                e.get<widget::shaders::colored_rectangle>().draw(view_geometry, background_color);
+                e.get<widget::shaders::gray_texture_mix_color>().draw(view_geometry.position, texture_cache, line_color);
+            }
+
+            template<class Fn>
+            decltype(auto) apply(Fn fn) noexcept
+            {
+                return fn();
             }
         };
 
@@ -361,7 +371,7 @@ namespace
 
         chart_line::container_of_points points{};
 
-        bool operator () (const widget::init_event& ini) noexcept
+        bool operator () (os::const_module_handle_t app) noexcept
         {
             if (!points.try_reserve(n_points)) [[unlikely]]
             {
@@ -390,7 +400,7 @@ namespace
                 }
             };
 
-            b_exit.clicked = [app = ui::app_module_handle(ini)]() noexcept
+            b_exit.clicked = [app]() noexcept
             {
                 ui::quit(app);
             };

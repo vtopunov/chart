@@ -25,7 +25,7 @@ namespace
 
     public:
         [[nodiscard]]
-        bool initialize(pxsize2d viewport, pxsize2d content_sizes) noexcept
+        bool initialize(pxsize2d viewport) noexcept
         {
             if (!lib_.build())
             {
@@ -35,7 +35,6 @@ namespace
             lib_.use();
             lib_.frag.u_color.store(gl::colors::blue_f);
             lib_.vert.u_viewport.store(viewport);
-            _store_content_sizes(content_sizes);
             return true;
         }
 
@@ -61,9 +60,9 @@ namespace
 #endif
 
 #ifdef TEST_WIDGET
-        bool operator () (const widget::init_event& e) noexcept
+        bool operator () (viewport_size2d viewport) noexcept
         {
-            return initialize(e.viewport, content_sizes(e));
+            return initialize(viewport);
         }
 
         widget::event_result operator () (const ui::size_event& e)
@@ -72,9 +71,15 @@ namespace
             return widget::event_result::redraw;
         }
 
-        void operator () (const widget::redraw_event&) noexcept
+        void operator () (widget::redraw_event<>) noexcept
         {
             draw();
+        }
+
+        template<class Fn>
+        decltype(auto) apply(Fn fn) noexcept
+        {
+            return fn();
         }
 
 #endif
