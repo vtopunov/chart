@@ -8,7 +8,7 @@
 
 #include <font/font.h>
 
-#include <utility/shaders_library.h>
+#include <utility/shader_library.h>
 
 
 using namespace std::string_view_literals;
@@ -129,7 +129,7 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> shaders{};
+    shader_library<vert::positioned_texture, frag::gray_texture_mix_color> shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");

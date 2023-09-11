@@ -5,7 +5,7 @@
 
 #include <widget/fwd.h>
 #include <widget/event.h>
-#include <widget/shaders.h>
+#include <widget/shader.h>
 #include <widget/text.h>
 
 
@@ -44,8 +44,8 @@ namespace widget
 #endif       
 
         using redraw_event_type = redraw_event<
-            shaders::gray_texture_mix_color,
-            shaders::colored_rectangle,
+            shader::gray_texture_mix_color,
+            shader::colored_rectangle,
             buffer_view
         >;
 

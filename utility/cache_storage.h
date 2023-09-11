@@ -6,6 +6,9 @@ template<class T, size_t N>
 class cache_storage
 {
 public:
+    constexpr cache_storage() noexcept = default;
+    D_DISABLE_COPY_MOVE(cache_storage);
+
     using ref_count_type = int64_t;
     static_assert(std::is_signed_v<ref_count_type>);
 
@@ -15,9 +18,7 @@ public:
         template<class... Args>
         constexpr value_type(Args&&... args) noexcept
             : T{ std::forward<Args>(args)... }
-        {
-            static_assert(std::is_nothrow_constructible_v<T, Args...>);
-        }
+        {}
 
         constexpr void ref() noexcept
         {
@@ -124,8 +125,9 @@ public:
     }
 
     [[nodiscard]]
-    constexpr reference operator[](size_t index) const noexcept
+    constexpr reference item(size_t index) const noexcept
     {
+        D_ASSERT(index < storage_.size());
         return const_cast<reference>(storage_[index]);
     }
 

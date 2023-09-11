@@ -2,14 +2,14 @@
 
 #include <egl_ui/viewport_size2d.h>
 
-#include <utility/shaders_library.h>
+#include <utility/shader_library.h>
 
 
 namespace widget
 {
-    namespace shaders
+    namespace shader
     {
-        namespace private_detail_shaders
+        namespace private_detail_shader
         {
             inline void initialize_viewport(const vert::positioned_frame& vert, pxsize2d sizes) noexcept
             {
@@ -17,14 +17,14 @@ namespace widget
             }
 
             template<class VS, class FS>
-            void initialize_lib_uniforms(const shaders_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
+            void initialize_lib_uniforms(const shader_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
             {
                 lib.use();
                 initialize_viewport(lib.vert, viewport_sizes);
             }
 
             template<class VS, class FS>
-            bool initialize_lib(shaders_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
+            bool initialize_lib(shader_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
             {
                 if (lib || lib.build()) [[likely]]
                 {
@@ -58,7 +58,7 @@ namespace widget
             }
 
             template<class VS, class FS>
-            [[nodiscard]] constexpr bool all_is_initialized(const shaders_library<VS, FS>& lib) noexcept
+            [[nodiscard]] constexpr bool all_is_initialized(const shader_library<VS, FS>& lib) noexcept
             {
                 bool result{ true };
 
@@ -80,7 +80,7 @@ namespace widget
             }
 
             template<class VS, class FS>
-            void draw(const shaders_library<VS, FS>& lib) noexcept
+            void draw(const shader_library<VS, FS>& lib) noexcept
             {
                 D_ASSERT(all_is_initialized(lib));
                 draw(lib.vert);
@@ -92,7 +92,7 @@ namespace widget
         public:
             bool operator () (viewport_size2d viewport) noexcept
             {
-                return private_detail_shaders::initialize_lib(lib, viewport);
+                return private_detail_shader::initialize_lib(lib, viewport);
             }
 
             void draw(pxpoint2d position, gl::texture2d_resources texture, gl::rgba_colorf_t colorf) const noexcept
@@ -102,7 +102,7 @@ namespace widget
                 lib.frag.s_texture.store(texture);
                 lib.vert.u_position.store(position);
                 lib.vert.u_size.store(sizes(texture));
-                private_detail_shaders::draw(lib);
+                private_detail_shader::draw(lib);
             }
 
             template<class Fn>
@@ -112,7 +112,7 @@ namespace widget
             }
 
         private:
-            shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
+            shader_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
         };
 
         class colored_rectangle
@@ -120,7 +120,7 @@ namespace widget
         public:
             bool operator () (viewport_size2d viewport) noexcept
             {
-                return private_detail_shaders::initialize_lib(lib, viewport);
+                return private_detail_shader::initialize_lib(lib, viewport);
             }
 
             void draw(pxrectangle rc, gl::rgba_colorf_t colorf) const noexcept
@@ -129,7 +129,7 @@ namespace widget
                 lib.frag.u_color.store(colorf);
                 lib.vert.u_position.store(rc.position);
                 lib.vert.u_size.store(rc.sizes);
-                private_detail_shaders::draw(lib);
+                private_detail_shader::draw(lib);
             }
 
             template<class Fn>
@@ -139,7 +139,7 @@ namespace widget
             }
 
         private:
-            shaders_library<vert::positioned_rectangle, frag::default_color> lib{};
+            shader_library<vert::positioned_rectangle, frag::default_color> lib{};
         };
     }
 }

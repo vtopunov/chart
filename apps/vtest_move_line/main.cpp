@@ -6,7 +6,7 @@
 
 #include <egl_ui/egl_ui_owner.h>
 
-#include <utility/shaders_library.h>
+#include <utility/shader_library.h>
 
 #include "../vtest_line/test_figure.h"
 
@@ -235,7 +235,7 @@ namespace
             }
 
         private:
-            shaders_library<vert::positioned_texture, frag::inverted_texture> lib{};
+            shader_library<vert::positioned_texture, frag::inverted_texture> lib{};
         };
 
         egl_ui_owner egl_{};

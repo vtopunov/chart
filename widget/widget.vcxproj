@@ -18,9 +18,10 @@
     <ClInclude Include="label.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="run.h" />
-    <ClInclude Include="shaders.h" />
+    <ClInclude Include="shader.h" />
     <ClInclude Include="draw_context_elements.h" />
     <ClInclude Include="text.h" />
+    <ClInclude Include="widget.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>

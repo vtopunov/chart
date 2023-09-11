@@ -35,7 +35,7 @@
   <Import Project="..\build\static_library.props" />
   <ItemGroup>
     <ClInclude Include="$(RepoDir)\utility\png.h" />
-    <ClInclude Include="$(RepoDir)\utility\shaders_library.h" />
+    <ClInclude Include="$(RepoDir)\utility\shader_library.h" />
     <ClInclude Include="..\..\..\utility\cache_storage.h" />
     <ClInclude Include="..\..\..\utility\font_cache.h" />
     <ClInclude Include="..\..\..\utility\px.h" />

@@ -224,26 +224,16 @@ namespace gl
         using value_view_type = glsl_view_t<type_id>;
        
 #if D_IS_DEBUG
-        static constexpr int DEBUG_STORED__{ 1 << 0 };
-        static constexpr int DEBUG_RO__{ 1 << 1 };
-
-        mutable int debug_flags__{ 0 };
+        bool debug_is_stored__{ false };
 
         constexpr void __debug_store() const noexcept
         {
-            D_ASSERT(!(debug_flags__ & DEBUG_RO__));
-            debug_flags__ |= DEBUG_STORED__;
-        }
-
-        constexpr void __debug_set_ro() const noexcept
-        {
-            D_ASSERT(__debug_is_stored());
-            debug_flags__ |= DEBUG_RO__;
+            as_mutable(debug_is_stored__) = true;
         }
 
         constexpr bool __debug_is_stored() const noexcept
         {
-            return !!(debug_flags__ & DEBUG_STORED__);
+            return debug_is_stored__;
         }
 #endif
 
@@ -255,20 +245,14 @@ namespace gl
 
         void store(value_view_type view) const
         {
-#if D_IS_DEBUG
-            __debug_store();
-#endif
-
+            D_ONLY_DEBUG(__debug_store());
             store_uniform_value(location, view);
         }
 
         template<class... Types>
         auto store(const Types&... values) const -> decltype(store_uniform_method_v<type_id>(location_as_int(location), values...))
         {
-#if D_IS_DEBUG
-           __debug_store();
-#endif
-
+            D_ONLY_DEBUG(__debug_store());
             return store_uniform_method_v<type_id>(location_as_int(location), values...);
         }
 

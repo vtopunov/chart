@@ -8,7 +8,7 @@
 #include <file/file_mmap.h>
 #endif
 
-#include <utility/shaders_library.h>
+#include <utility/shader_library.h>
 
 #include "test_figure.h"
 
@@ -115,7 +115,7 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shaders_library<vert::positioned_texture, frag::inverted_texture>  shaders{};
+    shader_library<vert::positioned_texture, frag::inverted_texture>  shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");

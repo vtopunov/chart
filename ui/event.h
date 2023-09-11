@@ -443,7 +443,7 @@ namespace ui
         [[nodiscard]]
         constexpr double rot() const noexcept
         {
-            return narrow<double>(delta()) / min_mouse_wheel_delta;
+            return numeric_cast<double>(delta()) / min_mouse_wheel_delta;
         }
     };
 

@@ -285,8 +285,8 @@ namespace
             }
 
             using redraw_event_type = widget::redraw_event<
-                widget::shaders::gray_texture_mix_color,
-                widget::shaders::colored_rectangle,
+                widget::shader::gray_texture_mix_color,
+                widget::shader::colored_rectangle,
                 buffer_view,
                 content_sizes_cache
             >;
@@ -312,8 +312,8 @@ namespace
                     .sizes{ sizes(texture_cache) }
                 };
 
-                e.get<widget::shaders::colored_rectangle>().draw(view_geometry, background_color);
-                e.get<widget::shaders::gray_texture_mix_color>().draw(view_geometry.position, texture_cache, line_color);
+                e.get<widget::shader::colored_rectangle>().draw(view_geometry, background_color);
+                e.get<widget::shader::gray_texture_mix_color>().draw(view_geometry.position, texture_cache, line_color);
             }
 
             template<class Fn>

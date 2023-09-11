@@ -142,18 +142,39 @@ namespace font_cache
     {
         if (face)
         {
-            auto& mmaps = global_mmaps_cache();
             auto& faces = global_faces_cache();
+            auto& mmaps = global_mmaps_cache();
 
-            auto& item = faces[face.cache_index];
+            auto& item = faces.item(face.cache_index);
+            auto& mmap_item = mmaps.item(item.mmap_id);
+
             item.deref(faces);
-
-            const auto mmap_id = item.mmap_id;
-            D_ASSERT(mmap_id < mmaps.size());
-            mmaps[mmap_id].deref(mmaps);
+            mmap_item.deref(mmaps);
         }
     }
     
+    face clone(const face_resource face_r) noexcept
+    {
+        if(face_r)
+        {
+            auto& mmaps = global_mmaps_cache();
+            auto& faces = global_faces_cache();
+            
+            auto& item = faces.item(face_r.cache_index);
+            auto& mmap_item = mmaps.item(item.mmap_id);
+
+            mmap_item.ref();
+            item.ref();
+        }
+
+        return
+        {
+            resource_construct,
+            face_r.face,
+            face_r.cache_index
+        };
+    }
+
     font_cache::face load_font(file::path_zstring_view name, const px::pxside_t size) noexcept
     {
         const file::path_string_view name_sv{ name.c_str() };
@@ -245,5 +266,11 @@ namespace font_cache
             cached_face->face,
             faces.index(cached_face)
         };
+    }
+
+    font_cache::face cached_default_font() noexcept
+    {
+        static const auto cached_font = font_cache::load_font(default_font_name, default_font_size);
+        return clone(cached_font);
     }
 }

@@ -11,9 +11,6 @@ namespace widget
 {
     namespace text
     {
-        constexpr auto default_font_name = _PATH("OpenSans-Regular.ttf");
-        constexpr auto default_font_size = 15_px;
-
         void error_load_default_font_report() noexcept;
 
         struct drawing_cache
@@ -62,7 +59,7 @@ namespace widget
             {
                 if (!w.font)
                 {
-                    w.font = font_cache::load_font(default_font_name, default_font_size);
+                    w.font = font_cache::cached_default_font();
                     if (!w.font) [[unlikely]]
                     {
                         error_load_default_font_report();

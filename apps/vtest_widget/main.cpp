@@ -2,11 +2,12 @@
 #include <widget/button.h>
 #include <widget/run.h>
 
+using widget::button;
+using widget::label;
+
 
 namespace
-{ 
-    using namespace widget;
-
+{
     struct main_widget
     {
         button b0

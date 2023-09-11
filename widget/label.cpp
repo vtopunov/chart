@@ -7,7 +7,7 @@ namespace widget
     {
         if (text::draw_to_cache(*this, e.get<buffer_view>())) [[likely]]
         {
-            e.get<shaders::gray_texture_mix_color>().draw(position, text_cache.texture(), gl::colors::black_f);
+            e.get<shader::gray_texture_mix_color>().draw(position, text_cache.texture(), gl::colors::black_f);
         }
     }
 }

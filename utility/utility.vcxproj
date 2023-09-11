@@ -95,13 +95,14 @@
     <ClCompile Include="font_cache.cpp" />
     <ClCompile Include="png.cpp" />
     <ClCompile Include="px.cpp" />
+    <ClCompile Include="user_gesture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cache_storage.h" />
     <ClInclude Include="font_cache.h" />
     <ClInclude Include="png.h" />
     <ClInclude Include="px.h" />
-    <ClInclude Include="shaders_library.h" />
+    <ClInclude Include="shader_library.h" />
     <ClInclude Include="user_gesture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

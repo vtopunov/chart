@@ -141,10 +141,10 @@ namespace widget
     {
         const auto colors = button_colors::instance(state);
 
-        e.get<shaders::colored_rectangle>().draw(geometry, colors.frame);
+        e.get<shader::colored_rectangle>().draw(geometry, colors.frame);
 
         const auto client_rc = rectangle_without_frame(geometry);
-        e.get<shaders::colored_rectangle>().draw(client_rc, colors.body);
+        e.get<shader::colored_rectangle>().draw(client_rc, colors.body);
 
         if (text::draw_to_cache(*this, e.get<buffer_view>(), client_rc.sizes)) [[likely]]
         {
@@ -158,7 +158,7 @@ namespace widget
                 font::ceil_to<pxside_t>(position.y())
             };
 
-            e.get<shaders::gray_texture_mix_color>().draw(px_position, text_cache.texture(), gl::colors::black_f);
+            e.get<shader::gray_texture_mix_color>().draw(px_position, text_cache.texture(), gl::colors::black_f);
         }
     }
 }

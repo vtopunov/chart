@@ -1,4 +1,4 @@
-﻿#include <utility/shaders_library.h>
+﻿#include <utility/shader_library.h>
 #include <utility/user_gesture.h>
 
 #include <egl_ui/egl_ui_owner.h>
@@ -330,7 +330,7 @@ namespace
             }
 
         private:
-            shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
+            shader_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
         };
 
         egl_ui_owner egl_{};

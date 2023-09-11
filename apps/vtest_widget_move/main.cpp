@@ -2,7 +2,7 @@
 
 #include <core/round.h>
 
-#include <utility/shaders_library.h>
+#include <utility/shader_library.h>
 #include <widget/run.h>
 
 #include <pix8map_test_texture_generate.h>
@@ -161,7 +161,7 @@ namespace
             }
 
         private:
-            shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
+            shader_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
         };
 
         egl_ui::viewport_size2d viewport_{};

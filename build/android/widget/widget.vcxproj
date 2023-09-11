@@ -42,7 +42,7 @@
     <ClInclude Include="..\..\..\widget\draw_context_elements.h" />
     <ClInclude Include="..\..\..\widget\event.h" />
     <ClInclude Include="..\..\..\widget\event_matching.h" />
-    <ClInclude Include="..\..\..\widget\shaders.h" />
+    <ClInclude Include="..\..\..\widget\shader.h" />
     <ClInclude Include="..\..\..\widget\window.h" />
     <ClInclude Include="..\..\..\widget\fwd.h" />
   </ItemGroup>

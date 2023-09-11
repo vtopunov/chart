@@ -5,7 +5,7 @@
 
 #include <debug/debug.h>
 
-#include <utility/shaders_library.h>
+#include <utility/shader_library.h>
 
 #ifdef TEST_EGL_UI
 #include <egl_ui/egl_ui_owner.h>
@@ -93,7 +93,7 @@ namespace
         }
 
     private:
-        shaders_library<vert::positioned_rectangle, frag::default_color> lib_{};
+        shader_library<vert::positioned_rectangle, frag::default_color> lib_{};
     };
 
 #ifdef TEST_EGL_UI
@@ -104,7 +104,7 @@ namespace
 
         bool initialize() noexcept
         {
-            return widget.initialize(egl.viewport, ui::sizes(app_window_handle(egl)));
+            return widget.initialize(egl.viewport);
         }
 
         std::nullopt_t operator () (const ui::size_event& e) noexcept

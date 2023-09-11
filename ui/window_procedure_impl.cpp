@@ -13,6 +13,9 @@ namespace ui
         {
             return underlying_cast<event_style>(message);
         }
+
+        template<WPARAM test_value>
+        constexpr bool test_mouse_wheel_delta_v = (mouse_wheel_delta(test_value) == (GET_WHEEL_DELTA_WPARAM(test_value)));
     }
 
     event_result_t D_OS_APICALL window_procedure
@@ -38,6 +41,8 @@ namespace ui
         static_assert(mouse_keys::control == mouse_keys::instance(MK_CONTROL));
         static_assert(mouse_keys::mbutton == mouse_keys::instance(MK_MBUTTON));
         static_assert(min_mouse_wheel_delta == WHEEL_DELTA);
+        static_assert(std::is_same_v<ui::mouse_wheel_delta_t, decltype(GET_WHEEL_DELTA_WPARAM(std::declval<WPARAM>()))>);
+        static_assert(test_mouse_wheel_delta_v<numeric_max_v<WPARAM>>);
 
         const event e { window, to_event_style(message), word_parameter, long_parameter };
 

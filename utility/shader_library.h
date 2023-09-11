@@ -254,7 +254,7 @@ namespace frag
 
 
 template<class VS, class FS>
-struct shaders_library
+struct shader_library
 {
     VS vert{};
     FS frag{};

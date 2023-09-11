@@ -3,7 +3,7 @@
 #include <egl_ui/egl_ui_owner.h>
 
 #include <utility/png.h>
-#include <utility/shaders_library.h>
+#include <utility/shader_library.h>
 
 
 int app_main(os::module_handle_t app) noexcept
@@ -23,7 +23,7 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shaders_library<vert::positioned_texture, frag::default_texture> shaders{};
+    shader_library<vert::positioned_texture, frag::default_texture> shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");

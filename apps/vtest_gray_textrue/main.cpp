@@ -4,7 +4,7 @@
 
 #include <egl_ui/egl_ui_owner.h>
 
-#include <utility/shaders_library.h>
+#include <utility/shader_library.h>
 
 
 namespace
@@ -49,7 +49,7 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shaders_library<vert::positioned_texture, frag::gray_texture_mix_color> shaders{};
+    shader_library<vert::positioned_texture, frag::gray_texture_mix_color> shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");
