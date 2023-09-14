@@ -8,6 +8,17 @@
 
 namespace
 {
+    template<class T>
+    constexpr auto gl_max_v = [] () noexcept
+    {
+        static_assert(std::is_integral_v<T>);
+        constexpr auto px_digits = numeric_digits_v<T>;
+        return numeric_max_v<T> >> (px_digits - std::min(numeric_digits_v<GLfloat>, px_digits));
+    } ();
+
+    constexpr auto gl_pxz_max = gl_max_v<pxoff_t>;
+
+
     template<template<class> class Vec, class T>
     [[nodiscard]] constexpr std::enable_if_t<
         std::is_base_of_v<vec2<T>, Vec<T>>, Vec<T>
@@ -60,7 +71,6 @@ namespace
         constexpr bool operator != (const figure_center_position&) const noexcept = default;
     };
 
-
     struct figure_area
     {
         figure_center_position position{};
@@ -87,6 +97,31 @@ namespace
         }
 
         [[nodiscard]]
+        constexpr figure_area with_zoom(pxoff2d zoom, pxsize2d viewport) const noexcept
+        {
+            const auto apply_zoom = [] (double value0, double value, double zoom) noexcept
+            {
+                const auto n_zoom = value / value0;
+                return narrow<pxside_t>(std::clamp
+                (
+                    trunc_to_pxz((n_zoom > 1.0) ? (value + zoom * n_zoom) : (value + zoom)),
+                    1_pxz,
+                    gl_pxz_max
+                ));
+            };
+
+            return
+            {
+                .position{ position },
+                .sizes
+                {
+                    apply_zoom(viewport.width(), sizes.width(), zoom.x()),
+                    apply_zoom(viewport.height(), sizes.height(), zoom.y()),
+                }
+            };
+        }
+
+        [[nodiscard]]
         constexpr figure_area with_zoom(pxoff2d zoom) const noexcept
         {
             constexpr auto min_zoom = [] (pxoff2d ssizes) noexcept
@@ -98,15 +133,9 @@ namespace
 
             constexpr auto max_zoom = [] (pxoff2d ssizes) noexcept
             {
-                constexpr auto gl_numeric_max = [] () noexcept
-                {
-                    constexpr auto px_digits = numeric_digits_v<pxoff_t>;
-                    return numeric_max_v<pxoff_t> >> (px_digits - std::min(numeric_digits_v<GLfloat>, px_digits));
-                } ();
-
-                D_ASSERT(ssizes.x() <= gl_numeric_max);
-                D_ASSERT(ssizes.y() <= gl_numeric_max);
-                return fill_to<point2d>(gl_numeric_max) - ssizes;
+                D_ASSERT(ssizes.x() <= gl_pxz_max);
+                D_ASSERT(ssizes.y() <= gl_pxz_max);
+                return fill_to<point2d>(gl_pxz_max) - ssizes;
             };
 
             const auto ssizes = narrow2d<pxoff2d>(sizes);
@@ -124,7 +153,7 @@ namespace
             constexpr double mul{ 0.05 };
             const auto sign = 1 - 2 * std::signbit(rot);
             const auto step_mul = sign * pow(mul, abs(rot));
-            return with_zoom(vtrunc_to_px(sizes * step_mul));
+            return with_zoom(vtrunc_to_pxz(sizes * step_mul));
         }
 
         [[nodiscard]]
@@ -185,6 +214,7 @@ namespace
             need_redraw_ = true;
             return std::nullopt;
         }
+
 #endif
 
         std::nullopt_t operator () (const ui::mouse_move_event& e) noexcept
@@ -192,16 +222,16 @@ namespace
 #if  defined(D_OS_WINDOWS)
             if (!e.keys().is_left())
             {
-                clear_gesture_cache(gesture_cache_);
+                gesture_cache_.clear();
                 return std::nullopt;
             }
 #endif
 
-            const auto gesture = new_motion_user_gesture(gesture_cache_, e);
+            const auto gesture = gesture_cache_.new_motion_gesture(e);
             const auto has_move = gesture.has_move();
             const auto has_zoom = gesture.has_zoom();
 
-            if(has_move || has_zoom)
+            if (has_move || has_zoom)
             {
                 figure_area new_area{ area_ };
 
@@ -212,10 +242,10 @@ namespace
 
                 if (has_zoom)
                 {
-                    new_area = new_area.with_zoom(gesture.zoom);
+                    new_area = new_area.with_zoom(gesture.zoom, egl_.viewport);
                 }
 
-                if(new_area != area_)
+                if (new_area != area_)
                 {
                     area_ = new_area;
                     need_redraw_ = true;
@@ -227,7 +257,7 @@ namespace
 
         std::nullopt_t operator () (const ui::mouse_up_event&) noexcept
         {
-            clear_gesture_cache(gesture_cache_);
+            gesture_cache_.clear();
             return std::nullopt;
         }
 
@@ -256,6 +286,7 @@ namespace
 
             return;
         }
+
 #endif
 
         void operator () (ui::redraw_needed_event) noexcept
@@ -335,12 +366,12 @@ namespace
 
         egl_ui_owner egl_{};
         shaders_lib shaders_{};
-        gl::texture2d texture_;
-        gesture_vpoint2d_t gesture_cache_{ invalid_gesture_vpoint };
+        gl::texture2d texture_{};
+        user_gesture_cache gesture_cache_{};
         figure_area area_{};
         bool need_redraw_{ true };
-        };
-    }
+    };
+}
 
 int app_main(os::module_handle_t app) noexcept
 {
