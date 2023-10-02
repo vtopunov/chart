@@ -167,6 +167,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_move_line_applib", "a
 EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_move_line", "apps\vtest_move_line\vtest_move_line.androidproj", "{184E8983-63E4-4A04-8FD0-2E9E48171C78}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_widget_move_and_zoom", "vtest_widget_move_and_zoom", "{DA6FE95B-B413-4A58-A9EA-35C9EDBBC555}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_widget_move_and_zoom_applib", "apps\vtest_widget_move_and_zoom\vtest_widget_move_and_zoom_applib.vcxproj", "{73DAE94C-839A-4606-B7E7-8DCABFF864C5}"
+EndProject
+Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_widget_move_and_zoom", "apps\vtest_widget_move_and_zoom\vtest_widget_move_and_zoom.androidproj", "{BE9E695D-4F60-4D53-B4E2-DFAC11315413}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -727,6 +733,26 @@ Global
 		{184E8983-63E4-4A04-8FD0-2E9E48171C78}.Release|x64.ActiveCfg = Release|ARM
 		{184E8983-63E4-4A04-8FD0-2E9E48171C78}.Release|x64.Build.0 = Release|ARM
 		{184E8983-63E4-4A04-8FD0-2E9E48171C78}.Release|x64.Deploy.0 = Release|ARM
+		{73DAE94C-839A-4606-B7E7-8DCABFF864C5}.Debug|ARM.ActiveCfg = Debug|ARM
+		{73DAE94C-839A-4606-B7E7-8DCABFF864C5}.Debug|ARM.Build.0 = Debug|ARM
+		{73DAE94C-839A-4606-B7E7-8DCABFF864C5}.Debug|x64.ActiveCfg = Debug|ARM
+		{73DAE94C-839A-4606-B7E7-8DCABFF864C5}.Debug|x64.Build.0 = Debug|ARM
+		{73DAE94C-839A-4606-B7E7-8DCABFF864C5}.Release|ARM.ActiveCfg = Release|ARM
+		{73DAE94C-839A-4606-B7E7-8DCABFF864C5}.Release|ARM.Build.0 = Release|ARM
+		{73DAE94C-839A-4606-B7E7-8DCABFF864C5}.Release|x64.ActiveCfg = Release|ARM
+		{73DAE94C-839A-4606-B7E7-8DCABFF864C5}.Release|x64.Build.0 = Release|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Debug|ARM.ActiveCfg = Debug|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Debug|ARM.Build.0 = Debug|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Debug|ARM.Deploy.0 = Debug|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Debug|x64.ActiveCfg = Debug|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Debug|x64.Build.0 = Debug|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Debug|x64.Deploy.0 = Debug|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Release|ARM.ActiveCfg = Release|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Release|ARM.Build.0 = Release|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Release|ARM.Deploy.0 = Release|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Release|x64.ActiveCfg = Release|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Release|x64.Build.0 = Release|ARM
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413}.Release|x64.Deploy.0 = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -797,6 +823,9 @@ Global
 		{9C9985B6-72DA-47BC-9999-7D1149ED9C2C} = {41B10E82-3141-4F27-859E-E16086E7F3CB}
 		{48465DE1-B80E-4399-823E-217E72FD9DB1} = {9C9985B6-72DA-47BC-9999-7D1149ED9C2C}
 		{184E8983-63E4-4A04-8FD0-2E9E48171C78} = {9C9985B6-72DA-47BC-9999-7D1149ED9C2C}
+		{DA6FE95B-B413-4A58-A9EA-35C9EDBBC555} = {41B10E82-3141-4F27-859E-E16086E7F3CB}
+		{73DAE94C-839A-4606-B7E7-8DCABFF864C5} = {DA6FE95B-B413-4A58-A9EA-35C9EDBBC555}
+		{BE9E695D-4F60-4D53-B4E2-DFAC11315413} = {DA6FE95B-B413-4A58-A9EA-35C9EDBBC555}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6BA0FE90-5B90-4621-9483-7FC05A6F0C49}

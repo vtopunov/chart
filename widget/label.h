@@ -2,8 +2,7 @@
 
 #include <string>
 
-#include <widget/fwd.h>
-#include <widget/event.h>
+#include <widget/context.h>
 #include <widget/shader.h>
 #include <widget/text.h>
 
@@ -36,7 +35,7 @@ namespace widget
         template<class Fn>
         decltype(auto) apply(Fn fn) noexcept
         {
-            return fn();
+            return fn(ex_context_v<redraw_event_type>);
         }
     };
 }

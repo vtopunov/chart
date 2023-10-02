@@ -13,7 +13,7 @@ namespace egl_ui
         }
     };
 
-    static constexpr viewport_size2d no_viewport{ 0_px, 0_px };
+    static constexpr viewport_size2d no_viewport{ ui::no_window_sizes };
     static_assert(!no_viewport);
 }
 

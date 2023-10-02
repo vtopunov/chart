@@ -12,16 +12,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="button.h" />
-    <ClInclude Include="draw_context.h" />
+    <ClInclude Include="context.h" />
     <ClInclude Include="event_matching.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="label.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="run.h" />
     <ClInclude Include="shader.h" />
-    <ClInclude Include="draw_context_elements.h" />
+    <ClInclude Include="temp_buffer.h" />
     <ClInclude Include="text.h" />
-    <ClInclude Include="widget.h" />
+    <ClInclude Include="gesture_cache.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -32,7 +32,7 @@
   <ItemGroup>
     <ClCompile Include="button.cpp" />
     <ClCompile Include="label.cpp" />
-    <ClCompile Include="draw_context_elements.cpp" />
+    <ClCompile Include="temp_buffer.cpp" />
     <ClCompile Include="text.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

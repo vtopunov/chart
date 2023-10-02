@@ -312,7 +312,7 @@ public:
     {
         bool ok{ true };
 
-        if (is_dynamic() && dynamic_.size() > size_)
+        if (is_dynamic() && (dynamic_.size() > size_))
         {
             if (size_ <= static_size)
             {

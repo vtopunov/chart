@@ -3,6 +3,7 @@
 #include <tuple>
 #include <utility>
 
+
 template<template <class> class Fn, class Tuple>
 struct transform_tuple_type;
 
@@ -265,3 +266,7 @@ struct tuple_unique_push_back_tuple_type<Tuple, std::tuple<T0, Types...> >
 
 template<class Tuple, class TailTuple>
 using tuple_unique_push_back_tuple_t = typename tuple_unique_push_back_tuple_type<Tuple, TailTuple>::type;
+
+
+template<class Tuple>
+using unique_tuple_t = tuple_unique_push_back_tuple_t<std::tuple<>, Tuple>;

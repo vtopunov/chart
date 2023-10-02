@@ -1,7 +1,7 @@
 ﻿#include <utility/shader_library.h>
-#include <utility/user_gesture.h>
 
-#include <egl_ui/egl_ui_owner.h>
+#include <widget/run.h>
+#include <widget/gesture_cache.h>
 
 #include "pix8map_test_texture_generate.h"
 
@@ -97,7 +97,7 @@ namespace
         }
 
         [[nodiscard]]
-        constexpr figure_area with_zoom(pxoff2d zoom, pxsize2d viewport) const noexcept
+        figure_area with_zoom(pxoff2d zoom, pxsize2d viewport) const noexcept
         {
             const auto apply_zoom = [] (double value0, double value, double zoom) noexcept
             {
@@ -163,165 +163,100 @@ namespace
         constexpr bool operator != (const figure_area&) const noexcept = default;
     };
 
-    class main_processor
+
+    class main_widget
     {
     public:
-        [[nodiscard]]
-        bool initialize(os::module_handle_t app) noexcept
+        bool operator () (const widget::window& w) noexcept
         {
-            egl_ = create_egl_ui(app);
-            if (!egl_)
-            {
-                return false;
-            }
-
-            return reinitialize();
-        }
-
-        [[nodiscard]]
-        bool reinitialize() noexcept
-        {
-            texture_ = pix8map_test_texture_generate(egl_.viewport / 4u);
+            texture_ = pix8map_test_texture_generate(w.viewport / 4u);
             if (!texture_)
             {
                 return false;
             }
 
-            if (!shaders_.initialize(egl_.viewport, texture_))
+            if (!shaders_.initialize(w.viewport, texture_))
             {
                 return false;
             }
 
-            area_ = default_area(egl_.viewport);
+            area_ = default_area(w.viewport);
             return true;
         }
 
+        using mouse_move_event_type = widget::mouse_move_event<
+            widget::gesture_cache,
+            viewport_size2d
+        >;
+
 #if defined(D_OS_WINDOWS)
-        std::nullopt_t operator () (const ui::mouse_wheel_event& e) noexcept
+        using mouse_double_click_event_type = widget::mouse_double_click_event<
+            viewport_size2d
+        >;
+
+        widget::event_result operator () (const ui::mouse_wheel_event& e) noexcept
         {
             if (const auto new_area = area_.with_zoom_increase(e.rot()); new_area != area_)
             {
                 area_ = new_area;
-                need_redraw_ = true;
+                return widget::event_result::redraw;
             }
 
-            return std::nullopt;
+            return widget::event_result::idle;
         }
 
-        std::nullopt_t operator () (const ui::mouse_double_click_event&) noexcept
+        constexpr widget::event_result operator () (mouse_double_click_event_type e) noexcept
         {
-            area_ = default_area(egl_.viewport);
-            need_redraw_ = true;
-            return std::nullopt;
+            area_ = default_area(e.get<viewport_size2d>());
+            return widget::event_result::redraw;
         }
 
 #endif
 
-        std::nullopt_t operator () (const ui::mouse_move_event& e) noexcept
+        widget::event_result operator () (mouse_move_event_type e)
         {
-#if  defined(D_OS_WINDOWS)
-            if (!e.keys().is_left())
-            {
-                user_motion_cache_ = no_user_motion;
-                return std::nullopt;
-            }
-#endif
-
-            const auto gesture = new_user_motion(user_motion_cache_, e);
-            const auto has_move = gesture.has_move();
-            const auto has_zoom = gesture.has_zoom();
-
-            if (has_move || has_zoom)
+            if (const auto& gesture = e.get<widget::gesture_cache>())
             {
                 figure_area new_area{ area_ };
 
-                if (has_move)
                 {
-                    new_area = new_area.with_shift(gesture.move, egl_.viewport);
-                }
+                    const auto viewport = e.get<viewport_size2d>();
 
-                if (has_zoom)
-                {
-                    new_area = new_area.with_zoom(gesture.zoom, egl_.viewport);
+                    if (const auto move = gesture.move())
+                    {
+                        new_area = new_area.with_shift(move, viewport);
+                    }
+
+                    if (const auto zoom = gesture.zoom())
+                    {
+                        new_area = new_area.with_zoom(zoom, viewport);
+                    }
                 }
 
                 if (new_area != area_)
                 {
                     area_ = new_area;
-                    need_redraw_ = true;
+                    return widget::event_result::redraw;
                 }
             }
 
-            return std::nullopt;
+            return widget::event_result::idle;
         }
 
-        std::nullopt_t operator () (const ui::mouse_up_event&) noexcept
+        void operator () (widget::redraw_event<>) const noexcept
         {
-            user_motion_cache_ = no_user_motion;
-            return std::nullopt;
-        }
-
-#ifdef D_OS_ANDROID
-        void operator () (ui::content_rect_changed_event)
-        {
-            const auto new_viewport = app_ui_viewport_request(egl_);
-            if (!new_viewport)
-            {
-                ui_fatal_debug(egl_, "content rect error: ui error: {}, egl error: {}",
-                    ui::error_code(), eglGetError());
-                return;
-            }
-
-            if (new_viewport != egl_.viewport)
-            {
-                egl_.viewport = new_viewport;
-
-                if (!reinitialize())
-                {
-                    ui_fatal_debug(egl_, "reinitialize viewport error: ui error: {}, egl error: {}",
-                        ui::error_code(), eglGetError());
-                    return;
-                }
-            }
-
-            return;
-        }
-
-#endif
-
-        void operator () (ui::redraw_needed_event) noexcept
-        {
-            need_redraw_ = true;
-        }
-
-        ui::milliseconds operator () (ui::idle_event) noexcept
-        {
-            if (need_redraw_)
-            {
-                need_redraw_ = false;
-                draw();
-            }
-
-            return ui::infinite;
-        }
-
-        int run()
-        {
-            draw();
-            return ui::run_event_loop(egl_, *this);
-        }
-
-    private:
-        void draw() const noexcept
-        {
-            const egl_painting_owner painting_owner{ egl_ };
-            gl::viewport(egl_.viewport);
-            gl::clear(gl::colors::white_f);
             shaders_.draw(area_.geometry());
         }
 
+        template<class Fn>
+        decltype(auto) apply(Fn fn) const noexcept
+        {
+            return fn(widget::ex_context_v<mouse_move_event_type>);
+        }
+
+    private:
         [[nodiscard]]
-        static figure_area default_area(pxsize2d viewport) noexcept
+        static constexpr figure_area default_area(pxsize2d viewport) noexcept
         {
             const auto sizes = viewport / 2u;
             return
@@ -364,27 +299,16 @@ namespace
             shader_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
         };
 
-        egl_ui_owner egl_{};
+    private:
         shaders_lib shaders_{};
         gl::texture2d texture_{};
-        user_motion_cache_t user_motion_cache_{ no_user_motion };
         figure_area area_{};
-        bool need_redraw_{ true };
     };
 }
 
 int app_main(os::module_handle_t app) noexcept
 {
-    main_processor processor;
-
-    if (!processor.initialize(app))
-    {
-        e_debug("create window error: ui error: {}, egl error: {}",
-            ui::error_code(), eglGetError());
-        return EXIT_FAILURE;
-    }
-
-    return processor.run();
+    return widget::run<main_widget>(app);
 }
 
 

@@ -89,25 +89,6 @@ struct add_const_pointer<T*const>
 template<class T>
 using add_const_pointer_t = typename add_const_pointer<T>::type;
 
-template <class T>
-struct remove_reference_wrapper 
-{
-    using type = T;
-};
-
-template <class T>
-struct remove_reference_wrapper<std::reference_wrapper<T>>
-{
-    using type = T;
-};
-
-template <class T>
-struct remove_reference_wrapper<const T> : remove_reference_wrapper<T>
-{};
-
-template <class T>
-using remove_reference_wrapper_t = typename remove_reference_wrapper<T>::type;
-
 
 template<class T> [[nodiscard]]
 constexpr decltype(auto) as_unsigned_or(const T& value) noexcept

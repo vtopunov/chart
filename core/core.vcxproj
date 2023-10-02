@@ -17,6 +17,7 @@
     <ClInclude Include="clamp_cast.h" />
     <ClInclude Include="color_fwd.h" />
     <ClInclude Include="fmt.h" />
+    <ClInclude Include="functional.h" />
     <ClInclude Include="limits.h" />
     <ClInclude Include="null.h" />
     <ClInclude Include="ordered_overload.h" />
@@ -32,7 +33,6 @@
     <ClInclude Include="tuple_algorithm.h" />
     <ClInclude Include="type_traits.h" />
     <ClInclude Include="underlying.h" />
-    <ClInclude Include="unique_function.h" />
     <ClInclude Include="utf.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="intrusive_list.h" />

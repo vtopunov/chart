@@ -98,10 +98,7 @@ namespace ui
 
         event_result_opt_t operator () (const event& e) noexcept
         {
-            using processor_lvalue_reference_t 
-                = std::add_lvalue_reference_t<std::remove_reference_t<remove_reference_wrapper_t<Processor>>>;
-
-            return do_event_match(static_cast<processor_lvalue_reference_t>(processor), e);
+            return do_event_match(unrefwrap(processor), e);
         }
     };
 

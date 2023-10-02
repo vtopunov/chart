@@ -8,6 +8,7 @@ extern void test_view() noexcept;
 extern void test_utility() noexcept;
 extern void test_value_type() noexcept;
 extern void test_clamp_cast() noexcept;
+extern void test_functional() noexcept;
 extern void test_round() noexcept;
 extern void test_size_type() noexcept;
 extern void test_narrow() noexcept;
@@ -42,6 +43,7 @@ int main() noexcept
     test_utility();
     test_value_type();
     test_clamp_cast();
+    test_functional();
     test_round();
     test_size_type();
     test_narrow();

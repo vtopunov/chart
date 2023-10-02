@@ -80,7 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="test_draw_context.cpp" />
+    <ClCompile Include="test_context.cpp" />
     <ClCompile Include="test_event_matching.cpp" />
   </ItemGroup>
   <ItemGroup>

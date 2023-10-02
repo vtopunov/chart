@@ -11,50 +11,47 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <ProjectGuid>{73DAE94C-839A-4606-B7E7-8DCABFF864C5}</ProjectGuid>
     <Keyword>Android</Keyword>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
-    <ProjectGuid>{F005696A-A08C-4A10-95EB-B7EF15CF7C26}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
     <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>Clang_5_0</PlatformToolset>
     <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\build\static_library.props" />
+  <Import Project="..\..\build\egl_ui_app_library.props" />
+  <ItemDefinitionGroup>
+    <Link>
+      <LibraryDependencies>m;%(LibraryDependencies)</LibraryDependencies>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(RepoAppsDir)\vtest_move_and_zoom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <PropertyGroup>
+    <AppName>$([System.String]::Copy('$(ProjectName)').Replace('_applib',''))</AppName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AppSrcDir>$(RepoAppsDir)\$(AppName)</AppSrcDir>
+  </PropertyGroup>
   <ItemGroup>
-    <ClInclude Include="$(RepoDir)\widget\button.h" />
-    <ClInclude Include="$(RepoDir)\widget\label.h" />
-    <ClInclude Include="$(RepoDir)\widget\run.h" />
-    <ClInclude Include="$(RepoDir)\widget\text.h" />
-    <ClInclude Include="..\..\..\widget\context.h" />
-    <ClInclude Include="..\..\..\widget\event.h" />
-    <ClInclude Include="..\..\..\widget\event_matching.h" />
-    <ClInclude Include="..\..\..\widget\gesture_cache.h" />
-    <ClInclude Include="..\..\..\widget\shader.h" />
-    <ClInclude Include="..\..\..\widget\temp_buffer.h" />
-    <ClInclude Include="..\..\..\widget\window.h" />
-    <ClInclude Include="..\..\..\widget\fwd.h" />
+    <ClCompile Include="$(AppSrcDir)\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(RepoDir)\widget\button.cpp" />
-    <ClCompile Include="$(RepoDir)\widget\label.cpp" />
-    <ClCompile Include="$(RepoDir)\widget\text.cpp" />
-    <ClCompile Include="..\..\..\widget\temp_buffer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\utility\utility.vcxproj">
+    <ProjectReference Include="..\..\utility\utility.vcxproj">
       <Project>{47c90779-22f4-49a5-8b9f-b5d799e5d3b5}</Project>
     </ProjectReference>
   </ItemGroup>

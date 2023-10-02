@@ -106,30 +106,6 @@ constexpr T& max_eq(T& value, U&& new_value) noexcept
     return value;
 }
 
-struct nothing
-{
-    template<class... Args>
-    constexpr void operator () (Args&&...) const noexcept
-    {}
-};
-
-template<class Fn, class Arg, class = void>
-struct function_filter
-{
-    Fn fn;
-};
-
-template <class Fn, class Arg>
-struct function_filter<Fn, Arg, std::void_t<decltype(std::declval<Fn&>()(std::declval<Arg>()))>>
-{
-    Fn fn;
-
-    decltype(auto) operator () (Arg arg) noexcept
-    {
-        return fn(std::move(arg));
-    }
-};
-
 
 namespace private_detail_swap
 {

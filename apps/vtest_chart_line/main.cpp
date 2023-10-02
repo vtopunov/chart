@@ -4,13 +4,13 @@
 #include <core/lerp.h>
 #include <core/round.h>
 
+#include <px/algorithm.h>
+
 #include <utility/px.h>
 
 #include <widget/run.h>
 #include <widget/button.h>
-
-#include <px/algorithm.h>
-
+#include <widget/gesture_cache.h>
 
 using namespace std::string_view_literals;
 
@@ -18,6 +18,7 @@ using widget::event_result;
 
 using px::real_t;
 using px::point2d_real;
+
 
 namespace
 {
@@ -71,7 +72,7 @@ namespace
         auto& range = get<axis>(ranges);
         if (!range_is_valid(range))
         {
-            if(w_output)
+            if (w_output)
             {
                 constexpr vec2 axis_letters{ 'X', 'Y' };
                 w_debug
@@ -183,22 +184,22 @@ namespace
             if (len < 0LL) [[unlikely]]
                 return 0_px;
 
-            if (fixlen <= 0LL)
-            {
-                len += fixlen;
-
-                if (len < 0LL) [[unlikely]]
-                    return 0_px;
-            }
-            else
-            {
-                if (fixlen < len)
+                if (fixlen <= 0LL)
                 {
-                    len = fixlen;
-                }
-            }
+                    len += fixlen;
 
-            return narrow<pxside_t>(len);
+                    if (len < 0LL) [[unlikely]]
+                        return 0_px;
+                }
+                else
+                {
+                    if (fixlen < len)
+                    {
+                        len = fixlen;
+                    }
+                }
+
+                return narrow<pxside_t>(len);
         };
 
         return
@@ -238,7 +239,6 @@ namespace
                     cache_ = invalid_cache;
                 }
 
-            private:
                 constexpr bool need_to_update() const noexcept
                 {
                     return invalid_range._0 == cache_._0._0;
@@ -284,16 +284,40 @@ namespace
                 clear_texture_cache();
             }
 
+            using mouse_move_event_type = widget::mouse_move_event<
+                widget::gesture_cache,
+                widget::content_size2d
+            >;
+
             using redraw_event_type = widget::redraw_event<
                 widget::shader::gray_texture_mix_color,
                 widget::shader::colored_rectangle,
                 buffer_view,
-                content_sizes_cache
+                widget::content_size2d
             >;
+
+            void operator () (mouse_move_event_type e) noexcept
+            {
+                const auto sizes = e.get<widget::content_size2d>();
+                debug("mouse_move: ({}, {}), {}x{}", e.x(), e.y(), sizes.width(), sizes.height());
+
+                if (const auto& gesture_cache = e.get<widget::gesture_cache>())
+                {
+                    if (const auto move = gesture_cache.move())
+                    {
+                        debug("move: ({}, {})", move.x(), move.y());
+                    }
+
+                    if (const auto zoom = gesture_cache.zoom())
+                    {
+                        debug("zoom: ({}, {})", zoom.x(), zoom.y());
+                    }
+                }
+            }
 
             void operator () (redraw_event_type e) noexcept
             {
-                if (const auto chart_sizes = clamp_sizes(geometry, e.get<content_sizes_cache>()); chart_sizes != sizes(texture_cache))
+                if (const auto chart_sizes = clamp_sizes(geometry, e.get<widget::content_size2d>()); chart_sizes != sizes(texture_cache))
                 {
                     //debug("redraw: {}x{}", chart_sizes.width(), chart_sizes.height());
 
@@ -319,17 +343,21 @@ namespace
             template<class Fn>
             decltype(auto) apply(Fn fn) noexcept
             {
-                return fn();
+                return fn
+                (
+                    widget::ex_context_v<redraw_event_type>,
+                    widget::ex_context_v<widget::gesture_cache>
+                );
             }
         };
 
-        static constexpr pxpoint2d x00{ 20_px, D_CONDITIONAL_OS_ANDROID(50_px, 20_px) };
-        static constexpr pxsize2d button_sizes{ 120_px, 50_px };
+        static constexpr pxpoint2d x00{ 20_px, D_CONDITIONAL_OS_ANDROID(60_px, 20_px) };
+        static constexpr pxsize2d button_sizes{ 120_px, D_CONDITIONAL_OS_ANDROID(60_px, 40_px) };
 
         template<size_t n>
         static constexpr point2d button_position_v
             = x00 + point2d{ narrow<pxside_t>(n * (5_px + button_sizes.width())), 0_px };
-        
+
         widget::button b_plot
         {
             .geometry
@@ -381,7 +409,7 @@ namespace
 
             sin_vector_initialize(points);
 
-            b_plot.clicked = [this]() noexcept
+            b_plot.clicked = [this] () noexcept
             {
                 if (!line.points.size())
                 {
@@ -391,7 +419,7 @@ namespace
                 line.clear_cache();
             };
 
-            b_clear.clicked = [this]() noexcept
+            b_clear.clicked = [this] () noexcept
             {
                 if (line.points.size())
                 {
@@ -400,7 +428,7 @@ namespace
                 }
             };
 
-            b_exit.clicked = [app]() noexcept
+            b_exit.clicked = [app] () noexcept
             {
                 ui::quit(app);
             };

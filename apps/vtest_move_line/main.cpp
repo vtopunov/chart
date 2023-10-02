@@ -88,7 +88,7 @@ namespace
         }
 
 #if defined(D_OS_WINDOWS)
-        std::nullopt_t operator () (const ui::mouse_double_click&) noexcept
+        std::nullopt_t operator () (const ui::mouse_double_click_event&) noexcept
         {
             lines_rendering_by_default();
             return std::nullopt;

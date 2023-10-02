@@ -3,8 +3,7 @@
 #include <functional>
 #include <string>
 
-#include <widget/fwd.h>
-#include <widget/event.h>
+#include <widget/context.h>
 #include <widget/shader.h>
 #include <widget/text.h>
 
@@ -41,6 +40,7 @@ namespace widget
 
 #ifdef D_OS_WINDOWS
         event_result operator () (const ui::mouse_move_event& e) noexcept;
+
 #endif       
 
         using redraw_event_type = redraw_event<
@@ -54,7 +54,7 @@ namespace widget
         template<class Fn>
         decltype(auto) apply(Fn fn) noexcept
         {
-            return fn();
+            return fn(ex_context_v<redraw_event_type>);
         }
     };
 }

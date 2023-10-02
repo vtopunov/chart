@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include <core/unique_function.h>
+#include <core/functional.h>
 
 #include <os/fwd.h>
 #include <px/fwd.h>
@@ -69,8 +69,8 @@ namespace ui
 
 #ifdef D_OS_WINDOWS
     using size_event = specialized_event<event_style::size>;
-    using mouse_wheel = specialized_event<event_style::mouse_wheel>;
-    using mouse_double_click = specialized_event<event_style::mouse_double_click>;
+    using mouse_wheel_event = specialized_event<event_style::mouse_wheel>;
+    using mouse_double_click_event = specialized_event<event_style::mouse_double_click>;
 #endif
 
     using mouse_move_event = specialized_event<event_style::mouse_move>;
@@ -98,9 +98,13 @@ namespace ui
 
 #endif
 
+    constexpr pxsize2d no_window_sizes{ 0_px, 0_px };
+
     constexpr bool window_sizes_is_valid(pxsize2d sizes) noexcept
     {
         static_assert(std::is_unsigned_v<decltype(sizes.height())>);
         return !!sizes.height();
     }
+
+    static_assert(!window_sizes_is_valid(no_window_sizes));
 }

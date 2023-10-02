@@ -17,8 +17,42 @@ namespace widget
         constexpr auto gl_dialog_color_f = gl::to_colorf(dialog_color);
     }
 
-    struct window : egl_ui_owner
+    struct content_size2d : pxsize2d
     {};
+
+    class window : public egl_ui_owner
+    {
+    public:
+        constexpr window() noexcept = default;
+
+        explicit window(view_t<egl_ui_parameters> params) noexcept
+            : egl_ui_owner{ create_egl_ui(params) }
+        {}
+
+        D_DISABLE_COPY_MOVE(window);
+
+        constexpr operator content_size2d () const noexcept
+        {
+            return { D_CONDITIONAL_OS_WINDOWS(content_sizes_cache_, as_size2d(viewport)) };
+        }
+
+        template<class Fn>
+        decltype(auto) apply(Fn fn) noexcept
+        {
+            return fn();
+        }
+
+#ifdef D_OS_WINDOWS
+    public:
+        constexpr void content_sizes(pxsize2d sizes) noexcept
+        {
+            content_sizes_cache_ = sizes;
+        }
+
+    private:
+        pxsize2d content_sizes_cache_{ ui::no_window_sizes };
+#endif
+    };
 
     struct window_builder : egl_ui::egl_ui_gatherer<window_builder>
     {
@@ -36,12 +70,12 @@ namespace widget
 #ifdef D_OS_WINDOWS
             if (background()) [[likely]]
             {
-                return { create_egl_ui(_c_params()) };
+                return window{ _c_params() };
             }
 
             return {};
 #else
-            return { create_egl_ui(_c_params()) };
+            return window{ _c_params() };
 #endif
         }
     };

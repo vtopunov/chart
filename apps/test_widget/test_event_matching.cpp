@@ -1,4 +1,5 @@
 #include <widget/event_matching.h>
+#include <widget/window.h>
 
 
 namespace
@@ -56,8 +57,7 @@ void test_event_matching() noexcept
     {
         D_ASSERT(0u == main_wgt.w0.n_calls);
         D_ASSERT(0u == main_wgt.w1.n_calls);
-        widget::window_configation cfg{ widget::nocfg };
-        widget::apply_event(cfg, main_wgt, testnullw);
+        D_UNUSED(widget::apply_event(main_wgt, testnullw));
         D_ASSERT(1u == main_wgt.w0.n_calls);
         D_ASSERT(1u == main_wgt.w1.n_calls);
     }

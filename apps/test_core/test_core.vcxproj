@@ -22,6 +22,7 @@
     <ClCompile Include="test_narrow.cpp" />
     <ClCompile Include="test_null.cpp" />
     <ClCompile Include="test_num_range.cpp" />
+    <ClCompile Include="test_functional.cpp" />
     <ClCompile Include="test_ordered_overload.cpp" />
     <ClCompile Include="test_point2d.cpp" />
     <ClCompile Include="test_rational.cpp" />

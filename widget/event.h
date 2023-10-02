@@ -4,7 +4,7 @@
 
 #include <ui/event.h>
 
-#include <egl_ui/viewport_size2d.h>
+#include <widget/fwd.h>
 
 
 namespace widget
@@ -25,21 +25,23 @@ namespace widget
 
         template<class T>
         using cref_if_need_t = std::conditional_t<
-            is_nothrow_copiable_v<T>, T,
+            is_nothrow_copiable_v<T>, std::add_const_t<T>,
             std::add_lvalue_reference_t<std::add_const_t<T>>
         >;
     }
 
-    template<class... Args>
-    class redraw_event
+    template<class EventBase, class... Args>
+    class widget_event : public EventBase
     {
-    public:
-        using tuple_type = std::tuple<Args...>;
+    private:
         using cref_wrap_tuple_type = std::tuple<helpers::cref_wrap_if_need_t<Args>...>;
 
-        template<class... IniArgs>
-        constexpr explicit redraw_event(const IniArgs&... args) noexcept
-            : tuple_{ args... }
+    public:
+        using context_tuple_type = std::tuple<Args...>;
+
+        constexpr explicit widget_event(const EventBase& e, const Args&... args) noexcept
+            : EventBase{ e }
+            , tuple_{ args... }
         {}
 
         template<class T>

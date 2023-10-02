@@ -40,7 +40,7 @@
     <ClInclude Include="fmt.h" />
     <ClInclude Include="round.h" />
     <ClInclude Include="static_vector.h" />
-    <ClInclude Include="unique_function.h" />
     <ClInclude Include="tuple_algorithm.h" />
+    <ClInclude Include="functional.h" />
   </ItemGroup>
 </Project>

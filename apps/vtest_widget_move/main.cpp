@@ -61,7 +61,7 @@ namespace
             return true;
         }
 
-        event_result operator () (const ui::mouse_double_click&) noexcept
+        event_result operator () (const ui::mouse_double_click_event&) noexcept
         {
             mouse_trace_finish();
             position_by_default();
@@ -106,10 +106,9 @@ namespace
             return event_result::idle;;
         }
 
-        std::nullopt_t operator () (const ui::mouse_up_event&) noexcept
+        void operator () (const ui::mouse_up_event&) noexcept
         {
             mouse_trace_finish();
-            return std::nullopt;
         } 
 
         void operator () (widget::redraw_event<>) const noexcept

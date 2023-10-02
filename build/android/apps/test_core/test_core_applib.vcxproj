@@ -21,6 +21,7 @@
     <ClCompile Include="..\..\..\..\apps\test_core\test_buffer_view.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_clamp_cast.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_color.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_functional.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_lerp.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_lerp_color.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_member_detector.cpp" />

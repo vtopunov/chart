@@ -59,4 +59,5 @@ namespace egl_ui
 
 using egl_ui::egl_ui_owner;
 using egl_ui::egl_ui_builder;
+using egl_ui::egl_ui_parameters;
 using egl_ui::create_egl_ui;

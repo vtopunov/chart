@@ -1,106 +1,109 @@
 #pragma once
 
-#include <widget/window.h>
+#include <widget/fwd.h>
 
 
 namespace widget
 {
-    template<class Event>
-    struct widget_event_traits
+    template<class ER = void>
+    struct event_result_processor
     {
-        using event_result_type = event_result;
+        static_assert(!std::is_const_v<ER>);
+        static_assert(!std::is_reference_v<ER>);
 
-        static constexpr bool continue_processing(event_result_type) noexcept
-        {
-            return true;
-        }
+        constexpr event_result_processor(ER right) noexcept
+            : result{ right }
+        {}
+
+        template<class T, class E>
+        event_result_processor(T& function, const E& e) noexcept
+            : result{ function(e) }
+        {}
+
+        constexpr auto operator<=>(const event_result_processor&) const noexcept = default;
+
+        ER result;
     };
 
     template<>
-    struct widget_event_traits<window>
+    struct event_result_processor<void>
     {
-        using event_result_type = window_configation;
-
-        static constexpr bool continue_processing(event_result_type result) noexcept
+        template<class T, class E>
+        event_result_processor(T& function, const E& e) noexcept
         {
-            return badcfg != result;
+            function(e);
         }
+
+        constexpr event_result_processor() noexcept = default;
     };
 
+    template<class T>
+    event_result_processor(T) -> event_result_processor<std::remove_const_t<T>>;
 
-    template<class E>
-    using event_result_t = typename widget_event_traits<std::remove_cvref_t<E>>::event_result_type;
+    constexpr event_result_processor<> no_event_result_processor{};
 
-    template<class Fn, class Arg>
-    using event_proccessor_return_t = std::remove_cv_t<
-        decltype(std::declval<std::add_lvalue_reference_t<Fn>>()(std::declval<std::add_lvalue_reference_t<Arg>>()))
-    >;
-
-    template<class T, class E>
-    std::enable_if_t<std::is_same_v<event_proccessor_return_t<T, E>, void>> call_widget_event
-    (
-        event_result_t<E>&,
-        T& function,
-        const E& e
-    ) noexcept
+    [[nodiscard]]
+    constexpr event_result_processor<> operator | (event_result_processor<>, event_result_processor<>) noexcept
     {
-        function(e);
+        return no_event_result_processor;
     }
 
-    template<class T, class E>
-    std::enable_if_t<std::is_same_v<event_proccessor_return_t<T, E>, bool>> call_widget_event
-    (
-        event_result_t<E>& result,
-        T& function,
-        const E& e
-    ) noexcept
+    template<class ERR>
+    [[nodiscard]] constexpr event_result_processor<ERR> operator | (event_result_processor<ERR> left, event_result_processor<>) noexcept
     {
-        result |= function(e);
+        return left;
     }
 
-    template<class T, class E>
-    std::enable_if_t<std::is_enum_v<event_proccessor_return_t<T, E>>> call_widget_event
-    (
-        event_result_t<E>& result,
-        T& function,
-        const E& e
-    )
+    template<class ERL>
+    [[nodiscard]] constexpr event_result_processor<ERL> operator | (event_result_processor<>, event_result_processor<ERL> right) noexcept
     {
-        result |= function(e);
+        return right;
     }
 
-    struct no_overloaded_event
+    template<class ERR, class ERL>
+    [[nodiscard]] constexpr decltype(auto) operator | (event_result_processor<ERR> left, event_result_processor<ERL> right) noexcept
     {
-        template<class T>
-        constexpr no_overloaded_event(const T&) noexcept
-        {
-            static_assert(std::is_enum_v<event_result_t<T>>);
-        }
-    };
+        return event_result_processor{ left.result | right.result };
+    }
 
-    struct no_overloaded_event_result
+    [[nodiscard]]
+    constexpr event_result_processor<bool> operator | (event_result_processor<bool> left, event_result_processor<bool> right) noexcept
     {
-        template<class T>
-        constexpr no_overloaded_event_result(const T&) noexcept
-        {
-            static_assert(std::is_enum_v<T>);
-        }
-    };
+        return { left.result && right.result };
+    }
 
-    constexpr void call_widget_event(no_overloaded_event_result, no_overloaded, no_overloaded_event) noexcept
+    template<class Cache, class ER>
+    constexpr void write_event_result(Cache& cache, event_result_processor<ER> result) noexcept
+    {
+        cache = result.result;
+    }
+
+    template<class Cache>
+    constexpr void write_event_result(Cache& cache, event_result_processor<>) noexcept
     {}
 
+    template<class Cache, class ER>
+    constexpr void combine_event_result(Cache& cache, event_result_processor<ER> result) noexcept
+    {
+        const auto combined_result = event_result_processor<Cache>{ cache } | result;
+        write_event_result(cache, combined_result);
+    }
+
+    template<class T, class E>
+    [[nodiscard]] auto call_widget_event(T& function, const E& e) -> event_result_processor<std::remove_const_t<decltype(function(e))>>
+    {
+        return { function, e };
+    }
+
+    [[nodiscard]] event_result_processor<> call_widget_event(no_overloaded, no_overloaded)
+    {
+        return {};
+    }
 
     template<class Widget, class Event>
-    void apply_event(event_result_t<Event>& result, Widget& widget, const Event& e) noexcept
+    [[nodiscard]] decltype(auto) apply_event(Widget& wgt, const Event& e) noexcept
     {
-        if (widget_event_traits<Event>::continue_processing(result)) [[likely]]
-        {
-            call_widget_event(result, widget, e);
-            widget.apply([&result, &e] (auto&... widgets) noexcept
-            {
-                (apply_event(result, widgets, e), ...);
-            });
-        }
+        return call_widget_event(wgt, e) 
+             | wgt.apply([&e] (auto&... wgts) noexcept { return (no_event_result_processor | ... | apply_event(wgts, e)); });
     }
 }

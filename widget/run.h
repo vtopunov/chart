@@ -6,7 +6,7 @@
 
 #include <egl_ui/egl_ui_owner.h>
 
-#include <widget/draw_context.h>
+#include <widget/context.h>
 #include <widget/event_matching.h>
 
 
@@ -14,38 +14,35 @@ namespace widget
 {
     namespace private_detail_run
     {
-        struct processor_construct_t
-        {};
-
-        constexpr processor_construct_t processor_construct{};
-
-        template<class Widget>
-        bool initialize(const widget::window& window, Widget& widget) noexcept
+        constexpr bool initialization_was_successful(event_result_processor<>) noexcept
         {
-            window_configation cfg{ nocfg };
-            apply_event(cfg, widget, window);
-            return badcfg != cfg;
+            return true;
+        }
+
+        constexpr bool initialization_was_successful(event_result_processor<bool> result) noexcept
+        {
+            return result.result;
+        }
+
+        constexpr bool initialization_was_successful(event_result_processor<window_configation> result) noexcept
+        {
+            return badcfg != result.result;
         }
 
         template<class Widget>
-        struct processor
+        bool call_initialization_event(const widget::window& window, Widget& widget) noexcept
         {
-            Widget widget;
-            widget_common_draw_context_t<Widget> common_draw_context{};
-            D_ONLY_OS_WINDOWS(std::chrono::steady_clock::time_point redraw_time_cache{});
-            widget::window& widget_window;
-            event_result combined_event_result{ event_result::redraw };
+            return initialization_was_successful(apply_event(widget, window));
+        }
 
-            template<class Fn>
-            decltype(auto) apply(Fn fn) noexcept
-            {
-                return fn(common_draw_context, widget);
-            }
-
+        template<class Widget>
+        class processor
+        {
+        public:
             template<class... Args>
-            explicit processor(processor_construct_t, widget::window& window, Args&&... args) noexcept
-                : widget{ std::forward<Args>(args)... }
-                , widget_window{ window }
+            explicit processor(widget::window& window, Args&&... args) noexcept
+                : widget_{ std::forward<Args>(args)... }
+                , common_context_{ window }
             {}
 
 #ifdef D_OS_WINDOWS
@@ -54,9 +51,10 @@ namespace widget
                 const auto new_size = e.sizes();
                 if (new_size.width() > 0_px && new_size.height() > 0_px) [[likely]]
                 {
-                    D_ASSERT(new_size.width() <= widget_window.viewport.width());
-                    D_ASSERT(new_size.height() <= widget_window.viewport.height());
-                    apply_event(combined_event_result, *this, e);
+                    D_ASSERT(new_size.width() <= cref_window().viewport.width());
+                    D_ASSERT(new_size.height() <= cref_window().viewport.height());
+                    ref_window().content_sizes(new_size);
+                    apply_ui_event(e);
                 }
 
                 return std::nullopt;
@@ -66,21 +64,21 @@ namespace widget
 #ifdef D_OS_ANDROID
             void operator () (const ui::content_rect_changed_event&) noexcept
             {
-                const auto new_viewport = app_ui_viewport_request(widget_window);
+                const auto new_viewport = app_ui_viewport_request(cref_window());
                 if (!new_viewport) [[unlikely]]
                 {
-                    ui_fatal_debug(widget_window, "content rect error: ui error: {}, egl error: {}",
+                    ui_fatal_debug(cref_window(), "content rect error: ui error: {}, egl error: {}",
                         ui::error_code(), eglGetError());
                     return;
                 }
 
-                    if (new_viewport != widget_window.viewport)
+                    if (new_viewport != cref_window().viewport)
                     {
-                        widget_window.viewport = new_viewport;
+                        ref_window().viewport = new_viewport;
 
-                        if (!initialize_or_update_common_draw_context())
+                        if (!initialize_or_update_common_context())
                         {
-                            ui_fatal_debug(widget_window, "update draw context error: ui error: {}, egl error: {}",
+                            ui_fatal_debug(cref_window(), "update draw context error: ui error: {}, egl error: {}",
                                 ui::error_code(), eglGetError());
                             return;
                         }
@@ -92,13 +90,13 @@ namespace widget
 
             void operator () (ui::redraw_needed_event) noexcept
             {
-                combined_event_result |= widget::event_result::redraw;
+                e_bit_or_eq(combined_event_result_, widget::event_result::redraw);
             }
 
             template<ui::event_style Style>
             std::nullopt_t operator () (const ui::specialized_event<Style>& e) noexcept
             {
-                apply_event(combined_event_result, *this, e);
+                apply_ui_event(e);
                 return std::nullopt;
             }
 
@@ -108,7 +106,7 @@ namespace widget
                 using namespace std::chrono_literals;
                 constexpr std::chrono::steady_clock::duration min_update_time{ 35ms };
 
-                if (e_bit_check(combined_event_result, event_result::redraw))
+                if (e_bit_check(combined_event_result_, event_result::redraw))
                 {
                     const auto now = std::chrono::steady_clock::now();
 
@@ -117,13 +115,13 @@ namespace widget
                         return ui::milliseconds::zero();
                     }
 
-                    e_bit_clear(combined_event_result, event_result::redraw);
+                    e_bit_clear(combined_event_result_, event_result::redraw);
                     redraw_time_cache = now;
                     draw();
                 }
 
 #else
-                if (e_bit_extract(combined_event_result, event_result::redraw))
+                if (e_bit_extract(combined_event_result_, event_result::redraw))
                 {
                     draw();
                 }
@@ -133,24 +131,53 @@ namespace widget
                 return ui::infinite;
             }
 
-            void draw() noexcept
+            constexpr const window& cref_window() const noexcept
             {
-                const egl_painting_owner painting_owner{ widget_window };
-                gl::viewport(widget_window.viewport);
-                gl::clear(colors::gl_dialog_color_f);
-                apply_event(combined_event_result, widget, common_draw_context);
+                return common_context_.cref_window();
+            }
+
+            constexpr window& ref_window() noexcept
+            {
+                return common_context_.ref_window();
             }
 
             bool initialize() noexcept
             {
-                return initialize_or_update_common_draw_context()
-                    && private_detail_run::initialize(widget_window, widget);
+                return initialize_or_update_common_context()
+                    && call_initialization_event(cref_window(), widget_);
             }
 
-            bool initialize_or_update_common_draw_context() noexcept
+        private:
+            template<class Event>
+            void apply_ui_event(const Event& e) noexcept
             {
-                return private_detail_run::initialize(widget_window, common_draw_context);
+                combine_event_result(combined_event_result_, apply_event(common_context_, e));
+                
+                {
+                    const event_common_context e_cc{ e, common_context_ };
+                    combine_event_result(combined_event_result_, apply_event(widget_, e_cc));
+                }
             }
+
+            void draw() noexcept
+            {
+                const egl_painting_owner painting_owner{ cref_window() };
+                gl::viewport(cref_window().viewport);
+                gl::clear(colors::gl_dialog_color_f);
+                D_UNUSED(apply_event(widget_, common_context_));
+            }
+
+
+            bool initialize_or_update_common_context() noexcept
+            {
+                return call_initialization_event(cref_window(), common_context_);
+            }
+
+        private:
+            Widget widget_;
+            common_context_t<Widget> common_context_{};
+            D_ONLY_OS_WINDOWS(std::chrono::steady_clock::time_point redraw_time_cache{});
+            event_result combined_event_result_{ event_result::redraw };
         };
     }
 
@@ -170,7 +197,6 @@ namespace widget
 
         private_detail_run::processor<Widget> processor
         {
-            private_detail_run::processor_construct,
             window,
             std::forward<Args>(args)...
         };
@@ -186,7 +212,7 @@ namespace widget
             return EXIT_FAILURE;
         }
 
-        return ui::run_event_loop(processor.widget_window, processor);
+        return ui::run_event_loop(processor.cref_window(), processor);
     }
 
     template<class Widget, class... Args>

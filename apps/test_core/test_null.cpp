@@ -5,6 +5,8 @@
 
 #include <core/assert.h>
 #include <core/resource.h>
+#include <core/functional.h>
+
 
 namespace
 {

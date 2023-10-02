@@ -29,7 +29,10 @@ void test_tuple_algorithm() noexcept
     static_assert(!tuple_has_type_v<test_type<5>, test_tuple_0_5>);
     static_assert(tuple_has_type_v<char, arithmetic_tuple6>);
     static_assert(!tuple_has_type_v<int32_t, arithmetic_tuple6>);
-    
+    static_assert(!tuple_has_type_v<char, std::tuple<>>);
+    static_assert(!tuple_has_type_v<std::tuple<>, std::tuple<>>);
+    static_assert(tuple_has_type_v<std::tuple<>, std::tuple<std::tuple<>>>);
+
     static_assert(std::is_same_v<tuple_swap_t<0, 0, test_tuple_0_5>, test_tuple_0_5>);
     static_assert(std::is_same_v<tuple_swap_t<0, 1, test_tuple_0_5>, test_tuple<1, 0, 2, 3, 4>>);
     static_assert(std::is_same_v<tuple_swap_t<0, 2, test_tuple_0_5>, test_tuple<2, 1, 0, 3, 4>>);
@@ -55,7 +58,7 @@ void test_tuple_algorithm() noexcept
     static_assert(std::is_same_v<tuple_push_front_t<float, std::tuple<char>>, std::tuple<float, char>>);
     static_assert(std::is_same_v<tuple_push_front_t<test_type<777>, test_tuple<666>>, test_tuple<777, 666>>);
     static_assert(std::is_same_v<tuple_push_front_t<test_type<5>, test_tuple<6, 7>>, test_tuple<5, 6, 7>>);
- 
+
     static_assert(std::is_same_v<tuple_push_back_t<std::tuple<>, char>, std::tuple<char>>);
     static_assert(std::is_same_v<tuple_push_back_t<std::tuple<char>, float>, std::tuple<char, float>>);
     static_assert(std::is_same_v<tuple_push_back_t<test_tuple<666>, test_type<777>>, test_tuple<666, 777>>);
@@ -81,7 +84,7 @@ void test_tuple_algorithm() noexcept
     static_assert(std::is_same_v<tuple_cat_t<test_tuple<0, 1>, test_tuple<2, 3, 4, 5>, test_tuple<>>, test_tuple_0_6>);
     static_assert(std::is_same_v<tuple_cat_t<test_tuple<0, 1>, test_tuple<>, test_tuple<2, 3, 4, 5>>, test_tuple_0_6>);
     static_assert(std::is_same_v<tuple_cat_t<test_tuple<>, test_tuple<0, 1>, test_tuple<2, 3, 4, 5>>, test_tuple_0_6>);
-    
+
     using index_sequence3 = std::make_index_sequence<3>;
     static_assert(std::is_same_v<index_sequence3, std::index_sequence<0, 1, 2>>);
     static_assert(std::is_same_v<index_sequence_pop_front_t<index_sequence3>, std::index_sequence<1, 2>>);
@@ -140,10 +143,26 @@ void test_tuple_algorithm() noexcept
     static_assert(std::is_same_v<tuple_unique_push_back_t<std::tuple<char>, char>, std::tuple<char>>);
     static_assert(std::is_same_v<tuple_unique_push_back_t<std::tuple<char>, double>, std::tuple<char, double>>);
 
+    static_assert(std::is_same_v<tuple_unique_push_back_tuple_t<std::tuple<>, std::tuple<>>, std::tuple<>>);
     static_assert(std::is_same_v<tuple_unique_push_back_tuple_t<std::tuple<>, std::tuple<char>>, std::tuple<char>>);
+    static_assert(std::is_same_v<tuple_unique_push_back_tuple_t<std::tuple<char>, std::tuple<>>, std::tuple<char>>);
     static_assert(std::is_same_v<tuple_unique_push_back_tuple_t<std::tuple<char>, std::tuple<char>>, std::tuple<char>>);
     static_assert(std::is_same_v<tuple_unique_push_back_tuple_t<std::tuple<char>, std::tuple<char, int>>, std::tuple<char, int>>);
     static_assert(std::is_same_v<tuple_unique_push_back_tuple_t<test_tuple<1, 2, 5>, test_tuple_0_6>, test_tuple<1, 2, 5, 0, 3, 4>>);
+
+
+    {
+        using test_unique_t = test_tuple<0, 1, 2>;
+
+        static_assert(std::is_same_v<unique_tuple_t<std::tuple<>>, std::tuple<>>);
+        static_assert(std::is_same_v<unique_tuple_t<test_unique_t>, test_unique_t>);
+        static_assert(std::is_same_v<unique_tuple_t<test_tuple<0, 1, 1, 2>>, test_unique_t>);
+        static_assert(std::is_same_v<unique_tuple_t<test_tuple<0, 1, 1, 2, 2>>, test_unique_t>);
+        static_assert(std::is_same_v<unique_tuple_t<test_tuple<0, 1, 0, 2>>, test_unique_t>);
+        static_assert(std::is_same_v<unique_tuple_t<test_tuple<0, 1, 0, 2, 1>>, test_unique_t>);
+        static_assert(std::is_same_v<unique_tuple_t<test_tuple<0, 1, 0, 2, 1, 2>>, test_unique_t>);
+        static_assert(std::is_same_v<unique_tuple_t<test_tuple<0, 0, 1, 2>>, test_unique_t>);
+    }
 
     D_ASSERT(!errno);
 }
