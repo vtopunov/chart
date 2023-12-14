@@ -1,8 +1,9 @@
 #pragma once
 
-#include <core/member_detector.h>
-#include <core/size_type.h>
+#include <algorithm>
+
 #include <core/span.h>
+#include <core/round.h>
 
 
 template<class T>
@@ -38,10 +39,69 @@ struct vec2
 
     [[nodiscard]]
     constexpr bool operator != (const vec2&) const noexcept = default;
+
+    template<class R>
+    constexpr auto operator += (const vec2<R> &v) noexcept
+        -> decltype(_0 += v._0, *this)
+    {
+        _0 += v._0;
+        _1 += v._1;
+        return *this;
+    }
+    
+    template<class R>
+    constexpr auto operator -= (const vec2<R> &v) noexcept
+        -> decltype(_0 -= v._0, *this)
+    {
+        _0 -= v._0;
+        _1 -= v._1;
+        return *this;
+    }
+
+    template<class R>
+    constexpr auto operator *= (const R & v) noexcept
+        -> decltype(_0 *= v, *this)
+    {
+        _0 *= v;
+        _1 *= v;
+        return *this;
+    }
+
+    template<class R>
+    constexpr auto operator /= (const R & v) noexcept
+        -> decltype(_0 /= v, *this)
+    {
+        _0 /= v;
+        _1 /= v;
+        return *this;
+    }
 };
 
 template<class T>
 vec2(T, T) -> vec2<T>;
+
+
+namespace private_detail_is_base_of_vec2
+{
+    template<class T, class = void>
+    struct is_base_of_vec2_type
+    {
+        using type = std::false_type;
+    };
+
+    template <class T>
+    struct is_base_of_vec2_type<T, std::void_t<decl_value_type_t<T>>>
+    {
+        using type = std::is_base_of<vec2<decl_value_type_t<T>>, T>;
+    };
+}
+
+template<class T>
+using is_base_of_vec2 = typename private_detail_is_base_of_vec2::is_base_of_vec2_type<T>::type;
+
+template<class T>
+constexpr auto is_base_of_vec2_v = is_base_of_vec2<T>::value;
+
 
 template<size_t Index, class T>
 [[nodiscard]] constexpr const T& get(const vec2<T>& v) noexcept
@@ -76,11 +136,15 @@ template<class T>
 }
 
 template<template<class> class Vec, class T>
-[[nodiscard]] constexpr std::enable_if_t<
-    std::is_base_of_v<vec2<T>, Vec<T>>, Vec<remove_unsigned_t<T>>
-> as_signed(const Vec<T>& vec) noexcept
+[[nodiscard]] constexpr auto as_signed(const Vec<T>& v) noexcept -> Vec<decltype(as_signed(as_vec2(v)._0))>
 {
-    return { as_signed(vec._0), as_signed(vec._1) };
+    return { as_signed(v._0), as_signed(v._1) };
+}
+
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr auto as_unsigned(const Vec<T>& v) noexcept -> Vec<decltype(as_unsigned(as_vec2(v)._0))>
+{
+    return { as_unsigned(v._0), as_unsigned(v._1) };
 }
 
 template<template<class> class Vec, class T>
@@ -94,16 +158,26 @@ template<template<class> class Vec, class T>
     };
 }
 
+template<class Vec>
+[[nodiscard]] constexpr Vec fill_to(const decl_value_type_t<Vec>& value) noexcept
+{
+    return
+    {
+        value,
+        value
+    };
+}
+
+
 template<class T>
 [[nodiscard]] constexpr vec2<T> fill_vec2(const T& value) noexcept
 {
     return fill_to<vec2>(value);
 }
 
+
 template<template<class> class Vec, class T>
-[[nodiscard]] constexpr std::enable_if_t <
-    std::is_base_of_v<vec2<T>, Vec<T>>, Vec<T>
-> inverse(const Vec<T>& v) noexcept
+[[nodiscard]] constexpr auto inverse(const Vec<T>& v) noexcept -> Vec<decltype(as_vec2(v)._0)>
 {
     return
     {
@@ -112,72 +186,62 @@ template<template<class> class Vec, class T>
     };
 }
 
+template<class T>
+[[nodiscard]] constexpr auto md_abs(const T& v) noexcept -> decltype(constexpr_abs(v))
+{
+    return constexpr_abs(v);
+}
+
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr auto md_abs(const Vec<T>& v) noexcept -> Vec<decltype(md_abs(as_vec2(v)._0))>
+{
+    return { md_abs(v._0), md_abs(v._1) };
+}
+
 template<template<class> class Vec, class T>
 [[nodiscard]] constexpr std::enable_if_t<
     std::is_base_of_v<vec2<T>, Vec<T>>, Vec<T>
-> vabs(const Vec<T>& v) noexcept
-{
-    return { constexpr_abs(v._0), constexpr_abs(v._1) };
-}
-
-template<class V0, class V1> 
-[[nodiscard]] constexpr auto inner_product(const V0& v0, const V1& v1) noexcept -> decltype(v0._0 * v1._0 + v0._1 * v1._1)
-{
-    return v0._0 * v1._0 + v0._1 * v1._1;
-}
-
-template<class T>
-[[nodiscard]] constexpr std::enable_if_t<
-    std::negation_v<std::is_unsigned<T>>, vec2<std::remove_cvref_t<decltype(-std::declval<std::add_const_t<T>>())>>
-> operator - (const vec2<T>& right) noexcept
+> md_clamp(const Vec<T>& v, const vec2<T>& v0, const vec2<T>& v1) noexcept
 {
     return
     {
-        -right._0,
-        -right._1
+        std::clamp(v._0, v0._0, v1._0),
+        std::clamp(v._1, v0._1, v1._1),
     };
 }
 
-template<class L, class R>
-[[nodiscard]] constexpr decltype(auto) operator - (const vec2<L>& left, const vec2<R>& right) noexcept
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr auto operator - (const Vec<T>& v) noexcept -> Vec<decltype(-(as_vec2(v)._0))>
 {
-    using common_t = std::remove_cvref_t<decltype(left._0 - right._0)>;
-    using common_vec2_t = vec2<common_t>;
+    return
+    {
+        -v._0,
+        -v._1
+    };
+}
 
-    return common_vec2_t
+template<template<class> class Vec, class L, class R>
+[[nodiscard]] constexpr auto operator - (const Vec<L>& left, const Vec<R>& right) noexcept -> Vec<decltype(as_vec2(left)._0 - as_vec2(right)._0)>
+{
+    return
     {
         left._0 - right._0,
         left._1 - right._1
     };
 }
 
-template<class L, class R>
-[[nodiscard]] constexpr decltype(auto) operator + (const vec2<L>& left, const vec2<R>& right) noexcept
+template<template<class> class Vec, class L, class R>
+[[nodiscard]] constexpr auto operator + (const Vec<L>& left, const Vec<R>& right) noexcept -> Vec<decltype(as_vec2(left)._0 + as_vec2(right)._0)>
 {
-    using common_t = std::remove_cvref_t<decltype(left._0 + right._0)>;
-    using common_vec2_t = vec2<common_t>;
-
-    return common_vec2_t
+    return
     {
         left._0 + right._0,
         left._1 + right._1
     };
 }
 
-template<class L, class R>
-using decl_mul_t = std::remove_cvref_t<decltype(std::declval<std::add_const_t<L>>()* std::declval<std::add_const_t<R>>())>;
-
-template<class L, class R>
-using decl_div_t = std::remove_cvref_t<decltype(std::declval<std::add_const_t<L>>() / std::declval<std::add_const_t<R>>())>;
-
-template<class T>
-using is_salar_for_vec = std::negation<is_data_pointer<T>>;
-
-template<class T>
-constexpr bool is_salar_for_vec_v = is_salar_for_vec<T>::value;
-
-template<class T>
-[[nodiscard]] constexpr vec2<decl_mul_t<T, T>> operator * (const vec2<T>& left, const T& right) noexcept
+template<template<class> class Vec, class L, class R>
+[[nodiscard]] constexpr auto operator * (const Vec<L>& left, const R& right) noexcept -> Vec<decltype(as_vec2(left)._0* right)>
 {
     return
     {
@@ -186,17 +250,18 @@ template<class T>
     };
 }
 
-template<class T>
-[[nodiscard]] constexpr decltype(auto) operator * (const T& left, const vec2<T>& right) noexcept
+template<template<class> class Vec, class L, class R>
+[[nodiscard]] constexpr auto operator * (const L& left, const Vec<R>& right) noexcept -> Vec<decltype(left* as_vec2(right)._0)>
 {
-    return right * left;
+    return
+    {
+        left * right._0,
+        left * right._1
+    };
 }
 
-template<class T>
-[[nodiscard]] constexpr std::enable_if_t<
-    is_salar_for_vec_v<T>,
-    vec2<decl_div_t<T, T>>
-> operator / (const vec2<T>& left, const T& right) noexcept
+template<template<class> class Vec, class L, class R>
+[[nodiscard]] constexpr auto operator / (const Vec<L>& left, const R& right) noexcept -> Vec<decltype(as_vec2(left)._0 / right)>
 {
     return
     {
@@ -205,67 +270,196 @@ template<class T>
     };
 }
 
-namespace private_detail_vec2
+template<class T>
+[[nodiscard]] std::enable_if_t<std::is_arithmetic_v<T>, bool> md_isfinite(const T& v) noexcept
 {
-    template<class VecScalar, class Scalar>
-    constexpr bool is_compatible_scalar_for_vec0_v = std::conjunction_v<
-        is_salar_for_vec<Scalar>,
-        std::negation<std::is_base_of<VecScalar, Scalar>>
-    >;
+    return std::isfinite(v);
 }
 
-template<class VecScalar, class Scalar>
-constexpr bool is_compatible_scalar_for_vec_v = private_detail_vec2::is_compatible_scalar_for_vec0_v
-<
-    std::remove_cvref_t<VecScalar>, std::remove_cvref_t<Scalar>
->;
+template<class T>
+[[nodiscard]] auto md_isfinite(const T& v) noexcept -> decltype(md_isfinite(as_vec2(v)._0))
+{
+    return md_isfinite(v._0) && md_isfinite(v._1);
+}
 
-template<class T, class U>
+template<class T>
+[[nodiscard]] std::enable_if_t<std::is_arithmetic_v<T>, bool> md_isnormal(const T& v) noexcept
+{
+    return std::isnormal(v);
+}
+
+template<class T>
+[[nodiscard]] auto md_isnormal(const T& v) noexcept -> decltype(md_isnormal(as_vec2(v)._0))
+{
+    return md_isnormal(v._0) && md_isnormal(v._1);
+}
+
+template<class R, class T>
+[[nodiscard]] constexpr std::enable_if_t<std::negation_v<is_base_of_vec2<T>>, R> md_narrow(const T& v) noexcept
+{
+    return narrow<R>(v);
+}
+
+template<class R, class T>
+[[nodiscard]] constexpr R md_narrow(const vec2<T>& v) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_narrow<value_t>(v._0),
+        md_narrow<value_t>(v._1)
+    };
+}
+
+
+template<class R, class T0, class T1>
+[[nodiscard]] constexpr R md_narrow(const T0& v0, const T1& v1) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_narrow<value_t>(v0),
+        md_narrow<value_t>(v1)
+    };
+}
+
+
+template<class R, class T>
+[[nodiscard]] constexpr std::enable_if_t<std::negation_v<is_base_of_vec2<T>>, R> md_numeric_cast(const T& v) noexcept
+{
+    return numeric_cast<R>(v);
+}
+
+template<class R, class T>
+[[nodiscard]] constexpr R md_numeric_cast(const vec2<T>& v) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_numeric_cast<value_t>(v._0),
+        md_numeric_cast<value_t>(v._1)
+    };
+}
+
+
+template<class R, class T0, class T1>
+[[nodiscard]] constexpr R md_numeric_cast(const T0& v0, const T1& v1) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_numeric_cast<value_t>(v0),
+        md_numeric_cast<value_t>(v1)
+    };
+}
+
+
+template<class R, class T>
+[[nodiscard]] constexpr std::enable_if_t<std::negation_v<is_base_of_vec2<T>>, R> md_trunc_cast(const T& v) noexcept
+{
+    return trunc_cast<R>(v);
+}
+
+template<class R, class T>
+[[nodiscard]] constexpr R md_trunc_cast(const vec2<T>& v) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_trunc_cast<value_t>(v._0),
+        md_trunc_cast<value_t>(v._1)
+    };
+}
+
+template<class R, class T0, class T1>
+[[nodiscard]] constexpr R md_trunc_cast(const T0& v0, const T1& v1) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_trunc_cast<value_t>(v0),
+        md_trunc_cast<value_t>(v1)
+    };
+}
+
+
+template<class T, class Near>
 [[nodiscard]] constexpr std::enable_if_t<
-    is_compatible_scalar_for_vec_v<T, U>,
-    vec2<decl_mul_t<T, U>>
-> operator * (const vec2<T>& left, const U& right) noexcept
+    std::conjunction_v<std::is_arithmetic<T>, std::is_arithmetic<Near>>,
+    Near
+> md_round_to_near(T v, Near v_near) noexcept
+{
+    return round_to_near(v, v_near);
+}
+
+template<template<class> class Vec, class T, class Near>
+[[nodiscard]] constexpr auto md_round_to_near(const Vec<T>& v, const Vec<Near>& v_near) noexcept -> Vec<decltype(md_round_to_near(as_vec2(v)._0, v_near._0))>
 {
     return
     {
-        left._0 * right,
-        left._1 * right
+        md_round_to_near(v._0, v_near._0),
+        md_round_to_near(v._1, v_near._1)
     };
 }
 
-template<class U, class T>
-[[nodiscard]] constexpr auto operator * (const U& left, const vec2<T>& right) noexcept -> decltype(right* left)
+template<class R, class T>
+[[nodiscard]] constexpr std::enable_if_t<std::is_arithmetic_v<T>, bool> md_is_safe_narrowing_conversion(const T& v) noexcept
 {
-    return right * left;
+    return is_safe_narrowing_conversion<R>(v);
 }
 
-template<class T, class U>
-[[nodiscard]] constexpr std::enable_if_t<
-    is_compatible_scalar_for_vec_v<T, U>,
-    vec2<decl_div_t<T, U>>
->  operator / (const vec2<T>& left, const U& right) noexcept
+template<class R, class T>
+[[nodiscard]] constexpr auto md_is_safe_narrowing_conversion(const T& v) noexcept -> decltype(is_safe_narrowing_conversion<value_type_t<R>>(as_vec2(v)._0))
+{
+    using value_t = value_type_t<R>;
+
+    return md_is_safe_narrowing_conversion<value_t>(v._0)
+        && md_is_safe_narrowing_conversion<value_t>(v._1);
+}
+
+
+template<class L, class R>
+[[nodiscard]] constexpr auto md_min(const L& a, const R& b) noexcept -> decltype(scalar_min(a, b))
+{
+    return scalar_min(a, b);
+}
+
+template<template<class> class Vec, class L, class R>
+[[nodiscard]] constexpr auto md_min
+(
+    const Vec<L>& a,
+    const Vec<R>& b
+) noexcept -> Vec<decltype(md_min(as_vec2(a)._0, as_vec2(b)._0))>
 {
     return
     {
-        left._0 / right,
-        left._1 / right
+        md_min(a._0, b._0),
+        md_min(a._1, b._1)
     };
 }
 
-template<class OutT, class InT>
-[[nodiscard]] constexpr OutT narrow2d(InT x, InT y) noexcept
+template<class L, class R>
+[[nodiscard]] constexpr auto md_max(const L& a, const R& b) noexcept -> decltype(scalar_max(a, b))
 {
-    using value_t = value_type_t<OutT>;
+    return scalar_max(a, b);
+}
 
+template<template<class> class Vec, class L, class R>
+[[nodiscard]] constexpr auto md_max
+(
+    const Vec<L>& a,
+    const Vec<R>& b
+) noexcept -> Vec<decltype(md_max(as_vec2(a)._0, as_vec2(b)._0))>
+{
     return
     {
-        narrow<value_t>(std::move(x)),
-        narrow<value_t>(std::move(y))
+        md_max(a._0, b._0),
+        md_max(a._1, b._1)
     };
-}
-
-template<class OutT, class InT>
-[[nodiscard]] constexpr OutT narrow2d(vec2<InT> in) noexcept
-{
-    return narrow2d<OutT>(std::move(in._0), std::move(in._1));
 }

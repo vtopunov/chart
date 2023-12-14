@@ -1,12 +1,9 @@
 #pragma once
 
-#include <cstdint>
-
-#include <core/warnings.h>
+#include <core/fwd.h>
 #include <core/type_traits.h>
 
 #include <os/os_detection.h>
-#include <os/undef.h>
 
 
 #if defined(D_OS_WINDOWS)
@@ -34,6 +31,17 @@
 #endif
 
 
+namespace os
+{
+    using dword_t = unsigned long;
+    using word_t = uint16_t;
+    using uint_t = unsigned int;
+    using word_parameter_t = size_t;
+    using long_parameter_t = ptrdiff_t;
+    using long_result_t = ptrdiff_t;
+}
+
+
 #if defined(D_OS_WINDOWS)
 struct tagMSG;
 
@@ -51,15 +59,7 @@ namespace os
     using gdi_object_handle_t = handle_t;
     using message_t = tagMSG;
 
-    using dword_t = unsigned long;
-    using word_t = uint16_t;
-
-    using uint_t = unsigned int;
-    using word_parameter_t = size_t;
-    using long_parameter_t = ptrdiff_t;
-    using long_result_t = ptrdiff_t;
-
-    typedef long_result_t (D_OS_APICALL* wndproc_t) (window_handle_t, uint_t, word_parameter_t, long_parameter_t);
+    typedef long_result_t(D_OS_APICALL* wndproc_t) (window_handle_t, uint_t, word_parameter_t, long_parameter_t);
 }
 
 D_WARNING_PUSH

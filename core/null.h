@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/ordered_overload.h>
-#include <core/member_detector.h>
+#include <core/type_traits.h>
 #include <core/limits.h>
 
 

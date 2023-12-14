@@ -40,8 +40,8 @@ namespace
 
         constexpr auto anima_lerp = lerp
         (
-            num_range{ duration_t::zero().count(), period },
-            num_range{ anima_start_color, anima_end_color }
+            duration_t::zero().count(), period,
+            anima_start_color, anima_end_color
         );
 
         return color_cast<gl::rgba_colorf_t>(anima_lerp(oscillating_time(now.count(), period)));

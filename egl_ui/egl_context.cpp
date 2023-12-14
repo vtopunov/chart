@@ -2,9 +2,6 @@
 
 #include <string_view>
 
-#include <core/assert.h>
-#include <core/utility.h>
-
 
 namespace egl_ui
 {

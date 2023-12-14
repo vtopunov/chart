@@ -6,54 +6,65 @@
 #include <gl/draw.h>
 
 
-namespace px
+struct uniform_vec2glpx
 {
-    struct uniform_vec2
+    using glsl_uniform_type = gl::uniform_vec2f;
+    static constexpr auto type_id = glsl_uniform_type::type_id;
+    using value_tuple_type = gl::glsl_type_t<type_id>;
+    using value_type = typename value_tuple_type::value_type;
+
+    glsl_uniform_type uniform;
+
+    template<class T>
+    void store(::vec2<T> p) const noexcept
     {
-        using glsl_uniform_type = gl::uniform_vec2f;
-        static constexpr auto type_id = glsl_uniform_type::type_id;
-        using value_tuple_type = gl::glsl_type_t<type_id>;
-        using value_type = typename value_tuple_type::value_type;
-
-        glsl_uniform_type uniform;
-
-        template<class T>
-        void store(::vec2<T> p) const noexcept
+        if constexpr (std::is_same_v<value_tuple_type, ::vec2<T>>)
         {
-            if constexpr (std::is_same_v<value_tuple_type, ::vec2<T>>)
-            {
-                uniform.store(std::move(p));
-            }
-            else
-            {
-                uniform.store(narrow2d<value_tuple_type>(std::move(p)));
-            }
+            uniform.store(std::move(p));
         }
-
-        template<class T>
-        void store(T p0, T p1) const noexcept
+        else
         {
-            if constexpr (std::is_same_v<value_type, std::remove_cvref_t<T>>)
-            {
-                uniform.store(std::move(p0), std::move(p1));
-            }
-            else
-            {
-                uniform.store
-                (
-                    narrow<value_type>(std::move(p0)),
-                    narrow<value_type>(std::move(p1))
-                );
-            }
+            uniform.store(md_narrow<value_tuple_type>(std::move(p)));
         }
+    }
 
-        [[nodiscard]]
-        static uniform_vec2 instance(gl::shaders_program_resource program, zstring_view name) noexcept
+    template<class T>
+    void store(T p0, T p1) const noexcept
+    {
+        if constexpr (std::is_same_v<value_type, std::remove_cvref_t<T>>)
         {
-            return { .uniform{ glsl_uniform_type::instance(program, name) } };
+            uniform.store(std::move(p0), std::move(p1));
         }
-    };
+        else
+        {
+            uniform.store
+            (
+                narrow<value_type>(std::move(p0)),
+                narrow<value_type>(std::move(p1))
+            );
+        }
+    }
+
+    [[nodiscard]]
+    static uniform_vec2glpx instance(gl::shaders_program_resource program, zstring_view name) noexcept
+    {
+        return { .uniform{ glsl_uniform_type::instance(program, name) } };
+    }
+};
+
+template<class T>
+constexpr bool is_safe_conversion_glpx(const vec2<T>& v) noexcept
+{
+    return md_is_safe_narrowing_conversion<uniform_vec2glpx::value_tuple_type>(v);
 }
+
+template<class Value, class Size>
+constexpr bool is_safe_conversion_glpx(const rectangle<Value, Size>& v) noexcept
+{
+    return is_safe_conversion_glpx(v.position)
+        && is_safe_conversion_glpx(v.sizes);
+}
+
 
 
 struct attribute_frame
@@ -67,7 +78,7 @@ struct attribute_frame
     };
 
     gl::attribute_location attrib;
-    
+
     [[nodiscard]]
     static attribute_frame instance(gl::shaders_program_resource program, zstring_view name) noexcept
     {
@@ -99,9 +110,9 @@ namespace vert
 {
     struct positioned_frame
     {
-        px::uniform_vec2 u_position{ gl::invaliduniform };
-        px::uniform_vec2 u_size{ gl::invaliduniform };
-        px::uniform_vec2 u_viewport{ gl::invaliduniform };
+        uniform_vec2glpx u_position{ gl::invaliduniform };
+        uniform_vec2glpx u_size{ gl::invaliduniform };
+        uniform_vec2glpx u_viewport{ gl::invaliduniform };
         attribute_frame  a_frame{ gl::invalidattribute };
 
         template<class Serializer>
@@ -266,6 +277,7 @@ struct shader_library
         return !!program;
     }
 
+    [[nodiscard]]
     bool build() noexcept
     {
         D_ASSERT(!program);
@@ -273,7 +285,7 @@ struct shader_library
         program = gl::create_shaders_program(vert.shader_text, frag.shader_text);
         if (program) [[likely]]
         {
-            const auto unfiorm_factory = [p = view(program)]<class T>(T& target, zstring_view name) noexcept
+            const auto unfiorm_factory = [p = view(program)]<class T>(T & target, zstring_view name) noexcept
             {
                 target = T::instance(p, name);
             };

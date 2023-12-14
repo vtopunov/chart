@@ -4,10 +4,6 @@
 
 #include <os/os_detection.h>
 
-#ifdef D_OS_WINDOWS
-#include <core/utility.h>
-#endif
-
 #include <ui/app.h>
 
 #ifdef D_OS_WINDOWS

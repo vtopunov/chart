@@ -31,6 +31,7 @@
 #define D_WARNING_DISABLE_CLANG(text)
 #endif
 
+#define W_signed_unsigned_mismatch                                     4018
 #define W_arithmetic_overflow                                          4056 26450 26451
 #define W_truncation_of_value                                          4309
 #define W_variable_is_uninitialized                                    4701 26495

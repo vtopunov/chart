@@ -4,8 +4,6 @@
 
 #include <core/span.h>
 
-using doublemax_t = long double;
-
 
 template<class T>
 struct rational

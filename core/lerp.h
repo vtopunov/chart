@@ -1,34 +1,83 @@
 #pragma once
 
-#include <core/num_range.h>
-#include <core/point2d.h>
-#include <core/polynomial.h>
 
-
-template<class From, class To>
-[[nodiscard]] constexpr decltype(auto) lerp(const num_range<From>& from, const num_range<To>& to) noexcept
+template<class A1, class A0 = A1>
+struct polynomial2
 {
-    const auto x_length = from.length();
-    D_ASSERT(x_length); // + D_ASSERT(isnormal(x)) for floating point, c++23 constexpr
+    A1 a1;
+    A0 a0;
 
-    const auto scaling = to.length() / x_length;
-    const auto offset = (to._0 * from._1 - to._1 * from._0) / x_length;
+    template<class Arg>
+    [[nodiscard]] constexpr auto operator () (const Arg& argument) const noexcept
+        -> decltype(a1* argument + a0)
+    {
+        return a1 * argument + a0;
+    }
 
-    return polynomial2{ offset, scaling };
+    [[nodiscard]]
+    constexpr bool operator == (const polynomial2&) const noexcept = default;
+
+    [[nodiscard]]
+    constexpr bool operator != (const polynomial2&) const noexcept = default;
+};
+
+template<class A1>
+struct polynomial2<A1, void>
+{
+    A1 a1;
+
+    template<class Arg>
+    [[nodiscard]] constexpr auto operator () (const Arg& argument) const noexcept
+        -> decltype(a1 * argument)
+    {
+        return a1 * argument;
+    }
+
+    [[nodiscard]]
+    constexpr bool operator == (const polynomial2&) const noexcept = default;
+
+    [[nodiscard]]
+    constexpr bool operator != (const polynomial2&) const noexcept = default;
+};
+
+template<class A1, class A0>
+polynomial2(A1, A0) -> polynomial2<A1, A0>;
+
+template<class A1>
+polynomial2(A1) -> polynomial2<A1, void>;
+
+
+template<class A0, class A1, class V0, class V1>
+[[nodiscard]] constexpr decltype(auto) lerp_scale_value(const A0& arg0, const A1& arg1, const V0& value0, const V1& value1) noexcept
+{
+    return (value1 - value0) / (arg1 - arg0);
 }
 
-template<class T>
-[[nodiscard]] constexpr decltype(auto) lerp(const point2d<T>& p0, const point2d<T>& p1) noexcept
+template<class A0, class A1, class V0, class V1>
+[[nodiscard]] constexpr decltype(auto) lerp_shift_value(const A0& arg0, const A1& arg1, const V0& value0, const V1& value1) noexcept
 {
-    return lerp
-    (
-        num_range{ p0.x(), p1.x() },
-        num_range{ p0.y(), p1.y() }
-    );
+    return (value0 * arg1 - value1 * arg0) / (arg1 - arg0);
 }
 
-template<class T>
-[[nodiscard]] constexpr decltype(auto) lerp(const num_range<point2d<T>>& line) noexcept
+constexpr struct
 {
-    return lerp(line._0, line._1);
-}
+    template<class A0, class A1, class V0, class V1>
+    [[nodiscard]] constexpr decltype(auto) operator () (const A0& arg0, const A1& arg1, const V0& value0, const V1& value1) const noexcept
+    {
+        return polynomial2
+        {
+            lerp_scale_value(arg0, arg1, value0, value1),
+            lerp_shift_value(arg0, arg1, value0, value1),
+        };
+    }
+} lerp{};
+
+
+constexpr struct
+{
+    template<class A0, class A1, class V0, class V1>
+    [[nodiscard]] constexpr decltype(auto) operator () (const A0& arg0, const A1& arg1, const V0& value0, const V1& value1) const noexcept
+    {
+        return polynomial2{ lerp_scale_value(arg0, arg1, value0, value1) };
+    }
+} lerp_scale{};

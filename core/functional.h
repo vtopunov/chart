@@ -2,6 +2,7 @@
 
 #include <functional>
 
+#include <core/fwd.h>
 #include <core/assert.h>
 #include <core/type_traits.h>
 
@@ -221,21 +222,4 @@ struct nothing
     template<class... Args>
     constexpr void operator () (Args&&...) const noexcept
     {}
-};
-
-template<class Fn, class Arg, class = void>
-struct function_filter
-{
-    Fn fn;
-};
-
-template <class Fn, class Arg>
-struct function_filter<Fn, Arg, std::void_t<decltype(std::declval<Fn&>()(std::declval<Arg>()))>>
-{
-    Fn fn;
-
-    decltype(auto) operator () (Arg arg) noexcept
-    {
-        return fn(std::move(arg));
-    }
 };

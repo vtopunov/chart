@@ -85,7 +85,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="pix8map_test_texture_generate.h" />
+    <ClInclude Include="vtest_move_and_zoom_impl.h" />
+    <ClInclude Include="vtest_move_and_zoom_fwd.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

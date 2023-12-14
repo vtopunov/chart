@@ -3,6 +3,7 @@
 #include <core/tuple_algorithm.h>
 
 #include <widget/temp_buffer.h>
+#include <widget/user_gesture.h>
 #include <widget/event.h>
 #include <widget/window.h>
 
@@ -56,6 +57,12 @@ namespace widget
         struct context_source_element_type<content_size2d>
             : context_source_element_type<window>
         {};
+
+        template<>
+        struct context_source_element_type<ui::user_gesture>
+        {
+            using type = widget::user_gesture;
+        };
 
         template<class T>
         using context_source_element_t = typename context_source_element_type<T>::type;

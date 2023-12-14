@@ -2,8 +2,6 @@
 
 #include <cstdlib>
 
-#include <core/buffer_fwd.h>
-#include <core/warnings.h>
 #include <core/utility.h>
 #include <core/size_type.h>
 

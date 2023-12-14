@@ -1,13 +1,10 @@
 #pragma once
 
-#include <compare>
-
-#include <core/color_fwd.h>
 #include <core/rational.h>
 
 
-template<class T> [[nodiscard]]
-constexpr T tint_max() noexcept
+template<class T>
+[[nodiscard]] constexpr T tint_max() noexcept
 {
     if constexpr (std::is_floating_point_v<T>)
     {
@@ -29,8 +26,8 @@ constexpr T tint_max() noexcept
     }
 }
 
-template<class Target, class Source> [[nodiscard]]
-constexpr Target color_cast(const Source& src) noexcept;
+template<class Target, class Source>
+[[nodiscard]] constexpr Target color_cast(const Source& src) noexcept;
 
 template<class T>
 struct rgba_color
@@ -46,7 +43,10 @@ struct rgba_color
     tint_type a;
 
     [[nodiscard]]
-    constexpr auto operator<=>(const rgba_color&) const noexcept = default;
+    constexpr bool operator == (const rgba_color&) const noexcept = default;
+
+    [[nodiscard]]
+    constexpr bool operator != (const rgba_color&) const noexcept = default;
 
     template<class U, std::enable_if_t<is_safe_numeric_not_same_conversion_v<U, tint_type>, int> = 0>
     [[nodiscard]] constexpr operator rgba_color<U>() const noexcept
@@ -169,8 +169,8 @@ struct is_rgba_color<const T> : is_rgba_color<T>
 template<class T>
 constexpr bool is_rgba_color_v = is_rgba_color<T>::value;
 
-template<class Target, class Source> [[nodiscard]]
-constexpr Target color_tint_cast(Source source) noexcept
+template<class Target, class Source>
+[[nodiscard]] constexpr Target color_tint_cast(Source source) noexcept
 {
     if constexpr (std::is_floating_point_v<Target>)
     {
@@ -215,8 +215,8 @@ constexpr Target color_tint_cast(Source source) noexcept
 }
 
 
-template<class Target, class Source> [[nodiscard]]
-constexpr Target color_cast(const Source& src) noexcept
+template<class Target, class Source>
+[[nodiscard]] constexpr Target color_cast(const Source& src) noexcept
 {
     if constexpr (is_rgba_color_v<Target>)
     {
@@ -226,7 +226,7 @@ constexpr Target color_cast(const Source& src) noexcept
         {
             using source_tint_t = typename Source::tint_type;
 
-            constexpr auto tint_cast = [](source_tint_t tint) noexcept
+            constexpr auto tint_cast = [] (source_tint_t tint) noexcept
             {
                 return color_tint_cast<target_tint_t>(tint);
             };
@@ -256,8 +256,8 @@ constexpr Target color_cast(const Source& src) noexcept
     }
 }
 
-template<class T> [[nodiscard]]
-constexpr rgba_color<T> inverse(const rgba_color<T>& c) noexcept
+template<class T>
+[[nodiscard]] constexpr rgba_color<T> inverse(const rgba_color<T>& c) noexcept
 {
     constexpr auto tint_max_c = tint_max<T>();
 
@@ -358,7 +358,7 @@ namespace private_detail_argb_color
 
     struct minus
     {
-        template<class L, class R> 
+        template<class L, class R>
         [[nodiscard]] constexpr decltype(auto) operator () (const L& left, const R& right) const noexcept
         {
             return left - right;
@@ -398,35 +398,35 @@ namespace private_detail_argb_color
 }
 
 
-template<class L, class R> [[nodiscard]]
-constexpr decltype(auto) operator + (const rgba_color<L>& left, const rgba_color<R>& right) noexcept
+template<class L, class R>
+[[nodiscard]] constexpr decltype(auto) operator + (const rgba_color<L>& left, const rgba_color<R>& right) noexcept
 {
     using namespace private_detail_argb_color;
     return universal_op2(left, right, plus{});
 }
 
-template<class L, class R> [[nodiscard]]
-constexpr decltype(auto) operator - (const rgba_color<L>& left, const rgba_color<R>& right) noexcept
+template<class L, class R>
+[[nodiscard]] constexpr decltype(auto) operator - (const rgba_color<L>& left, const rgba_color<R>& right) noexcept
 {
     using namespace private_detail_argb_color;
     return universal_op2(left, right, minus{});
 }
 
-template<class L, class R, class = std::enable_if_t<std::disjunction_v<std::is_integral<R>, is_rational<R>> > > [[nodiscard]]
-constexpr decltype(auto) operator * (const rgba_color<L>& left, const R& right) noexcept
+template<class L, class R, class = std::enable_if_t<std::disjunction_v<std::is_integral<R>, is_rational<R>> > >
+[[nodiscard]] constexpr decltype(auto) operator * (const rgba_color<L>& left, const R& right) noexcept
 {
     using namespace private_detail_argb_color;
     return universal_op2(left, right, multiplies{});
 }
 
-template<class L, class R, class = std::enable_if_t<std::disjunction_v<std::is_integral<R>, is_rational<R>> > > [[nodiscard]]
-constexpr decltype(auto) operator * (const L& left, const rgba_color<R>& right) noexcept
+template<class L, class R, class = std::enable_if_t<std::disjunction_v<std::is_integral<R>, is_rational<R>> > >
+[[nodiscard]] constexpr decltype(auto) operator * (const L& left, const rgba_color<R>& right) noexcept
 {
     return right * left;
 }
 
-template<class L, class R, class = std::enable_if_t<std::disjunction_v<std::is_integral<R>, is_rational<R>> > > [[nodiscard]]
-constexpr decltype(auto) operator / (const rgba_color<L>& left, const R& right) noexcept
+template<class L, class R, class = std::enable_if_t<std::disjunction_v<std::is_integral<R>, is_rational<R>> > >
+[[nodiscard]] constexpr decltype(auto) operator / (const rgba_color<L>& left, const R& right) noexcept
 {
     using namespace private_detail_argb_color;
     return universal_op2(left, right, divides{});

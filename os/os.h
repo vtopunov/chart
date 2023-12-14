@@ -29,6 +29,3 @@ static_assert(std::is_same_v<os::wndproc_t, WNDPROC>);
 #elif defined(D_OS_ANDROID)
 #include <os/os_android.h>
 #endif
-
-
-#include <os/undef.h>

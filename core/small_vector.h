@@ -5,12 +5,10 @@
 #include <core/buffer.h>
 #include <core/span.h>
 
-#undef min
-#undef max
-
 
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_const_cast)
+D_WARNING_DISABLE_MSVC(W_variable_is_uninitialized)
 
 template<class It>
 constexpr It back_move(It to, It back) noexcept

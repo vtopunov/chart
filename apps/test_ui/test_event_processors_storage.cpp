@@ -1,6 +1,6 @@
 #include <os/os.h>
 
-#include <ui/event_processors_storage.h>
+#include <ui/event_processors_storage.cpp>
 
 
 namespace

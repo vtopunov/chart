@@ -7,7 +7,6 @@
 
 #include <core/small_vector.h>
 
-#include <ui/window_constants.h>
 #include <ui/type_window.h>
 
 #else

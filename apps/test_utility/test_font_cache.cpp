@@ -1,7 +1,7 @@
 #include <array>
-#include <tuple>
 
-#include <utility/font_cache.cpp>
+#include "utility/font_cache.cpp"
+
 
 #ifdef D_OS_WINDOWS
 #define D_FONT_NAME(name) _PATH("..\\fonts\\" ## name)
@@ -26,11 +26,30 @@ namespace
     constexpr auto names_pxs_size = names.size() * pxs.size();
     static_assert(font_cache::faces_cache::storage_type::static_size == names_pxs_size);
 
-    constexpr auto names_pxs = [](size_t i) noexcept
+    constexpr auto names_pxs = [] () noexcept
     {
-        const auto name_px_i = std::lldiv(i, names.size());
-        return std::tuple{ names[name_px_i.rem], pxs[name_px_i.quot] };
-    };
+        struct name_px 
+        { 
+            std::decay_t<decltype(names[0])> name;  
+            std::decay_t<decltype(pxs[0])> px;  
+        };
+
+        std::array<name_px, names_pxs_size> result{};
+
+        {
+            size_t index = 0u;
+            for (const auto px : pxs)
+            {
+                for (const auto name : names)
+                {
+                    result[index] = { name, px };
+                    ++index;
+                }
+            }
+        }
+
+        return result;
+    }();
 
     using const_faces_span = span<const font_cache::face, names_pxs_size>;
     using faces_span = span<font_cache::face, names_pxs_size>;
@@ -61,7 +80,7 @@ namespace
     {
         for (size_t i = 0; i < fonts.size(); ++i)
         {
-            const auto [name, px] = names_pxs(i);
+            const auto [name, px] = names_pxs[i];
             auto font = font_cache::load_font(name, px);
             D_ASSERT(font);
             fonts[i] = std::move(font);
@@ -74,7 +93,7 @@ namespace
     {
         for (size_t i = 0; i < fonts.size(); ++i)
         {
-            const auto [name, px] = names_pxs(i);
+            const auto [name, px] = names_pxs[i];
             auto& font = fonts[i];
 
             const font::face_descriptor_t d_font{ font };
@@ -108,10 +127,10 @@ namespace
 
         const auto& cache = font_cache::global_faces_cache();
         D_ASSERT(cache.size() == faces_d.size());
-        
+
         for (size_t i = 0; i < faces_d.size(); ++i)
         {
-            D_ASSERT(faces_d[i] == cache[i].face);
+            D_ASSERT(faces_d[i] == cache.at(i).face);
         }
     }
 
@@ -156,7 +175,7 @@ namespace
             constexpr auto back_i = fonts.size() - 1_uz;
             for (size_t i = 0; i < fonts.size(); ++i)
             {
-                const auto [name, px] = names_pxs(i);
+                const auto [name, px] = names_pxs[i];
                 auto& font = fonts[i];
                 D_ASSERT(!font);
                 font = font_cache::load_font(name, px);
@@ -168,12 +187,11 @@ namespace
     }
 }
 
-int main() noexcept
+
+void test_font_cache() noexcept
 {
     std::array<font_cache::face, names_pxs_size> fonts{};
     test_fill(fonts);
     test_load_form_cache(fonts);
     test_garbage_collection(fonts);
-
-    return 0;
 }

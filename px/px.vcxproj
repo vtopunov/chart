@@ -15,7 +15,6 @@
     <ClInclude Include="pixline.h" />
     <ClInclude Include="pixmap.h" />
     <ClInclude Include="pixspace.h" />
-    <ClInclude Include="alignment.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="pixspan.h" />
   </ItemGroup>

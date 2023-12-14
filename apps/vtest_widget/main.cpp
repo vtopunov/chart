@@ -15,7 +15,7 @@ namespace
             .geometry
             {
                 .position{30_px, 60_px},
-                .sizes{150_px, 60_px}
+                .sizes{160_px, 70_px}
             },
             .text{ u8"Button №1" }
         };
@@ -25,7 +25,7 @@ namespace
             .geometry
             {
                 .position{30_px, 150_px},
-                .sizes{150_px, 60_px}
+                .sizes{160_px, 70_px}
             },
             .text{ u8"Button №2" },
         };
@@ -35,7 +35,7 @@ namespace
             .geometry
             {
                 .position{30_px, 240_px},
-                .sizes{150_px, 60_px}
+                .sizes{160_px, 70_px}
             },
             .text{ u8"Button №3" },
         };
@@ -45,7 +45,7 @@ namespace
             .geometry
             {
                 .position{30_px, 330_px},
-                .sizes{150_px, 60_px}
+                .sizes{160_px, 70_px}
             },
             .text{ u8"Exit" },
         };

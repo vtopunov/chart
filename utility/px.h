@@ -4,6 +4,7 @@
 
 #include <px/pixspan.h>
 
+
 namespace px
 {
     pix8span zeros_pix8space(buffer_view buffer, pix8space space) noexcept;

@@ -152,11 +152,11 @@ int app_main(os::module_handle_t app) noexcept
         const auto dx = width(texture) + 1_px;
         const auto dy = height(texture) + 1_px;
 
-        const auto y_color_lerp = lerp(num_range{ 0_px, h }, num_range{ colors::red, colors::blue });
+        const auto y_color_lerp = lerp(0_px, h, colors::red, colors::blue);
 
         for (pxside_t y = 0; y < h; y += dy)
         {
-            const auto yx_color_lerp = lerp(num_range{ 0_px, w }, num_range{ colors::green, color_cast<rgba_color32_t>(y_color_lerp(y)) });
+            const auto yx_color_lerp = lerp(0_px, w, colors::green, color_cast<rgba_color32_t>(y_color_lerp(y)));
 
             for (pxside_t x = 0; x < w; x += dx)
             {

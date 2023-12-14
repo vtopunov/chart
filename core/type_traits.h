@@ -3,20 +3,83 @@
 #include <type_traits>
 
 
-template<bool test, template<class> class Op, class T>
-struct conditional_op 
-{ 
-    using type = Op<T>;
-};
-
-template<template<class> class Op, class T>
-struct conditional_op<false, Op, T> 
+struct nonesuch
 {
-    using type = T;
+    ~nonesuch() = delete;
+    nonesuch(nonesuch const&) = delete;
+    void operator=(nonesuch const&) = delete;
 };
 
-template<bool test, template<class> class Op, class T>
-using conditional_op_t = typename conditional_op<test, Op, T>::type;
+namespace private_detail_member_detector
+{
+    template <class Default, class AlwaysVoid,
+        template<class...> class Op, class... Args>
+    struct detector
+    {
+        using value_t = std::false_type;
+        using type = Default;
+    };
+
+    template <class Default, template<class...> class Op, class... Args>
+    struct detector<Default, std::void_t<Op<Args...>>, Op, Args...>
+    {
+        using value_t = std::true_type;
+        using type = Op<Args...>;
+    };
+}
+
+template <template<class...> class Op, class... Args>
+using is_detected = typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::value_t;
+
+template <template<class...> class Op, class... Args>
+using detected_t = typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::type;
+
+template <class Default, template<class...> class Op, class... Args>
+using detected_or = private_detail_member_detector::detector<Default, void, Op, Args...>;
+
+template< template<class...> class Op, class... Args >
+constexpr bool is_detected_v = is_detected<Op, Args...>::value;
+
+template< class Default, template<class...> class Op, class... Args >
+using detected_or_t = typename detected_or<Default, Op, Args...>::type;
+
+template <class Expected, template<class...> class Op, class... Args>
+using is_detected_exact = std::is_same<Expected, detected_t<Op, Args...>>;
+
+template <class Expected, template<class...> class Op, class... Args>
+constexpr bool is_detected_exact_v = is_detected_exact<Expected, Op, Args...>::value;
+
+template <class To, template<class...> class Op, class... Args>
+using is_detected_convertible = std::is_convertible<detected_t<Op, Args...>, To>;
+
+template <class To, template<class...> class Op, class... Args>
+constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
+
+
+template<bool test, class Default, template<class...> class Op, class... Args>
+struct conditional_op_or 
+{ 
+    using type = Op<Args...>;
+};
+
+template<class Default, template<class...> class Op, class... Args>
+struct conditional_op_or<false, Default, Op, Args...>
+{
+    using type = Default;
+};
+
+template<bool test, template<class...> class Op, class... Args>
+struct conditional_op;
+
+template<bool test, template<class...> class Op, class Arg0, class... Args>
+struct conditional_op<test, Op, Arg0, Args...> : conditional_op_or<test, Arg0, Op, Arg0, Args...> 
+{};
+
+template<bool test, class Default, template<class...> class Op, class... Args>
+using conditional_op_or_t = typename conditional_op_or<test, Default, Op, Args...>::type;
+
+template<bool test, template<class...> class Op, class... Args>
+using conditional_op_t = typename conditional_op<test, Op, Args...>::type;
 
 
 template<bool test, class T>
@@ -89,13 +152,6 @@ struct add_const_pointer<T*const>
 template<class T>
 using add_const_pointer_t = typename add_const_pointer<T>::type;
 
-
-template<class T> [[nodiscard]]
-constexpr decltype(auto) as_unsigned_or(const T& value) noexcept
-{
-    static_assert(std::is_arithmetic_v<T>);
-    return static_cast<unsigned_or_t<T>>(value);
-}
 
 template<class T> [[nodiscard]]
 constexpr decltype(auto) as_unsigned(const T& value) noexcept

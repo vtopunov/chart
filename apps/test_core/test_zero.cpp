@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <cstring>
 
-#include <core/limits.h>
 #include <core/size_type.h>
+#include <core/rational.h>
 
 
 namespace
@@ -37,6 +37,9 @@ void test_zero() noexcept
     static_assert(constexpr_abs(numeric_max_v<uint32_t>) == numeric_max_v<uint32_t>);
     static_assert(constexpr_abs(numeric_max_v<int32_t>) == numeric_max_v<int32_t>);
     static_assert(constexpr_abs(-numeric_max_v<int32_t>) == numeric_max_v<int32_t>);
+
+    static_assert(0 == zero_v<>);
+    static_assert(0.0 == zero_v<>);
 
     D_ASSERT(!errno);
 }

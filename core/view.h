@@ -1,7 +1,7 @@
 #pragma once
 
-#include <core/warnings.h>
-#include <core/member_detector.h>
+#include <core/fwd.h>
+#include <core/type_traits.h>
 
 
 namespace private_detail_view

@@ -4,16 +4,13 @@
     <ClInclude Include="assert.h" />
     <ClInclude Include="intrusive_list.h" />
     <ClInclude Include="lerp.h" />
-    <ClInclude Include="member_detector.h" />
     <ClInclude Include="narrow.h" />
-    <ClInclude Include="num_range.h" />
     <ClInclude Include="rational.h" />
     <ClInclude Include="rectangle.h" />
     <ClInclude Include="vec2.h" />
     <ClInclude Include="zstring_view.h" />
     <ClInclude Include="small_vector.h" />
     <ClInclude Include="color.h" />
-    <ClInclude Include="polynomial.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="buffer.h" />
     <ClInclude Include="resource.h" />
@@ -22,7 +19,6 @@
     <ClInclude Include="size2d.h" />
     <ClInclude Include="point2d.h" />
     <ClInclude Include="utf.h" />
-    <ClInclude Include="color_fwd.h" />
     <ClInclude Include="view.h" />
     <ClInclude Include="warnings.h" />
     <ClInclude Include="value_type.h" />
@@ -35,12 +31,12 @@
     <ClInclude Include="string_char.h" />
     <ClInclude Include="span.h" />
     <ClInclude Include="underlying.h" />
-    <ClInclude Include="resource_fwd.h" />
-    <ClInclude Include="buffer_fwd.h" />
     <ClInclude Include="fmt.h" />
     <ClInclude Include="round.h" />
     <ClInclude Include="static_vector.h" />
     <ClInclude Include="tuple_algorithm.h" />
     <ClInclude Include="functional.h" />
+    <ClInclude Include="fwd.h" />
+    <ClInclude Include="transformation.h" />
   </ItemGroup>
 </Project>

@@ -1,9 +1,8 @@
 #pragma once
 
-#include <core/limits.h>
-#include <core/underlying.h>
-
 #include <ui/fwd.h>
+
+#include <egl_ui/viewport_size2d.h>
 
 
 namespace widget
@@ -29,49 +28,38 @@ namespace widget
     template<class... Args>
     using mouse_up_event = widget_event<ui::mouse_up_event, Args...>;
 
-#ifdef D_OS_WINDOWS
     template<class... Args>
     using mouse_double_click_event = widget_event<ui::mouse_double_click_event, Args...>;
-#endif
-
-
-    enum class window_configation : size_t
-    {
-        nocfg,
-        badcfg = numeric_max_v<size_t>
-    };
-
-    constexpr auto nocfg = window_configation::nocfg;
-    constexpr auto badcfg = window_configation::badcfg;
-
-    [[nodiscard]]
-    constexpr window_configation operator | (window_configation left, window_configation right) noexcept
-    {
-        return e_bit_or(left, right);
-    }
-
-    [[nodiscard]]
-    constexpr window_configation operator | (window_configation left, bool right) noexcept
-    {
-        return (right) ? left : badcfg;
-    }
-
-    [[nodiscard]]
-    constexpr window_configation operator | (bool left, window_configation right) noexcept
-    {
-        return right | left;
-    }
 
 
     enum class event_result : size_t
     {
         idle = 0,
-        redraw = (1 << 0)
+        redraw = (1 << 0),
+        invalid = numeric_max_v<size_t>
     };
 
     [[nodiscard]]
     constexpr event_result operator | (event_result left, event_result right) noexcept
     {
         return e_bit_or(left, right);
+    }
+
+    [[nodiscard]]
+    constexpr event_result operator | (event_result left, bool right) noexcept
+    {
+        return (right) ? left : e_bit_or(left, event_result::invalid);
+    }
+
+    [[nodiscard]]
+    constexpr event_result operator | (bool left, event_result right) noexcept
+    {
+        return right | left;
+    }
+
+    [[nodiscard]]
+    constexpr bool event_result_is_invalid(event_result result) noexcept
+    {
+        return e_bit_check(result, event_result::invalid);
     }
 }

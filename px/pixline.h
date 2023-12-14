@@ -1,6 +1,7 @@
 #pragma once
 
-#include <core/color_fwd.h>
+#include <px/fwd.h>
+
 
 namespace px
 {

@@ -19,9 +19,10 @@
     <ClInclude Include="event.h" />
     <ClInclude Include="run.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="stretchable.h" />
     <ClInclude Include="temp_buffer.h" />
     <ClInclude Include="text.h" />
-    <ClInclude Include="gesture_cache.h" />
+    <ClInclude Include="user_gesture.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -32,6 +33,7 @@
   <ItemGroup>
     <ClCompile Include="button.cpp" />
     <ClCompile Include="label.cpp" />
+    <ClCompile Include="shader.cpp" />
     <ClCompile Include="temp_buffer.cpp" />
     <ClCompile Include="text.cpp" />
   </ItemGroup>
@@ -66,7 +68,6 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalOptions>/Zc:char8_t %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -81,7 +82,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <ExceptionHandling>false</ExceptionHandling>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>

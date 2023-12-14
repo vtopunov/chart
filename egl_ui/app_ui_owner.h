@@ -10,6 +10,31 @@
 
 namespace egl_ui
 {
+#if defined(D_OS_WINDOWS)
+    namespace private_detail_app_ui_owner
+    {
+        template<class Processor, ui::event_style EventStyleSelector>
+        struct event_match_one
+        {
+            static_assert(!std::is_reference_v<Processor>);
+
+            Processor processor;
+
+            ui::event_result_opt_t operator () (const ui::event& e) noexcept
+            {
+                if (EventStyleSelector == e.style())
+                {
+                    return ui::call_event(unrefwrap(processor), ui::event_for<EventStyleSelector>(e));
+                }
+
+                return std::nullopt;
+            }
+        };
+    }
+
+#endif
+
+
     struct app_ui_owner : ui::app_owner
     {
 #if defined(D_OS_WINDOWS)
@@ -25,6 +50,8 @@ namespace egl_ui
             template<class EventTarget>
             [[nodiscard]] std::array<ui::event_processor, 2u> bind(EventTarget& target) const noexcept
             {
+                using private_detail_app_ui_owner::event_match_one;
+
                 auto target_ref = std::ref(target);
 
                 return
@@ -32,15 +59,11 @@ namespace egl_ui
                     ui::create_event_processor
                     (
                         app_event_source_,
-                        ui::event_match
-                        {
-                            function_filter
-                            <
-                                decltype(target_ref),
-                                const ui::size_event&
-                            >
-                            { target_ref }
-                        }
+                        event_match_one
+                        <
+                            decltype(target_ref),
+                            ui::event_style::size
+                        >{ target_ref }
                     ),
                     ui::create_event_processor
                     (
@@ -89,7 +112,7 @@ namespace egl_ui
     [[nodiscard]]
     inline viewport_size2d app_ui_viewport_request(const app_ui_owner& ui) noexcept
     {
-        const auto window = render_window_handle(ui); 
+        const auto window = render_window_handle(ui);
         return (window) ? viewport_size2d{ ui::sizes(window) } : no_viewport;
     }
 
@@ -121,7 +144,7 @@ namespace egl_ui
             return _builder();
         }
 #endif
-        
+
     protected:
         using base_type::_params;
         using base_type::_builder;
@@ -146,30 +169,30 @@ namespace egl_ui
                 result.app_wnd = ui::create_window(params);
             }
 
-            if (result.app_wnd) [[likely]]
-            {
-                render_window_sizes = ui::desktop_sizes();
-            }
+                if (result.app_wnd) [[likely]]
+                {
+                    render_window_sizes = ui::desktop_sizes();
+                }
 
-            if (ui::window_sizes_is_valid(render_window_sizes)) [[likely]]
-            {
-                app_ui_parameters rendrer_wnd_params{ params };
-                rendrer_wnd_params.parent = result.app_wnd;
-                rendrer_wnd_params.geometry.position = { 0_px, 0_px };
-                rendrer_wnd_params.geometry.sizes = render_window_sizes;
-                result.render_wnd = ui::create_window(rendrer_wnd_params);
-            }
+                    if (ui::window_sizes_is_valid(render_window_sizes)) [[likely]]
+                    {
+                        app_ui_parameters rendrer_wnd_params{ params };
+                        rendrer_wnd_params.parent = result.app_wnd;
+                        rendrer_wnd_params.geometry.position = { 0_px, 0_px };
+                        rendrer_wnd_params.geometry.sizes = render_window_sizes;
+                        result.render_wnd = ui::create_window(rendrer_wnd_params);
+                    }
 
 #endif
 
-            result.viewport = app_ui_viewport_request(result);
+                    result.viewport = app_ui_viewport_request(result);
 
 #ifdef D_OS_WINDOWS
-            if (result.viewport)
-            {
-                D_ASSERT(render_window_sizes == result.viewport);
-                ui::show(result.app_wnd, params.command_show);
-            }
+                    if (result.viewport)
+                    {
+                        D_ASSERT(render_window_sizes == result.viewport);
+                        ui::show(result.app_wnd, params.command_show);
+                    }
 #endif
         }
 

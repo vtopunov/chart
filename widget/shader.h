@@ -11,30 +11,6 @@ namespace widget
     {
         namespace private_detail_shader
         {
-            inline void initialize_viewport(const vert::positioned_frame& vert, pxsize2d sizes) noexcept
-            {
-                vert.u_viewport.store(sizes);
-            }
-
-            template<class VS, class FS>
-            void initialize_lib_uniforms(const shader_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
-            {
-                lib.use();
-                initialize_viewport(lib.vert, viewport_sizes);
-            }
-
-            template<class VS, class FS>
-            bool initialize_lib(shader_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
-            {
-                if (lib || lib.build()) [[likely]]
-                {
-                    initialize_lib_uniforms(lib, viewport_sizes);
-                    return true;
-                }
-
-                return false;
-            }
-
 #if D_IS_DEBUG
             template<gl::glsl_typeid type_id>
             [[nodiscard]] constexpr bool is_initialized(const gl::uniform<type_id>& u) noexcept
@@ -42,7 +18,7 @@ namespace widget
                 return u.__debug_is_stored();
             }
 
-            [[nodiscard]] constexpr bool is_initialized(const px::uniform_vec2& vec) noexcept
+            [[nodiscard]] constexpr bool is_initialized(const uniform_vec2glpx& vec) noexcept
             {
                 return is_initialized(vec.uniform);
             }
@@ -90,19 +66,16 @@ namespace widget
         class gray_texture_mix_color
         {
         public:
-            bool operator () (viewport_size2d viewport) noexcept
-            {
-                return private_detail_shader::initialize_lib(lib, viewport);
-            }
+            bool operator () (viewport_size2d viewport) noexcept;
 
             void draw(pxpoint2d position, gl::texture2d_resources texture, gl::rgba_colorf_t colorf) const noexcept
             {
-                lib.use();
-                lib.frag.u_color.store(colorf);
-                lib.frag.s_texture.store(texture);
-                lib.vert.u_position.store(position);
-                lib.vert.u_size.store(sizes(texture));
-                private_detail_shader::draw(lib);
+                lib_.use();
+                lib_.frag.u_color.store(colorf);
+                lib_.frag.s_texture.store(texture);
+                lib_.vert.u_position.store(position);
+                lib_.vert.u_size.store(sizes(texture));
+                private_detail_shader::draw(lib_);
             }
 
             template<class Fn>
@@ -112,24 +85,21 @@ namespace widget
             }
 
         private:
-            shader_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
+            shader_library<vert::positioned_texture, frag::gray_texture_mix_color> lib_{};
         };
 
         class colored_rectangle
         {
         public:
-            bool operator () (viewport_size2d viewport) noexcept
-            {
-                return private_detail_shader::initialize_lib(lib, viewport);
-            }
+            bool operator () (viewport_size2d viewport) noexcept;
 
             void draw(pxrectangle rc, gl::rgba_colorf_t colorf) const noexcept
             {
-                lib.use();
-                lib.frag.u_color.store(colorf);
-                lib.vert.u_position.store(rc.position);
-                lib.vert.u_size.store(rc.sizes);
-                private_detail_shader::draw(lib);
+                lib_.use();
+                lib_.frag.u_color.store(colorf);
+                lib_.vert.u_position.store(rc.position);
+                lib_.vert.u_size.store(rc.sizes);
+                private_detail_shader::draw(lib_);
             }
 
             template<class Fn>
@@ -139,7 +109,7 @@ namespace widget
             }
 
         private:
-            shader_library<vert::positioned_rectangle, frag::default_color> lib{};
+            shader_library<vert::positioned_rectangle, frag::default_color> lib_{};
         };
     }
 }

@@ -145,8 +145,8 @@ namespace font_cache
             auto& faces = global_faces_cache();
             auto& mmaps = global_mmaps_cache();
 
-            auto& item = faces.item(face.cache_index);
-            auto& mmap_item = mmaps.item(item.mmap_id);
+            auto& item = faces.at(face.cache_index);
+            auto& mmap_item = mmaps.at(item.mmap_id);
 
             item.deref(faces);
             mmap_item.deref(mmaps);
@@ -160,8 +160,8 @@ namespace font_cache
             auto& mmaps = global_mmaps_cache();
             auto& faces = global_faces_cache();
             
-            auto& item = faces.item(face_r.cache_index);
-            auto& mmap_item = mmaps.item(item.mmap_id);
+            auto& item = faces.at(face_r.cache_index);
+            auto& mmap_item = mmaps.at(item.mmap_id);
 
             mmap_item.ref();
             item.ref();
@@ -175,7 +175,7 @@ namespace font_cache
         };
     }
 
-    font_cache::face load_font(file::path_zstring_view name, const px::pxside_t size) noexcept
+    face load_font(file::path_zstring_view name, const px::pxside_t size) noexcept
     {
         const file::path_string_view name_sv{ name.c_str() };
         auto& mmaps = global_mmaps_cache();

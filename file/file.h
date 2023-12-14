@@ -1,7 +1,5 @@
 #pragma once
 
-#include <compare>
-
 #include <core/resource.h>
 
 #include <file/path.h>
@@ -62,7 +60,10 @@ namespace file
         file_resource_descriptor_t fd;
 
         [[nodiscard]]
-        constexpr auto operator<=>(const file_resource&) const noexcept = default;
+        constexpr bool operator == (const file_resource&) const noexcept = default;
+
+        [[nodiscard]]
+        constexpr bool operator != (const file_resource&) const noexcept = default;
     };
 
     using invalidfile_t = null_t<file_resource>;
@@ -181,7 +182,7 @@ namespace file
         }
     };
 
-    D_WARNING_POP
+    D_WARNING_POP;
 
 
     [[nodiscard]]

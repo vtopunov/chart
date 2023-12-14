@@ -125,7 +125,7 @@ public:
     }
 
     [[nodiscard]]
-    constexpr reference item(size_t index) const noexcept
+    constexpr reference at(size_t index) const noexcept
     {
         D_ASSERT(index < storage_.size());
         return const_cast<reference>(storage_[index]);

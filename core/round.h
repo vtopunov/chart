@@ -1,68 +1,95 @@
 #pragma once
 
-#include <cmath>
-
 #include <core/clamp_cast.h>
 
 
 namespace private_detail_round_cast
 {
-    template<class Target>
-    struct round_fn
+    constexpr struct
     {
         template<class Source>
-        constexpr Target operator () (Source v) const noexcept
+        [[nodiscard]] constexpr decltype(auto) operator () (Source v) const noexcept
         {
-            return static_cast<Target>(std::round(v));
+            return std::round(v);
         }
-    };
+    } round_fn_v{};
 
-    template<class Target>
-    struct trunc_fn
+    constexpr struct
     {
         template<class Source>
-        constexpr Target operator () (Source v) const noexcept
+        [[nodiscard]] constexpr decltype(auto) operator () (Source v) const noexcept
         {
-            return static_cast<Target>(std::trunc(v));
+            return std::ceil(v);
         }
-    };
+    } ceil_fn_v{};
 
-    template<class Target, class Source, class Fn>
-    [[nodiscard]] Target round_cast_impl(Source v, Fn fn) noexcept
+    constexpr struct
     {
-        using source_t = std::remove_cvref_t<Source>;
+        template<class Source>
+        [[nodiscard]] constexpr decltype(auto) operator () (Source v) const noexcept
+        {
+            return std::floor(v);
+        }
+    } floor_fn_v{};
 
-        if constexpr (std::is_floating_point_v<source_t>)
+    constexpr struct
+    {
+        template<class Source>
+        [[nodiscard]] constexpr decltype(auto) operator () (Source v) const noexcept
         {
-            if constexpr (std::is_integral_v<Target>)
-            {
-                return private_detail_clamp_cast::clamp_minmax_cast<Target>(v, fn);
-            }
-            else
-            {
-                return fn(v);
-            }
+            return std::trunc(v);
         }
-        else
-        {
-            return clamp_cast<Target>(v);
-        }
+    } trunc_fn_v;
+
+
+    template<class Target, class Source>
+    [[nodiscard]] constexpr Target round_cast(Source v) noexcept
+    {
+        return clamp_cast<Target>(v, round_fn_v);
     }
 
     template<class Target, class Source>
-    [[nodiscard]] Target round_cast(Source v) noexcept
+    [[nodiscard]] constexpr Target ceil_cast(Source v) noexcept
     {
-        constexpr round_fn<Target> fn{};
-        return round_cast_impl<Target>(v, fn);
+        return clamp_cast<Target>(v, ceil_fn_v);
     }
 
     template<class Target, class Source>
-    [[nodiscard]] Target trunc_cast(Source v) noexcept
+    [[nodiscard]] constexpr Target floor_cast(Source v) noexcept
     {
-        constexpr trunc_fn<Target> fn{};
-        return round_cast_impl<Target>(v, fn);
+        return clamp_cast<Target>(v, floor_fn_v);
+    }
+
+    template<class Target, class Source>
+    [[nodiscard]] constexpr Target trunc_cast(Source v) noexcept
+    {
+        return clamp_cast<Target>(v, trunc_fn_v);
+    }
+
+    template<class T, class Near>
+    [[nodiscard]] constexpr std::enable_if_t<
+        std::negation_v<std::conjunction<std::is_floating_point<T>, std::is_integral<Near>>>,
+        Near
+    > round_to_near(T value, Near) noexcept
+    {
+        return clamp_cast<Near>(value);
+    }
+
+    template<class T, class Near>
+    [[nodiscard]] constexpr std::enable_if_t<
+        std::conjunction_v<std::is_floating_point<T>, std::is_integral<Near>>,
+        Near
+    > round_to_near(T value, Near near_value) noexcept
+    {
+        constexpr Near one{ 1 };
+
+        const auto floor_value = floor_cast<Near>(value);
+        return (near_value <= floor_value) ? (floor_value) : (floor_value + one);
     }
 }
 
 using private_detail_round_cast::round_cast;
+using private_detail_round_cast::ceil_cast;
+using private_detail_round_cast::floor_cast;
 using private_detail_round_cast::trunc_cast;
+using private_detail_round_cast::round_to_near;

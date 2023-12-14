@@ -138,6 +138,12 @@ namespace gl
         return sizes(std::move(tex), pxsize2d{ w, h });
     }
 
+    [[nodiscard]]
+    constexpr bool has_image(texture2d_resources tex) noexcept
+    {
+        return tex.sizes.width() && tex.sizes.height();
+    }
+
     template<size_t PxSize>
     struct texpix_traits 
     {

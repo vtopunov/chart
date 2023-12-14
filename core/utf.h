@@ -5,6 +5,7 @@
 #include <core/size_type.h>
 #include <core/narrow.h>
 
+
 namespace private_detail_decode_utf
 {
     template<size_t OctetCount, class U8, class Write>

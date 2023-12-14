@@ -1,5 +1,4 @@
 
-extern void test_member_detector() noexcept;
 extern void test_ordered_overload() noexcept;
 extern void test_type_traits() noexcept;
 extern void test_zero() noexcept;
@@ -18,9 +17,9 @@ extern void test_zstring_view() noexcept;
 extern void test_vec2() noexcept;
 extern void test_point2d() noexcept;
 extern void test_size2d() noexcept;
-extern void test_num_range() noexcept;
 extern void test_rectangle() noexcept;
 extern void test_lerp() noexcept;
+extern void test_transformation() noexcept;
 extern void test_rational() noexcept;
 extern void test_color() noexcept;
 extern void test_lerp_color() noexcept;
@@ -34,7 +33,6 @@ extern void test_utf() noexcept;
 
 int main() noexcept
 {
-    test_member_detector();
     test_ordered_overload();
     test_type_traits();
     test_zero();
@@ -53,9 +51,9 @@ int main() noexcept
     test_vec2();
     test_point2d();
     test_size2d();
-    test_num_range();
     test_rectangle();
     test_lerp();
+    test_transformation();
     test_rational();
     test_color();
     test_lerp_color();

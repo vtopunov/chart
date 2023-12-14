@@ -11,7 +11,7 @@ namespace
     {
         return
         {
-            narrow2d<pxpoint2d>(mainwindow_sizes / 4u),
+            md_narrow<pxpoint2d>(mainwindow_sizes / 4u),
             mainwindow_sizes / 2u
         };
     }

@@ -80,11 +80,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test_event_matching.cpp" />
     <ClCompile Include="test_event_processors_storage.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\ui\ui.vcxproj">
-      <Project>{f2d39e92-1869-4ce0-85b7-88a93d85eec4}</Project>
-    </ProjectReference>
+    <ClCompile Include="test_manipulator.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

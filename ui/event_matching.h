@@ -33,6 +33,7 @@ namespace ui
             case event_style::mouse_wheel:        return call_event(p, event_for<event_style::mouse_wheel>(e));
             case event_style::mouse_double_click: return call_event(p, event_for<event_style::mouse_double_click>(e));
 #endif
+
             case event_style::mouse_move:         return call_event(p, event_for<event_style::mouse_move>(e));
             case event_style::mouse_down:         return call_event(p, event_for<event_style::mouse_down>(e));
             case event_style::mouse_up:           return call_event(p, event_for<event_style::mouse_up>(e));

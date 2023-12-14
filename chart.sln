@@ -85,7 +85,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "os", "os\os.vcxproj", "{62F
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_font", "apps\test_font\test_font.vcxproj", "{F8C9BBAD-762B-490B-82FF-1BACB5C5D99C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_font_cache", "apps\test_font_cache\test_font_cache.vcxproj", "{E6E1CD6A-09CB-4F54-A707-D3DD287292EB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_utility", "apps\test_utility\test_utility.vcxproj", "{E6E1CD6A-09CB-4F54-A707-D3DD287292EB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "widget", "widget\widget.vcxproj", "{B40AA82A-1CAB-4743-ADE5-3AE8A9A4470B}"
 EndProject
@@ -111,8 +111,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_chart_line", "apps\vt
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_ui", "apps\test_ui\test_ui.vcxproj", "{9817E611-FA2F-43FC-9199-CF2704848E3F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_widget_move", "apps\vtest_widget_move\vtest_widget_move.vcxproj", "{E1A70675-2636-4A5F-88BD-B02508E0328C}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_resize", "apps\vtest_resize\vtest_resize.vcxproj", "{A4FB768C-15B5-427F-92D7-9B140C44798C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_widget_resize", "apps\vtest_widget_resize\vtest_widget_resize.vcxproj", "{8DBCDEA8-39DE-40F0-A22E-CC98D8DAF046}"
@@ -120,6 +118,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_widget", "apps\test_widget\test_widget.vcxproj", "{9700F1F4-FB5D-4785-A1B3-D1C7A5FE1BC5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_widget_move_and_zoom", "apps\vtest_widget_move_and_zoom\vtest_widget_move_and_zoom.vcxproj", "{C7F46B04-1F76-4B26-B3E9-9DCD9A78CC06}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chart", "chart\chart.vcxproj", "{71ED1DD6-5BA3-4EB1-9FAD-92F68E54B78A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_chart", "apps\test_chart\test_chart.vcxproj", "{67FE8283-C1E1-401E-8B86-234C33D01BB8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -327,10 +329,6 @@ Global
 		{9817E611-FA2F-43FC-9199-CF2704848E3F}.Debug|x64.Build.0 = Debug|x64
 		{9817E611-FA2F-43FC-9199-CF2704848E3F}.Release|x64.ActiveCfg = Release|x64
 		{9817E611-FA2F-43FC-9199-CF2704848E3F}.Release|x64.Build.0 = Release|x64
-		{E1A70675-2636-4A5F-88BD-B02508E0328C}.Debug|x64.ActiveCfg = Debug|x64
-		{E1A70675-2636-4A5F-88BD-B02508E0328C}.Debug|x64.Build.0 = Debug|x64
-		{E1A70675-2636-4A5F-88BD-B02508E0328C}.Release|x64.ActiveCfg = Release|x64
-		{E1A70675-2636-4A5F-88BD-B02508E0328C}.Release|x64.Build.0 = Release|x64
 		{A4FB768C-15B5-427F-92D7-9B140C44798C}.Debug|x64.ActiveCfg = Debug|x64
 		{A4FB768C-15B5-427F-92D7-9B140C44798C}.Debug|x64.Build.0 = Debug|x64
 		{A4FB768C-15B5-427F-92D7-9B140C44798C}.Release|x64.ActiveCfg = Release|x64
@@ -347,6 +345,14 @@ Global
 		{C7F46B04-1F76-4B26-B3E9-9DCD9A78CC06}.Debug|x64.Build.0 = Debug|x64
 		{C7F46B04-1F76-4B26-B3E9-9DCD9A78CC06}.Release|x64.ActiveCfg = Release|x64
 		{C7F46B04-1F76-4B26-B3E9-9DCD9A78CC06}.Release|x64.Build.0 = Release|x64
+		{71ED1DD6-5BA3-4EB1-9FAD-92F68E54B78A}.Debug|x64.ActiveCfg = Debug|x64
+		{71ED1DD6-5BA3-4EB1-9FAD-92F68E54B78A}.Debug|x64.Build.0 = Debug|x64
+		{71ED1DD6-5BA3-4EB1-9FAD-92F68E54B78A}.Release|x64.ActiveCfg = Release|x64
+		{71ED1DD6-5BA3-4EB1-9FAD-92F68E54B78A}.Release|x64.Build.0 = Release|x64
+		{67FE8283-C1E1-401E-8B86-234C33D01BB8}.Debug|x64.ActiveCfg = Debug|x64
+		{67FE8283-C1E1-401E-8B86-234C33D01BB8}.Debug|x64.Build.0 = Debug|x64
+		{67FE8283-C1E1-401E-8B86-234C33D01BB8}.Release|x64.ActiveCfg = Release|x64
+		{67FE8283-C1E1-401E-8B86-234C33D01BB8}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -391,11 +397,11 @@ Global
 		{94AD969C-502C-4419-9062-DDCD961EDEEC} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{EF732F2A-AAA0-4CE8-B75C-E52E307A7EC2} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{9817E611-FA2F-43FC-9199-CF2704848E3F} = {522D351D-0C5D-40A1-A856-3C94167BA347}
-		{E1A70675-2636-4A5F-88BD-B02508E0328C} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{A4FB768C-15B5-427F-92D7-9B140C44798C} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{8DBCDEA8-39DE-40F0-A22E-CC98D8DAF046} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{9700F1F4-FB5D-4785-A1B3-D1C7A5FE1BC5} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{C7F46B04-1F76-4B26-B3E9-9DCD9A78CC06} = {522D351D-0C5D-40A1-A856-3C94167BA347}
+		{67FE8283-C1E1-401E-8B86-234C33D01BB8} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA32F6CD-3CF1-41D1-9B1C-B19E96B2EE6A}

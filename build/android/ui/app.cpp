@@ -1,10 +1,5 @@
 #include <ui/app.h>
 
-#include <core/assert.h>
-#include <core/utility.h>
-#include <core/narrow.h>
-
-
 #include <android/sensor.h>
 
 #include <entry_point/android_native_app_glue.h>

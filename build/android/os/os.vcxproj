@@ -46,7 +46,6 @@
     <ClInclude Include="..\..\..\os\os.h" />
     <ClInclude Include="..\..\..\os\os_android.h" />
     <ClInclude Include="..\..\..\os\os_detection.h" />
-    <ClInclude Include="..\..\..\os\undef.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

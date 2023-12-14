@@ -78,7 +78,7 @@ namespace ui
         {
             return
             {
-                .position{ narrow2d<pxpoint2d>(rect.left, rect.top) },
+                .position{ md_narrow<pxpoint2d>(rect.left, rect.top) },
                 .sizes{ sizes(rect) }
             };
         }
@@ -150,7 +150,7 @@ namespace ui
         {
             DEVMODEW dev{};
             EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &dev);
-            return narrow2d<pxsize2d>(dev.dmPelsWidth, dev.dmPelsHeight);
+            return md_narrow<pxsize2d>(dev.dmPelsWidth, dev.dmPelsHeight);
         }
 
         [[nodiscard]]

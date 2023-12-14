@@ -42,16 +42,18 @@ namespace widget
             return fn();
         }
 
-#ifdef D_OS_WINDOWS
     public:
         constexpr void content_sizes(pxsize2d sizes) noexcept
         {
+#ifdef D_OS_WINDOWS
             content_sizes_cache_ = sizes;
+#else
+            D_UNUSED(sizes);
+#endif
         }
 
     private:
-        pxsize2d content_sizes_cache_{ ui::no_window_sizes };
-#endif
+        D_ONLY_OS_WINDOWS(pxsize2d content_sizes_cache_{ ui::no_window_sizes });
     };
 
     struct window_builder : egl_ui::egl_ui_gatherer<window_builder>

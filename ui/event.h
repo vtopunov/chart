@@ -1,11 +1,5 @@
 #pragma once
 
-#include <compare>
-
-#include <core/clamp_cast.h>
-
-#include <px/fwd.h>
-
 #include <ui/fwd.h>
 
 
@@ -234,7 +228,6 @@ namespace ui
         }
     };
 
-#ifdef D_OS_WINDOWS
     D_WARNING_PUSH;
     D_WARNING_DISABLE_MSVC(W_enum_is_unscoped__prefer_enum_class);
 
@@ -244,7 +237,7 @@ namespace ui
         {
             lbutton = 0x0001, // MK_LBUTTON,
             rbutton = 0x0002, // MK_RBUTTON,
-            shift   = 0x0004, // MK_SHIFT,
+            shift = 0x0004, // MK_SHIFT,
             control = 0x0008, // MK_CONTROL,
             mbutton = 0x0010  // MK_MBUTTON
         };
@@ -323,22 +316,19 @@ namespace ui
         return left != right.keys;
     }
 
+    constexpr mouse_keys touchpad_dummy_mouse_keys{ mouse_keys::lbutton };
+
     class mouse_event : public pointer_event
     {
     public:
         [[nodiscard]]
         constexpr mouse_keys keys() const noexcept
         {
-            return mouse_keys::instance(_word_parameter());
+            return D_CONDITIONAL_OS_WINDOWS(mouse_keys::instance(_word_parameter()), touchpad_dummy_mouse_keys);
         }
     };
 
-#else
-    class mouse_event : public pointer_event
-    {
-    public:
-    };
-#endif
+    D_WARNING_POP; // W_enum_is_unscoped__prefer_enum_class
 
 
     template<event_style>
@@ -357,7 +347,86 @@ namespace ui
     class specialized_event<event_style::mouse_move> : public mouse_event
     {};
 
-#ifdef D_OS_ANDROID
+
+    using mouse_wheel_delta_t = short;
+    constexpr mouse_wheel_delta_t min_mouse_wheel_delta{ 120 };
+
+    [[nodiscard]]
+    constexpr mouse_wheel_delta_t mouse_wheel_delta(word_parameter_t word_parametr) noexcept
+    {
+        return static_cast<mouse_wheel_delta_t>(hi_cast<word_t>(word_parametr));
+    }
+
+
+#ifdef D_OS_WINDOWS
+    template<>
+    class specialized_event<event_style::mouse_wheel> : public mouse_event
+#else
+    class mouse_wheel_event : public mouse_event
+#endif
+    {
+    public:
+        [[nodiscard]]
+        constexpr mouse_wheel_delta_t delta() const noexcept
+        {
+            return D_CONDITIONAL_OS_WINDOWS(mouse_wheel_delta(_word_parameter()), 0);
+        }
+
+        [[nodiscard]]
+        constexpr double rot() const noexcept
+        {
+            return numeric_cast<double>(delta()) / min_mouse_wheel_delta;
+        }
+    };
+
+#ifdef D_OS_WINDOWS
+    template<>
+    class specialized_event<event_style::mouse_double_click> : public mouse_event {};
+#else
+    class mouse_double_click_event : public mouse_event {};
+#endif
+
+
+#ifdef D_OS_WINDOWS
+    template<>
+    class specialized_event<event_style::size> : public event
+#else
+    class size_event : public event
+#endif
+    {
+    public:
+        using event::event;
+        using value_type = event::_coordinate_value_type;
+        using size2d_type = size2d<value_type>;
+
+        [[nodiscard]]
+        constexpr value_type width() const noexcept
+        {
+            return _x_coordinate();
+        }
+
+        [[nodiscard]]
+        constexpr value_type height() const noexcept
+        {
+            return _y_coordinate();
+        }
+
+        [[nodiscard]]
+        constexpr size2d_type sizes() const noexcept
+        {
+            return { width(), height() };
+        }
+    };
+
+
+    template<event_style style>
+    [[nodiscard]] constexpr const specialized_event<style>& event_for(const event& e) noexcept
+    {
+        D_ASSERT(style == e.style());
+        return static_cast<const specialized_event<style>&>(e);
+    }
+
+
     [[nodiscard]]
     constexpr cmd_event_style to_cmd_event_style(int32_t cmd) noexcept
     {
@@ -385,80 +454,11 @@ namespace ui
     class specialized_cmd_event : public cmd_event
     {};
 
-    template<cmd_event_style style> [[nodiscard]]
-    constexpr const specialized_cmd_event<style>& cmd_event_for(const cmd_event& e) noexcept
+    template<cmd_event_style style>
+    [[nodiscard]] constexpr const specialized_cmd_event<style>& cmd_event_for(const cmd_event& e) noexcept
     {
         D_ASSERT(style == e.style());
         return static_cast<const specialized_cmd_event<style>&>(e);
     }
-#endif
 
-#ifdef D_OS_WINDOWS
-    template<>
-    class specialized_event<event_style::size> : public event
-    {
-    public:
-        using event::event;
-        using value_type = event::_coordinate_value_type;
-        using size2d_type = size2d<value_type>;
-
-        [[nodiscard]]
-        constexpr value_type width() const noexcept
-        {
-            return _x_coordinate();
-        }
-
-        [[nodiscard]]
-        constexpr value_type height() const noexcept
-        {
-            return _y_coordinate();
-        }
-
-        [[nodiscard]]
-        constexpr size2d_type sizes() const noexcept
-        {
-            return { width(), height() };
-        }
-    };
-
-    using mouse_wheel_delta_t = short;
-    constexpr mouse_wheel_delta_t min_mouse_wheel_delta{ 120 };
-
-    [[nodiscard]]
-    constexpr mouse_wheel_delta_t mouse_wheel_delta(word_parameter_t word_parametr) noexcept
-    {
-        return static_cast<mouse_wheel_delta_t>(hi_cast<word_t>(word_parametr));
-    }
-
-    template<>
-    class specialized_event<event_style::mouse_wheel> : public mouse_event
-    {
-    public:
-        [[nodiscard]]
-        constexpr mouse_wheel_delta_t delta() const noexcept
-        {
-            return mouse_wheel_delta(_word_parameter());
-        }
-
-        [[nodiscard]]
-        constexpr double rot() const noexcept
-        {
-            return numeric_cast<double>(delta()) / min_mouse_wheel_delta;
-        }
-    };
-
-
-    template<>
-    class specialized_event<event_style::mouse_double_click> : public mouse_event
-    {};
-
-#endif
-
-
-    template<event_style style> [[nodiscard]]
-    constexpr const specialized_event<style>& event_for(const event& e) noexcept
-    {
-        D_ASSERT(style == e.style());
-        return static_cast<const specialized_event<style>&>(e);
-    }
 }

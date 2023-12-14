@@ -1,49 +1,17 @@
-﻿#include <core/tuple_algorithm.h>
-#include <core/ordered_overload.h>
-#include <core/member_detector.h>
+﻿#include <type_traits>
 
-#include <widget/temp_buffer.h>
-#include <widget/window.h>
-
-#include <format>
-
-using widget::pix8_temp_buffer;
-using widget::window;
-using widget::content_size2d;
-
-
-namespace
+struct snp
 {
-    struct ev0 {};
-    struct ev1 {};
-
-    enum class e_res
-    {};
-
-    struct proc
-    {
-        void operator () (ev0) {}
-        e_res operator () (ev1) { return {}; }
-    };
-
-    struct combo
-    {
-        template<class... Args>
-        void add(Args...) {}
-    };
-
-}
-
-
+    std::nullptr_t np0;
+    std::nullptr_t np1;
+};
 
 int main() noexcept
 {
-    combo c;
-    
-    decltype(proc{}(ev1{})) res;
+    int a = 0, b = 1;
+    using type_meq = decltype(a -= b);
 
-    c.add(proc{}(ev1{}));
-
+    snp snp0;
 
     return 0;
 }

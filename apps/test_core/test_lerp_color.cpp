@@ -4,9 +4,11 @@
 
 void test_lerp_color() noexcept
 {
-    constexpr num_range animation_index{0, 8};
-    constexpr num_range colors_from_cyan_to_red{colors::cyan, colors::red};
-    constexpr auto animation_color_cyan_to_red = lerp(animation_index, colors_from_cyan_to_red);
+    constexpr auto animation_color_cyan_to_red = lerp
+    (
+        0, 8, 
+        colors::cyan, colors::red
+    );
 
     constexpr auto c0 = animation_color_cyan_to_red(0);
     constexpr auto c1 = animation_color_cyan_to_red(1);

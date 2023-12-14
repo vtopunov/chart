@@ -1,7 +1,5 @@
 #include "type_window.h"
 
-#include <core/narrow.h>
-
 #include <os/os.h>
 
 #include <ui/window.h>

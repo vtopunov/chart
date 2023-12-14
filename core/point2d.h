@@ -59,73 +59,36 @@ struct point2d : vec2<T>
     {
         return _1;
     }
+
+    [[nodiscard]]
+    constexpr bool operator == (const point2d&) const noexcept = default;
+
+    [[nodiscard]]
+    constexpr bool operator != (const point2d&) const noexcept = default;
 };
 
 template<class T>
-point2d(T, T)->point2d<T>;
+point2d(T, T) -> point2d<T>;
 
 template<class T>
-point2d(const vec2<T>&)->point2d<T>;
+point2d(const vec2<T>&) -> point2d<T>;
+
 
 template<class T>
-[[nodiscard]] constexpr auto operator - (const point2d<T>& right) noexcept -> decltype(point2d{ -as_vec2(right) })
+[[nodiscard]] constexpr const point2d<T>& as_point2d(const point2d<T>& p) noexcept
 {
-    return point2d{ -as_vec2(right) };
-}
-
-template<class L, class R>
-[[nodiscard]] constexpr decltype(auto) operator - (const point2d<L>& left, const vec2<R>& right) noexcept
-{
-    return point2d{ as_vec2(left) - right };
-}
-
-template<class L, class R>
-[[nodiscard]] constexpr decltype(auto) operator + (const point2d<L>& left, const vec2<R>& right) noexcept
-{
-    return point2d{ as_vec2(left) + right };
-}
-
-template<class L, class R>
-[[nodiscard]] constexpr decltype(auto) operator + (const vec2<L>& left, const point2d<R>& right) noexcept
-{
-    return point2d{ left + as_vec2(right) };
-}
-
-template<class L, class R>
-[[nodiscard]] constexpr decltype(auto) operator + (const point2d<L>& left, const point2d<R>& right) noexcept
-{
-    return point2d{ as_vec2(left) + as_vec2(right) };
+    return p;
 }
 
 template<class T>
-[[nodiscard]] constexpr std::enable_if_t<
-    is_salar_for_vec_v<T>,
-    point2d<decl_mul_t<T, T>>
-> operator * (const point2d<T>& left, const T& right) noexcept
+[[nodiscard]] constexpr point2d<T>& as_point2d(point2d<T>& p) noexcept
 {
-    return point2d{ as_vec2(left) * right };
+    return p;
 }
 
-template<class T, class U>
-[[nodiscard]] constexpr std::enable_if_t<
-    is_compatible_scalar_for_vec_v<T, U>,
-    point2d<decl_mul_t<T, U>>
-> operator * (const point2d<T>& left, const U& right) noexcept
-{
-    return { as_vec2(left) * right };
-}
 
-template<class U, class T>
-[[nodiscard]] constexpr auto operator * (const U& left, const point2d<T>& right) noexcept -> decltype(right* left)
+template<class T>
+[[nodiscard]] constexpr point2d<T> to_point2d(const vec2<T>& v) noexcept
 {
-    return right * left;
-}
-
-template<class T, class U>
-[[nodiscard]] constexpr std::enable_if_t<
-    is_compatible_scalar_for_vec_v<T, U>,
-    point2d<decl_div_t<T, U>>
-> operator / (const point2d<T>& left, const U& right) noexcept
-{
-    return { as_vec2(left) / right };
+    return { v }; 
 }

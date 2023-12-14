@@ -20,8 +20,6 @@ namespace widget
             : result{ function(e) }
         {}
 
-        constexpr auto operator<=>(const event_result_processor&) const noexcept = default;
-
         ER result;
     };
 

@@ -44,9 +44,11 @@
     <ClInclude Include="..\..\..\ui\event_loop.h" />
     <ClInclude Include="..\..\..\ui\event_matching.h" />
     <ClInclude Include="..\..\..\ui\fwd.h" />
+    <ClInclude Include="..\..\..\ui\manipulator.h" />
     <ClInclude Include="..\..\..\ui\window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\ui\manipulator.cpp" />
     <ClCompile Include="app.cpp" />
     <ClCompile Include="event.cpp" />
     <ClCompile Include="event_loop.cpp" />

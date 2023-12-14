@@ -2,8 +2,6 @@
 
 #include <android/native_window.h>
 
-#include <core/clamp_cast.h>
-
 
 namespace ui
 {

@@ -40,12 +40,12 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\static_library.props" />
   <ItemGroup>
-    <ClInclude Include="$(RepoDir)\px\pixalgorithm.h" />
     <ClInclude Include="$(RepoDir)\px\pixline.h" />
     <ClInclude Include="$(RepoDir)\px\pixmap.h" />
     <ClInclude Include="$(RepoDir)\px\pixspace.h" />
     <ClInclude Include="$(RepoDir)\px\pixspan.h" />
     <ClInclude Include="$(RepoDir)\px\pxalignment.h" />
+    <ClInclude Include="..\..\..\px\algorithm.h" />
     <ClInclude Include="..\..\..\px\fwd.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

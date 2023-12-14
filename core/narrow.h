@@ -207,13 +207,6 @@ namespace private_detail_narrow
     }
 
     template<class T>
-    [[nodiscard]] constexpr decltype(auto) to_unsigned_or(const T& value) noexcept
-    {
-        static_assert(std::is_arithmetic_v<T>);
-        return narrow<unsigned_or_t<T>>(value);
-    }
-
-    template<class T>
     [[nodiscard]] constexpr decltype(auto) to_unsigned(const T& value) noexcept
     {
         return narrow<std::make_unsigned_t<T>>(value);
@@ -234,7 +227,6 @@ using private_detail_narrow::is_safe_numeric_not_same_conversion_v;
 using private_detail_narrow::is_safe_narrowing_conversion;
 using private_detail_narrow::narrow;
 using private_detail_narrow::numeric_cast;
-using private_detail_narrow::to_unsigned_or;
 using private_detail_narrow::to_unsigned;
 using private_detail_narrow::to_signed;
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/resource_fwd.h>
 #include <core/intrusive_list.h>
 #include <core/utility.h>
 #include <core/view.h>

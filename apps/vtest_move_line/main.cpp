@@ -1,6 +1,4 @@
-﻿#include <core/round.h>
-
-#include <debug/debug.h>
+﻿#include <debug/debug.h>
 
 #include <px/algorithm.h>
 
@@ -16,7 +14,7 @@ namespace
     gl::texture2d lines_rendering(const pix8span image, const pxoff2d d) noexcept
     {
         {
-            const auto dd = narrow2d<px::point2d_real>(d);
+            const auto dd = md_narrow<px::real_point2d>(d);
             for (const auto& line : vtest_line_figure::figure)
             {
                 draw_antialiasing_line
@@ -90,7 +88,7 @@ namespace
 #if defined(D_OS_WINDOWS)
         std::nullopt_t operator () (const ui::mouse_double_click_event&) noexcept
         {
-            lines_rendering_by_default();
+            D_ASSERT_OR_UNUSED(lines_rendering_by_default());
             return std::nullopt;
         }
 
@@ -115,15 +113,7 @@ namespace
 
                     if (invalid_mouse_pos != old_pos)
                     {
-                        const auto d_mouse = as_signed(new_pos - old_pos);
-
-                        const auto new_position = position_ + point2d
-                        {
-                            trunc_cast<pxoff_t>(d_mouse.x()),
-                            trunc_cast<pxoff_t>(d_mouse.y())
-                        };
-
-                        lines_rendering(new_position);
+                        D_ASSERT_OR_UNUSED(lines_rendering(position_ + md_trunc_cast<pxoff2d>(as_signed(new_pos - old_pos))));
                     }
                 }
             }
@@ -171,6 +161,7 @@ namespace
             mouse_pos_ = invalid_mouse_pos;
         }
 
+        [[nodiscard]]
         bool lines_rendering(const pxoff2d position) noexcept
         {
             if (texture_ && position == position_)
@@ -204,6 +195,7 @@ namespace
             return true;
         }
 
+        [[nodiscard]]
         bool lines_rendering_by_default() noexcept
         {
             return lines_rendering({ 0_pxz, 0_pxz });
@@ -213,6 +205,7 @@ namespace
         class shaders_lib
         {
         public:
+            [[nodiscard]]
             bool initialize(pxsize2d viewport) noexcept
             {
                 if (!lib.build())

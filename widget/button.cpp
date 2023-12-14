@@ -76,6 +76,16 @@ namespace widget
             return font::cursor::instance(r.position) + font::cursor::instance(r.sizes) / 2;
         }
 
+        [[nodiscard]]
+        constexpr pxpoint2d to_pxpoint2d(const vec2<font::fixed_t>& v) noexcept
+        {
+            return
+            {
+                font::ceil_to<pxside_t>(v._0),
+                font::ceil_to<pxside_t>(v._1)
+            };
+        }
+
         constexpr bool update_state(button_state& state, const button_state new_state) noexcept
         {
             const auto is_update = new_state != state;
@@ -150,13 +160,8 @@ namespace widget
         {
             const auto client_rc_center = center(client_rc);
             const auto texture_center = text_cache.center();
-            const auto position = client_rc_center - texture_center;
-
-            const point2d px_position
-            {
-                font::ceil_to<pxside_t>(position.x()),
-                font::ceil_to<pxside_t>(position.y())
-            };
+            const auto d_center = client_rc_center - texture_center;
+            const auto px_position = to_pxpoint2d(d_center);
 
             e.get<shader::gray_texture_mix_color>().draw(px_position, text_cache.texture(), gl::colors::black_f);
         }

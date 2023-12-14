@@ -59,7 +59,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(RepoAppsDir)\test_font_cache\main.cpp" />
+    <ClCompile Include="$(RepoAppsDir)\test_utility\main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

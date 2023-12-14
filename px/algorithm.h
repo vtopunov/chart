@@ -1,7 +1,5 @@
 #pragma once
 
-#include <core/warnings.h>
-
 #include <px/pixspan.h>
 
 
@@ -14,7 +12,6 @@ namespace px
     D_WARNING_DISABLE_MSVC(W_do_not_use_pointer_arithmetic);
     D_WARNING_DISABLE_MSVC(W_use_not_null);
 
-    using real_t = double_t;
 
     namespace private_detail_antialiasing_line
     {
@@ -155,8 +152,8 @@ namespace px
                         const auto mean_shade = narrow<shade_t>((inv_shade + new_shade) / 2u);
                         new_p[-line_size_z] = mean_shade;
                         return;
-                    } 
-                    
+                    }
+
                     if (dp == (1_z - line_size_z))
                     {
                         const auto mean_shade = narrow<shade_t>((shade + new_shade) / 2u);
@@ -192,7 +189,7 @@ namespace px
             }
         };
 
-        constexpr antialiasing_line_result invalid_antialiasing_line_result_v
+        constexpr antialiasing_line_result invalid_antialiasing_line_result
         {
             .p{ nullptr },
             .shade{ 0u },
@@ -201,22 +198,20 @@ namespace px
     }
 
     using private_detail_antialiasing_line::antialiasing_line_result;
-    using private_detail_antialiasing_line::invalid_antialiasing_line_result_v;
-
-    using point2d_real = point2d<real_t>;
+    using private_detail_antialiasing_line::invalid_antialiasing_line_result;
 
     template<class Joiner>
     constexpr antialiasing_line_result draw_antialiasing_line
     (
         const pix8span image,
-        const point2d_real p0,
-        const point2d_real p1,
+        const real_point2d p0,
+        const real_point2d p1,
         const Joiner joiner
     ) noexcept
     {
         using namespace private_detail_antialiasing_line;
 
-        constexpr auto invalid_result = invalid_antialiasing_line_result_v;
+        constexpr auto invalid_result = invalid_antialiasing_line_result;
 
         const auto line_size_z = narrow<ptrdiff_t>(image.line_size());
 
@@ -398,8 +393,8 @@ namespace px
     constexpr antialiasing_line_result draw_antialiasing_line
     (
         const pix8span image,
-        const point2d_real p0,
-        const point2d_real p1
+        const real_point2d p0,
+        const real_point2d p1
     ) noexcept
     {
         using private_detail_antialiasing_line::image_pointer_t;
@@ -420,13 +415,35 @@ namespace px
     constexpr antialiasing_line_result draw_antialiasing_line
     (
         const pix8span image,
-        const real_t x0, 
-        const real_t y0, 
-        const real_t x1, 
+        const real_t x0,
+        const real_t y0,
+        const real_t x1,
         const real_t y1
     ) noexcept
     {
         return draw_antialiasing_line(image, point2d{ x0, y0 }, point2d{ x1, y1 });
+    }
+
+    template<class Transformation>
+    constexpr void draw_polyline
+    (
+        const pix8span image,
+        const real_point2d_cspan values,
+        const Transformation value2px
+    ) noexcept
+    {
+        if (values.size()) [[likely]]
+        {
+            auto cached_result = invalid_antialiasing_line_result;
+            auto p0 = value2px(values.front());
+            for (const auto& p : values.subspan(1u))
+            {
+                const auto p1 = value2px(p);
+                const auto result = draw_antialiasing_line(image, p0, p1, cached_result);
+                cached_result = result;
+                p0 = p1;
+            }
+        }
     }
 
     D_WARNING_POP

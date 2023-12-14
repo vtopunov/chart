@@ -2,7 +2,6 @@
 
 #include <string_view>
 
-#include <core/member_detector.h>
 #include <core/size_type.h>
 #include <core/span.h>
 

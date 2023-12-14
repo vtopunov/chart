@@ -48,13 +48,10 @@
     <ClInclude Include="$(RepoDir)\core\intrusive_list.h" />
     <ClInclude Include="$(RepoDir)\core\lerp.h" />
     <ClInclude Include="$(RepoDir)\core\limits.h" />
-    <ClInclude Include="$(RepoDir)\core\member_detector.h" />
     <ClInclude Include="$(RepoDir)\core\narrow.h" />
     <ClInclude Include="$(RepoDir)\core\null.h" />
-    <ClInclude Include="$(RepoDir)\core\num_range.h" />
     <ClInclude Include="$(RepoDir)\core\ordered_overload.h" />
     <ClInclude Include="$(RepoDir)\core\point2d.h" />
-    <ClInclude Include="$(RepoDir)\core\polynomial.h" />
     <ClInclude Include="$(RepoDir)\core\rational.h" />
     <ClInclude Include="$(RepoDir)\core\size2d.h" />
     <ClInclude Include="$(RepoDir)\core\size_type.h" />
@@ -70,12 +67,9 @@
     <ClInclude Include="$(RepoDir)\core\warnings.h" />
     <ClInclude Include="$(RepoDir)\core\zero.h" />
     <ClInclude Include="$(RepoDir)\core\zstring_view.h" />
-    <ClInclude Include="..\..\..\core\buffer_fwd.h" />
-    <ClInclude Include="..\..\..\core\color_fwd.h" />
     <ClInclude Include="..\..\..\core\fmt.h" />
     <ClInclude Include="..\..\..\core\rectangle.h" />
     <ClInclude Include="..\..\..\core\resource.h" />
-    <ClInclude Include="..\..\..\core\resource_fwd.h" />
     <ClInclude Include="..\..\..\core\round.h" />
     <ClInclude Include="..\..\..\core\static_vector.h" />
   </ItemGroup>

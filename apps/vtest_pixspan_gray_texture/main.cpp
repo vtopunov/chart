@@ -95,11 +95,11 @@ int app_main(os::module_handle_t app) noexcept
         const auto dx = width(texture) + 1_px;
         const auto dy = height(texture) + 1_px;
 
-        const auto x_color_lerp = lerp(num_range{ 0_px, w }, num_range{ colors::blue, colors::red });
+        const auto x_color_lerp = lerp(0_px, w, colors::blue, colors::red);
 
         for (pxside_t x = 0_px; x < w; x += dx)
         {
-            const auto xy_color_lerp = lerp(num_range{ 0_px, h }, num_range{ color_cast<rgba_color32_t>(x_color_lerp(x)), colors::green });
+            const auto xy_color_lerp = lerp(0_px, h, color_cast<rgba_color32_t>(x_color_lerp(x)), colors::green);
 
             for (pxside_t y = 0_px; y < h; y += dy)
             {

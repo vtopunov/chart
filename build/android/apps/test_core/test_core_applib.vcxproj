@@ -24,10 +24,8 @@
     <ClCompile Include="..\..\..\..\apps\test_core\test_functional.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_lerp.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_lerp_color.cpp" />
-    <ClCompile Include="..\..\..\..\apps\test_core\test_member_detector.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_narrow.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_null.cpp" />
-    <ClCompile Include="..\..\..\..\apps\test_core\test_num_range.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_ordered_overload.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_point2d.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_rational.cpp" />
@@ -39,6 +37,7 @@
     <ClCompile Include="..\..\..\..\apps\test_core\test_small_vector.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_span.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_static_vector.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_transformation.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_tuple_algorithm.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_type_traits.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_utf.cpp" />

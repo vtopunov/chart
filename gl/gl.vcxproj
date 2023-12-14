@@ -28,9 +28,6 @@
     <ProjectReference Include="..\3rdparty\angle\src\libGLESv2.vcxproj">
       <Project>{d5d676ed-c189-2a6b-8de3-f4ca6175550f}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\debug\debug.vcxproj">
-      <Project>{fc7a4ffb-fa58-4f42-a821-a1967b253843}</Project>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

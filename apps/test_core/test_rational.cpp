@@ -38,6 +38,10 @@ void test_rational() noexcept
     static_assert(2 * r1 == rational{ 3, 2 });
     static_assert(3 / rational{ 2, 5 } == rational{ 15, 2 });
     static_assert((1 / 2_r) == rational<ptrdiff_t>{ 1, 2 });
+    static_assert(rational<int>::from_int(5) == rational{ 5, 1 });
+    static_assert(rational<ptrdiff_t>::zero() == rational<ptrdiff_t>::from_int(0));
+    static_assert(rational<ptrdiff_t>::zero() == rational<ptrdiff_t>{ 0, 1 });
+    static_assert(rational<ptrdiff_t>::zero() == zero_v<rational<ptrdiff_t>>);
     static_assert(0.0_r == rational<ptrdiff_t>::zero());
     static_assert(std::is_same_v<decltype(0.0_r), rational<ptrdiff_t>>);
     static_assert(0.5_r == rational<ptrdiff_t>{ 1, 2 });
