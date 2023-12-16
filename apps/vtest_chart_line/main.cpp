@@ -70,6 +70,33 @@ namespace
                 widget::content_size2d
             >;
 
+            event_result operator () (const ui::mouse_wheel_event& e) noexcept
+            {
+                if (space_diagonal_cache)
+                {
+                    const auto diagonal0 = space_diagonal_cache.value();
+
+                    constexpr double zoom_factor = 1.1;
+                    const auto zoom = pow(zoom_factor, e.rot());
+                    const auto half_d_d_diagonal = (diagonal0._1 - diagonal0._0) * (0.5 * zoom - 0.5);
+
+                    const chart::space_diagonal_t new_diagonal
+                    {
+                        ._0{ diagonal0._0 - half_d_d_diagonal },
+                        ._1{ diagonal0._1 + half_d_d_diagonal }
+                    };
+
+                    if (space_diagonal_cache.try_update(new_diagonal))
+                    {
+                        clear_texture_cache();
+                        return event_result::redraw;
+                    }
+                }
+
+                return event_result::idle;
+            }
+
+
             widget::event_result operator () (mouse_move_event_type e) noexcept
             {
                 if (e.keys().is_left() && has_image(texture_cache) && space_diagonal_cache)
@@ -270,6 +297,8 @@ namespace
             {
                 ui::quit(w);
             };
+
+            b_plot.clicked();
 
             return true;
         }
