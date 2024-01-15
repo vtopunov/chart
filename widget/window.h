@@ -17,9 +17,6 @@ namespace widget
         constexpr auto gl_dialog_color_f = gl::to_colorf(dialog_color);
     }
 
-    struct content_size2d : pxsize2d
-    {};
-
     class window : public egl_ui_owner
     {
     public:

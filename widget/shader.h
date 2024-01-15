@@ -1,8 +1,8 @@
 #pragma once
 
-#include <egl_ui/viewport_size2d.h>
-
 #include <utility/shader_library.h>
+
+#include <widget/fwd.h>
 
 
 namespace widget

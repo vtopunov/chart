@@ -112,14 +112,14 @@ namespace ui
 
     private:
         [[nodiscard]]
-        type_window_parameters* _p_params() noexcept;
+        type_window_parameters* _p_impl() noexcept;
 
         [[nodiscard]]
-        const type_window_parameters* _c_p_params() const noexcept;
+        const type_window_parameters* _c_p_impl() const noexcept;
 
     private:
-        static constexpr size_t param_len{ 104u };
-        static constexpr size_t param_align{ 8u };
-        alignas(param_align) std::byte storage_[param_len]{};
+        static constexpr size_t storage_size{ 104u };
+        static constexpr size_t storage_align{ 8u };
+        alignas(storage_align) std::byte storage_[storage_size]{};
     };
 }

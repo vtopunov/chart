@@ -28,30 +28,26 @@ namespace widget
             is_nothrow_copiable_v<T>, std::add_const_t<T>,
             std::add_lvalue_reference_t<std::add_const_t<T>>
         >;
-    }
 
-    namespace private_detail_widget_event
-    {
         template<class Tuple>
-        using cref_if_need_first_tuple_element_t = helpers::cref_if_need_t<std::tuple_element_t<0u, Tuple>>;
+        using cref_if_need_first_tuple_element_t = cref_if_need_t<std::tuple_element_t<0u, Tuple>>;
     }
-
 
     template<class EventBase, class... Args>
     class widget_event : public EventBase
     {
     private:
         using cref_wrap_tuple_type = std::tuple<helpers::cref_wrap_if_need_t<Args>...>;
-        
+
         static constexpr auto has_only_first_element = (1u == sizeof...(Args));
 
     public:
         using context_tuple_type = std::tuple<Args...>;
 
         using first_element_type = conditional_op_or_t<
-            has_only_first_element, 
+            has_only_first_element,
             const widget_event&,
-            private_detail_widget_event::cref_if_need_first_tuple_element_t, 
+            helpers::cref_if_need_first_tuple_element_t,
             context_tuple_type
         >;
 

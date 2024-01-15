@@ -51,7 +51,7 @@ namespace widget
 
             if (texture_)
             {
-                texture_ = gl::write(std::move(texture_), pixs);
+                texture_ = gl::image(std::move(texture_), pixs);
             }
             else
             {

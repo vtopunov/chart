@@ -6,6 +6,41 @@
 #include <core/assert.h>
 #include <core/type_traits.h>
 
+namespace private_detail_remove_reference_wrapper
+{
+    template<class T>
+    struct remove_reference_wrapper_helper
+    {
+        using mut_t = std::remove_const_t<T>;
+        using unwrap_ref_t = typename std::unwrap_reference<mut_t>::type;
+
+        using type = std::remove_reference_t<std::conditional_t<std::is_same_v<mut_t, unwrap_ref_t>, T, unwrap_ref_t>>;
+    };
+
+    template<class T>
+    struct remove_reference_wrapper_helper<optional_reference_wrapper<T>>
+    {
+        using type = std::remove_reference_t<T>;
+    };
+
+    template<class T>
+    struct remove_reference_wrapper_helper<const optional_reference_wrapper<T>>
+    {
+        using type = std::remove_reference_t<T>;
+    };
+
+    template <class T>
+    using remove_reference_wrapper_t = typename remove_reference_wrapper_helper<std::remove_reference_t<T>>::type;
+}
+
+using private_detail_remove_reference_wrapper::remove_reference_wrapper_t;
+
+template<class T>
+[[nodiscard]] constexpr std::add_lvalue_reference_t<remove_reference_wrapper_t<T>> unrefwrap(T& value) noexcept
+{
+    return value;
+}
+
 
 template<class T>
 class optional_reference_wrapper
@@ -54,49 +89,6 @@ public:
 private:
     T* data_;
 };
-
-
-namespace private_detail_remove_reference_wrapper
-{
-    template<class T, class R>
-    struct remove_reference_wrapper_helper
-    {
-        using type = T;
-    };
-
-    template<class T, class R>
-    struct remove_reference_wrapper_helper<T, std::reference_wrapper<R>>
-    {
-        using type = R;
-    };
-
-    template<class T, class R>
-    struct remove_reference_wrapper_helper<T, optional_reference_wrapper<R>>
-    {
-        using type = R;
-    };
-
-    template<class T>
-    struct remove_reference_wrapper : remove_reference_wrapper_helper<T, T>
-    {};
-
-    template<class T>
-    struct remove_reference_wrapper<const T> : remove_reference_wrapper_helper<const T, T>
-    {};
-
-    template <class T>
-    using remove_reference_wrapper_t = typename remove_reference_wrapper<T>::type;
-}
-
-using private_detail_remove_reference_wrapper::remove_reference_wrapper;
-using private_detail_remove_reference_wrapper::remove_reference_wrapper_t;
-
-
-template<class T>
-[[nodiscard]] constexpr std::add_lvalue_reference_t<std::remove_reference_t<remove_reference_wrapper_t<T>>> unrefwrap(T& value) noexcept
-{
-    return value;
-}
 
 
 template<typename T>
@@ -215,11 +207,3 @@ template<class T>
 {
     return other == nullptr;
 }
-
-
-struct nothing
-{
-    template<class... Args>
-    constexpr void operator () (Args&&...) const noexcept
-    {}
-};

@@ -11,12 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\widget\widget.vcxproj">
-      <Project>{1e3a33e9-c894-4513-b5e9-e2913f86f0e6}</Project>
-    </ProjectReference>
+    <ClInclude Include="chart_widget.h" />
+    <ClInclude Include="space_diagonal.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="space_diagonal.h" />
+    <ClCompile Include="chart_widget.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

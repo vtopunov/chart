@@ -124,6 +124,11 @@ namespace ui
     {
         unique_moudle app_module;
 
+        constexpr operator initialization_event () const noexcept
+        {
+            return {};
+        }
+
         constexpr operator const_module_handle_t () const noexcept
         {
             return app_module;

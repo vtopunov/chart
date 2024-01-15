@@ -1,0 +1,1 @@
+jarsigner -verbose -sigalg MD5withRSA -digestalg SHA1 -keystore my-release-key.keystore -storepass 123456 -keypass 123456 ARM\Release\Package\bin\vtest_chart-release-unsigned.apk alias_name

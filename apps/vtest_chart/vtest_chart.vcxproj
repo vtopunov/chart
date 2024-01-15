@@ -13,11 +13,11 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EF732F2A-AAA0-4CE8-B75C-E52E307A7EC2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>vtest_chart_line</RootNamespace>
+    <RootNamespace>vtest_chart</RootNamespace>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>vtest_chart_line</ProjectName>
+    <ProjectName>vtest_chart</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -78,6 +78,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\chart\chart.vcxproj">
+      <Project>{71ed1dd6-5ba3-4eb1-9fad-92f68e54b78a}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -119,7 +119,7 @@ namespace gl
     texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept;
 
     [[nodiscard]]
-    texture2d write(texture2d texture, pxsize2d sizes, texture_format format, const void* pixels) noexcept;
+    texture2d image(texture2d texture, pxsize2d sizes, texture_format format, const void* pixels) noexcept;
 
     [[nodiscard]]
     inline texture2d sizes(texture2d tex, pxsize2d sizes) noexcept
@@ -136,12 +136,6 @@ namespace gl
     inline texture2d sizes(texture2d tex, pxside_t w, pxside_t h) noexcept
     {
         return sizes(std::move(tex), pxsize2d{ w, h });
-    }
-
-    [[nodiscard]]
-    constexpr bool has_image(texture2d_resources tex) noexcept
-    {
-        return tex.sizes.width() && tex.sizes.height();
     }
 
     template<size_t PxSize>
@@ -189,21 +183,21 @@ namespace gl
     }
 
     template<class T>
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> write(texture2d texture, pxsize2d sizes, const T* pixels) noexcept
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> image(texture2d texture, pxsize2d sizes, const T* pixels) noexcept
     {
-        return write(std::move(texture), sizes, texpix_format_v<T>, pixels);
+        return image(std::move(texture), sizes, texpix_format_v<T>, pixels);
     }
 
     template<class T>
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> write(texture2d texture, pixspan<T> image) noexcept
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> image(texture2d texture, pixspan<T> img) noexcept
     {
-        return write(std::move(texture), image.sizes(), image.data());
+        return image(std::move(texture), img.sizes(), img.data());
     }
 
     template<class T>
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> write(texture2d texture, const pixmap<T>& image) noexcept
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> image(texture2d texture, const pixmap<T>& img) noexcept
     {
-        return write(std::move(texture), pixspan{ image });
+        return image(std::move(texture), pixspan{ img });
     }
 
     template<texture_target target>

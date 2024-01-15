@@ -123,7 +123,7 @@ namespace chart
         constexpr space_diagonal_cache() noexcept = default;
         D_DISABLE_COPY_MOVE(space_diagonal_cache);
 
-        explicit constexpr operator bool() const noexcept
+        constexpr explicit operator bool() const noexcept
         {
             return has_value();
         }
@@ -174,55 +174,4 @@ namespace chart
     private:
         space_diagonal_t line_{ chart::space_diagonal_initializer };
     };
-
-    /*
-    class points_range_cache
-    {
-    public:
-        constexpr points_range_cache() noexcept = default;
-        D_DISABLE_COPY_MOVE(points_range_cache);
-
-        constexpr bool range_is_cached() const noexcept
-        {
-            return !marked_as_invalid(range_);
-        }
-
-        constexpr points_range range() const noexcept
-        {
-            D_ASSERT(range_is_cached());
-            return range_;
-        }
-
-        constexpr void clear() noexcept
-        {
-            range_ = points_range_initializer;
-        }
-
-        constexpr bool try_update(const points_range& range) noexcept
-        {
-            debug
-            (
-                "update points range x: [{:.3f},{:.3f}) -> [{:.3f},{:.3f})",
-                range_.x()._0, range_.x()._1, range.x()._0, range.x()._1
-            );
-
-            debug
-            (
-                "update points range y: [{:.3f},{:.3f}) -> [{:.3f},{:.3f})",
-                range_.y()._0, range_.y()._1, range.y()._0, range.y()._1
-            );
-
-            if (range_is_good(range))
-            {
-
-                range_ = range;
-                return true;
-            }
-
-            return false;
-        }
-
-    private:
-        points_range range_{ points_range_initializer };
-    };*/
 }

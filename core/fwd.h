@@ -60,8 +60,20 @@ static_assert(1u == sizeof(std::byte));
 using buffer_t = buffer<std::byte>;
 
 
+template<class T>
+class optional_reference_wrapper;
+
+
 template <class T, class D>
 class unique_resource;
 
 template<class T, class D>
 class shared_resource;
+
+
+struct nothing
+{
+    template<class... Args>
+    constexpr void operator () (Args&&...) const noexcept
+    {}
+};

@@ -1,16 +1,35 @@
 #pragma once
 
-#include <ui/fwd.h>
-
-#include <egl_ui/viewport_size2d.h>
+#include <egl_ui/fwd.h>
 
 
 namespace widget
 {
+    struct content_size2d : pxsize2d
+    {};
+
+    using stretchable_pxrectangle = ::rectangle<pxside_t, pxoff_t>;
+
+    
     class window;
+
+
+    template<class Ex>
+    struct ex_context
+    {
+        template<class Fn>
+        decltype(auto) apply(Fn fn) const noexcept
+        {
+            return fn();
+        }
+    };
+
+    template<class Ex>
+    constexpr ex_context<Ex> ex_context_v{};
 
     template<class... Types>
     class common_context;
+
 
     template<class EventBase, class... Args>
     class widget_event;

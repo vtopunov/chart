@@ -1,6 +1,6 @@
 #pragma once
 
-#include <px/fwd.h>
+#include <widget/event.h>
 
 
 namespace widget
@@ -45,6 +45,13 @@ namespace widget
             clamp_len(r.x(), r.width(), bound.width()),
             clamp_len(r.y(), r.height(), bound.height())
         };
+    }
+
+    template<class Pos, class Sz, class EventBase, class... EventExts>
+    constexpr auto stretchable_sizes(const rectangle<Pos, Sz>& r, const widget_event<EventBase, EventExts...>& e) noexcept
+        -> decltype(stretchable_sizes(r, e.template get<content_size2d>()))
+    {
+        return stretchable_sizes(r, e.template get<content_size2d>());
     }
 }
 

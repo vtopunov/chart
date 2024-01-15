@@ -35,7 +35,6 @@ namespace private_detail_static_vector
             return nullptr;
         }
 
-        [[nodiscard]]
         constexpr explicit operator bool() const noexcept
         {
             return false;

@@ -7,6 +7,11 @@ namespace egl_ui
 {
     struct viewport_size2d : pxsize2d
     {
+        constexpr operator ui::viewport_event () const noexcept
+        {
+            return {};
+        }
+
         constexpr explicit operator bool() const noexcept
         {
             return ui::window_sizes_is_valid(*this);

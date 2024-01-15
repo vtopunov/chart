@@ -3,8 +3,6 @@
 #include <ui/manipulator.h>
 #include <ui/event.h>
 
-#include <utility/shader_library.h>
-
 
 namespace widget
 {
@@ -19,7 +17,7 @@ namespace widget
 
         D_DISABLE_COPY_MOVE(user_gesture);
 
-        void operator () (viewport_size2d) noexcept
+        void operator () (ui::viewport_event) noexcept
         {
             clear();
         }

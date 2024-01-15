@@ -143,11 +143,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_move_and_zoom_applib"
 EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_move_and_zoom", "apps\vtest_move_and_zoom\vtest_move_and_zoom.androidproj", "{E46D6EDD-F637-4F53-B421-AFA3D0227F0D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_chart_line", "vtest_chart_line", "{D59B84F6-36A7-471A-9E5E-6F8E786C6A21}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_chart", "vtest_chart", "{D59B84F6-36A7-471A-9E5E-6F8E786C6A21}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_chart_line_applib", "apps\vtest_chart_line\vtest_chart_line_applib.vcxproj", "{B0964E47-9839-4031-9FB3-0904DB3988F6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_chart_applib", "apps\vtest_chart\vtest_chart_applib.vcxproj", "{B0964E47-9839-4031-9FB3-0904DB3988F6}"
 EndProject
-Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_chart_line", "apps\vtest_chart_line\vtest_chart_line.androidproj", "{B1FEC6FF-27F7-4876-8335-794741C2AA80}"
+Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_chart", "apps\vtest_chart\vtest_chart.androidproj", "{B1FEC6FF-27F7-4876-8335-794741C2AA80}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "widget", "widget\widget.vcxproj", "{F005696A-A08C-4A10-95EB-B7EF15CF7C26}"
 EndProject
@@ -178,6 +178,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_utility_applib", "apps\test_utility\test_utility_applib.vcxproj", "{FD74547E-9DFF-48C4-BF05-C4A30A0B3C30}"
 EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "test_utility", "apps\test_utility\test_utility.androidproj", "{4BCB8E28-FA92-499F-A5F5-2C9B3609F8BC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chart", "chart\chart.vcxproj", "{C1C56C81-43CE-4932-B134-543CF1CEF180}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -779,6 +781,14 @@ Global
 		{4BCB8E28-FA92-499F-A5F5-2C9B3609F8BC}.Release|x64.ActiveCfg = Release|ARM
 		{4BCB8E28-FA92-499F-A5F5-2C9B3609F8BC}.Release|x64.Build.0 = Release|ARM
 		{4BCB8E28-FA92-499F-A5F5-2C9B3609F8BC}.Release|x64.Deploy.0 = Release|ARM
+		{C1C56C81-43CE-4932-B134-543CF1CEF180}.Debug|ARM.ActiveCfg = Debug|ARM
+		{C1C56C81-43CE-4932-B134-543CF1CEF180}.Debug|ARM.Build.0 = Debug|ARM
+		{C1C56C81-43CE-4932-B134-543CF1CEF180}.Debug|x64.ActiveCfg = Debug|ARM
+		{C1C56C81-43CE-4932-B134-543CF1CEF180}.Debug|x64.Build.0 = Debug|ARM
+		{C1C56C81-43CE-4932-B134-543CF1CEF180}.Release|ARM.ActiveCfg = Release|ARM
+		{C1C56C81-43CE-4932-B134-543CF1CEF180}.Release|ARM.Build.0 = Release|ARM
+		{C1C56C81-43CE-4932-B134-543CF1CEF180}.Release|x64.ActiveCfg = Release|ARM
+		{C1C56C81-43CE-4932-B134-543CF1CEF180}.Release|x64.Build.0 = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

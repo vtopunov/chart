@@ -82,7 +82,7 @@ namespace gl
         return {};
     }
 
-    texture2d write(texture2d tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
+    texture2d image(texture2d tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
     {
         if (bind(tex)) [[likely]]
         {

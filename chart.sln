@@ -107,7 +107,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_move_and_zoom", "apps
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_move_line", "apps\vtest_move_line\vtest_move_line.vcxproj", "{94AD969C-502C-4419-9062-DDCD961EDEEC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_chart_line", "apps\vtest_chart_line\vtest_chart_line.vcxproj", "{EF732F2A-AAA0-4CE8-B75C-E52E307A7EC2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_chart", "apps\vtest_chart\vtest_chart.vcxproj", "{EF732F2A-AAA0-4CE8-B75C-E52E307A7EC2}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_ui", "apps\test_ui\test_ui.vcxproj", "{9817E611-FA2F-43FC-9199-CF2704848E3F}"
 EndProject

@@ -68,6 +68,7 @@
     <ClInclude Include="$(RepoDir)\core\zero.h" />
     <ClInclude Include="$(RepoDir)\core\zstring_view.h" />
     <ClInclude Include="..\..\..\core\fmt.h" />
+    <ClInclude Include="..\..\..\core\functional.h" />
     <ClInclude Include="..\..\..\core\rectangle.h" />
     <ClInclude Include="..\..\..\core\resource.h" />
     <ClInclude Include="..\..\..\core\round.h" />

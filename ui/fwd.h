@@ -79,6 +79,8 @@ namespace ui
     using mouse_down_event = specialized_event<event_style::mouse_down>;
     using mouse_up_event = specialized_event<event_style::mouse_up>;
     struct idle_event {};
+    struct initialization_event {};
+    struct viewport_event {};
 
     enum class cmd_event_style : int32_t
     {

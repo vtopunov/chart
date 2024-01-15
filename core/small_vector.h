@@ -68,14 +68,15 @@ public:
     static_assert(N > 0_uz);
 
     using value_type = T;
+    using const_value_type = const value_type;
     using pointer = value_type*;
-    using const_pointer = const value_type*;
+    using const_pointer = const_value_type*;
     using reference = value_type&;
-    using const_reference = const value_type&;
+    using const_reference = const_value_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
     using span_type = span<value_type>;
-    using const_span_type = span<std::add_const_t<value_type>>;
+    using const_span_type = span<const_value_type>;
     using buffer_type = Buffer;
     using size_type = typename buffer_type::size_type;
 

@@ -3,7 +3,7 @@
 #include <core/buffer.h>
 #include <core/buffer_view.h>
 
-#include <egl_ui/viewport_size2d.h>
+#include <widget/fwd.h>
 
 
 namespace widget

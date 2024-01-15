@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/tuple_algorithm.h>
+#include <core/functional.h>
 
 #include <widget/temp_buffer.h>
 #include <widget/user_gesture.h>
@@ -10,19 +11,6 @@
 
 namespace widget
 {
-    template<class Ex>
-    struct ex_context
-    {
-        template<class Fn>
-        decltype(auto) apply(Fn fn) const noexcept
-        {
-            return fn();
-        }
-    };
-
-    template<class Ex>
-    constexpr ex_context<Ex> ex_context_v{};
-
     namespace private_detail_context_tuple
     {
         template<class Target>

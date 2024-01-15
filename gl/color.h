@@ -4,6 +4,7 @@
 
 #include <gl/config.h>
 
+
 namespace gl
 {
     using rgba_colorf_t = rgba_color<GLfloat>;

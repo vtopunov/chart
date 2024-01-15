@@ -5,7 +5,7 @@
 #include <ui/window.h>
 #include <ui/event_loop.h>
 
-#include <egl_ui/viewport_size2d.h>
+#include <egl_ui/fwd.h>
 
 
 namespace egl_ui
@@ -92,6 +92,11 @@ namespace egl_ui
         constexpr operator viewport_size2d () const noexcept
         {
             return viewport;
+        }
+
+        constexpr operator ui::viewport_event () const noexcept
+        {
+            return {};
         }
     };
 

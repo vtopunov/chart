@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/type_traits.h>
 #include <core/resource.h>
 
 #include <ui/fwd.h>
