@@ -1,8 +1,10 @@
+#include <algorithm>
+#include <array>
 #include <functional>
 #include <chrono>
 
 #include <core/resource.h>
-#include <core/assert.h>
+
 
 namespace
 {
@@ -22,37 +24,46 @@ namespace
         }
 
         resource_type h;
-        intrusive_list_node c;
+        intrusive_node c;
     };
 
     template<class T, class D>
-    unsafe_resource<T, D>& unsafe(const shared_resource<T, D>& safe) noexcept
+    [[nodiscard]] unsafe_resource<T, D>* unsafe(const shared_resource<T, D>* safe) noexcept
     {
         using safe_type = shared_resource<T, D>;
         using unsafe_type = unsafe_resource<T, D>;
 
         static_assert(sizeof(safe_type) == sizeof(unsafe_type));
         static_assert(alignof(safe_type) == alignof(unsafe_type));
-        return (unsafe_type&) safe;
+        return (unsafe_type*)safe;
     }
 
-    template<class T, class D>
-    const intrusive_list_node* node(const shared_resource<T, D>& safe) noexcept
+    constexpr struct
     {
-        return &unsafe(safe).c;
-    }
+        template<class T, class D>
+        [[nodiscard]] const intrusive_node* operator () (const shared_resource<T, D>* safe) const noexcept
+        {
+            return std::addressof(unsafe(safe)->c);
+        }
+    } node{};
 
-    template<class T, class D>
-    const intrusive_list_node* prev(const shared_resource<T, D>& safe) noexcept
+    constexpr struct
     {
-        return node(safe)->prev;
-    }
+        template<class T, class D>
+        [[nodiscard]] const intrusive_node* operator ()(const shared_resource<T, D>* safe) const noexcept
+        {
+            return node(safe)->intrusive_prev_pnode;
+        }
+    } prev{};
 
-    template<class T, class D>
-    const intrusive_list_node* next(const shared_resource<T, D>& safe) noexcept
+    constexpr struct
     {
-        return node(safe)->next;
-    }
+        template<class T, class D>
+        [[nodiscard]] const intrusive_node* operator ()(const shared_resource<T, D>* safe) const noexcept
+        {
+            return node(safe)->intrusive_next_pnode;
+        }
+    } next{};
 
     struct tested_resource
     {
@@ -85,6 +96,53 @@ namespace
     using tested_unique = unique_resource<tested_resource, tested_resource_deleter>;
     using tested_shared = shared_resource<tested_resource, tested_resource_deleter>;
 
+
+    template<class T, class D, size_t N, class Node>
+    [[nodiscard]] constexpr bool is_unqiue_nodes(const std::array<const shared_resource<T, D>*, N>& array_p, Node node) noexcept
+    {
+        std::array<const intrusive_node*, N> nodes{};
+        std::transform(array_p.cbegin(), array_p.cend(), nodes.begin(), node);
+        std::sort(nodes.begin(), nodes.end());
+
+        const auto nodes_cend = nodes.cend();
+        return nodes_cend == std::adjacent_find(nodes.cbegin(), nodes_cend);
+    }
+
+    template<class... Args>
+    void test_shaded(int value, const Args&... args) noexcept
+    {
+        const std::array<const tested_shared*, sizeof...(args)> args_ptr_array{ std::addressof(args)... };
+        D_ASSERT(is_unqiue_nodes(args_ptr_array, node));
+        D_ASSERT(is_unqiue_nodes(args_ptr_array, prev));
+        D_ASSERT(is_unqiue_nodes(args_ptr_array, next));
+
+        constexpr auto n_arg = std::size(args_ptr_array);
+
+        constexpr auto prev_i = [] (size_t i) noexcept
+        {
+            constexpr auto back_i = n_arg - 1u;
+            return (i + back_i) % n_arg;
+        };
+
+        constexpr auto next_i = [] (size_t i) noexcept
+        {
+            return (i + 1u) % n_arg;
+        };
+
+        const auto test_node = [&args_ptr_array] (const intrusive_node* tested_node, size_t node_i) noexcept
+        {
+            D_ASSERT(tested_node == node(args_ptr_array[node_i]));
+        };
+
+        for (ptrdiff_t i = 0; i < n_arg; ++i)
+        {
+            const auto current_p = args_ptr_array[i];
+            test_node(prev(current_p), prev_i(i));
+            test_node(next(current_p), next_i(i));
+            D_ASSERT(current_p->r().value == value);
+        }
+    }
+
     static_assert(std::is_same_v<null_t<tested_unique>, null_t<tested_resource>>);
     static_assert(std::is_same_v<null_t<tested_shared>, null_t<tested_resource>>);
 
@@ -104,9 +162,9 @@ namespace
     using verifiable_unique = unique_resource<verifiable_resource, skip_op>;
     using verifiable_linked = shared_resource<verifiable_resource, skip_op>;
 
-    static_assert(std::is_move_constructible_v<verifiable_unique> && std::is_move_assignable_v<verifiable_unique>);
-    static_assert(!std::is_copy_constructible_v<verifiable_unique>&& !std::is_copy_assignable_v<verifiable_unique>);
-    static_assert(!std::is_trivially_move_assignable_v<verifiable_unique>&& !std::is_trivially_move_constructible_v<verifiable_unique>);
+    static_assert(std::is_move_constructible_v<verifiable_unique>&& std::is_move_assignable_v<verifiable_unique>);
+    static_assert(!std::is_copy_constructible_v<verifiable_unique> && !std::is_copy_assignable_v<verifiable_unique>);
+    static_assert(!std::is_trivially_move_assignable_v<verifiable_unique> && !std::is_trivially_move_constructible_v<verifiable_unique>);
 
     static_assert(!std::is_same_v<null_t<tested_resource>, null_t<verifiable_resource>>);
     static_assert(std::is_same_v<null_t<verifiable_unique>, null_t<verifiable_resource>>);
@@ -117,34 +175,31 @@ namespace
     static_assert(std::is_same_v<resource_type_t<const tested_shared>, tested_resource>);
 }
 
+
 void test_resource() noexcept
 {
     constexpr struct
     {
-        bool operator () (const tested_shared& h1, int value) const noexcept
+        void operator () (const tested_shared& h1, int value) const noexcept
         {
-            D_ASSERT(next(h1) == node(h1) && prev(h1) == node(h1));
-            D_ASSERT(h1.r().value == value);
-            return true;
+            test_shaded(value, h1);
         }
 
-        bool operator () (const tested_shared& h1, const tested_shared& h2, int value) const noexcept
+        void operator () (const tested_shared& h1, const tested_shared& h2, int value) const noexcept
         {
-            D_ASSERT(next(h1) == node(h2) && prev(h1) == node(h2));
-            D_ASSERT(next(h2) == node(h1) && prev(h2) == node(h1));
-            D_ASSERT(h1.r().value == value && h2.r().value == value);
-            return true;
+            test_shaded(value, h1, h2);
         }
 
-        bool operator () (const tested_shared& h1, const tested_shared& h2, const tested_shared& h3, int value) const noexcept
+        void operator () (const tested_shared& h1, const tested_shared& h2, const tested_shared& h3, int value) const noexcept
         {
-            D_ASSERT(next(h1) == node(h2) && prev(h1) == node(h3));
-            D_ASSERT(next(h2) == node(h3) && prev(h2) == node(h1));
-            D_ASSERT(next(h3) == node(h1) && prev(h3) == node(h2));
-            D_ASSERT(h1.r().value == value && h2.r().value == value && h3.r().value == value);
-            return true;
+            test_shaded(value, h1, h2, h3);
         };
-    } check;
+
+        void operator () (const tested_shared& h1, const tested_shared& h2, const tested_shared& h3, const tested_shared& h4, int value) const noexcept
+        {
+            test_shaded(value, h1, h2, h3, h4);
+        };
+    } check{};
 
     {
         {
@@ -180,7 +235,7 @@ void test_resource() noexcept
         int closed_value = 0;
         {
             tested_shared h2{ resource_construct, 2 };
-            unsafe(h2).h.check_close = [&closed_value] (const tested_resource& closing_handle) noexcept
+            as_mutable(h2.r()).check_close = [&closed_value] (const tested_resource& closing_handle) noexcept
             {
                 D_ASSERT(closed_value != 2 && closing_handle.value == 2);
                 closed_value = closing_handle.value;
@@ -198,7 +253,7 @@ void test_resource() noexcept
     { // assignment initialization 
         int h2_closed_value = 0;
         tested_shared h2{ resource_construct, 2 };
-        unsafe(h2).h.check_close = [&h2_closed_value] (const tested_resource& closing_handle) noexcept
+        as_mutable(h2.r()).check_close = [&h2_closed_value] (const tested_resource& closing_handle) noexcept
         {
             D_ASSERT(h2_closed_value != 2 && closing_handle.value == 2);
             h2_closed_value = closing_handle.value;
@@ -213,7 +268,7 @@ void test_resource() noexcept
         tested_shared h2{ resource_construct, 2 };
 
         int h1_closed_value = 0;
-        unsafe(h1).h.check_close = [&h1_closed_value] (const tested_resource& closing_handle) noexcept
+        as_mutable(h1.r()).check_close = [&h1_closed_value] (const tested_resource& closing_handle) noexcept
         {
             D_ASSERT(h1_closed_value != 1 && closing_handle.value == 1);
             h1_closed_value = closing_handle.value;
@@ -225,7 +280,7 @@ void test_resource() noexcept
         D_ASSERT(h1_closed_value == 1);
     }
     check(h1, 2);
-    unsafe(h1).h.value = 1;
+    as_mutable(h1.r()).value = 1;
 
     {   // cyclic assignment
         tested_shared h2{ h1 };
@@ -241,17 +296,85 @@ void test_resource() noexcept
         tested_shared h2{ h1 };
         tested_shared h3{ h2 };
         check(h1, h2, h3, 1);
-        h2 = h3;
-        check(h3, h2, h1, 1);
-        h3 = h2;
-        check(h2, h3, h1, 1);
+
         h1 = h2;
-        check(h2, h1, h3, 1);
+        check(h1, h3, h2, 1);
+        h2 = h1;
+        check(h1, h2, h3, 1);
+
+        h2 = h3;
+        check(h1, h3, h2, 1);
+        h3 = h2;
+        check(h1, h2, h3, 1);
+
+        h3 = h1;
+        check(h1, h3, h2, 1);
+        h1 = h3;
+        check(h1, h2, h3, 1);
+    }
+    check(h1, 1);
+
+    {   // cyclic assignment (ref count > 3)
+        tested_shared h2{ h1 };
+        tested_shared h3{ h2 };
+        tested_shared h4{ h3 };
+        check(h1, h2, h3, h4, 1); 
+
+        h1 = h2;
+        check(h2, h1, h3, h4, 1);
+        h2 = h1;
+        check(h1, h2, h3, h4, 1);
+
+        h1 = h3;
+        check(h3, h1, h4, h2, 1);
+        h4 = h3;
+        check(h1, h2, h3, h4, 1);
+
+        h1 = h4;
+        check(h1, h2, h3, h4, 1);
+
+        h2 = h1;
+        check(h1, h2, h3, h4, 1);
+
+        h2 = h3;
+        check(h3, h2, h4, h1, 1);
+        h3 = h2;
+        check(h1, h2, h3, h4, 1);
+
+        h2 = h4;
+        check(h4, h2, h1, h3, 1);
+        h1 = h4;
+        check(h1, h2, h3, h4, 1);
+
+        h3 = h1;
+        check(h1, h3, h2, h4, 1);
+        h2 = h1;
+        check(h1, h2, h3, h4, 1);
+
+        h3 = h2;
+        check(h1, h2, h3, h4, 1);
+
+        h3 = h4;
+        check(h4, h3, h1, h2, 1);
+        h4 = h3;
+        check(h1, h2, h3, h4, 1);
+
+        h4 = h1;
+        check(h1, h4, h2, h3, 1);
+        h1 = h4;
+        check(h1, h2, h3, h4, 1);
+
+        h4 = h2;
+        check(h2, h4, h3, h1, 1);
+        h3 = h2;
+        check(h1, h2, h3, h4, 1);
+
+        h4 = h3;
+        check(h1, h2, h3, h4, 1);
     }
     check(h1, 1);
 
     {   // assignment (ref count >= 2)
-
         int h2_closed_value = 0;
         {
             tested_shared ch1{ h1 };
@@ -277,7 +400,7 @@ void test_resource() noexcept
             check(h2, ch2, 2);
             check(h1, ch1, 1);
 
-            unsafe(h2).h.check_close = [&h2_closed_value] (const tested_resource& closing_handle) noexcept
+            as_mutable(h2.r()).check_close = [&h2_closed_value] (const tested_resource& closing_handle) noexcept
             {
                 D_ASSERT(h2_closed_value != 2 && closing_handle.value == 2);
                 h2_closed_value = closing_handle.value;
@@ -304,5 +427,5 @@ void test_resource() noexcept
 
     check(h1, 1);
 
-    unsafe(h1).h.check_close = std::ref(h1_check_dtor);
+    as_mutable(h1.r()).check_close = std::ref(h1_check_dtor);
 }

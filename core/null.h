@@ -1,282 +1,295 @@
 #pragma once
 
-#include <core/ordered_overload.h>
-#include <core/type_traits.h>
+#include <core/zero.h>
 #include <core/limits.h>
 
 
-namespace private_detail_null_compare
-{
-    namespace private_private_detail_null_compare
-    {
-        template<class T>
-        constexpr bool eq_null(const T& value) noexcept;
-
-        template<class T>
-        constexpr bool not_eq_null(const T& value) noexcept;
-    }
-
-    template<class T>
-    using decl_eq_op_t = decltype(std::declval<const T&>() == std::declval<const T&>());
-
-    template<class T>
-    using decl_not_eq_op_t = decltype(std::declval<const T&>() != std::declval<const T&>());
-
-    template<class T>
-    [[nodiscard]] constexpr std::enable_if_t<is_detected_v<decl_eq_op_t, T>, bool> eq_null(const T& value) noexcept
-    {
-        return private_private_detail_null_compare::eq_null(value);
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr std::enable_if_t<is_detected_v<decl_not_eq_op_t, T>, bool> not_eq_null(const T& value) noexcept
-    {
-        return private_private_detail_null_compare::not_eq_null(value);
-    }
-}
-
-namespace private_detail_has_value
-{
-    using private_detail_null_compare::eq_null;
-    using private_detail_null_compare::not_eq_null;
-    using namespace ordered_overload;
-
-    template<class T>
-    [[nodiscard]] constexpr auto has_value(const T& value, _order<_2>) noexcept
-        -> decltype(!eq_null(value))
-    {
-        return !eq_null(value);
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr auto has_value(const T& value, _order<_1>) noexcept
-        -> decltype(not_eq_null(value))
-    {
-        return not_eq_null(value);
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr auto has_value(const T& value, _order<_0>) noexcept
-        -> decltype(!!value)
-    {
-        return !!value;
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr auto has_value(const T& value) noexcept
-        -> decltype(has_value(value, _start))
-    {
-        return has_value(value, _start);
-    }
-}
-
-namespace private_detail_is_null
-{
-    using private_detail_null_compare::eq_null;
-    using private_detail_null_compare::not_eq_null;
-    using namespace ordered_overload;
-
-    template<class T>
-    [[nodiscard]] constexpr auto is_null(const T& value, _order<_2>) noexcept
-        -> decltype(!not_eq_null(value))
-    {
-        return !not_eq_null(value);
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr auto is_null(const T& value, _order<_1>) noexcept
-        -> decltype(eq_null(value))
-    {
-        return eq_null(value);
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr auto is_null(const T& value, _order<_0>) noexcept
-        -> decltype(!value)
-    {
-        return !value;
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr auto is_null(const T& value) noexcept
-        -> decltype(is_null(value, _start))
-    {
-        return is_null(value, _start);
-    }
-}
-
-namespace private_detail_enum_instance
-{
-    using namespace ordered_overload;
-
-    template<class T>
-    [[nodiscard]] constexpr T enum_instance(_overload<T>, _order<_2>) noexcept
-    {
-        return {};
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr auto enum_instance(_overload<T>, _order<_1>) noexcept -> decltype(T::null)
-    {
-        return T::null;
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr auto enum_instance(_overload<T>, _order<_0>) noexcept -> decltype(T::invalid)
-    {
-        return T::invalid;
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr T enum_instance() noexcept
-    {
-        return enum_instance(_overload_v<T>, _start);
-    }
-}
-
-namespace private_detail_null_instance
+namespace private_detail_null
 {
     template<class T>
-    struct null_instance
-    {
-        static_assert(!std::is_reference_v<T>);
-
-        [[nodiscard]]
-        constexpr operator T () const noexcept
-        {
-            if constexpr (std::is_enum_v<T>)
-            {
-                return private_detail_enum_instance::enum_instance<T>();
-            }
-            else if constexpr (std::is_floating_point_v<T>)
-            {
-                return numeric_nan_v<T>;
-            }
-            else
-            {
-                return {};
-            }
-        }
-    };
-}
-
-namespace private_detail_null_type
-{  
-    template<class T>
-    using null_instance_t = private_detail_null_instance::null_instance<T>;
-
-    template<class T>
-    using remove_qualifiers_t = std::remove_cvref_t<T>;
+    using decl_null_value_type_t = typename T::null_value_type;
 
     template<class T>
     using decl_null_type_t = typename T::null_type;
 
     template<class T>
-    struct null_type_select2
+    using remove_null_t = detected_or_t<T, decl_null_value_type_t, T>;
+
+    template<class T>
+    using is_null_type = is_detected<decl_null_value_type_t, T>;
+
+    template<class T>
+    constexpr bool is_null_type_v = is_null_type<T>::value;
+
+    namespace private_detail_null_instance
     {
-        using type = detected_or_t<null_instance_t<T>, decl_null_type_t, T>;
-    };
-
-    template<>
-    struct null_type_select2<std::nullptr_t>
-    {
-        using type = std::nullptr_t;
-    };
-
-    template<class T>
-    struct null_type_select2<T*>
-    {
-        using type = std::nullptr_t;
-    };
-
-    template<class T>
-    struct null_type_select1 : null_type_select2<remove_qualifiers_t<T>>
-    {};
-
-    template<class T>
-    struct null_type_select1<null_instance_t<T>> : null_type_select1<remove_qualifiers_t<T>>
-    {};
-
-    template<class T>
-    struct null_type_select0 : null_type_select1<remove_qualifiers_t<T>>
-    {};
-
-    template<class T>
-    using null_t = typename null_type_select0<T>::type;
-
-    template<class T>
-    constexpr null_t<T> null_v{};
-}
-
-namespace private_detail_null_compare
-{
-    namespace private_private_detail_null_compare
-    {
-        template<class T>
-        [[nodiscard]] constexpr bool eq_null(const T& value) noexcept
+        namespace private_detail_enum_instance
         {
-            using private_detail_null_type::null_v;
-            return value == static_cast<T>(null_v<T>);
+            using namespace ordered_overload;
+
+            template<class T>
+            [[nodiscard]] constexpr T enum_instance_helper(_overload<T>, _order<_2>) noexcept
+            {
+                return {};
+            }
+
+            template<class T>
+            [[nodiscard]] constexpr auto enum_instance_helper(_overload<T>, _order<_1>) noexcept -> decltype(T::null)
+            {
+                return T::null;
+            }
+
+            template<class T>
+            [[nodiscard]] constexpr auto enum_instance_helper(_overload<T>, _order<_0>) noexcept -> decltype(T::invalid)
+            {
+                return T::invalid;
+            }
+
+            template<class T>
+            [[nodiscard]] constexpr T enum_instance() noexcept
+            {
+                return enum_instance_helper(_overload_v<T>, _start);
+            }
+        }
+
+        template<class T, class = void>
+        struct null_instance1
+        {
+            using is_null_constructible_constant_type = std::false_type;
+        };
+
+        template<class T>
+        struct null_instance1<T, std::enable_if_t<is_zero_constructible_v<T> > > : private_detail_zero::private_detail_zero_type::zero_type<T>
+        {
+            using is_null_constructible_constant_type = std::true_type;
+        };
+
+        template<class T, class = void>
+        struct null_instance0 : null_instance1<T>
+        {};
+
+        template<class T>
+        struct null_instance0<T, std::enable_if_t<std::is_enum_v<T> > >
+        {
+            using is_null_constructible_constant_type = std::true_type;
+
+            constexpr operator T () const noexcept
+            {
+                return private_detail_enum_instance::enum_instance<T>();
+            }
+        };
+
+        template<class T>
+        struct null_instance : null_instance0<T>
+        {
+            static_assert(!std::is_reference_v<T>);
+            using null_value_type = T;
+        };
+    }
+
+
+    namespace private_detail_null_type
+    {
+        template<class T, class = void>
+        struct null_type_type0
+        {
+            using type = private_detail_null_instance::null_instance<T>;
+            using is_null_constructible_constant_type = typename type::is_null_constructible_constant_type;
+        };
+
+        template<class T>
+        struct null_type_type0<T, std::enable_if_t<is_pointer_or_nullptr_v<T>>>
+        {
+            using type = std::nullptr_t;
+            using is_null_constructible_constant_type = std::true_type;
+        };
+
+        namespace private_detail_decl_null
+        {
+            template<class To, class From>
+            using decl_cref_cast_t = decltype(static_cast<const To&>(std::declval<const From&>()));
+
+            template<class T, class DeclNullT>
+            using is_decl_null_constructible = is_detected<decl_cref_cast_t, T, DeclNullT>;
         }
 
         template<class T>
-        [[nodiscard]] constexpr bool not_eq_null(const T& value) noexcept
+        struct null_type_type0<T, std::void_t<decl_null_type_t<T>> >
         {
-            using private_detail_null_type::null_v;
-            return value != static_cast<T>(null_v<T>);
+            using type = decl_null_type_t<T>;
+            using is_null_constructible_constant_type = private_detail_decl_null::is_decl_null_constructible<T, type>;
+        };
+
+        template<class T>
+        using is_null_constructible = typename null_type_type0<T>::is_null_constructible_constant_type;
+
+        template<class T>
+        constexpr bool is_null_constructible_v = is_null_constructible<T>::value;
+
+        template<class T>
+        using null_type_type = null_type_type0<std::remove_cvref_t<T> >;
+
+        template<class T>
+        using null_t = typename null_type_type<T>::type;
+
+        template<class T>
+        constexpr null_t<T> null_v{};
+    }
+
+
+    namespace private_detail_cmp_null
+    {
+        using private_detail_null_type::null_v;
+        using private_detail_null_type::is_null_constructible;
+        using private_detail_zero::private_detail_cmp_zero::eq_op;
+        using private_detail_zero::private_detail_cmp_zero::neq_op;
+        using private_detail_zero::private_detail_cmp_zero::decl_eq_op_result_t;
+        using private_detail_zero::private_detail_cmp_zero::decl_neq_op_result_t;
+
+        template<class T, template<class> class Op>
+        using op_result_t = typename std::enable_if_t<std::conjunction_v<std::negation<is_null_type<T>>, is_null_constructible<T>>, enable_if_detected<Op, T>>::type;
+
+        template<class T>
+        using eq_op_result_t = op_result_t<T, decl_eq_op_result_t>;
+
+        template<class T>
+        using neq_op_result_t = op_result_t<T, decl_neq_op_result_t>;
+
+        template<class T>
+        [[nodiscard]] constexpr eq_op_result_t<T> eqn(const T& value) noexcept
+        {
+            return eq_op<T>(value, null_v<T>);
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr neq_op_result_t<T> neqn(const T& value) noexcept
+        {
+            return neq_op<T>(value, null_v<T>);
+        }
+    }
+
+
+    namespace private_detail_has_value
+    {
+        using private_detail_cmp_null::eqn;
+        using private_detail_cmp_null::neqn;
+        using namespace ordered_overload;
+
+        template<class T>
+        [[nodiscard]] constexpr auto has_value_helper(const T& value, _order<_2>) noexcept
+            -> decltype(!eqn(value))
+        {
+            return !eqn(value);
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr auto has_value_helper(const T& value, _order<_1>) noexcept
+            -> decltype(neqn(value))
+        {
+            return neqn(value);
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr auto has_value_helper(const T& value, _order<_0>) noexcept
+            -> decltype(!!value)
+        {
+            return !!value;
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr auto has_value(const T& value) noexcept
+            -> decltype(has_value_helper(value, _start))
+        {
+            return has_value_helper(value, _start);
+        }
+    }
+
+
+    namespace private_detail_is_null
+    {
+        using private_detail_cmp_null::eqn;
+        using private_detail_cmp_null::neqn;
+        using namespace ordered_overload;
+
+        template<class T>
+        [[nodiscard]] constexpr auto is_null_helper(const T& value, _order<_2>) noexcept
+            -> decltype(!eqn(value))
+        {
+            return !neqn(value);
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr auto is_null_helper(const T& value, _order<_1>) noexcept
+            -> decltype(neqn(value))
+        {
+            return eqn(value);
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr auto is_null_helper(const T& value, _order<_0>) noexcept
+            -> decltype(!value)
+        {
+            return !value;
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr auto is_null(const T& value) noexcept
+            -> decltype(is_null_helper(value, _start))
+        {
+            return is_null_helper(value, _start);
+        }
+    }
+
+
+    namespace private_detail_nullable
+    {
+        template<class T>
+        using decl_has_value_t = decltype(private_detail_has_value::has_value(std::declval<const T&>()));
+
+        template<class T>
+        using is_nullable = is_detected<decl_has_value_t, T>;
+
+        template<class T>
+        constexpr bool is_nullable_v = is_nullable<T>::value;
+    }
+
+
+    namespace private_detail_decl_null_eq_op
+    {
+        using private_detail_is_null::is_null;
+        using private_detail_has_value::has_value;
+
+        template<class T>
+        [[nodiscard]] constexpr auto operator == (const T& value, decl_null_type_t<T>) noexcept -> decltype(is_null(value))
+        {
+            return is_null(value);
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr auto operator == (decl_null_type_t<T>, const T& value) noexcept -> decltype(is_null(value))
+        {
+            return is_null(value);
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr auto operator != (const T& value, decl_null_type_t<T>) noexcept -> decltype(has_value(value))
+        {
+            return has_value(value);
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr auto operator != (decl_null_type_t<T>, const T& value) noexcept -> decltype(has_value(value))
+        {
+            return has_value(value);
         }
     }
 }
 
-namespace private_detail_is_nullable
-{
-    template<class T>
-    using has_value_t = decltype(private_detail_has_value::has_value(std::declval<T&>()));
-
-    template<class T>
-    using is_nullable = is_detected<has_value_t, T>;
-
-    template<class T>
-    constexpr bool is_nullable_v = is_nullable<T>::value;
-}
-
-namespace private_detail_null_instance
-{
-    using private_detail_null_type::null_t;
-    using private_detail_has_value::has_value;
-    using private_detail_is_null::is_null;
-
-    template<class T>
-    constexpr auto cmp_impl_is_required_v = std::is_class_v<null_t<T>>;
-
-    template<class T, std::enable_if_t<cmp_impl_is_required_v<T>, int> = 0>
-    [[nodiscard]] constexpr auto operator != (const T& value, null_t<T>) noexcept -> decltype(has_value(value))
-    {
-        return has_value(value);
-    }
-
-    template<class T, std::enable_if_t<cmp_impl_is_required_v<T>, int> = 0>
-    [[nodiscard]] constexpr auto operator != (null_t<T>, const T& value) noexcept -> decltype(has_value(value))
-    {
-        return has_value(value);
-    }
- 
-    template<class T, std::enable_if_t<cmp_impl_is_required_v<T>, int> = 0>
-    [[nodiscard]] constexpr auto operator == (const T& value, null_t<T>) noexcept -> decltype(is_null(value))
-    {
-        return is_null(value);
-    }
-
-    template<class T, std::enable_if_t<cmp_impl_is_required_v<T>, int> = 0>
-    [[nodiscard]] constexpr auto operator == (null_t<T>, const T& value) noexcept -> decltype(is_null(value))
-    {
-        return is_null(value);
-    }
-}
-
-
-using private_detail_null_type::null_t;
-using private_detail_null_type::null_v;
-using private_detail_has_value::has_value;
-using private_detail_is_null::is_null;
-using private_detail_is_nullable::is_nullable_v;
+using private_detail_null::private_detail_null_type::null_t;
+using private_detail_null::private_detail_null_type::null_v;
+using private_detail_null::private_detail_has_value::has_value;
+using private_detail_null::private_detail_is_null::is_null;
+using private_detail_null::private_detail_nullable::is_nullable;
+using private_detail_null::private_detail_nullable::is_nullable_v;
+using private_detail_null::private_detail_decl_null_eq_op::operator==;
+using private_detail_null::private_detail_decl_null_eq_op::operator!=;

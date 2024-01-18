@@ -67,7 +67,6 @@ namespace px
         >;
 
 
-
     template<class TestT, size_t TestAlign, class BaseT, size_t BaseAling>
     constexpr bool is_compatible_pixspan_v = std::conjunction_v
     <

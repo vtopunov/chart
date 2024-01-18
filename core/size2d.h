@@ -116,19 +116,6 @@ template<class T>
     return sizes.height();
 }
 
-template<class T>
-[[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<T>, bool> has_sizes(const size2d<T>& sizes) noexcept
-{
-    return sizes.width() && sizes.height();
-}
-
-template<class T>
-[[nodiscard]] constexpr std::enable_if_t<std::is_floating_point_v<T>, bool> has_sizes(const size2d<T>& sizes) noexcept
-{
-    return has_sizes(md_trunc_cast<size2d<ptrdiff_t>>(sizes));
-}
-
-
 template<template<class> class Vec, class L, class R>
 [[nodiscard]] constexpr auto operator * (const Vec<L>& left, const Vec<R>& right) noexcept -> Vec<decltype(as_size2d(left)._0 * as_size2d(right)._0)>
 {

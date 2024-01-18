@@ -1,5 +1,9 @@
 #include "texture.h"
 
+
+template class unique_resource<gl::texture2d_resource, gl::texture_resource_deleter>;
+template class unique_resource<gl::texture2d_resources, gl::texture_resource_deleter>;
+
 namespace gl
 {
     namespace
@@ -40,10 +44,10 @@ namespace gl
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         }
 
-        template<class T>
-        [[nodiscard]] bool bind(const unique_resource<T, texture_resource_deleter>& r) noexcept
+        template<texture_target Target>
+        [[nodiscard]] bool bind(specialized_texture_resource<Target> texture) noexcept
         {
-            bind_texture(T::target, view(r));
+            bind_texture(texture);
             return is_correct();
         }
     }
@@ -56,7 +60,7 @@ namespace gl
 
     texture2d create_texture2d() noexcept
     {
-        if (auto tex = gen_texture(); tex && bind(tex)) [[likely]]
+        if (auto tex = gen_texture(); tex && bind(view(tex))) [[likely]]
         {
             set_default_parameteri2d();
             if (is_correct()) [[likely]]
@@ -64,7 +68,7 @@ namespace gl
                 return tex;
             }
         }
-    
+
         return {};
     }
 
@@ -82,16 +86,21 @@ namespace gl
         return {};
     }
 
-    texture2d image(texture2d tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
+    void write(texture2d_resource tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
     {
         if (bind(tex)) [[likely]]
         {
             set_image2d(sizes, format, pixels);
+        }
+    }
 
-            if (is_correct()) [[likely]]
-            {
-                tex = gl::sizes(std::move(tex), sizes);
-            }
+    texture2d image(texture2d tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
+    {
+        write(tex, sizes, format, pixels);
+
+        if (is_correct()) [[likely]]
+        {
+            tex = gl::sizes(std::move(tex), sizes);
         }
 
         return tex;

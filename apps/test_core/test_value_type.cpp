@@ -1,7 +1,5 @@
 #include <core/value_type.h>
 
-#include <core/assert.h>
-
 #include <cerrno>
 
 void test_value_type() noexcept

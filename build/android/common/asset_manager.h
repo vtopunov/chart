@@ -2,6 +2,7 @@
 
 #include <core/utility.h>
 
+
 class AAssetManager;
 
 namespace common

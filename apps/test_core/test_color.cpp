@@ -1,5 +1,5 @@
 #include <core/color.h>
-#include <core/assert.h>
+
 
 template<class T, class A, class R, class G, class B>
 void test_argb(const rgba_color<T>& c, A a, R r, G g, B b) noexcept

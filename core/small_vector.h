@@ -27,7 +27,7 @@ constexpr It back_move(It to, It back) noexcept
         while (back != to)
         {
             auto& temp = *back;
-            swap(*--back, temp);
+            u_swap(*--back, temp);
         }
     }
 

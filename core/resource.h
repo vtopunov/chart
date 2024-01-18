@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/intrusive_list.h>
+#include <core/intrusive.h>
 #include <core/utility.h>
 #include <core/view.h>
 #include <core/null.h>
@@ -65,7 +65,7 @@ public:
 
     constexpr void swap(unique_resource& right) noexcept
     {
-        std::swap(resource_, right.resource_);
+        u_swap(resource_, right.resource_);
     }
 
     template<bool dummy = true, std::enable_if_t<(dummy) && is_nullable_v<resource_type>, int> = 0>
@@ -79,7 +79,7 @@ public:
         return view(r());
     }
 
-    template<bool dummy = true, 
+    template<bool dummy = true,
         std::enable_if_t<(dummy) && std::negation_v<std::is_same<std::remove_cvref_t<view_type>, uncvref_resource_type> >, int> = 0>
     [[nodiscard]] constexpr operator const resource_type& () const noexcept
     {
@@ -101,7 +101,7 @@ public:
     void reset() noexcept
     {
         [[maybe_unused]]
-        unique_resource temp{ std::move(*this) };
+        const unique_resource temp{ std::move(*this) };
     }
 
 private:
@@ -126,7 +126,7 @@ public:
 
     constexpr shared_resource() noexcept
         : resource_(null)
-        , copies_{ self_linked() }
+        , copies_{ make_intrusive_cyclic_node(std::addressof(copies_)) }
     {}
 
     constexpr shared_resource(null_type) noexcept
@@ -142,24 +142,26 @@ public:
     template<class... Args>
     constexpr shared_resource(resource_construct_t, Args&&... args) noexcept
         : resource_{ std::forward<Args>(args)... }
-        , copies_{ self_linked() }
+        , copies_{ make_intrusive_cyclic_node(std::addressof(copies_)) }
     {}
 
     constexpr shared_resource(const shared_resource& right) noexcept
         : resource_{ right.resource_ }
-        , copies_{ linked_with(right) }
+        , copies_
+        {
+            make_intrusive_front_node
+            (
+                std::addressof(copies_),
+                right._p_mutable_copies()
+            )
+        }
     {}
 
     ~shared_resource() noexcept
     {
-        if (has_copies())
-        {
-            unlink();
-        }
-        else
-        {
-            close_(std::move(resource_));
-        }
+        [[maybe_unused]]
+        const intrusive_owner temp{ copies_ };
+        close_if_unique();
     }
 
     shared_resource& operator = (const shared_resource& right) noexcept
@@ -167,7 +169,11 @@ public:
         if (this != std::addressof(right))
         {
             deattach_and_reset(right.resource_);
-            copies_ = linked_with(right);
+            as_basic_intrusive_node_ref(copies_) = make_intrusive_front_node
+            (
+                std::addressof(copies_),
+                right._p_mutable_copies()
+            );
         }
 
         return *this;
@@ -187,7 +193,7 @@ public:
         return *this;
     }
 
-    template<bool dummy = true, class = std::enable_if_t<(dummy) && is_nullable_v<resource_type>>>
+    template<bool dummy = true, std::enable_if_t<(dummy) && is_nullable_v<resource_type>, int> = 0>
     [[nodiscard]] constexpr explicit operator bool() const noexcept
     {
         return has_value(r());
@@ -214,16 +220,10 @@ public:
     template<class U>
     void deattach_and_reset(U&& new_resource) noexcept
     {
-        if (has_copies())
-        {
-            unlink();
-            resource_ = std::forward<U>(new_resource);
-        }
-        else
-        {
-            copies_ = self_linked();
-            close_(std::exchange(resource_, std::forward<U>(new_resource)));
-        }
+        [[maybe_unused]]
+        const intrusive_owner temp{ copies_ };
+        close_if_unique();
+        resource_ = std::forward<U>(new_resource);
     }
 
     void deattach_and_reset() noexcept
@@ -233,35 +233,29 @@ public:
 
 private:
     [[nodiscard]]
-    constexpr bool has_copies() const noexcept
+    constexpr auto _p_mutable_copies() const noexcept
     {
-        return copies_.next != &copies_;
+        return as_mutable_pointer(std::addressof(copies_));
     }
 
     [[nodiscard]]
-    constexpr intrusive_list_node self_linked() noexcept
+    constexpr bool is_unique() const noexcept
     {
-        return cyclic(&copies_);
-    };
-
-    [[nodiscard]]
-    constexpr intrusive_list_node linked_with(const shared_resource& item) noexcept
-    {
-D_WARNING_PUSH
-D_WARNING_DISABLE_MSVC(W_do_not_use_const_cast)
-        return push(&copies_, const_cast<intrusive_list_node*>(&item.copies_));
-D_WARNING_POP
+        return ::is_empty(std::addressof(copies_));
     }
 
-    constexpr void unlink() const noexcept
+    void close_if_unique() noexcept
     {
-        pop(copies_);
+        if (is_unique())
+        {
+            constexpr deleter_type close{};
+            close(std::move(resource_));
+        }
     }
 
 private:
     resource_type resource_;
-    intrusive_list_node copies_;
-    static constexpr deleter_type close_{};
+    intrusive_node copies_;
 };
 
 

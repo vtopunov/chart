@@ -1,11 +1,11 @@
 #include <core/utility.h>
-#include <core/assert.h>
 
 #include <cerrno>
 
+
 namespace
 {
-    namespace private_detail_test_swap
+    namespace private_detail_test_u_swap
     {
         constexpr size_t swap_S0_S0{ 1u << 0 };
         constexpr size_t swap_S1_S0{ 1u << 1 };
@@ -36,9 +36,9 @@ namespace
         };
     }
 
-    void test_swap() noexcept
+    void test_u_swap() noexcept
     {
-        using namespace private_detail_test_swap;
+        using namespace private_detail_test_u_swap;
 
         size_t ctx{ 0u };
         S0 s0{ ctx };
@@ -46,25 +46,25 @@ namespace
 
         {
             ctx = {};
-            swap(s0, s0);
+            u_swap(s0, s0);
             D_ASSERT(swap_S0_S0 == ctx);
         }
 
         {
             ctx = {};
-            swap(s1, s0);
+            u_swap(s1, s0);
             D_ASSERT(swap_S1_S0 == ctx);
         }
 
         {
             ctx = {};
-            swap(s0, s1);
+            u_swap(s0, s1);
             D_ASSERT(swap_S1_S0 == ctx);
         }
 
         {
             ctx = {};
-            swap(s1, s1);
+            u_swap(s1, s1);
             D_ASSERT(swap_S1_S1 == ctx);
         }
     }
@@ -72,5 +72,5 @@ namespace
 
 void test_utility() noexcept
 {
-    test_swap();
+    test_u_swap();
 }

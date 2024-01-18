@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core/fmt.h>
-#include <core/assert.h>
 #include <core/string_char.h>
 
 #include <os/fwd.h>

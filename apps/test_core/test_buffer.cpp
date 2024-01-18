@@ -3,6 +3,7 @@
 #include <core/buffer.h>
 #include <core/buffer_view.h>
 
+
 void test_buffer() noexcept
 {
     using type_t = int32_t;
@@ -43,13 +44,13 @@ void test_buffer() noexcept
     D_ASSERT(std::addressof(b.cfront()) == b.data());
 
     static_assert(std::is_same_v<decltype(b.back()), type_t&>);
-    D_ASSERT(std::addressof(b.back()) == (b.data() + size - 1));
+    D_ASSERT(std::addressof(b.back()) == (b.data() + size - 1u));
 
     static_assert(std::is_same_v<decltype(std::as_const(b).back()), const type_t&>);
-    D_ASSERT(std::addressof(std::as_const(b).back()) == (b.data() + size - 1));
+    D_ASSERT(std::addressof(std::as_const(b).back()) == (b.data() + size - 1u));
 
     static_assert(std::is_same_v<decltype(b.cback()), const type_t&>);
-    D_ASSERT(std::addressof(b.cback()) == (b.data() + size - 1));
+    D_ASSERT(std::addressof(b.cback()) == (b.data() + size - 1u));
 
     D_ASSERT(b.front() == 1);
     D_ASSERT(b.back() == b.size());

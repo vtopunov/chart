@@ -2,6 +2,49 @@
 
 #include <type_traits>
 
+#include <core/fwd.h>
+
+
+namespace ordered_overload
+{
+    struct _3
+    {};
+
+    struct _2 : _3
+    {};
+
+    struct _1 : _2
+    {};
+
+    struct _0 : _1
+    {};
+
+    template<class T>
+    using _overload = const T* const;
+
+    template<class T>
+    using _order = _overload<T>;
+
+    template<class T>
+    constexpr _overload<T> _overload_v{ nullptr };
+
+    constexpr _order<_0> _start{ nullptr };
+}
+
+struct no_overloaded
+{
+    template<class T>
+    constexpr no_overloaded(const T&) noexcept
+    {}
+};
+
+template<class T>
+struct no_overload_for
+{
+    constexpr no_overload_for(const T&) noexcept
+    {}
+};
+
 
 struct nonesuch
 {
@@ -18,6 +61,7 @@ namespace private_detail_member_detector
     {
         using value_t = std::false_type;
         using type = Default;
+        using enable_if_type = type;
     };
 
     template <class Default, template<class...> class Op, class... Args>
@@ -25,6 +69,7 @@ namespace private_detail_member_detector
     {
         using value_t = std::true_type;
         using type = Op<Args...>;
+        using enable_if_type = std::type_identity<type>;
     };
 }
 
@@ -33,6 +78,9 @@ using is_detected = typename private_detail_member_detector::detector<nonesuch, 
 
 template <template<class...> class Op, class... Args>
 using detected_t = typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::type;
+
+template <template<class...> class Op, class... Args>
+using enable_if_detected =  typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::enable_if_type;
 
 template <class Default, template<class...> class Op, class... Args>
 using detected_or = private_detail_member_detector::detector<Default, void, Op, Args...>;
@@ -57,8 +105,8 @@ constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args.
 
 
 template<bool test, class Default, template<class...> class Op, class... Args>
-struct conditional_op_or 
-{ 
+struct conditional_op_or
+{
     using type = Op<Args...>;
 };
 
@@ -72,7 +120,7 @@ template<bool test, template<class...> class Op, class... Args>
 struct conditional_op;
 
 template<bool test, template<class...> class Op, class Arg0, class... Args>
-struct conditional_op<test, Op, Arg0, Args...> : conditional_op_or<test, Arg0, Op, Arg0, Args...> 
+struct conditional_op<test, Op, Arg0, Args...> : conditional_op_or<test, Arg0, Op, Arg0, Args...>
 {};
 
 template<bool test, class Default, template<class...> class Op, class... Args>
@@ -144,23 +192,43 @@ struct add_const_pointer<T*>
 };
 
 template<class T>
-struct add_const_pointer<T*const>
+struct add_const_pointer<T* const>
 {
-    using type = const T*const;
+    using type = const T* const;
 };
 
 template<class T>
 using add_const_pointer_t = typename add_const_pointer<T>::type;
 
 
-template<class T> [[nodiscard]]
-constexpr decltype(auto) as_unsigned(const T& value) noexcept
+template<class From, class To>
+struct is_const_convertible : std::false_type
+{};
+
+template<class T>
+struct is_const_convertible<T, T> : std::true_type
+{};
+
+template<class T>
+struct is_const_convertible<T, const T> : std::true_type
+{};
+
+template<class From, class To>
+constexpr bool is_const_convertible_v = is_const_convertible<From, To>::value;
+
+
+template<class T>
+[[nodiscard]] constexpr decltype(auto) as_unsigned(const T& value) noexcept
 {
     return static_cast<std::make_unsigned_t<T>>(value);
 }
 
-template<class T> [[nodiscard]]
-constexpr std::enable_if_t<std::is_arithmetic_v<T>, remove_unsigned_t<T>> as_signed(const T& value) noexcept
+template<class T>
+[[nodiscard]] constexpr std::enable_if_t<std::is_arithmetic_v<T>, remove_unsigned_t<T>> as_signed(const T& value) noexcept
 {
     return static_cast<remove_unsigned_t<T>>(value);
 }
+
+
+template<class T>
+constexpr bool is_pointer_or_nullptr_v = std::disjunction_v<std::is_pointer<T>, std::is_null_pointer<T>>;

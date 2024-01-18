@@ -168,13 +168,11 @@ public:
     template<class OtherT, size_t OtherE>
     static constexpr bool is_compatible_span_v = is_compatible_span2span_v<T, Extent, OtherT, OtherE>;
 
-    constexpr span() noexcept = default;
+    D_DEFAULT_ALL_CA(span);
 
     constexpr span(pointer data, size_type size) noexcept
         : base_type{ data, size }
     {}
-
-    constexpr span(const span&) noexcept = default;
 
     template<class OtherT, size_t OtherE, std::enable_if_t<is_compatible_span_v<OtherT, OtherE>, int> = 0>
     constexpr span(span<OtherT, OtherE> span) noexcept
@@ -185,8 +183,6 @@ public:
     constexpr span(C& c) noexcept
         : base_type{ std::data(c), narrow<size_type>(std::size(c)) }
     {}
-
-    constexpr span& operator = (const span&) noexcept = default;
 
     template<class C>
     constexpr std::enable_if_t<is_compatible_v<C>, span&> operator = (C& container) noexcept

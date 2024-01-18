@@ -2,11 +2,45 @@
 
 #include <cerrno>
 
-#include <core/assert.h>
-
 
 namespace
 {
+    namespace private_detail_test_ordered_overload
+    {
+        struct with_method
+        {
+            constexpr void method() const noexcept
+            {}
+        };
+
+        struct without_method {};
+
+        template<class T>
+        constexpr auto call_method_if_exist(T& tested) noexcept -> decltype((std::declval<T&>().method(), true))
+        {
+            tested.method();
+            return true;
+        }
+
+        constexpr bool call_method_if_exist(no_overloaded) noexcept
+        {
+            return false;
+        }
+    }
+
+    void test_ordered_overload() noexcept
+    {
+        using namespace private_detail_test_ordered_overload;
+
+        constexpr with_method swt{};
+        constexpr without_method swot{};
+
+        static_assert(call_method_if_exist(swt));
+        static_assert(!call_method_if_exist(swot));
+
+        D_ASSERT(!errno);
+    }
+
     namespace private_detail_test_member_detector
     {
         template<class T>
@@ -103,7 +137,6 @@ namespace
     {
         test_conditional_add_const0<T>();
         test_conditional_add_const0<std::add_const_t<T>>();
-        D_ASSERT(!errno);
     }
 
     template<class T>
@@ -119,29 +152,23 @@ namespace
     {
         test_conditional_add_pointer0<T>();
         test_conditional_add_pointer0<std::add_pointer_t<T>>();
-        D_ASSERT(!errno);
     }
 
-
-}
-
-void test_type_traits() noexcept
-{
-    test_member_detector();
-    test_conditional_op();
-
+    void test_conditional_add_const_all() noexcept
     {
         test_conditional_add_const<int>();
         test_conditional_add_const<std::byte>();
         test_conditional_add_const<void>();
     }
 
+    void test_conditional_add_pointer_all() noexcept
     {
         test_conditional_add_pointer<int>();
         test_conditional_add_pointer<std::byte>();
         test_conditional_add_pointer<void>();
     }
 
+    void test_copy_const() noexcept
     {
         static_assert(std::is_same_v<copy_const_t<const int, int>, const int>);
         static_assert(std::is_same_v<copy_const_t<int, int>, int>);
@@ -149,8 +176,10 @@ void test_type_traits() noexcept
         static_assert(std::is_same_v<copy_const_t<int, char>, char>);
         static_assert(std::is_same_v<copy_const_t<const int, unsigned>, const unsigned>);
         static_assert(std::is_same_v<copy_const_t<int, unsigned>, unsigned>);
+        D_ASSERT(!errno);
     }
 
+    void test_copy_pointer() noexcept
     {
         static_assert(std::is_same_v<copy_pointer_t<int*, int>, int*>);
         static_assert(std::is_same_v<copy_pointer_t<int, int>, int>);
@@ -162,14 +191,18 @@ void test_type_traits() noexcept
         static_assert(std::is_same_v<copy_pointer_t<int, char*>, char*>);
         static_assert(std::is_same_v<copy_pointer_t<int*, unsigned>, unsigned*>);
         static_assert(std::is_same_v<copy_pointer_t<int, unsigned>, unsigned>);
+        D_ASSERT(!errno);
     }
 
+    void test_replace_type() noexcept
     {
         static_assert(std::is_same_v<replace_t<int, unsigned, char>, int>);
         static_assert(std::is_same_v<replace_t<unsigned, unsigned, char>, char>);
         static_assert(std::is_same_v<replace_t<char, unsigned, char>, char>);
+        D_ASSERT(!errno);
     }
 
+    void test_remove_enum() noexcept
     {
         enum class u8_enum : uint8_t
         {};
@@ -181,14 +214,18 @@ void test_type_traits() noexcept
         static_assert(std::is_same_v<remove_enum_t<int>, int>);
         static_assert(std::is_same_v<remove_enum_t<i16_enum>, int16_t>);
         static_assert(std::is_same_v<remove_enum_t<u8_enum>, uint8_t>);
+        D_ASSERT(!errno);
     }
 
+    void test_unsigned_or() noexcept
     {
         static_assert(std::is_same_v<unsigned_or_t<float>, float>);
         static_assert(std::is_same_v<unsigned_or_t<int>, unsigned>);
         static_assert(std::is_same_v<unsigned_or_t<unsigned>, unsigned>);
+        D_ASSERT(!errno);
     }
 
+    void test_add_const_pointer() noexcept
     {
         static_assert(std::is_same_v<add_const_pointer_t<void*>, const void*>);
         static_assert(std::is_same_v<add_const_pointer_t<const void*>, const void*>);
@@ -201,7 +238,32 @@ void test_type_traits() noexcept
         static_assert(std::is_same_v<add_const_pointer_t<const void**>, const void* const*>);
         static_assert(std::is_same_v<add_const_pointer_t<const void** const>, const void* const* const>);
         static_assert(std::is_same_v<add_const_pointer_t<const void* const* const>, const void* const* const>);
+        D_ASSERT(!errno);
     }
 
-    D_ASSERT(!errno);
+    void test_is_const_convertible() noexcept
+    {
+        static_assert(is_const_convertible_v<void, void>);
+        static_assert(is_const_convertible_v<int, int>);
+        static_assert(is_const_convertible_v<int, const int>);
+        static_assert(is_const_convertible_v<const int, const int>);
+        static_assert(!is_const_convertible_v<const int, int>);
+        D_ASSERT(!errno);
+    }
+}
+
+void test_type_traits() noexcept
+{
+    test_ordered_overload();
+    test_member_detector();
+    test_conditional_op();
+    test_conditional_add_const_all();
+    test_conditional_add_pointer_all();
+    test_copy_const();
+    test_copy_pointer();
+    test_replace_type();
+    test_remove_enum();
+    test_unsigned_or();
+    test_add_const_pointer();
+    test_is_const_convertible();
 }

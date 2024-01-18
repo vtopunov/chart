@@ -33,7 +33,6 @@
   <ItemGroup>
     <ClCompile Include="button.cpp" />
     <ClCompile Include="label.cpp" />
-    <ClCompile Include="shader.cpp" />
     <ClCompile Include="temp_buffer.cpp" />
     <ClCompile Include="text.cpp" />
   </ItemGroup>

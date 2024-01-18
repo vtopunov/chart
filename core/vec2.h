@@ -138,13 +138,21 @@ template<class T>
 template<template<class> class Vec, class T>
 [[nodiscard]] constexpr auto as_signed(const Vec<T>& v) noexcept -> Vec<decltype(as_signed(as_vec2(v)._0))>
 {
-    return { as_signed(v._0), as_signed(v._1) };
+    return 
+    { 
+        as_signed(v._0), 
+        as_signed(v._1)
+    };
 }
 
 template<template<class> class Vec, class T>
 [[nodiscard]] constexpr auto as_unsigned(const Vec<T>& v) noexcept -> Vec<decltype(as_unsigned(as_vec2(v)._0))>
 {
-    return { as_unsigned(v._0), as_unsigned(v._1) };
+    return 
+    { 
+        as_unsigned(v._0), 
+        as_unsigned(v._1) 
+    };
 }
 
 template<template<class> class Vec, class T>
@@ -291,7 +299,8 @@ template<class T>
 template<class T>
 [[nodiscard]] auto md_isnormal(const T& v) noexcept -> decltype(md_isnormal(as_vec2(v)._0))
 {
-    return md_isnormal(v._0) && md_isnormal(v._1);
+    return md_isnormal(v._0) 
+        && md_isnormal(v._1);
 }
 
 template<class R, class T>

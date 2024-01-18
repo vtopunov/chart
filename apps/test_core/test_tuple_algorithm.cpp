@@ -1,5 +1,5 @@
 #include <core/tuple_algorithm.h>
-#include <core/assert.h>
+#include <core/fwd.h>
 
 #include <algorithm>
 

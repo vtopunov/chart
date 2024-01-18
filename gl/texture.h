@@ -70,6 +70,12 @@ namespace gl
         static constexpr auto target = Target;
     };
 
+    template<texture_target Target>
+    inline void bind_texture(specialized_texture_resource<Target> texture) noexcept
+    {
+        bind_texture(texture.target, texture);
+    }
+
     using texture2d_resource = specialized_texture_resource<texture_target::texture_2d>;
 
     struct texture2d_resources : texture2d_resource
@@ -92,7 +98,12 @@ namespace gl
     static_assert(std::is_same_v<null_t<texture2d_resources>, texture2d_resources::null_type>);
     static_assert(std::is_same_v<view_t<texture2d_resources>, const texture2d_resources::view_type>);
 
-    using texture2d = unique_resource<texture2d_resources, texture_resource_deleter>;
+    template<class T>
+    using unique_texture = unique_resource<T, texture_resource_deleter>; 
+
+    using unique_texture2d_resource = unique_resource<texture2d_resource, texture_resource_deleter>;
+
+    using texture2d = unique_texture<texture2d_resources>;
 
     [[nodiscard]]
     constexpr pxsize2d sizes(const texture2d_resources& tex) noexcept
@@ -118,6 +129,8 @@ namespace gl
     [[nodiscard]]
     texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept;
 
+    void write(texture2d_resource texture, pxsize2d sizes, texture_format format, const void* pixels) noexcept;
+
     [[nodiscard]]
     texture2d image(texture2d texture, pxsize2d sizes, texture_format format, const void* pixels) noexcept;
 
@@ -139,7 +152,7 @@ namespace gl
     }
 
     template<size_t PxSize>
-    struct texpix_traits 
+    struct texpix_traits
     {
         static constexpr bool enabled{ false };
     };
@@ -164,7 +177,7 @@ namespace gl
     template<class T>
     constexpr auto texpix_format_v = texpix_traits<sizeof(T)>::format;
 
-    template<class T> 
+    template<class T>
     [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> create_texture2d(pxsize2d sizes, const T* pixels) noexcept
     {
         return create_texture2d(sizes, texpix_format_v<T>, pixels);
@@ -179,7 +192,7 @@ namespace gl
     template<class T>
     [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> create_texture2d(const pixmap<T>& image) noexcept
     {
-        return create_texture2d(pixspan{image});
+        return create_texture2d(pixspan{ image });
     }
 
     template<class T>
@@ -198,6 +211,24 @@ namespace gl
     [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> image(texture2d texture, const pixmap<T>& img) noexcept
     {
         return image(std::move(texture), pixspan{ img });
+    }
+
+    template<class T, std::enable_if_t<texpix_enabled_v<T>, int> = 0>
+    void write(texture2d_resource texture, pxsize2d sizes, const T* pixels) noexcept
+    {
+        return write(texture, sizes, texpix_format_v<T>, pixels);
+    }
+
+    template<class T, std::enable_if_t<texpix_enabled_v<T>, int> = 0>
+    void write(texture2d_resource texture, pixspan<T> img) noexcept
+    {
+        return write(texture, img.sizes(), img.data());
+    }
+
+    template<class T, std::enable_if_t<texpix_enabled_v<T>, int> = 0>
+    void write(texture2d_resource texture, const pixmap<T>& img) noexcept
+    {
+        return write(texture, pixspan{ img });
     }
 
     template<texture_target target>

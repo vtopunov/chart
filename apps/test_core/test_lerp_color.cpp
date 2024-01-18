@@ -1,6 +1,6 @@
 #include <core/lerp.h>
 #include <core/color.h>
-#include <core/assert.h>
+
 
 void test_lerp_color() noexcept
 {

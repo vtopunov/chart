@@ -53,8 +53,8 @@ namespace widget
 
                 return
                 {
-                    .frame{ 0xadadad_glrgb },
-                    .body{ 0xe1e1e1_glrgb }
+                    .frame{0xadadad_glrgb},
+                    .body{0xe1e1e1_glrgb}
                 };
             }
         };
@@ -150,11 +150,20 @@ namespace widget
     void button::operator()(redraw_event_type e) noexcept
     {
         const auto colors = button_colors::instance(state);
-
-        e.get<shader::colored_rectangle>().draw(geometry, colors.frame);
-
         const auto client_rc = rectangle_without_frame(geometry);
-        e.get<shader::colored_rectangle>().draw(client_rc, colors.body);
+
+        {
+            const auto& shdr = e.get<shader::colored_rectangle>().use();
+            shdr
+                .store(geometry)
+                .store(colors.frame)
+                .draw();
+
+            shdr
+                .store(client_rc)
+                .store(colors.body)
+                .draw();
+        }
 
         if (text::draw_to_cache(*this, e.get<buffer_view>(), client_rc.sizes)) [[likely]]
         {
@@ -163,7 +172,12 @@ namespace widget
             const auto d_center = client_rc_center - texture_center;
             const auto px_position = to_pxpoint2d(d_center);
 
-            e.get<shader::gray_texture_mix_color>().draw(px_position, text_cache.texture(), gl::colors::black_f);
+            e.get<shader::gray_texture_mix_color>()
+                .use()
+                .store(px_position)
+                .store(gl::colors::black_f)
+                .store(text_cache.texture())
+                .draw();
         }
     }
 }

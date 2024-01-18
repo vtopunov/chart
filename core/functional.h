@@ -2,9 +2,8 @@
 
 #include <functional>
 
-#include <core/fwd.h>
-#include <core/assert.h>
 #include <core/type_traits.h>
+
 
 namespace private_detail_remove_reference_wrapper
 {

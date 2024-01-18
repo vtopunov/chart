@@ -3,7 +3,6 @@
 #include <cerrno>
 #include <chrono>
 
-#include <core/assert.h>
 #include <core/resource.h>
 
 namespace
@@ -25,6 +24,24 @@ namespace
             return is_valid;
         }
     };
+
+    struct custrom_nullable
+    {
+        struct null_type
+        {
+            template<class N>
+            constexpr operator N () const noexcept
+            {
+                return { custrom_nullable{} };
+            }
+        };
+
+        [[nodiscard]] constexpr bool operator == (const custrom_nullable&) const = default;
+        [[nodiscard]] constexpr bool operator != (const custrom_nullable&) const = default;
+    };
+
+    struct custrom_nullable2 : custrom_nullable
+    {};
 }
 
 void test_null() noexcept
@@ -50,8 +67,6 @@ void test_null() noexcept
         using nullint_t = null_t<int>;
         static_assert(!std::is_same_v<nullint_t, std::nullptr_t>);
         static_assert(std::is_same_v<nullint_t, null_t<const int>>);
-        static_assert(std::is_same_v<null_t<nullint_t>, nullint_t>);
-        static_assert(std::is_same_v<null_t<const nullint_t>, nullint_t>);
     }
 
     {
@@ -59,8 +74,6 @@ void test_null() noexcept
         static_assert(!std::is_same_v<testnull_t, std::nullptr_t>);
         static_assert(!std::is_same_v<testnull_t, null_t<int>>);
         static_assert(std::is_same_v<testnull_t, null_t<const test_struct>>);
-        static_assert(std::is_same_v<null_t<testnull_t>, testnull_t>);
-        static_assert(std::is_same_v<null_t<const testnull_t>, testnull_t>);
         static_assert(!is_nullable_v<test_struct>);
     }
 
@@ -143,9 +156,17 @@ void test_null() noexcept
         static_assert(null_v<e_invalid_null> == e_invalid_null::invalid);
         static_assert(null_v<e_null> == e_null::null);
         static_assert(null_v<e_invalid> == e_invalid::invalid);
+
         static_assert(is_nullable_v<e_invalid_null>);
         static_assert(is_nullable_v<e_null>);
         static_assert(is_nullable_v<e_invalid>);
+    }
+
+    {
+        constexpr custrom_nullable cn{};
+        constexpr custrom_nullable2 cn2{};
+        static_assert(cn == null_v<custrom_nullable>);
+        static_assert(cn2 == null_v<custrom_nullable>);
     }
 
     D_ASSERT(!errno);

@@ -1,7 +1,5 @@
 #include <core/rectangle.h>
 
-#include <core/assert.h>
-
 
 void test_rectangle() noexcept
 {

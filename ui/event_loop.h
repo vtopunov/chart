@@ -89,7 +89,7 @@ namespace ui
                 }
                 else
                 {
-                    ui::private_detail_event_loop::message_wait_for(timeout);
+                    message_wait_for(timeout);
 
                     while (PeekMessageW(pmsg, nullptr, 0u, 0u, pm_remove))
                     {

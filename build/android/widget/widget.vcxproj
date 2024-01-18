@@ -51,7 +51,6 @@
     <ClCompile Include="$(RepoDir)\widget\button.cpp" />
     <ClCompile Include="$(RepoDir)\widget\label.cpp" />
     <ClCompile Include="$(RepoDir)\widget\text.cpp" />
-    <ClCompile Include="..\..\..\widget\shader.cpp" />
     <ClCompile Include="..\..\..\widget\temp_buffer.cpp" />
   </ItemGroup>
   <ItemGroup>

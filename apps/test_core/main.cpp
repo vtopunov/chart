@@ -1,6 +1,6 @@
 
-extern void test_ordered_overload() noexcept;
 extern void test_type_traits() noexcept;
+extern void test_intrusive() noexcept;
 extern void test_zero() noexcept;
 extern void test_tuple_algorithm() noexcept;
 extern void test_view() noexcept;
@@ -33,8 +33,8 @@ extern void test_utf() noexcept;
 
 int main() noexcept
 {
-    test_ordered_overload();
     test_type_traits();
+    test_intrusive();
     test_zero();
     test_tuple_algorithm();
     test_view();

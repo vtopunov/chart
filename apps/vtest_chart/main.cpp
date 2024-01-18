@@ -6,6 +6,53 @@
 
 namespace
 {
+    bool initialize_container_of_points(chart_line::points_type& v) noexcept
+    {
+        constexpr auto n_points = 1000_uz;
+
+        if (!v.try_reserve(n_points)) [[unlikely]]
+        {
+            e_debug("chart_widget: initialize_container_of_points: out of memory");
+            return false;
+        }
+
+        constexpr auto pi = 3.141592653589793238462643383279502884L;
+        constexpr auto abscissa_max = static_cast<px::real_t>(12.0 * pi);
+        constexpr auto abscissa = lerp
+        (
+            0_uz, n_points - 1_uz,
+            -abscissa_max, abscissa_max
+        );
+
+        D_ASSERT(0u == v.size());
+        D_ASSERT(n_points <= v.capacity());
+        for (size_t i = 0_uz; i < n_points; ++i)
+        {
+            const auto x = abscissa(i);
+            v.emplace_back(x, sin(x));
+        }
+
+        return true;
+    }
+
+    bool initialize_second_container_of_points(chart_line::points_type& v, chart::real_point2d_cspan points) noexcept
+    {
+        if (!v.try_reserve(points.size())) [[unlikely]]
+        {
+            e_debug("chart_widget: initialize_second_container_of_points: out of memory");
+            return false;
+        }
+
+        D_ASSERT(0u == v.size());
+        D_ASSERT(points.size() <= v.capacity());
+        for (const auto& p : points)
+        {
+            v.emplace_back(p.x(), 0.95 * p.y());
+        }
+
+        return true;
+    }
+
     struct main_widget
     {
         static constexpr auto button_width = 120_px;
@@ -49,64 +96,42 @@ namespace
             size2d{ -20_pxz, -20_pxz }
         };
 
+        chart_line chart_red_line{ .pen_color{ gl::colors::red_f } };
+        chart_line chart_blue_line{ .pen_color{ gl::colors::blue_f } };
+
         chart_widget chart
         {
-            .geometry{ chart_boundaries }
+            .geometry{ chart_boundaries },
         };
 
-        chart_line::points_type points{};
 
         bool operator () (os::const_module_handle_t app) noexcept
         {
-            const auto initialize_container_of_points = [&v = points] () noexcept
+            if (!initialize_container_of_points(chart_red_line.points)) [[unlikely]]
             {
-                constexpr auto n_points = 1000_uz;
-
-                if (!v.try_reserve(n_points)) [[unlikely]]
-                {
-                    e_debug("chart_widget: initialize_container_of_points: out of memory");
-                    return false;
-                }
-
-                constexpr auto pi = 3.141592653589793238462643383279502884L;
-                constexpr auto abscissa_max = static_cast<px::real_t>(12.0 * pi);
-                constexpr auto abscissa = lerp
-                (
-                    0_uz, n_points - 1_uz,
-                    -abscissa_max, abscissa_max
-                );
-
-                D_ASSERT(0u == v.size());
-                D_ASSERT(n_points <= v.capacity());
-                for (size_t i = 0_uz; i < n_points; ++i)
-                {
-                    const auto x = abscissa(i);
-                    v.emplace_back(x, sin(x));
-                }
-
-                return true;
+                return false;
             };
 
-            if (!initialize_container_of_points()) [[unlikely]]
+            if (!initialize_second_container_of_points(chart_blue_line.points, chart_red_line.points)) [[unlikely]]
             {
                 return false;
             };
 
             b_plot.clicked = [this] () noexcept
             {
-                if (!chart.line.points.size())
+                if (chart.lines.is_empty())
                 {
-                    chart.line.points = std::move(points);
+                    chart.lines.attach_to_back(&chart_red_line);
+                    chart.lines.attach_to_back(&chart_blue_line);
+                    chart.clear_cache();
                 }
-
-                chart.clear_cache();
             };
 
             b_clear.clicked = [this] () noexcept
             {
-                if (chart.line.points.size())
+                if (!chart.lines.is_empty())
                 {
-                    points = std::move(chart.line.points);
+                    chart.lines.clear();
                     chart.clear_cache();
                 }
             };

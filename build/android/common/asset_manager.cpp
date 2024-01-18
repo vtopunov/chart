@@ -2,7 +2,6 @@
 
 #include <atomic>
 
-#include <core/assert.h>
 
 namespace common
 {

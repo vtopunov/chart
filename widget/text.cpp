@@ -36,7 +36,7 @@ namespace widget
                 return false;
             }
 
-            const auto pixs = px::zeros_pix8space
+            const auto pixs = px::create_zeros_pix8span
             (
                 buffer,
                 std::min(sizes.width(), ceil_to<pxside_t>(tm.width)),

@@ -2,7 +2,6 @@
 
 #include <cmath>
 
-#include <core/type_traits.h>
 #include <core/limits.h>
 #include <core/utility.h>
 
@@ -10,7 +9,6 @@
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
 D_WARNING_DISABLE_MSVC(W_arithmetic_overflow);
-
 
 template<class T0, class T1>
 constexpr bool is_unsigned2_v = std::conjunction_v

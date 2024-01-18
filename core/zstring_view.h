@@ -2,6 +2,7 @@
 
 #include <type_traits>	
 
+
 template <class, class = void>
 struct has_c_str : std::false_type
 {};

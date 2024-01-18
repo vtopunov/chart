@@ -2,7 +2,6 @@
 
 #include <string_view>
 
-#include <core/assert.h>
 #include <core/resource.h>
 #include <core/zstring_view.h>
 

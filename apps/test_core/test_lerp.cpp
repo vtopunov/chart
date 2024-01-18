@@ -1,5 +1,6 @@
 #include <core/lerp.h>
-#include <core/assert.h>
+
+#include <core/fwd.h>
 
 #include <cerrno>
 

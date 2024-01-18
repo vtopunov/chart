@@ -82,18 +82,14 @@ namespace chart
     }
 
     [[nodiscard]]
-    constexpr space_diagonal_t make_space_diagonal(real_point2d_cspan line) noexcept
+    constexpr space_diagonal_t space_diagonal_with(space_diagonal_t diagonal, real_point2d_cspan line) noexcept
     {
-        space_diagonal_t diagonal{ space_diagonal_initializer };
-
-        for (const auto& pt : line)
+        for (const auto& pt : line) [[likely]]
         {
-            if (!md_isfinite(pt)) [[unlikely]]
+            if (md_isfinite(pt)) [[likely]]
             {
-                return space_diagonal_initializer;
+                diagonal = space_diagonal_with(diagonal, pt);
             }
-
-            diagonal = space_diagonal_with(diagonal, pt);
         }
 
         return diagonal;
@@ -134,16 +130,7 @@ namespace chart
             line_ = line;
         }
 
-        constexpr bool try_update(px::real_point2d_cspan points) noexcept
-        {
-            if (has_value())
-            {
-                return true;
-            }
-
-            return try_update(chart::make_space_diagonal(points));
-        }
-
+        [[nodiscard]]
         constexpr bool try_update(const space_diagonal_t& line) noexcept
         {
             if (chart::space_diagonal_is_good(line)) [[likely]]
@@ -155,11 +142,13 @@ namespace chart
             return false;
         }
 
+        [[nodiscard]]
         constexpr bool has_value() const noexcept
         {
             return !space_diagonal_has_invalid_mark(line_);
         }
 
+        [[nodiscard]]
         constexpr space_diagonal_t value() const noexcept
         {
             D_ASSERT(has_value());

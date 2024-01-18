@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core/fwd.h>
-#include <core/assert.h>
 #include <core/limits.h>
 
 

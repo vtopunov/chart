@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/assert.h>
 #include <core/limits.h>
 #include <core/underlying.h>
 #include <core/zero.h>

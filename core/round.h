@@ -39,7 +39,7 @@ namespace private_detail_round_cast
         {
             return std::trunc(v);
         }
-    } trunc_fn_v;
+    } trunc_fn_v{};
 
 
     template<class Target, class Source>

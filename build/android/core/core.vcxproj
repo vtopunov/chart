@@ -40,17 +40,15 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\static_library.props" />
   <ItemGroup>
-    <ClInclude Include="$(RepoDir)\core\assert.h" />
     <ClInclude Include="$(RepoDir)\core\buffer.h" />
     <ClInclude Include="$(RepoDir)\core\buffer_view.h" />
     <ClInclude Include="$(RepoDir)\core\clamp_cast.h" />
     <ClInclude Include="$(RepoDir)\core\color.h" />
-    <ClInclude Include="$(RepoDir)\core\intrusive_list.h" />
+    <ClInclude Include="$(RepoDir)\core\intrusive.h" />
     <ClInclude Include="$(RepoDir)\core\lerp.h" />
     <ClInclude Include="$(RepoDir)\core\limits.h" />
     <ClInclude Include="$(RepoDir)\core\narrow.h" />
     <ClInclude Include="$(RepoDir)\core\null.h" />
-    <ClInclude Include="$(RepoDir)\core\ordered_overload.h" />
     <ClInclude Include="$(RepoDir)\core\point2d.h" />
     <ClInclude Include="$(RepoDir)\core\rational.h" />
     <ClInclude Include="$(RepoDir)\core\size2d.h" />

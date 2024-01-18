@@ -23,13 +23,13 @@ namespace chart
         using namespace widget::shader;
     }
 
-    struct chart_line
+    struct chart_line : intrusive_node_object<chart_line>
     {
         using points_type = small_vector<real_point2d>;
 
         points_type points{};
         gl::rgba_colorf_t pen_color{ gl::colors::red_f };
-        gl::texture2d texture_cache{};
+        gl::unique_texture2d_resource texture_cache{};
     };
 
     struct chart_widget
@@ -37,8 +37,9 @@ namespace chart
         static constexpr auto background_color = gl::colors::white_f;
 
         stretchable_pxrectangle geometry{};
-        space_diagonal_cache space_diagonal_cache{};
-        chart_line line{};
+        space_diagonal_cache lines_space_cache{};
+        intrusive_list<chart_line> lines{};
+        pxsize2d chart_space_cache{};
 
         using mouse_move_event_type = widget::mouse_move_event<
             ui::user_gesture,
@@ -52,11 +53,22 @@ namespace chart
             content_size2d
         >;
 
+        constexpr event_result operator () (const ui::size_event&) const noexcept
+        {
+            return event_result::redraw;
+        }
+
         event_result operator () (const ui::mouse_wheel_event& e) noexcept;
 
         event_result operator () (mouse_move_event_type e) noexcept;
 
         void operator () (redraw_event_type e) noexcept;
+
+        void clear_cache() noexcept
+        {
+            lines_space_cache.clear();
+            chart_space_cache = {};
+        }
 
         template<class Fn>
         decltype(auto) apply(Fn fn) noexcept
@@ -66,17 +78,6 @@ namespace chart
                 widget::ex_context_v<redraw_event_type>,
                 widget::ex_context_v<mouse_move_event_type>
             );
-        }
-
-        void clear_draw_cache() noexcept
-        {
-            line.texture_cache = gl::sizes(std::move(line.texture_cache), 0_px, 0_px);
-        }
-
-        void clear_cache() noexcept
-        {
-            space_diagonal_cache.clear();
-            clear_draw_cache();
         }
     };
 }

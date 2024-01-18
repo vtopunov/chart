@@ -1,17 +1,37 @@
 ﻿#include <type_traits>
 
-struct snp
+struct O_ini
 {
-    std::nullptr_t np0;
-    std::nullptr_t np1;
+    constexpr O_ini() noexcept
+    {}
+
+    constexpr ~O_ini() noexcept
+    {}
 };
+
+struct S_ini : O_ini 
+{
+    int& value_ref;
+
+    constexpr ~S_ini() noexcept
+    {
+        value_ref = 0;
+    }
+};
+
+template<class T>
+int test(const T& pn) noexcept
+{
+    return *pn + 3;
+}
 
 int main() noexcept
 {
-    int a = 0, b = 1;
-    using type_meq = decltype(a -= b);
+    static_assert(std::is_convertible_v<void*, int*>);
 
-    snp snp0;
-
-    return 0;
+    int value{ 2 };
+    S_ini v{ .value_ref{ value } };
+    v.value_ref = !nullptr;
+    constexpr std::nullptr_t np{};
+    return test<int*>(np); 
 }

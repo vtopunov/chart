@@ -1,9 +1,7 @@
 #include <core/clamp_cast.h>
-#include <core/assert.h>
 
 #include <cerrno>
 #include <cinttypes>
-#include <utility>
 
 
 namespace

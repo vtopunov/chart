@@ -16,12 +16,12 @@
     <ClCompile Include="test_buffer_view.cpp" />
     <ClCompile Include="test_clamp_cast.cpp" />
     <ClCompile Include="test_color.cpp" />
+    <ClCompile Include="test_intrusive.cpp" />
     <ClCompile Include="test_lerp.cpp" />
     <ClCompile Include="test_lerp_color.cpp" />
     <ClCompile Include="test_narrow.cpp" />
     <ClCompile Include="test_null.cpp" />
     <ClCompile Include="test_functional.cpp" />
-    <ClCompile Include="test_ordered_overload.cpp" />
     <ClCompile Include="test_point2d.cpp" />
     <ClCompile Include="test_rational.cpp" />
     <ClCompile Include="test_rectangle.cpp" />

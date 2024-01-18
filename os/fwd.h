@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/fwd.h>
 #include <core/type_traits.h>
 
 #include <os/os_detection.h>
