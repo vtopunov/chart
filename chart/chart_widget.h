@@ -41,8 +41,14 @@ namespace chart
         intrusive_list<chart_line> lines{};
         pxsize2d chart_space_cache{};
 
+        using mouse_wheel_event_type = widget::mouse_wheel_event<content_size2d>;
+
         using mouse_move_event_type = widget::mouse_move_event<
             ui::user_gesture,
+            content_size2d
+        >;
+
+        using mouse_double_click_event_type = widget::mouse_double_click_event<
             content_size2d
         >;
 
@@ -58,9 +64,9 @@ namespace chart
             return event_result::redraw;
         }
 
-        event_result operator () (const ui::mouse_wheel_event& e) noexcept;
-
+        event_result operator () (mouse_wheel_event_type e) noexcept;
         event_result operator () (mouse_move_event_type e) noexcept;
+        event_result operator () (mouse_double_click_event_type e) noexcept;
 
         void operator () (redraw_event_type e) noexcept;
 

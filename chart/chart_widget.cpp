@@ -12,20 +12,26 @@ namespace chart
     namespace
     {
         [[nodiscard]]
-        constexpr bool try_update_lines_space(space_diagonal_cache& cache, intrusive_list_view<const chart_line> lines) noexcept
+        constexpr space_diagonal_t caclulate_lines_space(intrusive_list_view<const chart_line> lines) noexcept
         {
-            if (cache.has_value())
-            {
-                return true;
-            }
-
             space_diagonal_t diagonal{ space_diagonal_initializer };
             for (const auto& line : lines)
             {
                 diagonal = space_diagonal_with(diagonal, line.points);
             }
 
-            return cache.try_update(diagonal);
+            return diagonal;
+        }
+
+        [[nodiscard]]
+        constexpr bool try_update_lines_space(space_diagonal_cache& cache, intrusive_list_view<const chart_line> lines, pxsize2d pxsizes) noexcept
+        {
+            if (cache.has_value())
+            {
+                return true;
+            }
+
+            return cache.try_update(caclulate_lines_space(lines), pxsizes);
         }
 
         template<class Transformation>
@@ -54,26 +60,31 @@ namespace chart
         }
     }
 
-    event_result chart_widget::operator()(const ui::mouse_wheel_event& e) noexcept
+    event_result chart_widget::operator()(mouse_wheel_event_type e) noexcept
     {
         if (lines_space_cache)
         {
-            const auto diagonal0 = lines_space_cache.value();
-
-            constexpr double zoom_factor = 1.1;
-            const auto zoom = pow(zoom_factor, e.rot());
-            const auto half_d_d_diagonal = (diagonal0._1 - diagonal0._0) * (0.5 * zoom - 0.5);
-
-            const chart::space_diagonal_t new_diagonal
+            if (const auto chart_sizes = stretchable_sizes(geometry, e);
+                chart_sizes.width() && chart_sizes.height() && (chart_sizes == chart_space_cache))
             {
-                ._0{ diagonal0._0 - half_d_d_diagonal },
-                ._1{ diagonal0._1 + half_d_d_diagonal }
-            };
+                const auto n_wheel = e.rot();
+                constexpr double zoom_factor = 1.1;
+                const auto zoom = pow(zoom_factor, n_wheel);
 
-            if (lines_space_cache.try_update(new_diagonal))
-            {
-                chart_space_cache = {};
-                return event_result::redraw;
+                const auto diagonal = lines_space_cache.value();
+                const auto half_d_d_diagonal = (diagonal._1 - diagonal._0) * (0.5 * zoom - 0.5);
+
+                const space_diagonal_t new_diagonal
+                {
+                    ._0{ diagonal._0 - half_d_d_diagonal },
+                    ._1{ diagonal._1 + half_d_d_diagonal }
+                };
+
+                if (lines_space_cache.try_update(new_diagonal, chart_sizes))
+                {
+                    chart_space_cache = {};
+                    return event_result::redraw;
+                }
             }
         }
 
@@ -123,11 +134,29 @@ namespace chart
                         new_diagonal._1.ref_x() = new_diagonal._0.x() + d.x();
                     }
 
-                    if (lines_space_cache.try_update(new_diagonal))
+                    if (lines_space_cache.try_update(new_diagonal, chart_sizes))
                     {
                         chart_space_cache = {};
                         return event_result::redraw;
                     }
+                }
+            }
+        }
+
+        return event_result::idle;
+    }
+
+    event_result chart_widget::operator()(mouse_double_click_event_type e) noexcept
+    {
+        if (lines_space_cache)
+        {
+            if (const auto chart_sizes = stretchable_sizes(geometry, e);
+                chart_sizes.width() && chart_sizes.height() && (chart_sizes == chart_space_cache))
+            {
+                if (lines_space_cache.try_update(caclulate_lines_space(lines), chart_sizes))
+                {
+                    chart_space_cache = {};
+                    return event_result::redraw;
                 }
             }
         }
@@ -155,7 +184,7 @@ namespace chart
         {
             chart_space_cache = chart_sizes;
 
-            if (try_update_lines_space(lines_space_cache, lines))
+            if (try_update_lines_space(lines_space_cache, lines, chart_sizes))
             {
                 const auto image = px::create_pix8span(e.get<buffer_view>(), chart_sizes);
                 draw_chart_lines(image, lines, make_transformation

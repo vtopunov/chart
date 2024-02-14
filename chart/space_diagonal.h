@@ -8,6 +8,7 @@
 namespace chart
 {
     using px::real_t;
+    using px::real_vec2;
     using px::real_point2d;
     using px::real_point2d_cspan;
 
@@ -24,52 +25,30 @@ namespace chart
         real_point2d_lowest_inf,
     };
 
-    constexpr auto space_diagonal_value_invalid_mark = space_diagonal_initializer._0._0;
-
-    [[nodiscard]]
-    constexpr bool space_diagonal_has_invalid_mark(real_t value) noexcept
-    {
-        return space_diagonal_value_invalid_mark == value;
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr bool space_diagonal_has_invalid_mark(const vec2<T>& v) noexcept
-    {
-        return space_diagonal_has_invalid_mark(v._0);
-    }
-
-    static_assert(space_diagonal_has_invalid_mark(space_diagonal_initializer._0));
-    static_assert(space_diagonal_has_invalid_mark(space_diagonal_initializer));
-
-
     namespace private_detail_space_diagonal
     {
-        template<class L, class R>
-        [[nodiscard]] constexpr auto md_each_less(const L& a, const R& b) noexcept -> decltype(a < b)
+        [[nodiscard]] inline bool is_great_neq(real_t  value, real_t min_value) noexcept
         {
-            return a < b;
+            return min_value < u_prev(value);
         }
 
-        template<class L, class R>
-        [[nodiscard]] constexpr auto md_each_less(const L& a, const R& b) noexcept -> decltype(md_each_less(as_vec2(a)._0, as_vec2(b)._0))
+        [[nodiscard]] inline bool is_less_neq(real_t value, real_t max_value) noexcept
         {
-            return md_each_less(a._0, b._0)
-                && md_each_less(a._1, b._1);
+            return u_next(value) < max_value;
+        }
+
+        [[nodiscard]] inline bool inrange_neq(real_t value, real_t min_value, real_t max_value) noexcept
+        {
+            return is_great_neq(value, min_value) 
+                && is_less_neq(value, max_value);
+        }
+
+        [[nodiscard]] inline bool md_inrange_neq(const real_vec2& value, const real_vec2& min_value,  const real_vec2& max_value) noexcept
+        {
+            return inrange_neq(value._0, min_value._0, max_value._0)
+                && inrange_neq(value._1, min_value._1, max_value._1);
         }
     }
-
-    [[nodiscard]]
-    constexpr bool space_diagonal_is_good(const space_diagonal_t& line) noexcept
-    {
-        using namespace private_detail_space_diagonal;
-
-        return md_each_less(line._0, line._1)
-            && md_isfinite(line)
-            && md_isnormal(line._1 - line._0);
-    }
-
-    static_assert(!space_diagonal_is_good(space_diagonal_initializer));
-
 
     [[nodiscard]]
     constexpr space_diagonal_t space_diagonal_with(const space_diagonal_t& dia, const real_point2d& pt) noexcept
@@ -115,6 +94,14 @@ namespace chart
 
     class space_diagonal_cache
     {
+        static constexpr real_t invalid_dvalue{ 0.0 };
+        static constexpr auto invalid_dline = fill_to<point2d>(invalid_dvalue);
+        
+        static constexpr bool dline_has_value(const real_point2d& pt) noexcept
+        {
+            return invalid_dvalue != pt.y();
+        }
+
     public:
         constexpr space_diagonal_cache() noexcept = default;
         D_DISABLE_COPY_MOVE(space_diagonal_cache);
@@ -124,19 +111,28 @@ namespace chart
             return has_value();
         }
 
-        constexpr void fore_update(const space_diagonal_t& line) noexcept
-        {
-            D_ASSERT(space_diagonal_is_good(line));
-            line_ = line;
-        }
-
         [[nodiscard]]
-        constexpr bool try_update(const space_diagonal_t& line) noexcept
+        constexpr bool try_update(const space_diagonal_t& line, pxsize2d pxsizes) noexcept
         {
-            if (chart::space_diagonal_is_good(line)) [[likely]]
+            using private_detail_space_diagonal::md_inrange_neq;
+
+            const auto dline = line._1 - line._0;
+            if(md_isnormal(dline))
             {
-                line_ = line;
-                return true;
+                constexpr auto num_max = fill_to<point2d>(numeric_max_v<real_t>);
+                const auto has_dline = dline_has_value(dline0_);
+                const auto min_dline = pxsizes * numeric_eps_v<real_t>;
+                const auto max_dline = (has_dline) ? 0.5 * (pxsizes * dline0_) : num_max;
+                if(md_inrange_neq(dline, min_dline, max_dline))
+                {
+                    if(!has_dline)
+                    {
+                        dline0_ = dline;
+                    }
+
+                    line_ = line;
+                    return true;
+                }
             }
 
             return false;
@@ -145,7 +141,7 @@ namespace chart
         [[nodiscard]]
         constexpr bool has_value() const noexcept
         {
-            return !space_diagonal_has_invalid_mark(line_);
+            return dline_has_value(dline0_);
         }
 
         [[nodiscard]]
@@ -158,9 +154,11 @@ namespace chart
         constexpr void clear() noexcept
         {
             line_ = chart::space_diagonal_initializer;
+            dline0_ = invalid_dline;
         }
 
     private:
         space_diagonal_t line_{ chart::space_diagonal_initializer };
+        real_point2d dline0_{ invalid_dline };
     };
 }

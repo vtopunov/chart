@@ -4,16 +4,13 @@ using chart::real_t;
 using chart::real_point2d;
 using chart::real_point2d_lowest_inf;
 using chart::space_diagonal_t;
-using chart::space_diagonal_value_invalid_mark;
 using chart::space_diagonal_initializer;
-using chart::space_diagonal_has_invalid_mark;
 using chart::space_diagonal_with;
 
 namespace
 {
     constexpr auto real_point2d_lowest = fill_to<point2d>(numeric_lowest_v<real_t>);
     constexpr auto real_point2d_max = fill_to<point2d>(numeric_max_v<real_t>);
-    constexpr auto space_diagonal_point2d_invalid_mark = fill_to<point2d>(space_diagonal_value_invalid_mark);
 }
 
 
@@ -29,28 +26,35 @@ void test_polyline_space_diagonal() noexcept
     static_assert(real_point2d_max == md_max(md_max(space_diagonal_initializer._1, real_point2d_lowest), real_point2d_max));
     static_assert(real_point2d_max == md_max(md_max(space_diagonal_initializer._1, real_point2d_max), real_point2d_lowest));
 
-    static_assert(space_diagonal_has_invalid_mark(space_diagonal_initializer));
-    static_assert(!space_diagonal_has_invalid_mark(inverse(space_diagonal_initializer)));
-
-    static_assert(space_diagonal_has_invalid_mark(space_diagonal_with(space_diagonal_initializer, space_diagonal_point2d_invalid_mark)));
-    static_assert(!space_diagonal_has_invalid_mark(space_diagonal_with(space_diagonal_initializer, real_point2d_lowest)));
-    static_assert(!space_diagonal_has_invalid_mark(space_diagonal_with(space_diagonal_initializer, real_point2d_max)));
-
     {
-        auto space = space_diagonal_initializer;
-        D_ASSERT(space_diagonal_has_invalid_mark(space));
-        D_ASSERT(space_diagonal_value_invalid_mark == space._0._0);
-        D_ASSERT(space_diagonal_point2d_invalid_mark == space._0);
+        using chart::private_detail_space_diagonal::is_great_neq;
 
-        space._0._0 = std::nextafter(space._0._0, 0.0);
-        D_ASSERT(!space_diagonal_has_invalid_mark(space));
-        D_ASSERT(!(space_diagonal_value_invalid_mark == space._0._0));
-        D_ASSERT(!(space_diagonal_point2d_invalid_mark == space._0));
+        {
+            const struct errno_restorer
+            {
+                int errvalue;
 
-        space = space_diagonal_with(space, space_diagonal_point2d_invalid_mark);
-        D_ASSERT(!space_diagonal_has_invalid_mark(space));
-        D_ASSERT(space_diagonal_point2d_invalid_mark != space._0);
-        D_ASSERT(space_diagonal_point2d_invalid_mark == space._1);
+                errno_restorer() noexcept
+                    : errvalue{ errno }
+                {}
+
+                ~errno_restorer() noexcept
+                {
+                    errno = errvalue;
+                }
+            } hold_errno;
+
+            D_ASSERT(!is_great_neq(0.0, 0.0));
+            D_ASSERT(!is_great_neq(u_next(0.0), 0.0));
+            D_ASSERT(is_great_neq(u_next(u_next(0.0)), 0.0));
+        }
+
+        {
+            constexpr auto nearz = 3 * numeric_eps_v<real_t>;
+            D_ASSERT(!is_great_neq(nearz, nearz));
+            D_ASSERT(!is_great_neq(u_next(nearz), nearz));
+            D_ASSERT(is_great_neq(u_next(u_next(nearz)), nearz));
+        }
     }
 
     D_ASSERT(!errno);

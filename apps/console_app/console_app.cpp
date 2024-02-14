@@ -1,5 +1,8 @@
 ﻿#include <type_traits>
 
+#include <cmath>
+#include <limits>
+
 struct O_ini
 {
     constexpr O_ini() noexcept
@@ -27,9 +30,9 @@ int test(const T& pn) noexcept
 
 int main() noexcept
 {
-    static_assert(std::is_convertible_v<void*, int*>);
+    auto isn = std::isnormal(std::nexttoward(std::numeric_limits<double>::epsilon(), std::numeric_limits<long double>::lowest()));
 
-    int value{ 2 };
+    int value{ 2 + isn };
     S_ini v{ .value_ref{ value } };
     v.value_ref = !nullptr;
     constexpr std::nullptr_t np{};

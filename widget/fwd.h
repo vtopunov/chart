@@ -42,6 +42,9 @@ namespace widget
     using redraw_event = widget_event<redraw_event_base, Args...>;
 
     template<class... Args>
+    using mouse_wheel_event = widget_event<ui::mouse_wheel_event, Args...>;
+
+    template<class... Args>
     using mouse_move_event = widget_event<ui::mouse_move_event, Args...>;
 
     template<class... Args>

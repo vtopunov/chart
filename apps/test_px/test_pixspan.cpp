@@ -1,5 +1,6 @@
 #include <px/pixspan.h>
 
+
 void test_pixspan() noexcept
 {
     constexpr pxsize2d image_sizes{ 9_px, 9_px };

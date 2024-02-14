@@ -27,6 +27,7 @@ namespace px
     using pxzrectangle = ::rectangle<pxoff_t>;
 
     using real_t = double_t;
+    using real_vec2 = vec2<real_t>;
     using real_point2d = point2d<real_t>;
     using real_size2d = size2d<real_t>;
     using real_point2d_cspan = span<const real_point2d>;

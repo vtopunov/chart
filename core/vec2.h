@@ -291,13 +291,16 @@ template<class T>
 }
 
 template<class T>
-[[nodiscard]] std::enable_if_t<std::is_arithmetic_v<T>, bool> md_isnormal(const T& v) noexcept
+[[nodiscard]] constexpr auto md_isnormal(const T& v) noexcept -> std::enable_if_t<
+    std::negation_v<is_base_of_vec2<T>>,
+    decltype(u_isnormal(v))
+> 
 {
-    return std::isnormal(v);
+    return u_isnormal(v);
 }
 
 template<class T>
-[[nodiscard]] auto md_isnormal(const T& v) noexcept -> decltype(md_isnormal(as_vec2(v)._0))
+[[nodiscard]] constexpr auto md_isnormal(const T& v) noexcept -> decltype(md_isnormal(as_vec2(v)._0))
 {
     return md_isnormal(v._0) 
         && md_isnormal(v._1);

@@ -17,7 +17,7 @@ namespace
         }
 
         constexpr auto pi = 3.141592653589793238462643383279502884L;
-        constexpr auto abscissa_max = static_cast<px::real_t>(12.0 * pi);
+        constexpr auto abscissa_max = static_cast<px::real_t>(7.0 * pi);
         constexpr auto abscissa = lerp
         (
             0_uz, n_points - 1_uz,

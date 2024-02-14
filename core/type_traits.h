@@ -232,3 +232,28 @@ template<class T>
 
 template<class T>
 constexpr bool is_pointer_or_nullptr_v = std::disjunction_v<std::is_pointer<T>, std::is_null_pointer<T>>;
+
+
+template<class T>
+using decl_pre_inc_op_t = decltype(++std::declval<T&>());
+
+template<class T>
+using decl_post_inc_op_t = decltype(std::declval<T&>()++);
+
+template<class T>
+using decl_pre_dec_op_t = decltype(--std::declval<T&>());
+
+template<class T>
+using decl_post_dec_op_t = decltype(std::declval<T&>()--);
+
+template<class T>
+using has_pre_inc_op = is_detected<decl_pre_inc_op_t, T>;
+
+template<class T>
+using has_post_inc_op = is_detected<decl_post_inc_op_t, T>;
+
+template<class T>
+using has_pre_dec_op = is_detected<decl_pre_dec_op_t, T>;
+
+template<class T>
+using has_post_dec_op = is_detected<decl_post_dec_op_t, T>;
