@@ -30,7 +30,7 @@ namespace
             return {};
         }
 
-        constexpr auto sep = 1_px;
+        constexpr auto sep = 1_npx;
         const auto w_image_space = png.width() + sep;
         const auto h_image_space = png.height() + sep;
 
@@ -41,15 +41,15 @@ namespace
             return {};
         }
 
-        for (pxside_t y = sep; y < gallery.height(); y += h_image_space)
+        for (pxsize_t y = sep; y < gallery.height(); y += h_image_space)
         {
-            for (pxside_t x = sep; x < gallery.width(); x += w_image_space)
+            for (pxsize_t x = sep; x < gallery.width(); x += w_image_space)
             {
                 gallery.store(x, y, png);
             }
         }
 
-        auto result_texture = gl::create_texture2d(gallery);
+        auto result_texture = gl::create_texture2d(view(gallery));
         if (!result_texture)
         {
             e_debug("create texture error: {}", glGetError());
@@ -97,12 +97,12 @@ int app_main(os::module_handle_t app) noexcept
         const auto vb = shaders.vert.a_frame.bind();
 
         const auto [w, h] = egl.viewport;
-        const auto dx = width(texture) + 1_px;
-        const auto dy = height(texture) + 1_px;
+        const auto dx = width(texture) + 1_npx;
+        const auto dy = height(texture) + 1_npx;
 
-        for (pxside_t y = 0; y < h; y += dy)
+        for (pxsize_t y = 0; y < h; y += dy)
         {
-            for (pxside_t x = 0; x < w; x += dx)
+            for (pxsize_t x = 0; x < w; x += dx)
             {
                 shaders.vert.u_position.store(x, y);
                 vb.draw();

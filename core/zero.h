@@ -96,33 +96,16 @@ namespace private_detail_zero
     {
         using private_detail_zero_type::is_zero_constructible;
         using private_detail_zero_type::zero_v;
-
-        template<class T>
-        [[nodiscard]] constexpr auto eq_op(const T& left, const T& right) noexcept -> decltype(left == right)
-        {
-            return left == right;
-        }
-
-        template<class T>
-        [[nodiscard]] constexpr auto neq_op(const T& left, const T& right) noexcept -> decltype(left != right)
-        {
-            return left != right;
-        }
-
-        template<class T>
-        using decl_eq_op_result_t = decltype(eq_op<T>(std::declval<const T&>(), std::declval<const T&>()));
-
-        template<class T>
-        using decl_neq_op_result_t = decltype(neq_op<T>(std::declval<const T&>(), std::declval<const T&>()));
+        using namespace type_traits_compare;
 
         template<class T, template<class> class Op>
         using op_result_t = typename std::enable_if_t<std::conjunction_v<std::negation<is_zero_type<T>>, is_zero_constructible<T>>, enable_if_detected<Op, T>>::type;
 
         template<class T>
-        using eq_op_result_t = op_result_t<T, decl_eq_op_result_t>;
+        using eq_op_result_t = op_result_t<T, decl_eq_op_t>;
 
         template<class T>
-        using neq_op_result_t = op_result_t<T, decl_neq_op_result_t>;
+        using neq_op_result_t = op_result_t<T, decl_neq_op_t>;
 
         template<class T>
         [[nodiscard]] constexpr eq_op_result_t<T> eqz(const T& value) noexcept
@@ -285,15 +268,15 @@ using private_detail_zero::private_detail_is_neqz::is_neqz;
 
 
 template<class T>
-[[nodiscard]] constexpr auto is_positive(const T& value) noexcept -> decltype(zero_v<T> < value)
+[[nodiscard]] constexpr decl_less_op_t<T> is_positive(const T& value) noexcept
 {
-    return zero_v<T> < value;
+    return type_traits_compare::less_op<T>(zero_v<T>, value);
 }
 
 template<class T>
-[[nodiscard]] constexpr auto is_negative(const T& value) noexcept -> decltype(value < zero_v<T>)
+[[nodiscard]] constexpr decl_less_op_t<T> is_negative(const T& value) noexcept
 {
-    return value < zero_v<T>;
+    return type_traits_compare::less_op<T>(value, zero_v<T>);
 }
 
 

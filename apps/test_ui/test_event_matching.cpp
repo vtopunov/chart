@@ -121,8 +121,8 @@ void test_event_matching() noexcept
         return ui::size_event{ w, ui::event_style::size, 0u, MAKELPARAM(sizes.width(), sizes.height()) };
     };
 
-    constexpr auto se12 = make_size_event(nullptr, { 1_px, 2_px });
-    constexpr auto se23 = make_size_event(nullptr, { 2_px, 3_px });
+    constexpr auto se12 = make_size_event(nullptr, { 1_npx, 2_npx });
+    constexpr auto se23 = make_size_event(nullptr, { 2_npx, 3_npx });
 
     {
         no_processor noproc{};

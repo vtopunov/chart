@@ -8,7 +8,7 @@ namespace widget
     struct content_size2d : pxsize2d
     {};
 
-    using stretchable_pxrectangle = ::rectangle<pxside_t, pxoff_t>;
+    using stretchable_pxrectangle = ::rectangle<pxsize_t, pxoff_t>;
 
     
     class window;

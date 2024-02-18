@@ -31,6 +31,10 @@ namespace
 void test_vec2() noexcept
 {
     {
+        static_assert(std::is_same_v<decl_view_type_t<vec2<int>>, vec2<int>::view_type>);
+    }
+
+    {
         constexpr vec2 v0{ 1, 1 };
         constexpr vec2 v1{ 1, 2 };
         constexpr vec2 v2{ 2, 1 };

@@ -46,7 +46,7 @@ void test_file_mmap() noexcept
            
             
             {
-                const auto mmap_span = mmap.r().view().as_span<value_type>();
+                const auto mmap_span = view(mmap).as_span<value_type>();
                 D_ASSERT(mmap_span.front() == content[0]);
                 D_ASSERT(mmap_span.size() == std::size(content));
             }

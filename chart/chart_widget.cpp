@@ -1,66 +1,9 @@
 #include "chart_widget.h"
 
-#include <px/algorithm.h>
-
-#include <utility/px.h>
-
-#include <widget/stretchable.h>
-
 
 namespace chart
 {
-    namespace
-    {
-        [[nodiscard]]
-        constexpr space_diagonal_t caclulate_lines_space(intrusive_list_view<const chart_line> lines) noexcept
-        {
-            space_diagonal_t diagonal{ space_diagonal_initializer };
-            for (const auto& line : lines)
-            {
-                diagonal = space_diagonal_with(diagonal, line.points);
-            }
-
-            return diagonal;
-        }
-
-        [[nodiscard]]
-        constexpr bool try_update_lines_space(space_diagonal_cache& cache, intrusive_list_view<const chart_line> lines, pxsize2d pxsizes) noexcept
-        {
-            if (cache.has_value())
-            {
-                return true;
-            }
-
-            return cache.try_update(caclulate_lines_space(lines), pxsizes);
-        }
-
-        template<class Transformation>
-        void draw_chart_lines(pix8span pixs, intrusive_list_view<chart_line> lines, const Transformation value2px) noexcept
-        {
-            for (auto& line : lines)
-            {
-                zero_memory(pixs);
-                px::draw_polyline(pixs, line.points, value2px);
-
-                if (line.texture_cache)
-                {
-                    gl::write(line.texture_cache, pixs);
-                }
-                else
-                {
-                    line.texture_cache =
-                    {
-                        resource_construct,
-                        gl::create_texture2d(pixs).release()
-                    };
-                }
-
-                D_ASSERT(line.texture_cache);
-            }
-        }
-    }
-
-    event_result chart_widget::operator()(mouse_wheel_event_type e) noexcept
+    event_result chart_widget::process(mouse_wheel_event_t e) noexcept
     {
         if (lines_space_cache)
         {
@@ -91,7 +34,7 @@ namespace chart
         return event_result::idle;
     }
 
-    event_result chart_widget::operator()(mouse_move_event_type e) noexcept
+    event_result chart_widget::process(mouse_move_event_t e) noexcept
     {
         if (e.keys().is_left() && lines_space_cache)
         {
@@ -144,68 +87,5 @@ namespace chart
         }
 
         return event_result::idle;
-    }
-
-    event_result chart_widget::operator()(mouse_double_click_event_type e) noexcept
-    {
-        if (lines_space_cache)
-        {
-            if (const auto chart_sizes = stretchable_sizes(geometry, e);
-                chart_sizes.width() && chart_sizes.height() && (chart_sizes == chart_space_cache))
-            {
-                if (lines_space_cache.try_update(caclulate_lines_space(lines), chart_sizes))
-                {
-                    chart_space_cache = {};
-                    return event_result::redraw;
-                }
-            }
-        }
-
-        return event_result::idle;
-    }
-
-    void chart_widget::operator()(redraw_event_type e) noexcept
-    {
-        const auto chart_sizes = stretchable_sizes(geometry, e);
-
-        const pxrectangle view_geometry
-        {
-            .position{ geometry.position },
-            .sizes{ chart_sizes }
-        };
-
-        e.get<shader::colored_rectangle>()
-            .use()
-            .store(view_geometry)
-            .store(background_color)
-            .draw();
-
-        if (chart_sizes != chart_space_cache)
-        {
-            chart_space_cache = chart_sizes;
-
-            if (try_update_lines_space(lines_space_cache, lines, chart_sizes))
-            {
-                const auto image = px::create_pix8span(e.get<buffer_view>(), chart_sizes);
-                draw_chart_lines(image, lines, make_transformation
-                (
-                    lines_space_cache.value(),
-                    make_pix_space_diagonal(chart_sizes)
-                ));
-            }
-        }
-
-        {
-            const auto& shdr = e.get<shader::gray_texture_mix_color>()
-                .use()
-                .store(view_geometry);
-
-            for (const auto& line : std::as_const(lines))
-            {
-                shdr.store(line.pen_color)
-                    .store(line.texture_cache)
-                    .draw();
-            }
-        }
     }
 }

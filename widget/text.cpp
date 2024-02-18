@@ -39,26 +39,17 @@ namespace widget
             const auto pixs = px::create_zeros_pix8span
             (
                 buffer,
-                std::min(sizes.width(), ceil_to<pxside_t>(tm.width)),
-                std::min(sizes.height(), ceil_to<pxside_t>(tm.bottom - tm.top))
+                std::min(sizes.width(), ceil_to<pxsize_t>(tm.width)),
+                std::min(sizes.height(), ceil_to<pxsize_t>(tm.bottom - tm.top))
             );
 
-            const auto y_cursor = font::draw_text(pixs, 0_px, -tm.top, face, text).y();
+            const auto y_cursor = font::draw_text(pixs, 0_npx, -tm.top, face, text).y();
             if (invalid_y == y_cursor) [[unlikely]]
             {
                 return false;
             }
 
-            if (texture_)
-            {
-                texture_ = gl::image(std::move(texture_), pixs);
-            }
-            else
-            {
-                texture_ = gl::create_texture2d(pixs);
-            }
-
-            if (gl::sizes(texture_) != pixs.sizes()) [[unlikely]]
+            if (!gl::update(texture_, pixs)) [[unlikely]]
             {
                 return false;
             }

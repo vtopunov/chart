@@ -34,8 +34,8 @@ constexpr It back_move(It to, It back) noexcept
     return to;
 }
 
-template<class size_type> [[nodiscard]]
-constexpr size_type optimal_memory_growth(size_type value) noexcept
+template<class size_type>
+[[nodiscard]] constexpr size_type optimal_memory_growth(size_type value) noexcept
 {
     static_assert(std::is_unsigned_v<size_type>);
     constexpr size_type factor = 2;
@@ -44,8 +44,8 @@ constexpr size_type optimal_memory_growth(size_type value) noexcept
     return (value < overflow) ? (factor * value) : max_size;
 }
 
-template<class size_type> [[nodiscard]]
-constexpr size_type optimal_capacity_limit(size_type expected_capacity) noexcept
+template<class size_type>
+[[nodiscard]] constexpr size_type optimal_capacity_limit(size_type expected_capacity) noexcept
 {
     return optimal_memory_growth(optimal_memory_growth(expected_capacity));
 }
@@ -79,12 +79,18 @@ public:
     using const_span_type = span<const_value_type>;
     using buffer_type = Buffer;
     using size_type = typename buffer_type::size_type;
+    using view_type = const_span_type;
+    using null_type = nullmem_t;
 
     static constexpr size_type static_size{ N };
 
     constexpr small_vector() noexcept
         : data_{ static_ }
         , size_{ 0_uz }
+    {}
+
+    constexpr small_vector(null_type) noexcept
+        : self{}
     {}
 
     small_vector(const self& right) noexcept
@@ -127,8 +133,14 @@ public:
     }
 
     small_vector(self&& right) noexcept
-        : self{attach_construct, right}
+        : self{ attach_construct, right }
     {}
+
+    self& operator = (null_type) noexcept
+    {
+        clear();
+        return *this;
+    }
 
     self& operator = (const self& right) noexcept
     {
@@ -170,6 +182,11 @@ public:
         }
 
         return *this;
+    }
+
+    constexpr explicit operator bool () const noexcept
+    {
+        return !!size_;
     }
 
     [[nodiscard]]
@@ -240,7 +257,7 @@ public:
                 , locked_size_{ store._release_size() }
             {}
 
-            D_DISABLE_COPY_MOVE(collector);
+            D_DISABLE_COPYMOVE_CA(collector);
 
             [[nodiscard]]
             constexpr size_type erase(const_pointer first, const_pointer last) noexcept
@@ -260,7 +277,7 @@ public:
             {
                 const auto new_size = narrow<size_t>(removed_data - locked_data_);
                 locked_data_ = removed_data;
-                
+
                 const auto count_of_erased = locked_size_ - new_size;
                 locked_size_ = count_of_erased;
 
@@ -274,14 +291,14 @@ public:
             {
                 D_ASSERT(last >= first);
                 D_ASSERT(first >= locked_data_);
-                
+
                 const auto last_last = locked_data_ + locked_size_;
                 D_ASSERT(last <= last_last);
 
                 return std::move
                 (
-                    const_cast<pointer>(last), 
-                    last_last, 
+                    const_cast<pointer>(last),
+                    last_last,
                     const_cast<pointer>(first)
                 );
             }
@@ -440,7 +457,7 @@ public:
     [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
-        return *(cend()-1_uz);
+        return *(cend() - 1_uz);
     }
 
     [[nodiscard]]
@@ -625,7 +642,7 @@ private:
     [[nodiscard]]
     bool _try_reallocate(size_type new_capacity) noexcept
     {
-        if (buffer_type temp{buffer_construct, new_capacity}) [[likely]]
+        if (buffer_type temp{ buffer_construct, new_capacity }) [[likely]]
         {
             _attach_buffer(temp);
             return true;
@@ -645,7 +662,7 @@ private:
                 , size_{ store_._release_size() }
             {}
 
-            D_DISABLE_COPY_MOVE(collector);
+            D_DISABLE_COPYMOVE_CA(collector);
 
             void uninitialized_move_to_static() noexcept
             {

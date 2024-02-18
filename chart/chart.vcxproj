@@ -11,7 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="chart_line.h" />
     <ClInclude Include="chart_widget.h" />
+    <ClInclude Include="event.h" />
+    <ClInclude Include="fwd.h" />
     <ClInclude Include="space_diagonal.h" />
   </ItemGroup>
   <ItemGroup>

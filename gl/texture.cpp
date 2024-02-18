@@ -19,7 +19,7 @@ namespace gl
         {
             texture_descriptor_t d{};
             glGenTextures(1, &d);
-            return { resource_construct, d, size2d{ 0_px, 0_px } };
+            return { resource_construct, d, size2d{ 0_npx, 0_npx } };
         }
 
         void set_image2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept
@@ -86,24 +86,18 @@ namespace gl
         return {};
     }
 
-    void write(texture2d_resource tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
+    pxsize2d write(texture2d_resource tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
     {
         if (bind(tex)) [[likely]]
         {
             set_image2d(sizes, format, pixels);
+            if (is_correct()) [[likely]]
+            {
+                return sizes;
+            }
         }
-    }
-
-    texture2d image(texture2d tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
-    {
-        write(tex, sizes, format, pixels);
-
-        if (is_correct()) [[likely]]
-        {
-            tex = gl::sizes(std::move(tex), sizes);
-        }
-
-        return tex;
+        
+        return {};
     }
 
     std::underlying_type_t<uniform_location> get_sampler_number(shaders_program_resource program, uniform_location location) noexcept

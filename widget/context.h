@@ -102,7 +102,7 @@ namespace widget
             std::get<windowrefwrap_t>(tuple_) = windowrefwrap_t{ window };
         }
 
-        D_DISABLE_COPY_MOVE(common_context);
+        D_DISABLE_COPYMOVE_CA(common_context);
 
         template<class T>
         constexpr const T& cget() const noexcept
@@ -206,9 +206,9 @@ namespace widget
         struct forward_ref_types_function
         {
             template<class... Args>
-            constexpr std::tuple<Args&...> operator () (Args&... types) const noexcept
+            constexpr std::tuple<Args&&...> operator () (Args&&... types) const noexcept
             {
-                return { types... };
+                return { std::forward<Args>(types)... };
             }
         };
 

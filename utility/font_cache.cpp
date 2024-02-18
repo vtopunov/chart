@@ -83,7 +83,7 @@ namespace font_cache
         {
             font::face face;
             size_t mmap_id;
-            px::pxside_t size;
+            px::pxsize_t size;
 
             struct by_face
             {
@@ -109,7 +109,7 @@ namespace font_cache
 
             struct by_size
             {
-                pxside_t size;
+                pxsize_t size;
 
                 [[nodiscard]]
                 constexpr bool operator () (const face_item& item) const noexcept
@@ -175,7 +175,7 @@ namespace font_cache
         };
     }
 
-    face load_font(file::path_zstring_view name, const px::pxside_t size) noexcept
+    face load_font(file::path_zstring_view name, const px::pxsize_t size) noexcept
     {
         const file::path_string_view name_sv{ name.c_str() };
         auto& mmaps = global_mmaps_cache();

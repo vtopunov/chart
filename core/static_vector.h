@@ -12,7 +12,7 @@ namespace private_detail_static_vector
 
         constexpr dummy_buffer() noexcept = default;
 
-        D_DEFAULT_MOVABLE_ONLY(dummy_buffer);
+        D_DEFAULT_ONLYMOVE_CA(dummy_buffer);
 
         constexpr dummy_buffer(buffer_construct_t, size_t) noexcept
         {}

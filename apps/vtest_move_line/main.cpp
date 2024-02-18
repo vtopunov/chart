@@ -1,6 +1,7 @@
 ﻿#include <debug/debug.h>
 
 #include <px/algorithm.h>
+#include <px/pixmap.h>
 
 #include <egl_ui/egl_ui_owner.h>
 
@@ -175,7 +176,7 @@ namespace
             }
             else
             {
-                image_ = pix8map{ 600_px, 600_px };
+                image_ = pix8map{ 600_npx, 600_npx };
                 if (!image_)
                 {
                     e_debug("out of memory");
@@ -198,7 +199,7 @@ namespace
         [[nodiscard]]
         bool lines_rendering_by_default() noexcept
         {
-            return lines_rendering({ 0_pxz, 0_pxz });
+            return lines_rendering({ 0_npxz, 0_npxz });
         }
 
     private:
@@ -215,7 +216,7 @@ namespace
 
                 lib.use();
                 lib.vert.u_viewport.store(viewport);
-                lib.vert.u_position.store(100_px, 150_px);
+                lib.vert.u_position.store(100_npx, 150_npx);
                 return true;
             }
 

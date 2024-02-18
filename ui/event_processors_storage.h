@@ -34,7 +34,7 @@ namespace ui
 
     public:
         constexpr event_processors_storage() noexcept = default;
-        D_DISABLE_COPY_MOVE(event_processors_storage);
+        D_DISABLE_COPYMOVE_CA(event_processors_storage);
 
         static constexpr size_t static_size{ 8_uz };
         using vector_type = small_vector<event_processor_note, static_size>;
@@ -55,7 +55,7 @@ namespace ui
                 : container_{ container }
             {}
 
-            D_DISABLE_COPY_MOVE(locked_storage);
+            D_DISABLE_COPYMOVE_CA(locked_storage);
 
             ~locked_storage() noexcept
             {
@@ -102,7 +102,7 @@ namespace ui
         {
         public:
             constexpr recursive_lock() noexcept = default;
-            D_DISABLE_COPY_MOVE(recursive_lock);
+            D_DISABLE_COPYMOVE_CA(recursive_lock);
 
             constexpr void lock() noexcept
             {
@@ -129,7 +129,7 @@ namespace ui
         {
         public:
             constexpr desctiptor_generator() noexcept = default;
-            D_DISABLE_COPY_MOVE(desctiptor_generator);
+            D_DISABLE_COPYMOVE_CA(desctiptor_generator);
 
             constexpr event_processor_resource operator () () noexcept
             {

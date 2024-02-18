@@ -1,9 +1,6 @@
 #include <file/file_io.h>
 
-#include <span>
-
-#include <core/size_type.h>
-#include <core/narrow.h>
+#include <core/span.h>
 
 
 namespace
@@ -24,7 +21,7 @@ namespace
         D_ASSERT(size == block_size);
     }
 
-    void check_equ(std::span<const char> left, std::span<const char> rigth) noexcept
+    void check_equ(span<const char> left, span<const char> rigth) noexcept
     {
         D_ASSERT(left.size() == rigth.size());
         D_ASSERT(!memcmp(left.data(), rigth.data(), rigth.size()));
@@ -107,7 +104,7 @@ namespace
         const auto rwf = file::rw_open(file_name, file::w_open_mode::rewrite);
         D_ASSERT(rwf);
 
-        auto test_read_block = [&rwf] (std::span<const char> test) noexcept
+        auto test_read_block = [&rwf] (span<const char> test) noexcept
         {
             char buffer[block_size]{};
             check_block_size(read(rwf, buffer, block_size));

@@ -22,10 +22,8 @@
     <ClInclude Include="point2d.h" />
     <ClInclude Include="round.h" />
     <ClInclude Include="size2d.h" />
-    <ClInclude Include="size_type.h" />
     <ClInclude Include="span.h" />
     <ClInclude Include="static_vector.h" />
-    <ClInclude Include="string_char.h" />
     <ClInclude Include="transformation.h" />
     <ClInclude Include="tuple_algorithm.h" />
     <ClInclude Include="type_traits.h" />
@@ -40,7 +38,6 @@
     <ClInclude Include="rectangle.h" />
     <ClInclude Include="small_vector.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="value_type.h" />
     <ClInclude Include="vec2.h" />
     <ClInclude Include="view.h" />
     <ClInclude Include="warnings.h" />

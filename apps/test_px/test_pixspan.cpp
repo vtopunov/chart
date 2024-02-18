@@ -3,12 +3,13 @@
 
 void test_pixspan() noexcept
 {
-    constexpr pxsize2d image_sizes{ 9_px, 9_px };
+    constexpr pxsize2d image_sizes{ 9_npx, 9_npx };
 
     static_assert(4_uz == px::default_alignment);
     constexpr auto line_size = size_align<px::default_alignment>(image_sizes.width());
+    static_assert(line_size == px::aligned_width<1u, px::default_alignment>(image_sizes.width()));
 
-    static constexpr u8tint_t image[image_sizes.height() * line_size]
+    static constexpr pix8_t image[image_sizes.height() * line_size]
     {
         0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0x00, 0x00, 0x00,
         0xff, 0xcc, 0xcc,  0xcc, 0xcc, 0xcc,  0xcc, 0xcc, 0xff,  0x00, 0x00, 0x00,
@@ -50,8 +51,8 @@ void test_pixspan() noexcept
 
     {
         uint8_t temp_image[std::size(image) + line_size]{};
-        pix8span temp_image_span{ std::data(temp_image), image_sizes.width(), image_sizes.height() + 1_px };
-        D_ASSERT(image_sizes == temp_image_span.store(0_px, 1_px, image_span));
+        pix8span temp_image_span{ std::data(temp_image), image_sizes.width(), image_sizes.height() + 1_npx };
+        D_ASSERT(image_sizes == temp_image_span.store(0_npx, 1_npx, image_span));
         D_ASSERT(!memcmp(temp_image + line_size, image, sizeof(image)));
     }
 

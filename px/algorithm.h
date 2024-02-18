@@ -83,7 +83,7 @@ namespace px
             return z_round_unsafe(value);
         };
 
-        constexpr vec2<ptrdiff_t> round_range(bool direction_is_inc, pxside_t size, real_t v0, real_t v1) noexcept
+        constexpr vec2<ptrdiff_t> round_range(bool direction_is_inc, pxsize_t size, real_t v0, real_t v1) noexcept
         {
             const auto bound0 = 0_z - !direction_is_inc;
             const auto bound1 = bound0 + narrow<ptrdiff_t>(size);

@@ -2,7 +2,6 @@
 
 #include <string_view>
 
-#include <core/size_type.h>
 #include <core/span.h>
 
 
@@ -50,14 +49,14 @@ namespace private_detail_size_bytes
         }
     }
 
-    template<class C> 
+    template<class C>
     [[nodiscard]] constexpr auto value_type_size() -> decltype(size_of<value_type_t<C>>())
     {
         return size_of<value_type_t<C>>();
     }
 
     template<class C>
-    [[nodiscard]] constexpr auto size_bytes_impl(const C& c, _order<_1>) noexcept 
+    [[nodiscard]] constexpr auto size_bytes_impl(const C& c, _order<_1>) noexcept
         -> decltype(value_type_size<C>(), std::size(c), 0_uz)
     {
         constexpr auto type_size = value_type_size<C>();
@@ -109,7 +108,8 @@ public:
     template<class T>
     using const_opt_span = span<const_opt<T>>;
 
-    using value_type = std::byte;
+    using byte_type = std::byte;
+    using value_type = byte_type;
     using element_type = const_opt<value_type>;
     using size_type = size_t;
     using pointer = element_type*;
@@ -118,19 +118,25 @@ public:
     using const_reference = const element_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
+    using view_type = const_buffer_view;
+    using null_type = nullmem_t;
     using data_pointer = const_opt_pointer<void>;
+    static_assert(1u == sizeof(byte_type));
+    static_assert(1u == sizeof(value_type));
 
     template<class C>
     static constexpr bool is_compatible_v = is_compatible_buffer_v<C, data_pointer>;
 
-    constexpr basic_buffer_view() noexcept = default;
+    D_DEFAULT_ALL_CAEQ(basic_buffer_view);
+
+    constexpr basic_buffer_view(null_type) noexcept
+        : basic_buffer_view{}
+    {}
 
     constexpr basic_buffer_view(data_pointer data, size_type size) noexcept
         : data_{ data }
         , size_{ size }
     {}
-
-    constexpr basic_buffer_view(const basic_buffer_view&) noexcept = default;
 
     template<bool dummy = true, std::enable_if_t<(dummy) && immutable, int> = 0>
     constexpr basic_buffer_view(const buffer_view& buffer) noexcept
@@ -150,7 +156,10 @@ public:
         , size_{ size_bytes(span) }
     {}
 
-    constexpr basic_buffer_view& operator = (const basic_buffer_view&) noexcept = default;
+    constexpr basic_buffer_view& operator = (null_type nullvalue) noexcept
+    {
+        return basic_buffer_view::operator=(static_cast<basic_buffer_view>(nullvalue));
+    }
 
     template<bool dummy = true, std::enable_if_t<(dummy) && immutable, int> = 0>
     constexpr basic_buffer_view& operator = (const buffer_view& buffer) noexcept
@@ -176,11 +185,10 @@ public:
         return *this;
     }
 
-
     [[nodiscard]]
     constexpr explicit operator bool() const noexcept
     {
-        return !!data();
+        return !!size_;
     }
 
     [[nodiscard]]
@@ -202,39 +210,27 @@ public:
     }
 
     template<class T>
-    [[nodiscard]] constexpr const_opt_pointer<T> as_ptr() const noexcept
-    {
-        return static_cast<const_opt_pointer<T>>(data());
-    }
-
-    template<class T>
     [[nodiscard]] constexpr const_opt_span<T> as_span() const noexcept
     {
-        return { as_ptr<T>(), _count<T>() };
+        return { _as_ptr<T>(), _count_for<T>() };
     }
 
     template<class T>
     [[nodiscard]] constexpr std::basic_string_view<T> as_str() const noexcept
     {
-        return { as_ptr<std::add_const_t<T>>(), _count<T>() };
+        return { _as_ptr<std::add_const_t<T>>(), _count_for<T>() };
     }
 
     [[nodiscard]]
-    constexpr const_opt_pointer<std::byte> as_bytes_ptr() const noexcept
+    constexpr const_opt_span<byte_type> as_bytes() const noexcept
     {
-        return as_ptr<std::byte>();
-    }
-
-    [[nodiscard]]
-    constexpr const_opt_span<std::byte> as_bytes() const noexcept
-    {
-        return { as_bytes_ptr(), size() };
+        return { _as_bytes_ptr(), size() };
     }
 
     [[nodiscard]]
     constexpr reference value(size_type index) const noexcept
     {
-        return as_bytes_ptr()[index];
+        return _as_bytes_ptr()[index];
     }
 
     [[nodiscard]]
@@ -270,7 +266,7 @@ public:
     [[nodiscard]]
     constexpr iterator begin() const noexcept
     {
-        return as_bytes_ptr();
+        return _as_bytes_ptr();
     }
 
     [[nodiscard]]
@@ -288,14 +284,27 @@ public:
     [[nodiscard]]
     constexpr const_iterator cend() const noexcept
     {
-        return as_bytes_ptr() + size_;
+        return _as_bytes_ptr() + size_;
     }
 
 private:
     template<class T>
-    [[nodiscard]] constexpr size_t _count() const noexcept
+    [[nodiscard]] constexpr size_t _count_for() const noexcept
     {
+        static_assert(!std::is_reference_v<T>);
         return size() / sizeof(T);
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr const_opt_pointer<T> _as_ptr() const noexcept
+    {
+        return static_cast<const_opt_pointer<T>>(data());
+    }
+
+    [[nodiscard]]
+    constexpr const_opt_pointer<byte_type> _as_bytes_ptr() const noexcept
+    {
+        return _as_ptr<byte_type>();
     }
 
 private:
@@ -303,32 +312,20 @@ private:
     size_type size_{ 0_uz };
 };
 
-template<class T> [[nodiscard]]
-constexpr span<const T> to_span(const const_buffer_view buffer) noexcept
+template<class T>
+[[nodiscard]] constexpr span<const T> to_span(const const_buffer_view buffer) noexcept
 {
     return buffer.template as_span<T>();
 }
 
-template<class T> [[nodiscard]]
-constexpr const T* to_ptr(const const_buffer_view buffer) noexcept
-{
-    return buffer.template as_ptr<T>();
-}
-
-template<class T> [[nodiscard]]
-constexpr span<T> to_span(const buffer_view buffer) noexcept
+template<class T>
+[[nodiscard]] constexpr span<T> to_span(const buffer_view buffer) noexcept
 {
     return buffer.template as_span<T>();
 }
 
-template<class T> [[nodiscard]]
-constexpr T* to_ptr(const buffer_view buffer) noexcept
-{
-    return buffer.template as_ptr<T>();
-}
-
-template<class T> [[nodiscard]]
-constexpr std::basic_string_view<T> to_string_view(const const_buffer_view buffer) noexcept
+template<class T>
+[[nodiscard]] constexpr std::basic_string_view<T> to_string_view(const const_buffer_view buffer) noexcept
 {
     return buffer.template as_str<T>();
 }

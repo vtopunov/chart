@@ -5,7 +5,7 @@
 
 namespace widget
 {
-    using stretchable_pxrectangle = ::rectangle<pxside_t, pxoff_t>;
+    using stretchable_pxrectangle = ::rectangle<pxsize_t, pxoff_t>;
 
     template<class Pos, class Sz>
     constexpr pxsize2d stretchable_sizes(const rectangle<Pos, Sz>& r, pxsize2d bound) noexcept
@@ -14,20 +14,20 @@ namespace widget
         static_assert(std::is_signed_v<Sz>);
         static_assert(sizeof(overpxoff_t) > sizeof(Pos));
         static_assert(sizeof(overpxoff_t) > sizeof(Sz));
-        static_assert(sizeof(overpxoff_t) > sizeof(pxside_t));
+        static_assert(sizeof(overpxoff_t) > sizeof(pxsize_t));
 
         constexpr auto clamp_len = [] (overpxoff_t position, overpxoff_t fixlen, overpxoff_t len) noexcept
         {
             len -= position;
             if (len < 0LL) [[unlikely]]
-                return 0_px;
+                return 0_npx;
 
                 if (fixlen <= 0LL)
                 {
                     len += fixlen;
 
                     if (len < 0LL) [[unlikely]]
-                        return 0_px;
+                        return 0_npx;
                 }
                 else
                 {
@@ -37,7 +37,7 @@ namespace widget
                     }
                 }
 
-                return narrow<pxside_t>(len);
+                return narrow<pxsize_t>(len);
         };
 
         return

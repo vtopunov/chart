@@ -2,8 +2,7 @@
 
 #include <cstdlib>
 
-#include <core/utility.h>
-#include <core/size_type.h>
+#include <core/span.h>
 
 
 D_WARNING_PUSH
@@ -22,11 +21,14 @@ constexpr buffer_attach_construct_t buffer_attach_construct{};
 class buffer_void
 {
 public:
-    constexpr buffer_void() noexcept = default;
-    
-    D_DISABLE_COPY(buffer_void);
+    using size_type = size_t;
+    using null_type = nullmem_t;
 
-    constexpr buffer_void(buffer_attach_construct_t, void* mem, size_t count) noexcept
+    constexpr buffer_void() noexcept = default;
+
+    D_DISABLE_COPY_CA(buffer_void);
+
+    constexpr buffer_void(buffer_attach_construct_t, void* mem, size_type count) noexcept
         : data_{ mem }
         , count_{ (mem) ? count : 0_uz }
     {}
@@ -36,9 +38,19 @@ public:
         , count_{ std::exchange(right.count_, 0_uz) }
     {}
 
+    constexpr buffer_void(null_type) noexcept
+        : buffer_void{}
+    {}
+
     constexpr buffer_void& operator = (buffer_void&& right) noexcept
     {
         swap(right);
+        return *this;
+    }
+
+    buffer_void& operator = (null_type) noexcept
+    {
+        reset();
         return *this;
     }
 
@@ -51,7 +63,7 @@ public:
     [[nodiscard]]
     constexpr explicit operator bool() const noexcept
     {
-        return !!data_;
+        return !!count_;
     }
 
     constexpr void swap(buffer_void& right) noexcept
@@ -75,7 +87,7 @@ public:
     [[nodiscard]]
     constexpr const void* void_data() const noexcept
     {
-        return cvoid_data();
+        return data_;
     }
 
     [[nodiscard]]
@@ -86,14 +98,20 @@ public:
 
 protected:
     [[nodiscard]]
-    constexpr size_t _count() const noexcept
+    constexpr void* _void_data() const noexcept
+    {
+        return data_;
+    }
+
+    [[nodiscard]]
+    constexpr size_type _count() const noexcept
     {
         return count_;
     }
 
 private:
     void* data_{ nullptr };
-    size_t count_{ 0_uz };
+    size_type count_{ 0_uz };
 };
 
 template<size_t ElementSize>
@@ -102,50 +120,63 @@ class buffer_void_collection : public buffer_void
     using base_type = buffer_void;
 
 public:
+    using typename base_type::size_type;
+    using typename base_type::null_type;
     static constexpr auto element_size = ElementSize;
 
     constexpr buffer_void_collection() noexcept = default;
 
-    D_DEFAULT_MOVABLE_ONLY(buffer_void_collection);
+    D_DEFAULT_ONLYMOVE_CA(buffer_void_collection);
 
-    constexpr buffer_void_collection(buffer_attach_construct_t, void* mem, size_t count) noexcept
-        : base_type{ buffer_attach_construct, mem, count }
-    {}
-
-    template<class T>
-    constexpr buffer_void_collection(buffer_attach_construct_t, T* mem, size_t count) noexcept
-        : base_type{ buffer_attach_construct, mem, count }
-    {
-        static_assert(element_size == sizeof(T));
-    }
-
-    buffer_void_collection(buffer_construct_t, size_t count) noexcept
+    buffer_void_collection(buffer_construct_t, size_type count) noexcept
         : base_type{ buffer_attach_construct, _alloc(count), count }
     {}
 
-    template<class T>
-    [[nodiscard]] constexpr const T* as_ptr() const noexcept
+    constexpr buffer_void_collection(null_type nullvalue) noexcept
+        : base_type{ nullvalue }
+    {}
+
+    buffer_void_collection& operator = (null_type nullvalue) noexcept
     {
-        static_assert(_is_compatible_element_size(sizeof(T)));
-        return static_cast<const T*>(cvoid_data());
+        base_type::operator=(nullvalue);
+        return *this;
     }
 
     template<class T>
-    [[nodiscard]] constexpr T* as_ptr() noexcept
+    [[nodiscard]] constexpr span<const T> as_span() const noexcept
     {
-        static_assert(_is_compatible_element_size(sizeof(T)));
-        return static_cast<T*>(void_data());
+        return _as_span<const T>();
     }
 
-    [[nodiscard]] constexpr size_t size_bytes() const noexcept
+    template<class T>
+    [[nodiscard]] constexpr span<T> as_span() noexcept
     {
-        return size_mul<element_size>(_count());
+        return _as_span<T>();
     }
 
-    [[nodiscard]]
-    bool try_reserve(size_t new_count) noexcept
+    [[nodiscard]] constexpr span<const std::byte> as_bytes() const noexcept
     {
-        if (_count() < new_count)
+        return _as_span<const std::byte>();
+    }
+
+    [[nodiscard]] constexpr span<std::byte> as_bytes() noexcept
+    {
+        return _as_span<std::byte>();
+    }
+
+    [[nodiscard]] constexpr size_type size() const noexcept
+    {
+        return buffer_void::_count();
+    }
+
+    [[nodiscard]] constexpr size_type size_bytes() const noexcept
+    {
+        return size_mul<element_size>(size());
+    }
+
+    [[nodiscard]] bool try_reserve(size_type new_count) noexcept
+    {
+        if (size() < new_count)
         {
             buffer_void_collection new_buffer{ buffer_construct, new_count };
             if (!new_buffer) [[unlikely]]
@@ -159,29 +190,57 @@ public:
         return true;
     }
 
-    void reserve(size_t new_count) noexcept
+    void reserve(size_type new_count) noexcept
     {
         D_ASSERT_OR_UNUSED(try_reserve(new_count));
     }
 
 private:
-    [[nodiscard]]
-    static constexpr bool _is_compatible_element_size(size_t testing_size) noexcept
+    template<class T>
+    [[nodiscard]] constexpr span<T> _as_span() const noexcept
     {
-        return (testing_size >= element_size) && !(testing_size % element_size);
+        return
+        {
+            static_cast<T*>(base_type::_void_data()),
+            _count_for<T>()
+        };
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr size_t _count_for() const noexcept
+    {
+        static_assert(!std::is_reference_v<T>);
+        constexpr auto new_element_size = sizeof(T);
+
+        if constexpr (new_element_size > element_size)
+        {
+            static_assert(!(new_element_size % element_size));
+            constexpr auto new_interpretable_element_size = new_element_size / element_size;
+            return size() / new_interpretable_element_size;
+        }
+        else
+        {
+            if constexpr (element_size == new_element_size)
+            {
+                return size();
+            }
+            else
+            {
+                static_assert(!(element_size % new_element_size));
+                constexpr auto new_interpretable_element_size = element_size / new_element_size;
+                return size_mul<new_interpretable_element_size>(size());
+            }
+        }
     }
 
     [[nodiscard]]
-    static void* _alloc(size_t size) noexcept
+    static void* _alloc(size_type size) noexcept
     {
-        constexpr size_t overflow = numeric_max_v<size_t> / element_size;
-
         void* result{ nullptr };
 
-        if (size <= overflow) [[likely]]
+        if (has_size_mul<element_size>(size)) [[likely]]
         {
             using std::malloc;
-
             result = malloc(element_size * size);
         }
 
@@ -195,31 +254,37 @@ class buffer : public buffer_void_collection<sizeof(T)>
     using base_type = buffer_void_collection<sizeof(T)>;
 
 public:
-    using size_type = size_t;
     using value_type = T;
+    using const_value_type = const value_type;
     using pointer = value_type*;
-    using const_pointer = const value_type*;
+    using const_pointer = const_value_type*;
     using reference = value_type&;
-    using const_reference = const value_type&;
+    using const_reference = const_value_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
+    using view_type = span<const_value_type>;
+    using typename base_type::size_type;
+    using typename base_type::null_type;
+
+    using base_type::size;
+    using base_type::as_span;
 
     constexpr buffer() noexcept = default;
 
-    D_DEFAULT_MOVABLE_ONLY(buffer);
-
-    constexpr buffer(buffer_attach_construct_t, pointer mem, size_t size) noexcept
-        : base_type{ buffer_attach_construct, mem, size }
-    {}
+    D_DEFAULT_ONLYMOVE_CA(buffer);
 
     buffer(buffer_construct_t, size_t size) noexcept
         : base_type{ buffer_construct, size }
     {}
 
-    [[nodiscard]]
-    constexpr size_type size() const noexcept
+    constexpr buffer(null_type nullvalue) noexcept
+        : base_type{ nullvalue }
+    {}
+
+    buffer& operator = (null_type nullvalue) noexcept
     {
-        return buffer_void::_count();
+        base_type::operator=(nullvalue);
+        return *this;
     }
 
     [[nodiscard]]
@@ -335,8 +400,19 @@ public:
     {
         return const_cast<reference>(cvalue(index));
     }
+
+    [[nodiscard]] constexpr span<const_value_type> as_span() const noexcept
+    {
+        return base_type::template as_span<const_value_type>();
+    }
+
+    [[nodiscard]] constexpr span<value_type> as_span() noexcept
+    {
+        return base_type::template as_span<value_type>();
+    }
 };
 
 static_assert(1_uz == sizeof(buffer_t::value_type));
+static_assert(1_uz == buffer_t::element_size);
 
 D_WARNING_POP

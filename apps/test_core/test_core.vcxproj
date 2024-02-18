@@ -28,7 +28,6 @@
     <ClCompile Include="test_resource.cpp" />
     <ClCompile Include="test_round.cpp" />
     <ClCompile Include="test_size2d.cpp" />
-    <ClCompile Include="test_size_type.cpp" />
     <ClCompile Include="test_small_vector.cpp" />
     <ClCompile Include="test_span.cpp" />
     <ClCompile Include="test_static_vector.cpp" />
@@ -37,7 +36,6 @@
     <ClCompile Include="test_type_traits.cpp" />
     <ClCompile Include="test_utf.cpp" />
     <ClCompile Include="test_utility.cpp" />
-    <ClCompile Include="test_value_type.cpp" />
     <ClCompile Include="test_vec2.cpp" />
     <ClCompile Include="test_view.cpp" />
     <ClCompile Include="test_zero.cpp" />

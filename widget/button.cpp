@@ -62,7 +62,7 @@ namespace widget
         [[nodiscard]]
         constexpr pxrectangle rectangle_without_frame(const pxrectangle& r)noexcept
         {
-            constexpr pxsize2d frame_sizes{ 1_px, 1_px };
+            constexpr pxsize2d frame_sizes{ 1_npx, 1_npx };
             return
             {
                 .position{ r.position + frame_sizes },
@@ -77,12 +77,12 @@ namespace widget
         }
 
         [[nodiscard]]
-        constexpr pxpoint2d to_pxpoint2d(const vec2<font::fixed_t>& v) noexcept
+        constexpr pxpoint2d ft_to_pxpoint2d(const vec2<font::fixed_t>& v) noexcept
         {
             return
             {
-                font::ceil_to<pxside_t>(v._0),
-                font::ceil_to<pxside_t>(v._1)
+                font::ceil_to<pxsize_t>(v._0),
+                font::ceil_to<pxsize_t>(v._1)
             };
         }
 
@@ -154,27 +154,23 @@ namespace widget
 
         {
             const auto& shdr = e.get<shader::colored_rectangle>().use();
-            shdr
-                .store(geometry)
+            
+            shdr.store(geometry)
                 .store(colors.frame)
                 .draw();
 
-            shdr
-                .store(client_rc)
+            shdr.store(client_rc)
                 .store(colors.body)
                 .draw();
         }
 
         if (text::draw_to_cache(*this, e.get<buffer_view>(), client_rc.sizes)) [[likely]]
         {
-            const auto client_rc_center = center(client_rc);
-            const auto texture_center = text_cache.center();
-            const auto d_center = client_rc_center - texture_center;
-            const auto px_position = to_pxpoint2d(d_center);
+            const auto ft_position = center(client_rc) - text_cache.center();
 
             e.get<shader::gray_texture_mix_color>()
                 .use()
-                .store(px_position)
+                .store(ft_to_pxpoint2d(ft_position))
                 .store(gl::colors::black_f)
                 .store(text_cache.texture())
                 .draw();

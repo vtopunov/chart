@@ -5,6 +5,11 @@
 
 void test_span() noexcept
 {
+    static_assert(std::is_same_v<span<const int>, decl_view_type_t<span<int>>>);
+    static_assert(std::is_same_v<span<const int>, decl_view_type_t<span<const int>>>);
+    static_assert(std::is_same_v<nullmem_t, decl_null_type_t<span<int>>>);
+    static_assert(std::is_same_v<nullmem_t, decl_null_type_t<span<const int>>>);
+
     std::vector<int> v{ 1, 2, 3, 4, 5 };
     span<int> sv{ v };
     D_ASSERT(v.size() > 0);
@@ -48,7 +53,7 @@ void test_span() noexcept
         D_ASSERT(csv.data() == std::data(cv3));
         D_ASSERT(csv.size() == std::size(cv3));
 
-        constexpr int cv4[]{1, 2, 3, 4};
+        constexpr int cv4[]{ 1, 2, 3, 4 };
         csv = cv4;
         D_ASSERT(csv.data() == std::data(cv4));
         D_ASSERT(csv.size() == std::size(cv4));
@@ -112,6 +117,14 @@ void test_span() noexcept
         D_ASSERT(sv4.size() == std::size(v4));
         D_ASSERT(csv4.data() == std::data(cv4));
         D_ASSERT(csv4.size() == std::size(cv4));
+
+        const auto sv3c = sv3;
+        const auto csv3c = csv3;
+        D_ASSERT(sv3c == sv3);
+        D_ASSERT(csv3c == csv3);
+
+        decltype(sv) svv3c{ v3 };
+        D_ASSERT(svv3c != sv);
     }
 
     D_ASSERT(!errno);

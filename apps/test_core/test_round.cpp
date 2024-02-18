@@ -144,6 +144,20 @@ namespace
 
     void test_u_prev_next() noexcept
     {
+        const struct errno_restorer
+        {
+            int errvalue;
+
+            errno_restorer() noexcept
+                : errvalue{ errno }
+            {}
+
+            ~errno_restorer() noexcept
+            {
+                errno = errvalue;
+            }
+        } hold_errno;
+
         const auto nfz = u_next(0.0);
         const auto pfz = u_prev(0.0);
         D_ASSERT(nfz > 0.0 && nfz <= DBL_EPSILON && !std::isnormal(nfz));

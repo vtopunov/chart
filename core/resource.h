@@ -15,14 +15,12 @@ constexpr resource_construct_t resource_construct{};
 template <class T, class D>
 class unique_resource
 {
-    using uncvref_resource_type = std::remove_cvref_t<T>;
-
 public:
     using resource_type = T;
     using view_type = view_t<resource_type>;
     using null_type = null_t<resource_type>;
     using deleter_type = D;
-    static constexpr auto null = null_v<uncvref_resource_type>;
+    static constexpr auto null = null_v<resource_type>;
 
     constexpr unique_resource() noexcept
         : resource_(null)
@@ -80,7 +78,7 @@ public:
     }
 
     template<bool dummy = true,
-        std::enable_if_t<(dummy) && std::negation_v<std::is_same<std::remove_cvref_t<view_type>, uncvref_resource_type> >, int> = 0>
+        std::enable_if_t<(dummy) && std::negation_v<is_same_uncvref<view_type, resource_type>>, int> = 0>
     [[nodiscard]] constexpr operator const resource_type& () const noexcept
     {
         return r();
@@ -95,7 +93,15 @@ public:
     [[nodiscard]]
     constexpr resource_type release() noexcept
     {
-        return std::exchange(resource_, null);
+        return release(null);
+    }
+
+    template<class U>
+    [[nodiscard]] constexpr resource_type release(U&& new_resource) noexcept
+    {
+        resource_type resource{ std::move(resource_) };
+        resource_ = std::forward<U>(new_resource);
+        return resource;
     }
 
     void reset() noexcept
@@ -112,17 +118,13 @@ private:
 template<class T, class D>
 class shared_resource
 {
-private:
-    using self = shared_resource;
-    using uncvref_resource_type = std::remove_cvref_t<T>;
-
 public:
     using resource_type = T;
     using view_type = view_t<resource_type>;
     using null_type = null_t<resource_type>;
     using deleter_type = D;
     using unique_resource_type = unique_resource<resource_type, deleter_type>;
-    static constexpr auto null = null_v<uncvref_resource_type>;
+    static constexpr auto null = null_v<resource_type>;
 
     constexpr shared_resource() noexcept
         : resource_(null)
@@ -205,7 +207,7 @@ public:
     }
 
     template<bool dummy = true,
-        std::enable_if_t<(dummy) && std::negation_v<std::is_same<std::remove_cvref_t<view_type>, uncvref_resource_type> >, int> = 0>
+        std::enable_if_t<(dummy) && std::negation_v<is_same_uncvref<view_type, resource_type>>, int> = 0>
     [[nodiscard]] constexpr operator const resource_type& () const noexcept
     {
         return r();
@@ -257,10 +259,6 @@ private:
     resource_type resource_;
     intrusive_node copies_;
 };
-
-
-template<class T>
-using decl_resource_type_t = typename T::resource_type;
 
 template<class T>
 using resource_type_t = detected_or_t<T, decl_resource_type_t, T>;

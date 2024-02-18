@@ -53,7 +53,7 @@ namespace ui
             for (const auto& window_dep : roots())
             {
                 const auto window = window_dep.current;
-                const auto size_e = make_size_event(window, sizes(window));
+                const auto size_e = make_size_event(window, ui::sizes(window));
 
                 for (const auto& processor : event_processors_global().lock())
                 {

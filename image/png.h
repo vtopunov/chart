@@ -152,10 +152,10 @@ namespace image
         }
 
         [[nodiscard]]
-        pxside_t width() const noexcept;
+        pxsize_t width() const noexcept;
 
         [[nodiscard]]
-        pxside_t height() const noexcept;
+        pxsize_t height() const noexcept;
 
         [[nodiscard]]
         uint8_t bit_depth() const noexcept;

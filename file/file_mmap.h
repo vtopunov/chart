@@ -70,12 +70,6 @@ namespace file
         {
             return private_detail_.size_;
         }
-
-        [[nodiscard]]
-        constexpr const_buffer_view view() const noexcept
-        {
-            return *this;
-        }
     };
 
     static_assert(std::is_same_v<null_t<file_mmap_resource>, file_mmap_resource::null_type>);

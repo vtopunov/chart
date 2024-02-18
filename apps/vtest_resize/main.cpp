@@ -149,7 +149,7 @@ int app_main(os::module_handle_t app) noexcept
         {
             egl_ui_builder{}
                 .module(app)
-                .sizes(300_px, 300_px)
+                .sizes(300_npx, 300_npx)
                 .command_show(ui::show_command::normal)
                 .build()
         }
@@ -169,7 +169,7 @@ int app_main(os::module_handle_t app) noexcept
 #ifdef TEST_WIDGET
     auto window = widget::window_builder{}
         .module(app)
-        .sizes(300_px, 300_px)
+        .sizes(300_npx, 300_npx)
         .command_show(ui::show_command::normal)
         .build();
 

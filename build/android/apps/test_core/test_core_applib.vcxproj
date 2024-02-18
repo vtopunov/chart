@@ -33,7 +33,6 @@
     <ClCompile Include="..\..\..\..\apps\test_core\test_resource.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_round.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_size2d.cpp" />
-    <ClCompile Include="..\..\..\..\apps\test_core\test_size_type.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_small_vector.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_span.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_static_vector.cpp" />
@@ -42,7 +41,6 @@
     <ClCompile Include="..\..\..\..\apps\test_core\test_type_traits.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_utf.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_utility.cpp" />
-    <ClCompile Include="..\..\..\..\apps\test_core\test_value_type.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_vec2.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_view.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_zero.cpp" />

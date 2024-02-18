@@ -42,12 +42,12 @@ int app_main(os::module_handle_t app) noexcept
 
         const auto vb = shaders.vert.a_frame.bind();
 
-        const auto dx = width(texture) + 1_px;
-        const auto dy = height(texture) + 1_px;
+        const auto dx = width(texture) + 1_npx;
+        const auto dy = height(texture) + 1_npx;
 
-        for (pxside_t y = 0_px; y < egl.viewport.height(); y += dy)
+        for (pxsize_t y = 0_npx; y < egl.viewport.height(); y += dy)
         {
-            for (pxside_t x = 0_px; x < egl.viewport.width(); x += dx)
+            for (pxsize_t x = 0_npx; x < egl.viewport.width(); x += dx)
             {
                 shaders.vert.u_position.store(x, y);
                 vb.draw();

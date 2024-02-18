@@ -2,7 +2,6 @@
 
 #include <core/buffer.h>
 #include <core/buffer_view.h>
-#include <core/view.h>
 
 #include <px/pixspan.h>
 
@@ -25,15 +24,14 @@ namespace px
         using const_span_type = pixspan<const_pixel_type, Alignment>;
         using pixline_type = typename span_type::pixline_type;
         using const_pixline_type = typename const_span_type::pixline_type;
-        using view_type = span_type;
-        using const_view_type = pixspan<const_pixel_type, Alignment>;
+        using view_type = const_span_type;
         using line_size_type = typename space_type::line_size_type;
-        
+
         using pointer = pixel_type*;
         using const_pointer = const_pixel_type*;
 
         constexpr pixmap() noexcept = default;
-        
+
         constexpr pixmap(const pixmap&) noexcept = delete;
 
         constexpr pixmap(pixmap_construct_t, buffer_t& buffer, const space_type& space) noexcept
@@ -43,7 +41,7 @@ namespace px
             D_ASSERT(space.size_bytes() <= buffer_.size());
         }
 
-        constexpr pixmap(pixmap&& right) noexcept 
+        constexpr pixmap(pixmap&& right) noexcept
             : space_type{ std::exchange(right._space_ref(), {}) }
             , buffer_{ std::move(right.buffer_) }
         {}
@@ -88,11 +86,11 @@ namespace px
             : pixmap{ std::move(buffer), space_type{ sizes } }
         {}
 
-        pixmap(pxside_t x, pxside_t y) noexcept
+        pixmap(pxsize_t x, pxsize_t y) noexcept
             : pixmap{ space_type{ x, y } }
         {}
 
-        pixmap(buffer_t buffer, pxside_t x, pxside_t y) noexcept
+        pixmap(buffer_t buffer, pxsize_t x, pxsize_t y) noexcept
             : pixmap{ std::move(buffer), space_type{ x, y } }
         {}
 
@@ -104,11 +102,11 @@ namespace px
             : pixmap{ std::move(buffer), space_type{ sizes, line_size } }
         {}
 
-        pixmap(pxside_t x, pxside_t y, line_size_type line_size) noexcept
+        pixmap(pxsize_t x, pxsize_t y, line_size_type line_size) noexcept
             : pixmap{ space_type{ x, y, line_size } }
         {}
 
-        pixmap(buffer_t buffer, pxside_t x, pxside_t y, line_size_type line_size) noexcept
+        pixmap(buffer_t buffer, pxsize_t x, pxsize_t y, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ x, y, line_size } }
         {}
 
@@ -140,7 +138,7 @@ namespace px
         [[nodiscard]]
         constexpr pointer data() noexcept
         {
-            return buffer_.as_ptr<pixel_type>();
+            return static_cast<pointer>(buffer_.void_data());
         }
 
         [[nodiscard]]
@@ -152,13 +150,7 @@ namespace px
         [[nodiscard]]
         constexpr const_pointer cdata() const noexcept
         {
-            return buffer_.as_ptr<pixel_type>();
-        }
-
-        [[nodiscard]]
-        constexpr view_type view() noexcept
-        {
-            return *this;
+            return static_cast<const_pointer>(buffer_.cvoid_data());
         }
 
         [[nodiscard]]
@@ -215,35 +207,22 @@ namespace px
             return data() + space_type::size();
         }
 
-        [[nodiscard]]
-        constexpr const_view_type view() const noexcept
-        {
-            return cview();
-        }
-
-        [[nodiscard]]
-        constexpr const_view_type cview() const noexcept
-        {
-            return *this;
-        }
-
-
         template<class C>
-        constexpr auto store(pxpoint2d position, const C& image) noexcept -> decltype(view().store(position, image))
+        constexpr auto store(pxpoint2d position, const C& image) noexcept -> decltype(std::declval<span_type>().store(position, image))
         {
-            return view().store(position, image);
+            return _span().store(position, image);
         }
 
         template<class C>
-        constexpr auto store(pxside_t x, pxside_t y, const C& image) noexcept -> decltype(view().store(x, y, image))
+        constexpr auto store(pxsize_t x, pxsize_t y, const C& image) noexcept -> decltype(std::declval<span_type>().store(x, y, image))
         {
-            return view().store(x, y, image);
+            return _span().store(x, y, image);
         }
 
         template<class C>
-        constexpr auto store(const C& image) noexcept -> decltype(view().store(image))
+        constexpr auto store(const C& image) noexcept -> decltype(std::declval<span_type>().store(image))
         {
-            return view().store(image);
+            return _span().store(image);
         }
 
     private:
@@ -258,11 +237,17 @@ namespace px
             _space_ref() = {};
         }
 
+        [[nodiscard]]
+        constexpr span_type _span() noexcept
+        {
+            return *this;
+        }
+
     private:
         buffer_t buffer_;
     };
 
-    using pix8map = pixmap<u8tint_t>;
+    using pix8map = pixmap<pix8_t>;
 
     static_assert(std::is_same_v<view_t<pix8map>, const pix8map::view_type>);
 }

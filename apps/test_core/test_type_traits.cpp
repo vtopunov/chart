@@ -250,6 +250,16 @@ namespace
         static_assert(!is_const_convertible_v<const int, int>);
         D_ASSERT(!errno);
     }
+
+    void test_is_sameuncvref() noexcept
+    {
+        static_assert(is_same_uncvref_v<const int&, int>);
+        static_assert(is_same_uncvref_v<int, const int&>);
+        static_assert(!is_same_uncvref_v<int*, const int&>);
+        static_assert(!is_same_uncvref_v<float, const int&>);
+        static_assert(!is_same_uncvref_v<int, float>);
+        D_ASSERT(!errno);
+    }
 }
 
 void test_type_traits() noexcept
@@ -266,4 +276,5 @@ void test_type_traits() noexcept
     test_unsigned_or();
     test_add_const_pointer();
     test_is_const_convertible();
+    test_is_sameuncvref();
 }

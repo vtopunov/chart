@@ -16,7 +16,7 @@ namespace px
         return pixs;
     }
 
-    inline pix8span create_zeros_pix8span(buffer_view buffer, pxside_t w, pxside_t h) noexcept
+    inline pix8span create_zeros_pix8span(buffer_view buffer, pxsize_t w, pxsize_t h) noexcept
     {
         return create_zeros_pix8span(buffer, pix8space{ w, h });
     }

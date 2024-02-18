@@ -46,6 +46,9 @@ void test_rectangle() noexcept
     static_assert(rc.y0() == p0.y());
     static_assert(rc.x1() == p1.x());
     static_assert(rc.y1() == p1.y());
+    static_assert(rc.sizes == sizes(rc));
+    static_assert(rc.width() == width(rc));
+    static_assert(rc.height() == height(rc));
 
     D_ASSERT(!errno);
 }

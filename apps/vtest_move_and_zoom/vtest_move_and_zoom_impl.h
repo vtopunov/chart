@@ -104,7 +104,7 @@ namespace vtest_move_and_zoom
             }
         }
 
-        auto texture = gl::create_texture2d(tex_mem);
+        auto texture = gl::create_texture2d(view(tex_mem));
         if (!texture)
         {
             e_debug("create texture error: {}", glGetError());

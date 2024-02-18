@@ -16,8 +16,8 @@ namespace widget
         {}
 
         template<class T, class E>
-        event_result_processor(T& function, const E& e) noexcept
-            : result{ function(e) }
+        event_result_processor(T&& function, const E& e) noexcept
+            : result{ std::forward<T>(function)(e) }
         {}
 
         ER result;
@@ -27,9 +27,9 @@ namespace widget
     struct event_result_processor<void>
     {
         template<class T, class E>
-        event_result_processor(T& function, const E& e) noexcept
+        event_result_processor(T&& function, const E& e) noexcept
         {
-            function(e);
+            std::forward<T>(function)(e);
         }
 
         constexpr event_result_processor() noexcept = default;
@@ -88,20 +88,24 @@ namespace widget
     }
 
     template<class T, class E>
-    [[nodiscard]] auto call_widget_event(T& function, const E& e) -> event_result_processor<std::remove_const_t<decltype(function(e))>>
+    [[nodiscard]] auto call_widget_event(T&& function, const E& e) -> event_result_processor<std::remove_const_t<decltype(std::forward<T>(function)(e))>>
     {
-        return { function, e };
+        return { std::forward<T>(function), e };
     }
 
     [[nodiscard]] event_result_processor<> call_widget_event(no_overloaded, no_overloaded)
     {
-        return {};
+        return no_event_result_processor;
     }
 
     template<class Widget, class Event>
-    [[nodiscard]] decltype(auto) apply_event(Widget& wgt, const Event& e) noexcept
+    [[nodiscard]] decltype(auto) apply_event(Widget&& wgt, const Event& e) noexcept
     {
-        return call_widget_event(wgt, e) 
-             | wgt.apply([&e] (auto&... wgts) noexcept { return (no_event_result_processor | ... | apply_event(wgts, e)); });
+        return call_widget_event(std::forward<Widget>(wgt), e) 
+            | std::forward<Widget>(wgt)
+            .apply([&e] <class... W> (W&&... wgts) noexcept 
+        { 
+            return (no_event_result_processor | ... | apply_event(std::forward<W>(wgts), e)); 
+        });
     }
 }

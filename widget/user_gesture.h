@@ -15,7 +15,7 @@ namespace widget
             : base_type{ ui::no_gesture } 
         {}
 
-        D_DISABLE_COPY_MOVE(user_gesture);
+        D_DISABLE_COPYMOVE_CA(user_gesture);
 
         void operator () (ui::viewport_event) noexcept
         {

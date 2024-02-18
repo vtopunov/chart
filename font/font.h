@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/string_char.h>
 #include <core/resource.h>
 #include <core/buffer_view.h>
 #include <core/zstring_view.h>
@@ -31,16 +30,16 @@ namespace font
     face create_face(const_buffer_view font_storage, pxsize2d sizes) noexcept;
 
     [[nodiscard]]
-    inline face create_face(const_buffer_view font_storage, pxside_t size) noexcept
+    inline face create_face(const_buffer_view font_storage, pxsize_t size) noexcept
     {
-        return create_face(font_storage, size2d{ 0_px, size });
+        return create_face(font_storage, size2d{ 0_npx, size });
     }
 
     bool sizes(face_descriptor_t face, pxsize2d sizes) noexcept;
 
-    inline bool size(face_descriptor_t face, pxside_t px) noexcept
+    inline bool size(face_descriptor_t face, pxsize_t px) noexcept
     {
-        return sizes(face, size2d{ 0_px, px });
+        return sizes(face, size2d{ 0_npx, px });
     }
 
     using fixed_point2d = point2d<fixed_t>;
@@ -64,7 +63,7 @@ namespace font
         }
     };
 
-    constexpr auto invalid_position = fill_to<point2d>(numeric_max_v<pxside_t>);
+    constexpr auto invalid_position = fill_to<point2d>(numeric_max_v<pxsize_t>);
     constexpr auto invalid_cursor = cursor::instance(invalid_position);
 
     cursor draw_char(pix8span image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept;

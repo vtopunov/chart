@@ -45,6 +45,16 @@ struct no_overload_for
     {}
 };
 
+template<class Fn, class... Args>
+constexpr auto call_if_exist(Fn& fn, Args&&... args) noexcept -> decltype(fn(std::forward<Args>(args)...))
+{
+    return fn(std::forward<Args>(args)...);
+}
+
+template<class Fn, class... Args>
+constexpr auto call_if_exist(no_overloaded, const Args&... args) noexcept -> std::void_t<decltype(no_overloaded(args))...>
+{}
+
 
 struct nonesuch
 {
@@ -80,7 +90,7 @@ template <template<class...> class Op, class... Args>
 using detected_t = typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::type;
 
 template <template<class...> class Op, class... Args>
-using enable_if_detected =  typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::enable_if_type;
+using enable_if_detected = typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::enable_if_type;
 
 template <class Default, template<class...> class Op, class... Args>
 using detected_or = private_detail_member_detector::detector<Default, void, Op, Args...>;
@@ -217,6 +227,13 @@ template<class From, class To>
 constexpr bool is_const_convertible_v = is_const_convertible<From, To>::value;
 
 
+template<class L, class R>
+using is_same_uncvref = std::is_same<std::remove_cvref_t<L>, std::remove_cvref_t<R>>;
+
+template<class L, class R>
+constexpr auto is_same_uncvref_v = is_same_uncvref<L, R>::value;
+
+
 template<class T>
 [[nodiscard]] constexpr decltype(auto) as_unsigned(const T& value) noexcept
 {
@@ -257,3 +274,38 @@ using has_pre_dec_op = is_detected<decl_pre_dec_op_t, T>;
 
 template<class T>
 using has_post_dec_op = is_detected<decl_post_dec_op_t, T>;
+
+
+namespace type_traits_compare
+{
+    template<class T>
+    [[nodiscard]] constexpr auto eq_op(const T& left, const T& right) noexcept -> decltype(left == right)
+    {
+        return left == right;
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto neq_op(const T& left, const T& right) noexcept -> decltype(left != right)
+    {
+        return left != right;
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto less_op(const T& left, const T& right) noexcept -> decltype(left < right)
+    {
+        return left < right;
+    }
+
+    template<class T>
+    using decl_eq_op_t = decltype(eq_op<T>(std::declval<const T&>(), std::declval<const T&>()));
+
+    template<class T>
+    using decl_neq_op_t = decltype(neq_op<T>(std::declval<const T&>(), std::declval<const T&>()));
+
+    template<class T>
+    using decl_less_op_t = decltype(less_op<T>(std::declval<const T&>(), std::declval<const T&>()));
+}
+
+using type_traits_compare::decl_eq_op_t;
+using type_traits_compare::decl_neq_op_t;
+using type_traits_compare::decl_less_op_t;

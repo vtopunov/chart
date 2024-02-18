@@ -65,38 +65,38 @@ namespace widget
             }
 
             template<class VS, class FS>
-            struct shader_user
+            struct widget_shader_user
             {
-                const shader_user& store(pxpoint2d position) const noexcept
+                const widget_shader_user& store(pxpoint2d position) const noexcept
                 {
                     library.vert.u_position.store(position);
                     return *this;
                 }
 
-                const shader_user& store(pxsize2d sizes) const noexcept
+                const widget_shader_user& store(pxsize2d sizes) const noexcept
                 {
                     library.vert.u_size.store(sizes);
                     return *this;
                 }
 
-                const shader_user& store(pxrectangle rc) const noexcept
+                const widget_shader_user& store(pxrectangle rc) const noexcept
                 {
                     return store(rc.position).store(rc.sizes);
                 }
 
-                const shader_user& store(gl::rgba_colorf_t colorf) const noexcept
+                const widget_shader_user& store(gl::rgba_colorf_t colorf) const noexcept
                 {
                     library.frag.u_color.store(colorf);
                     return *this;
                 }
 
-                const shader_user& store(gl::texture2d_resource texture) const noexcept
+                const widget_shader_user& store(gl::texture2d_resource texture) const noexcept
                 {
                     library.frag.s_texture.store(texture);
                     return *this;
                 }
 
-                const shader_user& store(gl::texture2d_resources texture) const noexcept
+                const widget_shader_user& store(gl::texture2d_resources texture) const noexcept
                 {
                     return store(sizes(texture)).store(static_cast<gl::texture2d_resource>(texture));
                 }
@@ -114,7 +114,7 @@ namespace widget
             class widget_shader_library
             {
             public:
-                using shader_user_type = shader_user<VS, FS>;
+                using shader_user_type = widget_shader_user<VS, FS>;
 
                 bool operator()(viewport_size2d viewport) noexcept
                 {
@@ -140,8 +140,15 @@ namespace widget
         }
 
         using private_detail_shader::widget_shader_library;
+        using private_detail_shader::widget_shader_user;
 
         using gray_texture_mix_color = widget_shader_library<vert::positioned_texture, frag::gray_texture_mix_color>;
         using colored_rectangle = widget_shader_library<vert::positioned_rectangle, frag::default_color>;
     }
+
+    using shader::widget_shader_library;
+    using shader::widget_shader_user;
 }
+
+using widget::widget_shader_library;
+using widget::widget_shader_user;

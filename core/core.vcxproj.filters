@@ -20,13 +20,10 @@
     <ClInclude Include="utf.h" />
     <ClInclude Include="view.h" />
     <ClInclude Include="warnings.h" />
-    <ClInclude Include="value_type.h" />
     <ClInclude Include="zero.h" />
-    <ClInclude Include="size_type.h" />
     <ClInclude Include="clamp_cast.h" />
     <ClInclude Include="limits.h" />
     <ClInclude Include="type_traits.h" />
-    <ClInclude Include="string_char.h" />
     <ClInclude Include="span.h" />
     <ClInclude Include="underlying.h" />
     <ClInclude Include="fmt.h" />

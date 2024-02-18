@@ -1,6 +1,6 @@
 #include <file/path.h>
 
-#include <core/string_char.h>
+#include <core/utility.h>
 
 
 void test_path() noexcept

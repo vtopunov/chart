@@ -9,7 +9,7 @@ namespace
     struct shader
     {
         constexpr shader() noexcept = default;
-        D_DISABLE_COPY(shader);
+        D_DISABLE_COPY_CA(shader);
     };
 
     struct widget0

@@ -9,7 +9,7 @@ namespace common
 {
     struct asset_manager_own
     {
-        D_DISABLE_COPY_MOVE(asset_manager_own);
+        D_DISABLE_COPYMOVE_CA(asset_manager_own);
 
         explicit asset_manager_own(AAssetManager* am) noexcept;
 

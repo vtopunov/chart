@@ -15,7 +15,7 @@ namespace
     {
         using pix8_t = pix8span::pixel_type;
 
-        constexpr pix8space image_sizes{ 9_px, 11_px };
+        constexpr pix8space image_sizes{ 9_npx, 11_npx };
 
         static constexpr pix8_t image[image_sizes.size()]
         {
@@ -36,16 +36,16 @@ namespace
 
         constexpr const_pix8span image_span{ image, image_sizes };
 
-        constexpr auto w_image_space = image_span.width() + 1_px;
-        constexpr auto h_image_space = image_span.height() + 1_px;
+        constexpr auto w_image_space = image_span.width() + 1_npx;
+        constexpr auto h_image_space = image_span.height() + 1_npx;
 
         constexpr pix8space gallery_sizes{ 4u * w_image_space, 3u * h_image_space };
         pix8_t gallery[gallery_sizes.size()]{};
         const pix8span gallery_span{ gallery, gallery_sizes };
 
-        for (pxside_t y = 0_px; y < gallery_sizes.height(); y += h_image_space)
+        for (pxsize_t y = 0_npx; y < gallery_sizes.height(); y += h_image_space)
         {
-            for (pxside_t x = 0_px; x < gallery_sizes.width(); x += w_image_space)
+            for (pxsize_t x = 0_npx; x < gallery_sizes.width(); x += w_image_space)
             {
                 gallery_span.store(x, y, image_span);
             }
@@ -92,16 +92,16 @@ int app_main(os::module_handle_t app) noexcept
         const auto vb = shaders.vert.a_frame.bind();
 
         const auto [w, h] = egl.viewport;
-        const auto dx = width(texture) + 1_px;
-        const auto dy = height(texture) + 1_px;
+        const auto dx = width(texture) + 1_npx;
+        const auto dy = height(texture) + 1_npx;
 
-        const auto x_color_lerp = lerp(0_px, w, colors::blue, colors::red);
+        const auto x_color_lerp = lerp(0_npx, w, colors::blue, colors::red);
 
-        for (pxside_t x = 0_px; x < w; x += dx)
+        for (pxsize_t x = 0_npx; x < w; x += dx)
         {
-            const auto xy_color_lerp = lerp(0_px, h, color_cast<rgba_color32_t>(x_color_lerp(x)), colors::green);
+            const auto xy_color_lerp = lerp(0_npx, h, color_cast<rgba_color32_t>(x_color_lerp(x)), colors::green);
 
-            for (pxside_t y = 0_px; y < h; y += dy)
+            for (pxsize_t y = 0_npx; y < h; y += dy)
             {
                 shaders.frag.u_color.store(gl::to_colorf(xy_color_lerp(y)));
                 shaders.vert.u_position.store(point2d{ x, y });

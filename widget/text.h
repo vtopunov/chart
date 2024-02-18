@@ -20,7 +20,7 @@ namespace widget
         public:
             void clear() noexcept
             {
-                texture_ = gl::sizes(std::move(texture_), 0_px, 0_px);
+                texture_ = gl::sizes(std::move(texture_), 0_npx, 0_npx);
                 y_ = invalid_y;
             }
 
@@ -35,7 +35,7 @@ namespace widget
             {
                 return 
                 { 
-                    font::fixed_t::instance(gl::width(texture_)) / 2, 
+                    font::fixed_t::instance(width(texture_)) / 2, 
                     y_ 
                 };
             }
@@ -76,7 +76,7 @@ namespace widget
         template<class Widget>
         bool draw_to_cache(Widget& w, buffer_view buffer) noexcept
         {
-            constexpr pxsize2d max_sizes{ fill_vec2(numeric_max_v<pxside_t>) };
+            constexpr pxsize2d max_sizes{ fill_vec2(numeric_max_v<pxsize_t>) };
             return draw_to_cache(w, buffer, max_sizes);
         }
     }

@@ -92,12 +92,12 @@ namespace px
             : pixspace{ sizes, line_size_type::template instance_from_width<px_size>(sizes.width()) }
         {}
 
-        constexpr pixspace(pxside_t w, pxside_t h) noexcept
+        constexpr pixspace(pxsize_t w, pxsize_t h) noexcept
             : pixspace{ size2d{ w, h } }
         {}
 
 
-        constexpr pixspace(pxside_t w, pxside_t h, line_size_type line_size) noexcept
+        constexpr pixspace(pxsize_t w, pxsize_t h, line_size_type line_size) noexcept
             : pixspace{ size2d{ w, h }, line_size }
         {}
 
@@ -143,13 +143,13 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr pxside_t width() const noexcept
+        constexpr pxsize_t width() const noexcept
         {
             return sizes_.width();
         }
 
         [[nodiscard]]
-        constexpr pxside_t height() const noexcept
+        constexpr pxsize_t height() const noexcept
         {
             return sizes_.height();
         }

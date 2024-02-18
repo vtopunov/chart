@@ -63,8 +63,8 @@ namespace px
         return left != right.position;
     }
 
-    using pix8line = pixline<u8tint_t>;
-    using const_pix8line = pixline<const u8tint_t>;
+    using pix8line = pixline<pix8_t>;
+    using const_pix8line = pixline<const pix8_t>;
 }
 
 using px::pixline;

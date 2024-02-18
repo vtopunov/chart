@@ -109,17 +109,17 @@ namespace ui
 
     namespace private_detail_window_constants
     {
-        using native_px_t = int;
+        using native_npx_t = int;
 
-        constexpr auto cw_usedefault = static_cast<native_px_t>(0x80000000);
-        constexpr auto px_usedefault = static_cast<pxside_t>(cw_usedefault);
-        constexpr pxrectangle rc_usedefault{ px_usedefault, 0_px, px_usedefault, 0_px };
+        constexpr auto cw_usedefault = static_cast<native_npx_t>(0x80000000);
+        constexpr auto px_usedefault = static_cast<pxsize_t>(cw_usedefault);
+        constexpr pxrectangle rc_usedefault{ px_usedefault, 0_npx, px_usedefault, 0_npx };
     }
 
     using private_detail_window_constants::px_usedefault;
     using private_detail_window_constants::rc_usedefault;
 
-    constexpr pxsize2d no_window_sizes{ 0_px, 0_px };
+    constexpr pxsize2d no_window_sizes{ 0_npx, 0_npx };
 
     constexpr bool window_sizes_is_valid(pxsize2d sizes) noexcept
     {

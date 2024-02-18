@@ -11,9 +11,9 @@ namespace
 {
     gl::texture2d pix8map_rendering() noexcept
     {
-        constexpr pxsize2d image_sizes{ 9_px, 9_px };
+        static constexpr pix8space image_space{ 9_npx, 9_npx };
 
-        constexpr GLubyte image[image_sizes.height() * size_align<4>(image_sizes.width())]
+        static constexpr pix8_t image[image_space.size_bytes()]
         {
             0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0x00, 0x00, 0x00,
             0xff, 0xcc, 0xcc,  0xcc, 0xcc, 0xcc,  0xcc, 0xcc, 0xff,  0x00, 0x00, 0x00,
@@ -28,7 +28,7 @@ namespace
             0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0x00, 0x00, 0x00
         };
 
-        return gl::create_texture2d(image_sizes, image);
+        return gl::create_texture2d(pixspan{ image, image_space });
     }
 }
 
@@ -69,16 +69,16 @@ int app_main(os::module_handle_t app) noexcept
         const auto vb = shaders.vert.a_frame.bind();
 
         const auto [w, h] = egl.viewport;
-        const auto dx = width(texture) + 1_px;
-        const auto dy = height(texture) + 1_px;
+        const auto dx = width(texture) + 1_npx;
+        const auto dy = height(texture) + 1_npx;
 
-        const auto x_color_lerp = lerp(0_px, w, colors::blue, colors::red);
+        const auto x_color_lerp = lerp(0_npx, w, colors::blue, colors::red);
 
-        for (pxside_t x = 0_px; x < w; x += dx)
+        for (pxsize_t x = 0_npx; x < w; x += dx)
         {
-            const auto xy_color_lerp = lerp(0_px, h, color_cast<rgba_color32_t>(x_color_lerp(x)), colors::green);
+            const auto xy_color_lerp = lerp(0_npx, h, color_cast<rgba_color32_t>(x_color_lerp(x)), colors::green);
 
-            for (pxside_t y = 0_px; y < h; y += dy)
+            for (pxsize_t y = 0_npx; y < h; y += dy)
             {
                 shaders.frag.u_color.store(color_cast<gl::rgba_colorf_t>(xy_color_lerp(y)));
                 shaders.vert.u_position.store(point2d{ x, y });

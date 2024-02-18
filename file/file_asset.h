@@ -54,12 +54,6 @@ namespace file
             {
                 return size_;
             }
-
-            [[nodiscard]]
-            constexpr const_buffer_view view() const noexcept
-            {
-                return *this;
-            }
         };
 
 

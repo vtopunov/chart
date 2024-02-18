@@ -42,7 +42,7 @@ int main() noexcept
 
     {
         {
-            const auto face = font::create_face(font_file, 20_px);
+            const auto face = font::create_face(font_file, 20_npx);
             if (!face)
             {
                 e_debug("can't create font");
@@ -59,7 +59,7 @@ int main() noexcept
 
     {
         {
-            const auto face = font::create_face(font_file, 19_px);
+            const auto face = font::create_face(font_file, 19_npx);
             if (!face)
             {
                 e_debug("can't create font");
@@ -78,8 +78,8 @@ int main() noexcept
 
     {
         {
-            const auto face18 = font::create_face(font_file, 18_px);
-            const auto face17 = font::create_face(font_file, 17_px);
+            const auto face18 = font::create_face(font_file, 18_npx);
+            const auto face17 = font::create_face(font_file, 17_npx);
             if (!face18 || !face17)
             {
                 e_debug("can't create font");
@@ -96,8 +96,8 @@ int main() noexcept
 
     {
         {
-            const auto face16 = font::create_face(font_file, 16_px);
-            const auto face15 = font::create_face(font_file, 15_px);
+            const auto face16 = font::create_face(font_file, 16_npx);
+            const auto face15 = font::create_face(font_file, 15_npx);
             if (!face16 || !face15)
             {
                 e_debug("can't create font");
@@ -116,8 +116,8 @@ int main() noexcept
 
     {
         {
-            auto face14 = font::create_face(font_file, 14_px);
-            auto face13 = font::create_face(font_file, 13_px);
+            auto face14 = font::create_face(font_file, 14_npx);
+            auto face13 = font::create_face(font_file, 13_npx);
             if (!face14 || !face13)
             {
                 e_debug("can't create font");
@@ -145,7 +145,7 @@ int main() noexcept
     {
         D_ASSERT(nullptr == get_library());
         [[maybe_unused]]
-        static const auto static_last_face = font::create_face(font_file, 12_px);
+        static const auto static_last_face = font::create_face(font_file, 12_npx);
         D_ASSERT(nullptr != get_library());
         _cexit();
         D_ASSERT(nullptr == get_library());

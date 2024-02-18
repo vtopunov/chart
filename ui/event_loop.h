@@ -126,10 +126,10 @@ namespace ui
     };
 
     template<class T>
-    using decl_event_binder_type_t = std::add_const_t<typename T::event_binder_type>;
+    using decl_event_binder_type_t = typename T::event_binder_type;
 
     template<class T>
-    using event_binder_type_t = detected_or_t<const default_event_binder, decl_event_binder_type_t, T>;
+    using event_binder_type_t = std::add_const_t<detected_or_t<default_event_binder, decl_event_binder_type_t, T>>;
 
     template<class EventSource, class EventTarget>
     int run_event_loop(const EventSource& source, EventTarget&& target) noexcept

@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include <core/value_type.h>
+#include <core/utility.h>
 #include <core/narrow.h>
 
 
@@ -108,7 +108,7 @@ struct span_data_impl
     pointer data_{ nullptr };
     static constexpr size_t size_ = Extent;
 
-    constexpr span_data_impl() noexcept = default;
+    D_DEFAULT_ALL_CAEQ(span_data_impl);
 
     constexpr span_data_impl(pointer data, size_t) noexcept
         : data_{ data }
@@ -123,7 +123,7 @@ struct span_data_impl<T, dynamic_extent>
     pointer data_{ nullptr };
     size_t size_{ 0u };
 
-    constexpr span_data_impl() noexcept = default;
+    D_DEFAULT_ALL_CAEQ(span_data_impl);
 
     constexpr span_data_impl(pointer data, size_t size) noexcept
         : data_{ data }
@@ -148,17 +148,19 @@ class span : private span_data_impl<T, Extent>
 
 public:
     using value_type = T;
+    using const_value_type = const value_type;
     using pointer = T*;
-    using const_pointer = const T*;
+    using const_pointer = const_value_type*;
     using reference = T&;
-    using const_reference = const T&;
+    using const_reference = const_value_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using size_type = size_t;
     using difference_type = ptrdiff_t;
-    using const_value_type = std::add_const_t<value_type>;
+    using view_type = span<const_value_type, Extent>;
+    using null_type = nullmem_t;
 
     static constexpr size_type extent = Extent;
 
@@ -168,7 +170,11 @@ public:
     template<class OtherT, size_t OtherE>
     static constexpr bool is_compatible_span_v = is_compatible_span2span_v<T, Extent, OtherT, OtherE>;
 
-    D_DEFAULT_ALL_CA(span);
+    D_DEFAULT_ALL_CAEQ(span);
+
+    constexpr span(null_type) noexcept
+        : span{}
+    {}
 
     constexpr span(pointer data, size_type size) noexcept
         : base_type{ data, size }
@@ -183,6 +189,11 @@ public:
     constexpr span(C& c) noexcept
         : base_type{ std::data(c), narrow<size_type>(std::size(c)) }
     {}
+
+    constexpr span& operator = (null_type null_value) noexcept
+    {
+        return operator=(static_cast<span>(null_value));
+    }
 
     template<class C>
     constexpr std::enable_if_t<is_compatible_v<C>, span&> operator = (C& container) noexcept
@@ -291,7 +302,7 @@ private:
 };
 
 template <class Rng>
-span(Rng&)->span<value_type_t<Rng>, extent_v<Rng>>;
+span(Rng&) -> span<value_type_t<Rng>, extent_v<Rng>>;
 
 template <class Rng>
-span(const Rng&)->span<const value_type_t<Rng>, extent_v<Rng>>;
+span(const Rng&) -> span<const value_type_t<Rng>, extent_v<Rng>>;

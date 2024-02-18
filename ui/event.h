@@ -49,7 +49,7 @@ namespace ui
             return long_parameter_;
         }
 
-        using _coordinate_value_type = pxside_t;
+        using _coordinate_value_type = pxsize_t;
         static_assert(is_safe_numeric_conversion_v<_coordinate_value_type, word_t>);
 
         [[nodiscard]]

@@ -14,8 +14,8 @@ namespace
         {
             .geometry
             {
-                .position{30_px, 60_px},
-                .sizes{160_px, 70_px}
+                .position{30_npx, 60_npx},
+                .sizes{160_npx, 70_npx}
             },
             .text{ u8"Button №1" }
         };
@@ -24,8 +24,8 @@ namespace
         {
             .geometry
             {
-                .position{30_px, 150_px},
-                .sizes{160_px, 70_px}
+                .position{30_npx, 150_npx},
+                .sizes{160_npx, 70_npx}
             },
             .text{ u8"Button №2" },
         };
@@ -34,8 +34,8 @@ namespace
         {
             .geometry
             {
-                .position{30_px, 240_px},
-                .sizes{160_px, 70_px}
+                .position{30_npx, 240_npx},
+                .sizes{160_npx, 70_npx}
             },
             .text{ u8"Button №3" },
         };
@@ -44,15 +44,15 @@ namespace
         {
             .geometry
             {
-                .position{30_px, 330_px},
-                .sizes{160_px, 70_px}
+                .position{30_npx, 330_npx},
+                .sizes{160_npx, 70_npx}
             },
             .text{ u8"Exit" },
         };
 
         label lb
         {
-            .position{30_px, 420_px},
+            .position{30_npx, 420_npx},
             .text{ u8"Привет мир!" },
         };
 

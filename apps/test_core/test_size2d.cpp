@@ -1,6 +1,121 @@
 
 #include<core/size2d.h>
 
+
+namespace
+{
+    namespace private_detail_test_sizes
+    {
+        using size2d_t = size2d<int>;
+
+        static constexpr size2d_t testconst_sizes_o{ 1, 2 };
+        static constexpr size2d_t testconst_sizes_mem_fn{ 3, 4 };
+        static constexpr size2d_t testconst_sizes_mem{ 5, 6 };
+
+        constexpr struct sizes_o : size2d_t
+        {} sizes_o_v{ testconst_sizes_o };
+
+        constexpr struct sizes_mem_fn
+        {
+            [[nodiscard]] constexpr sizes_o sizes() const noexcept
+            {
+                return { testconst_sizes_mem_fn };
+            }
+        } sizes_mem_fn_v{};
+
+        constexpr struct sizes_mem
+        {
+            sizes_o sizes;
+        } sizes_mem_v{ testconst_sizes_mem };
+
+
+        constexpr struct sizes_mem_fn_o : sizes_o
+        {
+            [[nodiscard]] constexpr sizes_o sizes() const noexcept
+            {
+                return { testconst_sizes_mem_fn };
+            }
+        } sizes_mem_fn_o_v{ sizes_o_v };
+
+        constexpr struct sizes_mem_o : sizes_o
+        {
+            sizes_o sizes;
+        } sizes_mem_o_v{ .sizes{ testconst_sizes_mem } };
+
+        constexpr struct sizes_mem_view
+        {
+            using view_type = sizes_mem;
+
+            constexpr operator view_type () const noexcept
+            {
+                return sizes_mem_v;
+            }
+        } sizes_mem_view_v{};
+
+        constexpr struct sizes_mem_view_o : sizes_o
+        {
+            using view_type = sizes_mem;
+
+            constexpr operator view_type () const noexcept
+            {
+                return sizes_mem_v;
+            }
+        } sizes_mem_view_o_v{ sizes_o_v };
+
+        constexpr struct sizes_mem_fn_res_mem_view
+        {
+            using view_type = sizes_mem;
+            using resource_type = sizes_mem_fn;
+
+            constexpr operator view_type () const noexcept
+            {
+                return sizes_mem_v;
+            }
+
+            constexpr operator resource_type () const noexcept
+            {
+                return sizes_mem_fn_v;
+            }
+        } sizes_mem_fn_res_mem_view_v{};
+
+
+        constexpr struct sizes_res_mem_view
+        {
+            using view_type = sizes_mem;
+            struct resource_type {};
+
+            constexpr operator view_type () const noexcept
+            {
+                return sizes_mem_v;
+            }
+
+            constexpr operator resource_type () const noexcept
+            {
+                return {};
+            }
+        } sizes_res_mem_view_v{};
+    }
+
+    void test_sizes() noexcept
+    {
+        using namespace private_detail_test_sizes;
+
+        static_assert(testconst_sizes_o == sizes(sizes_o_v));
+        static_assert(testconst_sizes_mem_fn == sizes(sizes_mem_fn_v));
+        static_assert(testconst_sizes_mem == sizes(sizes_mem_v));
+
+        static_assert(testconst_sizes_mem_fn == sizes(sizes_mem_fn_o_v));
+        static_assert(testconst_sizes_mem == sizes(sizes_mem_o_v));
+
+        static_assert(testconst_sizes_mem == sizes(sizes_mem_view_v));
+        static_assert(testconst_sizes_o == sizes(sizes_mem_view_o_v));
+        static_assert(testconst_sizes_mem_fn == sizes(sizes_mem_fn_res_mem_view_v));
+        static_assert(testconst_sizes_mem == sizes(sizes_res_mem_view_v));
+
+        D_ASSERT(!errno);
+    }
+}
+
 void test_size2d() noexcept
 {
     constexpr vec2 v{ 3, 4 };
@@ -24,5 +139,5 @@ void test_size2d() noexcept
     static_assert(csz.width() == '\5');
     static_assert(csz.height() == '\6');
 
-    D_ASSERT(!errno);
+    test_sizes();
 }

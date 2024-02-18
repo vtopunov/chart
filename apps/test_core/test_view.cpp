@@ -74,7 +74,7 @@ namespace
         std::negation<is_qualified<T>>,
         private_detail_view::is_view_by_copy<T>,
         std::is_same<view_by_copy_t<T>, std::add_const_t<T>>,
-        std::is_same<private_detail_view::decl_view_t<T>, std::add_const_t<typename T::view_type>>,
+        std::is_same<decl_view_type_t<T>, typename T::view_type>,
         std::is_same<view_t<T>, std::add_const_t<typename T::view_type>>
     >;
 
@@ -83,7 +83,7 @@ namespace
         std::negation<is_qualified<T>>,
         std::negation<private_detail_view::is_view_by_copy<T>>,
         std::is_same<view_by_copy_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>,
-        std::is_same<private_detail_view::decl_view_t<T>, std::add_const_t<typename T::view_type>>,
+        std::is_same<decl_view_type_t<T>, typename T::view_type>,
         std::is_same<view_t<T>, std::add_const_t<typename T::view_type>>
     >;
 }

@@ -26,7 +26,7 @@ namespace widget
             : egl_ui_owner{ create_egl_ui(params) }
         {}
 
-        D_DISABLE_COPY_MOVE(window);
+        D_DISABLE_COPYMOVE_CA(window);
 
         constexpr operator content_size2d () const noexcept
         {

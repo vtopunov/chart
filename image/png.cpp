@@ -65,14 +65,14 @@ namespace image
         errno_ = underlying_cast<png_errno>(spng_get_ihdr(png, as_spng_ihdr(storage_)));
     }
 
-    pxside_t png_header::width() const noexcept
+    pxsize_t png_header::width() const noexcept
     {
-        return narrow<pxside_t>(as_spng_ihdr(storage_)->width);
+        return narrow<pxsize_t>(as_spng_ihdr(storage_)->width);
     }
 
-    pxside_t png_header::height() const noexcept
+    pxsize_t png_header::height() const noexcept
     {
-        return narrow<pxside_t>(as_spng_ihdr(storage_)->height);
+        return narrow<pxsize_t>(as_spng_ihdr(storage_)->height);
     }
 
     uint8_t png_header::bit_depth() const noexcept

@@ -109,7 +109,7 @@ namespace
     }
 
     template<class LT, class VT>
-    void test_intrusive_view_impl(const intrusive_list<LT>& list, intrusive_list_view<VT> view) noexcept
+    void test_intrusive_ref_impl(const intrusive_list<LT>& list, intrusive_list_ref<VT> view) noexcept
     {
         constexpr auto eq_node = []<class L, class R>(basic_intrusive_node<L> l, basic_intrusive_node<R> r) noexcept
         {
@@ -171,22 +171,22 @@ namespace
         }
     }
 
-    void test_intrusive_view(const intrusive_list<i_node>& list, intrusive_list_view<i_node> view) noexcept
+    void test_intrusive_ref(const intrusive_list<i_node>& list, intrusive_list_ref<i_node> view) noexcept
     {
-        test_intrusive_view_impl(list, view);
+        test_intrusive_ref_impl(list, view);
     }
 
-    void test_intrusive_const_view(const intrusive_list<i_node>& list, intrusive_list_view<const i_node> view) noexcept
+    void test_intrusive_const_ref(const intrusive_list<i_node>& list, intrusive_list_ref<const i_node> view) noexcept
     {
-        test_intrusive_view_impl(list, view);
+        test_intrusive_ref_impl(list, view);
     }
 
-    void test_intrusive_const_view_select(const intrusive_list<i_node>& list, intrusive_list_view<const i_node> view) noexcept
+    void test_intrusive_const_ref_select(const intrusive_list<i_node>& list, intrusive_list_ref<const i_node> view) noexcept
     {
-        test_intrusive_const_view(list, view);
+        test_intrusive_const_ref(list, view);
     }
 
-    void test_intrusive_const_view_select(const intrusive_list<i_node>&, intrusive_list_view<i_node>) noexcept
+    void test_intrusive_const_ref_select(const intrusive_list<i_node>&, intrusive_list_ref<i_node>) noexcept
     {
         D_ASSERT(!errno);
         D_ASSERT(errno);
@@ -196,6 +196,10 @@ namespace
 
 void test_intrusive() noexcept
 {
+    static_assert(std::is_same_v<decl_view_type_t<intrusive_list<i_node>>, intrusive_list<i_node>::view_type>);
+    static_assert(std::is_same_v<decl_view_type_t<intrusive_list_ref<i_node>>, intrusive_list<i_node>::view_type>);
+    static_assert(std::is_same_v<decl_view_type_t<intrusive_list_ref<i_node>>, intrusive_list_ref<i_node>::view_type>);
+
     {
         i_node nodes[10];
 
@@ -337,10 +341,10 @@ void test_intrusive() noexcept
 
             test_list(nodes_list);
             test_list(std::as_const(nodes_list));
-            test_intrusive_view(nodes_list, nodes_list);
-            test_intrusive_const_view(nodes_list, nodes_list);
-            test_intrusive_const_view_select(nodes_list, std::as_const(nodes_list));
-            D_UNUSED(static_cast<void (*) (const intrusive_list<i_node>&, intrusive_list_view<i_node>)>(test_intrusive_const_view_select));
+            test_intrusive_ref(nodes_list, nodes_list);
+            test_intrusive_const_ref(nodes_list, nodes_list);
+            test_intrusive_const_ref_select(nodes_list, std::as_const(nodes_list));
+            D_UNUSED(static_cast<void (*) (const intrusive_list<i_node>&, intrusive_list_ref<i_node>)>(test_intrusive_const_ref_select));
         };
 
         test_nodes_list(0, 3);
@@ -359,7 +363,7 @@ void test_intrusive() noexcept
     }
 
 
-    using pop_t = void(i_node_intrusive_list_t::*)();
+    using pop_t = void (i_node_intrusive_list_t::*)() noexcept;
 
     const auto test_pop = [] (pop_t pop) noexcept
     {
@@ -375,6 +379,9 @@ void test_intrusive() noexcept
         D_ASSERT(5 == i_pop);
     };
 
-    test_pop(&(i_node_intrusive_list_t::pop_back));
-    test_pop(&(i_node_intrusive_list_t::pop_front));
+    constexpr auto pop_back_ref = &i_node_intrusive_list_t::pop_back;
+    constexpr auto pop_front_ref = &i_node_intrusive_list_t::pop_front;
+
+    test_pop(pop_back_ref);
+    test_pop(pop_front_ref);
 }

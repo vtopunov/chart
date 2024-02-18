@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/fmt.h>
-#include <core/string_char.h>
+#include <core/utility.h>
 
 #include <os/fwd.h>
 

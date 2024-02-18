@@ -56,7 +56,6 @@ namespace
 
         event_result operator () (mouse_move_event_type e) noexcept
         {
-            
             if(const auto new_area =  e.as_first().transformation_as(area_); 
                 new_area != area_ && is_safe_conversion_glpx(new_area))
             {

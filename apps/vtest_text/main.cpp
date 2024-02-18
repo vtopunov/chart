@@ -2,6 +2,8 @@
 
 #include <debug/debug.h>
 
+#include <px/pixmap.h>
+
 #include <egl_ui/egl_ui_owner.h>
 
 #include <file/file_asset.h>
@@ -17,7 +19,7 @@ namespace
 {
     gl::texture2d text_rendering() noexcept
     {
-        pix8map image{ 300_px, 60_px };
+        pix8map image{ 300_npx, 60_npx };
         if (!image)
         {
             e_debug("out of memory");
@@ -31,7 +33,7 @@ namespace
             return {};
         }
 
-        const auto face = font::create_face(font_file, 20_px);
+        const auto face = font::create_face(font_file, 20_npx);
         if (!face)
         {
             e_debug("can't create font");
@@ -40,10 +42,10 @@ namespace
    
         {
             using namespace std::string_literals;
-            draw_text(image, 3_px, 20_px, face, u8"Привет мир !_!`"s);
+            draw_text(image, 3_npx, 20_npx, face, u8"Привет мир !_!`"s);
         }
 
-        size(face, 15_px);
+        size(face, 15_npx);
 
         {
             constexpr auto c_text = u8"Правый верх";
@@ -101,7 +103,7 @@ namespace
             cursor = draw_text(image, cursor, face, text3);
         }
 
-        auto texture = gl::create_texture2d(image);
+        auto texture = gl::create_texture2d(view(image));
         if (!texture)
         {
             e_debug("create texture error: {}", glGetError());
@@ -149,16 +151,16 @@ int app_main(os::module_handle_t app) noexcept
         const auto vb = shaders.vert.a_frame.bind();
 
         const auto [w, h] = egl.viewport;
-        const auto dx = width(texture) + 1_px;
-        const auto dy = height(texture) + 1_px;
+        const auto dx = width(texture) + 1_npx;
+        const auto dy = height(texture) + 1_npx;
 
-        const auto y_color_lerp = lerp(0_px, h, colors::red, colors::blue);
+        const auto y_color_lerp = lerp(0_npx, h, colors::red, colors::blue);
 
-        for (pxside_t y = 0; y < h; y += dy)
+        for (pxsize_t y = 0; y < h; y += dy)
         {
-            const auto yx_color_lerp = lerp(0_px, w, colors::green, color_cast<rgba_color32_t>(y_color_lerp(y)));
+            const auto yx_color_lerp = lerp(0_npx, w, colors::green, color_cast<rgba_color32_t>(y_color_lerp(y)));
 
-            for (pxside_t x = 0; x < w; x += dx)
+            for (pxsize_t x = 0; x < w; x += dx)
             {
                 shaders.frag.u_color.store(gl::to_colorf(yx_color_lerp(x)));
                 shaders.vert.u_position.store(x, y);

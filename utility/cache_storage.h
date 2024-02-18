@@ -7,7 +7,7 @@ class cache_storage
 {
 public:
     constexpr cache_storage() noexcept = default;
-    D_DISABLE_COPY_MOVE(cache_storage);
+    D_DISABLE_COPYMOVE_CA(cache_storage);
 
     using ref_count_type = int64_t;
     static_assert(std::is_signed_v<ref_count_type>);

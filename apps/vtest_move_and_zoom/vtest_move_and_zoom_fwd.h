@@ -4,6 +4,8 @@
 
 #include <debug/debug.h>
 
+#include <px/pixmap.h>
+
 #include <ui/manipulator.h>
 
 #include <gl/texture.h>

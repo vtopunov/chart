@@ -6,7 +6,7 @@
 
 namespace
 {
-    bool initialize_container_of_points(chart_line::points_type& v) noexcept
+    [[nodiscard]] bool initialize_container_of_points(chart_line_vpoint_t& v) noexcept
     {
         constexpr auto n_points = 1000_uz;
 
@@ -35,7 +35,7 @@ namespace
         return true;
     }
 
-    bool initialize_second_container_of_points(chart_line::points_type& v, chart::real_point2d_cspan points) noexcept
+    [[nodiscard]] bool initialize_second_container_of_points(chart_line_vpoint_t& v, chart::real_point2d_cspan points) noexcept
     {
         if (!v.try_reserve(points.size())) [[unlikely]]
         {
@@ -55,20 +55,20 @@ namespace
 
     struct main_widget
     {
-        static constexpr auto button_width = 120_px;
+        static constexpr auto button_width = 120_npx;
 
         template<size_t n>
         static constexpr rectangle button_boundaries_v
         {
             point2d
             {
-                narrow<pxside_t>(20_px + n * (5_px + button_width)),
-                D_CONDITIONAL_OS_ANDROID(60_px, 20_px)
+                narrow<pxsize_t>(20_npx + n * (5_npx + button_width)),
+                D_CONDITIONAL_OS_ANDROID(60_npx, 20_npx)
             },
             size2d
             {
                 button_width,
-                D_CONDITIONAL_OS_ANDROID(60_px, 40_px)
+                D_CONDITIONAL_OS_ANDROID(60_npx, 40_npx)
             }
         };
 
@@ -92,46 +92,69 @@ namespace
 
         static constexpr rectangle chart_boundaries
         {
-            button_boundaries_v<0>.p01() + point2d{0_px, 15_px},
-            size2d{ -20_pxz, -20_pxz }
+            button_boundaries_v<0>.p01() + point2d{0_npx, 15_npx},
+            size2d{ -20_npxz, -20_npxz }
         };
 
-        chart_line chart_red_line{ .pen_color{ gl::colors::red_f } };
-        chart_line chart_blue_line{ .pen_color{ gl::colors::blue_f } };
+        chart_line_vpoint_t chart_line_points0{};
+        chart_line_vpoint_t chart_line_points1{};
+
+        chart_spanline chart_line0{ .pen_color{ gl::colors::red_f } };
+        chart_spanline chart_line1{ .pen_color{ gl::colors::blue_f } };
 
         chart_widget chart
         {
             .geometry{ chart_boundaries },
         };
 
+        [[nodiscard]]
+        constexpr bool test_is_empty() const noexcept
+        {
+            const auto is_empty = !chart_line0.points.size();
+
+            {
+                [[maybe_unused]] const auto test_chart_line = [is_empty] (px::real_point2d_cspan line, px::real_point2d_cspan pts) noexcept
+                {
+                    constexpr px::real_point2d_cspan no_pts{};
+                    const auto test_line = ((is_empty) ? no_pts : pts);
+                    return test_line == line;
+                };
+
+                D_ASSERT(test_chart_line(chart_line0.points, chart_line_points0));
+                D_ASSERT(test_chart_line(chart_line1.points, chart_line_points1));
+            }
+
+            return is_empty;
+        }
 
         bool operator () (os::const_module_handle_t app) noexcept
         {
-            if (!initialize_container_of_points(chart_red_line.points)) [[unlikely]]
+            if (!initialize_container_of_points(chart_line_points0)) [[unlikely]]
             {
                 return false;
             };
 
-            if (!initialize_second_container_of_points(chart_blue_line.points, chart_red_line.points)) [[unlikely]]
+            if (!initialize_second_container_of_points(chart_line_points1, chart_line_points0)) [[unlikely]]
             {
                 return false;
             };
 
             b_plot.clicked = [this] () noexcept
             {
-                if (chart.lines.is_empty())
+                if (test_is_empty())
                 {
-                    chart.lines.attach_to_back(&chart_red_line);
-                    chart.lines.attach_to_back(&chart_blue_line);
+                    chart_line0.set_points(chart_line_points0);
+                    chart_line1.set_points(chart_line_points1);
                     chart.clear_cache();
                 }
             };
 
             b_clear.clicked = [this] () noexcept
             {
-                if (!chart.lines.is_empty())
+                if (!test_is_empty())
                 {
-                    chart.lines.clear();
+                    chart_line0.clear();
+                    chart_line1.clear();
                     chart.clear_cache();
                 }
             };
@@ -149,7 +172,7 @@ namespace
         template<class Fn>
         decltype(auto) apply(Fn fn) noexcept
         {
-            return fn(b_plot, b_clear, b_exit, chart);
+            return fn(b_plot, b_clear, b_exit, chart(chart_line0, chart_line1));
         }
     };
 }

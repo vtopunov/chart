@@ -12,7 +12,7 @@ namespace px
             const auto space_size_bytes = space.size_bytes();
             const auto buffer_size_bytes = size_bytes(buffer);
 
-            if (space.size_bytes() > size_bytes(buffer)) [[unlikely]]
+            if (space_size_bytes > buffer_size_bytes) [[unlikely]]
             {
                 e_debug("out of buffer: require {} bytes, reserved {} bytes", space_size_bytes, buffer_size_bytes);
                 return {};
@@ -21,7 +21,7 @@ namespace px
 
         return 
         {
-            buffer.as_ptr<pix8span::pixel_type>(), 
+            buffer.as_span<pix8span::pixel_type>().data(),
             space
         };
     }

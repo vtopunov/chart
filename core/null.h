@@ -10,9 +10,6 @@ namespace private_detail_null
     using decl_null_value_type_t = typename T::null_value_type;
 
     template<class T>
-    using decl_null_type_t = typename T::null_type;
-
-    template<class T>
     using remove_null_t = detected_or_t<T, decl_null_value_type_t, T>;
 
     template<class T>
@@ -132,8 +129,30 @@ namespace private_detail_null
         template<class T>
         using null_t = typename null_type_type<T>::type;
 
+        template<class NullT, class = void>
+        struct null_type_instance_selector
+        {};
+
+        template<class NullT>
+        struct null_type_instance_selector<NullT, std::enable_if_t<std::is_default_constructible_v<NullT> > >
+        {
+            static constexpr NullT instance() noexcept
+            {
+                return {};
+            }
+        };
+
+        template<class NullT>
+        struct null_type_instance_selector<NullT, std::enable_if_t<std::is_constructible_v<NullT, nulltype_construct_t> > >
+        {
+            static constexpr NullT instance() noexcept
+            {
+                return NullT(nulltype_construct);
+            }
+        };
+
         template<class T>
-        constexpr null_t<T> null_v{};
+        constexpr auto null_v = null_type_instance_selector<null_t<T>>::instance();
     }
 
 
@@ -141,19 +160,16 @@ namespace private_detail_null
     {
         using private_detail_null_type::null_v;
         using private_detail_null_type::is_null_constructible;
-        using private_detail_zero::private_detail_cmp_zero::eq_op;
-        using private_detail_zero::private_detail_cmp_zero::neq_op;
-        using private_detail_zero::private_detail_cmp_zero::decl_eq_op_result_t;
-        using private_detail_zero::private_detail_cmp_zero::decl_neq_op_result_t;
+        using namespace type_traits_compare;
 
         template<class T, template<class> class Op>
         using op_result_t = typename std::enable_if_t<std::conjunction_v<std::negation<is_null_type<T>>, is_null_constructible<T>>, enable_if_detected<Op, T>>::type;
 
         template<class T>
-        using eq_op_result_t = op_result_t<T, decl_eq_op_result_t>;
+        using eq_op_result_t = op_result_t<T, decl_eq_op_t>;
 
         template<class T>
-        using neq_op_result_t = op_result_t<T, decl_neq_op_result_t>;
+        using neq_op_result_t = op_result_t<T, decl_neq_op_t>;
 
         template<class T>
         [[nodiscard]] constexpr eq_op_result_t<T> eqn(const T& value) noexcept

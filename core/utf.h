@@ -2,7 +2,6 @@
 
 #include <string_view>
 
-#include <core/size_type.h>
 #include <core/narrow.h>
 
 

@@ -17,16 +17,16 @@ namespace font
     namespace
     {
         template<class T, size_t FractBits>
-        [[nodiscard]] constexpr pxpoint2d as_px_position(const point2d<fixed<T, FractBits>>& p) noexcept
+        [[nodiscard]] constexpr pxpoint2d as_pxposition(const point2d<fixed<T, FractBits>>& p) noexcept
         {
             return
             {
-                trunc_to<pxside_t>(p.x()),
-                trunc_to<pxside_t>(p.y())
+                trunc_to<pxsize_t>(p.x()),
+                trunc_to<pxsize_t>(p.y())
             };
         }
 
-        static_assert(as_px_position(invalid_cursor) == invalid_position);
+        static_assert(as_pxposition(invalid_cursor) == invalid_position);
 
         using library_descriptor_t = FT_Library;
 
@@ -80,7 +80,7 @@ namespace font
         {
         public:
             library() = delete;
-            D_DISABLE_COPY_MOVE(library);
+            D_DISABLE_COPYMOVE_CA(library);
 
             enum class dtor_state
             {
@@ -198,14 +198,15 @@ namespace font
         if (lib) [[likely]]
         {
             constexpr FT_Long face_index{ 0 };
+            const auto ft_font_storage = font_storage.as_span<FT_Byte>();
             unique_resource<FT_Face, ft_face_deleter> ft_face{};
 
             if (const auto errc
                 = FT_New_Memory_Face
                 (
                     lib,
-                    font_storage.as_ptr<FT_Byte>(),
-                    narrow<FT_Long>(font_storage.size()),
+                    ft_font_storage.data(),
+                    narrow<FT_Long>(ft_font_storage.size()),
                     face_index,
                     std::addressof(as_mutable(ft_face.r()))
                 ); errc != FT_Err_Ok) [[unlikely]]
@@ -305,8 +306,8 @@ namespace font
 
             size2d sizes
             {
-                narrow<pxside_t>(bitmap.width),
-                narrow<pxside_t>(bitmap.rows)
+                narrow<pxsize_t>(bitmap.width),
+                narrow<pxsize_t>(bitmap.rows)
             };
 
             const auto line_size = narrow<size_t>(bitmap.pitch);
@@ -315,7 +316,7 @@ namespace font
 
             if (is_negative(position.x()))
             {
-                const auto buffer_offset = narrow<pxside_t>(-position.x().discard_fraction());
+                const auto buffer_offset = narrow<pxsize_t>(-position.x().discard_fraction());
                 if (buffer_offset >= sizes.width())
                 {
                     return invalid_cursor;
@@ -328,7 +329,7 @@ namespace font
 
             if (is_negative(position.y()))
             {
-                const auto line_offset = narrow<pxside_t>(-position.y().discard_fraction());
+                const auto line_offset = narrow<pxsize_t>(-position.y().discard_fraction());
                 if (line_offset >= sizes.height())
                 {
                     return invalid_cursor;
@@ -343,7 +344,7 @@ namespace font
             static_assert(std::is_const_v<const_pix_t> && sizeof(const_pix_t) == image.px_size);
             const pixspan<const_pix_t, px::dynamic_alignment> glyph_image{ buffer, sizes, line_size };
 
-            image.store(as_px_position(position), glyph_image);
+            image.store(as_pxposition(position), glyph_image);
         }
 
         cursor.ref_x() += advance_x;

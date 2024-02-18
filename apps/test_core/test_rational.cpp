@@ -1,7 +1,5 @@
 #include <core/rational.h>
 
-#include <core/size_type.h>
-
 
 void test_rational() noexcept
 {

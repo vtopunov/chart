@@ -177,6 +177,10 @@ namespace
         static constexpr test_destruction_t<T, TestT> test_destruction{};
 
         using small_vector_type = small_vector<T, static_size>;
+        static_assert(std::is_same_v<decl_view_type_t<small_vector_type>, typename small_vector_type::view_type>);
+        static_assert(std::is_same_v<decl_null_type_t<small_vector_type>, typename small_vector_type::null_type>);
+        static_assert(std::is_same_v<decl_null_type_t<small_vector_type>, nullmem_t>);
+        
         using test_vector_type = std::vector<TestT>;
 
         small_vector_type small_v_;

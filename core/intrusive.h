@@ -152,7 +152,7 @@ public:
     using node_type = basic_intrusive_node<T>;
 
     constexpr intrusive_owner() noexcept = delete;
-    D_DISABLE_COPY_MOVE(intrusive_owner);
+    D_DISABLE_COPYMOVE_CA(intrusive_owner);
 
     constexpr intrusive_owner(node_type linked_node) noexcept
         : node_{ linked_node }
@@ -180,7 +180,7 @@ struct intrusive_node_object : basic_intrusive_node<T>
         : intrusive_node_type{ make_intrusive_cyclic_node(as_intrusive_pnode(this)) }
     {}
 
-    D_DISABLE_COPY_MOVE(intrusive_node_object);
+    D_DISABLE_COPYMOVE_CA(intrusive_node_object);
 
     constexpr ~intrusive_node_object() noexcept
     {
@@ -287,10 +287,11 @@ public:
     using const_reference = std::add_lvalue_reference_t<const_value_type>;
     using iterator = intrusive_list_iterator<pointer>;
     using const_iterator = intrusive_list_iterator<const_pointer>;
+    using view_type = intrusive_list_ref<const_value_type>;
 
     constexpr intrusive_list() noexcept = default;
 
-    D_DISABLE_COPY_MOVE(intrusive_list);
+    D_DISABLE_COPYMOVE_CA(intrusive_list);
 
     constexpr intrusive_list(std::initializer_list<pointer> ilist) noexcept
         : intrusive_list{}
@@ -449,14 +450,14 @@ private:
     }
 
     template<class>
-    friend class intrusive_list_view;
+    friend class intrusive_list_ref;
 
 private:
     intrusive_node_object<value_type> root_{};
 };
 
 template<class T>
-class intrusive_list_view
+class intrusive_list_ref
 {
 public:
     using value_type = T;
@@ -468,17 +469,17 @@ public:
     using const_pointer = const_value_type*;
     using iterator = intrusive_list_iterator<pointer>;
     using const_iterator = intrusive_list_iterator<const_pointer>;
-    using const_view_type = intrusive_list_view<const_value_type>;
+    using view_type = intrusive_list_ref<const_value_type>;
 
-    D_DEFAULT_ALL_CA(intrusive_list_view);
+    D_DEFAULT_ALL_CA(intrusive_list_ref);
 
     template<class MutableT, std::enable_if_t<std::is_same_v<std::add_const_t<MutableT>, value_type>, int> = 0>
-    constexpr intrusive_list_view(const intrusive_list<MutableT>& list) noexcept
+    constexpr intrusive_list_ref(const intrusive_list<MutableT>& list) noexcept
         : proot_{ list._p_root() }
     {}
 
     template<class ConstOrMutableT, std::enable_if_t<is_const_convertible_v<ConstOrMutableT, value_type>, int> = 0>
-    constexpr intrusive_list_view(intrusive_list<ConstOrMutableT>& list) noexcept
+    constexpr intrusive_list_ref(intrusive_list<ConstOrMutableT>& list) noexcept
         : proot_{ list._p_root() }
     {}
 

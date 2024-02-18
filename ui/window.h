@@ -202,7 +202,7 @@ namespace ui
             return _builder();
         }
 
-        constexpr Builder& position(pxside_t x, pxside_t y) noexcept
+        constexpr Builder& position(pxsize_t x, pxsize_t y) noexcept
         {
             return position(pxpoint2d{ x, y });
         }
@@ -213,7 +213,7 @@ namespace ui
             return _builder();
         }
 
-        constexpr Builder& sizes(pxside_t width, pxside_t height) noexcept
+        constexpr Builder& sizes(pxsize_t width, pxsize_t height) noexcept
         {
             return sizes(pxsize2d{ width, height });
         }

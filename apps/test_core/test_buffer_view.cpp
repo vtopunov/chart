@@ -34,28 +34,38 @@ namespace
 
         static_assert(std::is_same_v<decltype(b.data()), void_ptr>);
         static_assert(std::is_same_v<decltype(b.as_bytes()), span<byte_type>>);
-        static_assert(std::is_same_v<decltype(b.as_bytes_ptr()), byte_ptr>);
         static_assert(std::is_same_v<decltype(to_span<word>(b)), span<word_type>>);
-        static_assert(std::is_same_v<decltype(to_ptr<word>(b)), word_ptr>);
 
+        const buffer_type right_b{ const_cast<void_ptr>(data), size };
+        const buffer_type right_data_b{ const_cast<void_ptr>(data), 0 };
+        const buffer_type right_size_b{ nullptr, size };
         const auto bdata = b.data();
         const auto bsize = b.size();
         const auto bytes = b.as_bytes();
-        const auto pbytes = b.as_bytes_ptr();
         const auto words = to_span<word>(b);
-        const auto pwords = to_ptr<word>(b);
         const auto test_pbytes = static_cast<byte_cptr>(data);
         const auto test_pwords = static_cast<word_cptr>(data);
+
+        D_ASSERT(b == right_b);
+        D_ASSERT(right_b == b);
+        D_ASSERT(!(b != right_b));
+        D_ASSERT(!(right_b != b));
+        D_ASSERT(!(b == right_data_b));
+        D_ASSERT(!(right_data_b == b));
+        D_ASSERT(b != right_data_b);
+        D_ASSERT(right_data_b != b);
+        D_ASSERT(!(b == right_size_b));
+        D_ASSERT(!(right_size_b == b));
+        D_ASSERT(b != right_size_b);
+        D_ASSERT(right_size_b != b);
 
         D_ASSERT(bdata == data);
         D_ASSERT(bsize == size);
         D_ASSERT(bytes.data() == test_pbytes);
         D_ASSERT(bytes.size() == size);
-        D_ASSERT(pbytes == test_pbytes);
         D_ASSERT(words.data() == test_pwords);
         D_ASSERT(words.size() == size / sizeof(word));
-        D_ASSERT(pwords == test_pwords);
-         
+
         static_assert(std::is_same_v<decltype(b.front()), byte_ref>);
         static_assert(std::is_same_v<decltype(b.cfront()), byte_cref>);
         static_assert(std::is_same_v<decltype(b.back()), byte_ref>);
@@ -65,6 +75,8 @@ namespace
         static_assert(std::is_same_v<decltype(b.cbegin()), byte_cptr>);
         static_assert(std::is_same_v<decltype(b.end()), byte_ptr>);
         static_assert(std::is_same_v<decltype(b.cend()), byte_cptr>);
+        static_assert(std::is_same_v<decltype(bytes.data()), byte_ptr>);
+        static_assert(std::is_same_v<decltype(words.data()), word_ptr>);
 
         auto& front = b.front();
         auto& cfront = b.cfront();
@@ -105,8 +117,8 @@ namespace
         D_ASSERT(!immutable_result);
 
         D_ASSERT(test_const_impl(b, data, size));
-        
-        
+
+
         {
             buffer_view mb{};
             mb = b;
@@ -143,7 +155,7 @@ namespace
     {
         using type = const span<const T, N>;
     };
-   
+
     template<class T>
     struct add_const_span<const T> : add_const_span<T>
     {};
@@ -199,7 +211,7 @@ namespace
     void test(const C& c) noexcept
     {
         test_static_asserts<C>();
-        
+
         const void* data{ std::data(c) };
         size_t size{ size_bytes(c) };
         D_ASSERT(size == std::size(c) * value_type_size_testimpl(c));
@@ -209,7 +221,7 @@ namespace
             D_ASSERT(success_overload_and_select_immutable);
         }
 
-        if constexpr (is_span_v<C>) 
+        if constexpr (is_span_v<C>)
         {
             D_ASSERT(test_const_impl(C(c), data, size));
         }
@@ -226,7 +238,7 @@ namespace
     void test(C& c) noexcept
     {
         test_static_asserts<C>();
-        
+
         const void* data{ std::data(c) };
         size_t size{ size_bytes(c) };
         D_ASSERT(size == std::size(c) * value_type_size_testimpl(c));
@@ -308,6 +320,9 @@ namespace
 void test_buffer_view() noexcept
 {
     static_assert(!std::is_same_v<buffer_view, const_buffer_view>);
+    static_assert(std::is_same_v<decl_view_type_t<buffer_view>, buffer_view::view_type>);
+    static_assert(std::is_same_v<decl_null_type_t<buffer_view>, buffer_view::null_type>);
+    static_assert(std::is_same_v<decl_null_type_t<buffer_view>, nullmem_t>);
 
     {
         using private_detail_size_bytes::size_of;
@@ -331,7 +346,7 @@ void test_buffer_view() noexcept
         static_assert(4_uz == value_type_size<std::array<const int32_t, 1_uz>>());
         static_assert(4_uz == value_type_size<const std::array<const int32_t, 1_uz>>());
         static_assert(sizeof(ptrdiff_t) == value_type_size<const std::array<const int32_t*, 1_uz>>());
-        static_assert(sizeof(ptrdiff_t) == value_type_size<const std::array<const int32_t*const, 1_uz>>());
+        static_assert(sizeof(ptrdiff_t) == value_type_size<const std::array<const int32_t* const, 1_uz>>());
     }
 
     {

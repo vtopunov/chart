@@ -26,11 +26,20 @@ namespace private_detail_view
         std::add_lvalue_reference_t<std::add_const_t<T>>
     >;
 
+    template<class T, class = void>
+    struct view_type
+    {
+        using type = view_by_copy_t<T>;
+    };
+
     template<class T>
-    using decl_view_t = std::add_const_t<typename T::view_type>;
+    struct view_type<T, std::void_t<decl_view_type_t<T>>>
+    {
+        using type = std::add_const_t<decl_view_type_t<T>>;
+    };
 
     template <class T>
-    using view_t = detected_or_t<view_by_copy_t<T>, decl_view_t, T>;
+    using view_t = typename view_type<T>::type;
 }
 
 template<class T>

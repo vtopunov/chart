@@ -10,6 +10,8 @@ namespace ui
 {
     namespace
     {
+        using gdi_rect_t = RECT;
+
         [[nodiscard]]
         window_set& windows_global() noexcept
         {
@@ -53,17 +55,17 @@ namespace ui
             return { 0u, std::addressof(c), nullptr };
         }
 
-        [[nodiscard]] constexpr pxsize2d sizes(const RECT& rect) noexcept
+        [[nodiscard]] constexpr pxsize2d gdi_to_pxsizes(const gdi_rect_t& rect) noexcept
         {
-            static_assert(std::is_unsigned_v<pxside_t>);
+            static_assert(std::is_unsigned_v<pxsize_t>);
             
             constexpr auto side_length = [] (auto p0, auto p1) noexcept
             {
                 D_ASSERT(p1 >= p0);
-                return narrow<pxside_t>(p1 - p0);
+                return narrow<pxsize_t>(p1 - p0);
             };
         
-            pxsize2d result{ side_length(rect.left, rect.right), 0_px };
+            pxsize2d result{ side_length(rect.left, rect.right), 0_npx };
 
             if (result.width()) [[likely]]
             {
@@ -74,19 +76,19 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr pxrectangle make_rectangle(const RECT& rect) noexcept
+        constexpr pxrectangle gdi_to_pxrectangle(const gdi_rect_t& rect) noexcept
         {
             return
             {
                 .position{ md_narrow<pxpoint2d>(rect.left, rect.top) },
-                .sizes{ sizes(rect) }
+                .sizes{ gdi_to_pxsizes(rect) }
             };
         }
 
         [[nodiscard]]
-        RECT gdi_geometry(window_handle_t window) noexcept
+        gdi_rect_t gdi_geometry(window_handle_t window) noexcept
         {
-            RECT rect{ 0, 0, 0, 0 };
+            gdi_rect_t rect{ 0, 0, 0, 0 };
             D_ASSERT_OR_UNUSED(GetClientRect(window, &rect));
             return rect;
         }
@@ -115,7 +117,7 @@ namespace ui
                             in_process_of_destruction = window.current;
                         }
 
-                        D_DISABLE_COPY_MOVE(destruction_locker);
+                        D_DISABLE_COPYMOVE_CA(destruction_locker);
 
                         ~destruction_locker() noexcept
                         {
@@ -166,12 +168,12 @@ namespace ui
 
     pxrectangle geometry(window_handle_t window) noexcept
     {
-        return make_rectangle(gdi_geometry(window));
+        return gdi_to_pxrectangle(gdi_geometry(window));
     }
 
     pxsize2d sizes(window_handle_t window) noexcept
     {
-        return sizes(gdi_geometry(window));
+        return gdi_to_pxsizes(gdi_geometry(window));
     }
 
     bool geometry(window_handle_t window, pxrectangle rc) noexcept
@@ -228,12 +230,12 @@ namespace ui
 
     window create_window(const window_parameters& params) noexcept
     {
-        constexpr auto px_to_native = [] (pxside_t px) noexcept
+        constexpr auto px_to_native = [] (pxsize_t px) noexcept
         {
             using namespace private_detail_window_constants;
-            static_assert(std::is_same_v<decltype(CW_USEDEFAULT), native_px_t>);
+            static_assert(std::is_same_v<decltype(CW_USEDEFAULT), native_npx_t>);
             static_assert(CW_USEDEFAULT == cw_usedefault);
-            return (px == px_usedefault) ? cw_usedefault : narrow<native_px_t>(px);
+            return (px == px_usedefault) ? cw_usedefault : narrow<native_npx_t>(px);
         };
 
         constexpr auto select_window_style = [] (bool has_parent) noexcept

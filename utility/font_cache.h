@@ -7,7 +7,7 @@
 namespace font_cache
 {
     constexpr auto default_font_name = _PATH("OpenSans-Regular.ttf");
-    constexpr auto default_font_size = 15_px;
+    constexpr auto default_font_size = 15_npx;
 
     struct face_resource
     {
@@ -54,7 +54,7 @@ namespace font_cache
     face clone(face_resource r) noexcept;
 
     [[nodiscard]]
-    face load_font(file::path_zstring_view name, px::pxside_t size) noexcept;
+    face load_font(file::path_zstring_view name, px::pxsize_t size) noexcept;
 
     [[nodiscard]]
     font_cache::face cached_default_font() noexcept;

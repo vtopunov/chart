@@ -172,24 +172,6 @@ template<class T, class U>
     return r;
 }
 
-template<class T, class U>
-[[nodiscard]] constexpr typename rectangle<T, U>::size2d_type sizes(const rectangle<T, U>& r) noexcept
-{
-    return r.sizes;
-}
-
-template<class T, class U>
-[[nodiscard]] constexpr typename rectangle<T, U>::size_type width(const rectangle<T, U>& r) noexcept
-{
-    return r.width();
-}
-
-template<class T, class U>
-[[nodiscard]] constexpr typename rectangle<T, U>::size_type height(const rectangle<T, U>& r) noexcept
-{
-    return r.height();
-}
-
 template<template<class, class> class Rc, class T, class U, class NearT, class NearU>
 [[nodiscard]] constexpr auto md_round_to_near(const Rc<T, U>& v, const Rc<NearT, NearU>& v_near) noexcept -> Rc<
     decltype(as_point2d(md_round_to_near(as_rectangle(v).position, as_rectangle(v_near).position))._0),

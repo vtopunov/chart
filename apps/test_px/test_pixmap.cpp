@@ -48,18 +48,18 @@ void test_pixmap() noexcept
     }
 
     {
-        rgba_pixmap rgba_pixmap{ 2_px, 3_px };
+        rgba_pixmap rgba_pixmap{ 2_npx, 3_npx };
         test_convert_to_pixspan<rgba_color32_t>(rgba_pixmap, rgba_pixmap);
     }
 
     {
-        rgba_pixmap rgba_pixmap{ 3_px, 5_px };
+        rgba_pixmap rgba_pixmap{ 3_npx, 5_npx };
         pixspan deduction_span{ rgba_pixmap };
         test_convert_to_pixspan(rgba_pixmap, deduction_span);
     }
 
     {
-        const rgba_pixmap rgba_pixmap{ 3_px, 5_px };
+        const rgba_pixmap rgba_pixmap{ 3_npx, 5_npx };
         pixspan deduction_span{ rgba_pixmap };
         test_convert_to_pixspan(rgba_pixmap, deduction_span);
     }

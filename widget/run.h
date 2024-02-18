@@ -50,7 +50,7 @@ namespace widget
             std::nullopt_t operator () (const ui::size_event& e) noexcept
             {
                 const auto new_size = e.sizes();
-                if (new_size.width() > 0_px && new_size.height() > 0_px) [[likely]]
+                if (new_size.width() > 0_npx && new_size.height() > 0_npx) [[likely]]
                 {
                     D_ASSERT(new_size.width() <= cref_window().viewport.width());
                     D_ASSERT(new_size.height() <= cref_window().viewport.height());

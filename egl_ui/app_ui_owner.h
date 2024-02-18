@@ -45,7 +45,7 @@ namespace egl_ui
                 , input_event_source_{ egl.render_wnd }
             {}
 
-            D_DISABLE_COPY_MOVE(event_binder_type);
+            D_DISABLE_COPYMOVE_CA(event_binder_type);
 
             template<class EventTarget>
             [[nodiscard]] std::array<ui::event_processor, 2u> bind(EventTarget& target) const noexcept
@@ -164,7 +164,7 @@ namespace egl_ui
         if (static_cast<const ui::app_owner&>(result)) [[likely]]
         {
 #ifdef D_OS_WINDOWS
-            constexpr pxsize2d invalid_sizes{ 0_px, 0_px };
+            constexpr pxsize2d invalid_sizes{ 0_npx, 0_npx };
             static_assert(!ui::window_sizes_is_valid(invalid_sizes));
 
             pxsize2d render_window_sizes{ invalid_sizes };
@@ -183,7 +183,7 @@ namespace egl_ui
                     {
                         app_ui_parameters rendrer_wnd_params{ params };
                         rendrer_wnd_params.parent = result.app_wnd;
-                        rendrer_wnd_params.geometry.position = { 0_px, 0_px };
+                        rendrer_wnd_params.geometry.position = { 0_npx, 0_npx };
                         rendrer_wnd_params.geometry.sizes = render_window_sizes;
                         result.render_wnd = ui::create_window(rendrer_wnd_params);
                     }

@@ -104,7 +104,6 @@ void test_narrow() noexcept
     static_assert(is_safe_narrowing_conversion<float>(numeric_max_v<float>));
     static_assert(!is_safe_narrowing_conversion<float>(numeric_max_v<double>));
 
-
     constexpr uint32_t max_mantissa = uint32_t(-1) >> 8;
     D_ASSERT(is_safe_narrowing_conversion<float>(max_mantissa));
     
@@ -121,7 +120,6 @@ void test_narrow() noexcept
     }
 
     static_assert(!is_safe_narrowing_conversion<float>(max_mantissa+1));
-
 
     D_ASSERT( !errno );
 }

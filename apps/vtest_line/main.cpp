@@ -1,6 +1,7 @@
 ﻿#include <debug/debug.h>
 
 #include <px/algorithm.h>
+#include <px/pixmap.h>
 
 #include <egl_ui/egl_ui_owner.h>
 
@@ -19,7 +20,7 @@ namespace
     {
         const auto setpix = [data = image.data(), line_size = image.line_size()](size_t x, size_t y) noexcept
         {
-            *(data + line_size * y + x) = numeric_max_v<u8tint_t>;
+            *(data + line_size * y + x) = numeric_max_v<pix8_t>;
         };
 
         constexpr auto uz_round = [] (double v) noexcept
@@ -61,7 +62,7 @@ namespace
     {
         using vtest_line_figure::figure;
 
-        pix8map image{ 600_px, 600_px };
+        pix8map image{ 600_npx, 600_npx };
         if (!image)
         {
             e_debug("out of memory");
@@ -86,7 +87,7 @@ namespace
         }
 #endif
 
-        auto result_texture = gl::create_texture2d(image);
+        auto result_texture = gl::create_texture2d(view(image));
         if (!result_texture)
         {
             e_debug("create texture error: {}\n", glGetError());
@@ -130,7 +131,7 @@ int app_main(os::module_handle_t app) noexcept
         shaders.use();
         shaders.frag.s_texture.store(texture);
         shaders.vert.u_viewport.store(egl.viewport);
-        shaders.vert.u_position.store(30_px, 50_px);
+        shaders.vert.u_position.store(30_npx, 50_npx);
         shaders.vert.u_size.store(sizes(texture));
         shaders.vert.a_frame.draw();
     }

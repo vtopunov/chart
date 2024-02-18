@@ -248,7 +248,7 @@ namespace gl
             , size_{ vertexes.size() }
         {}
 
-        D_DISABLE_COPY(vertex_buffer);
+        D_DISABLE_COPY_CA(vertex_buffer);
 
         constexpr vertex_buffer(vertex_buffer&& vb) noexcept
             : bo_{ std::move(vb.bo_) }
