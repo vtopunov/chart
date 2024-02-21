@@ -138,7 +138,7 @@ namespace
         {
             const egl_painting_owner painting_owner{ egl_ };
             gl::viewport(egl_.viewport);
-            gl::clear(gl::colors::white_f);
+            gl::clear(colors::white_f);
             shaders_.draw(area_);
         }
 

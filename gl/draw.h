@@ -1,18 +1,18 @@
 #pragma once
 
-#include <array>
-
+#include <core/color.h>
 #include <core/buffer_view.h>
 
 #include <px/fwd.h>
 
-#include <gl/color.h>
 #include <gl/shader.h>
 #include <gl/vertex.h>
 
 
 namespace gl
 {
+    static_assert(std::is_same_v<tintf_t, GLfloat>);
+
     inline void viewport(pxsize2d sizes) noexcept
     {
         glViewport
@@ -297,12 +297,12 @@ namespace gl
     };
 
     template <class T, size_t Extent>
-    vertex_buffer(T(&)[Extent])->vertex_buffer<std::remove_cv_t<T>>;
+    vertex_buffer(T(&)[Extent]) -> vertex_buffer<std::remove_cv_t<T>>;
 
     template <class Rng>
-    vertex_buffer(Rng&)->vertex_buffer<std::remove_cv_t<typename Rng::value_type>>;
+    vertex_buffer(Rng&) -> vertex_buffer<std::remove_cv_t<typename Rng::value_type>>;
 
     template <class Rng>
-    vertex_buffer(const Rng&)->vertex_buffer<std::remove_cv_t<typename Rng::value_type>>;
+    vertex_buffer(const Rng&) -> vertex_buffer<std::remove_cv_t<typename Rng::value_type>>;
 }
 

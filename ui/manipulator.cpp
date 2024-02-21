@@ -125,7 +125,7 @@ namespace ui
 
 
             [[nodiscard]]
-            constexpr user_gesture make_gesture(vpoint_cache v0, vpoint_cache v1) noexcept
+            constexpr gesture make_gesture(vpoint_cache v0, vpoint_cache v1) noexcept
             {
                 if (const auto ov = prepare(v0); ov == prepare(v1, v0))
                 {
@@ -143,7 +143,7 @@ namespace ui
                                 .transformation
                                 {
                                     .fx{ make_transformation_fx(v0, v1) },
-                                    .fy{ user_gesture::no_transformation_function }
+                                    .fy{ gesture::no_transformation_function }
                                 }
                             };
 
@@ -152,7 +152,7 @@ namespace ui
                             {
                                 .transformation
                                 {
-                                    .fx{ user_gesture::no_transformation_function },
+                                    .fx{ gesture::no_transformation_function },
                                     .fy{ make_transformation_fy(v0, v1) }
                                 }
                             };
@@ -166,7 +166,7 @@ namespace ui
             }
 
             [[nodiscard]]
-            constexpr user_gesture make_gesture(real_point2d p0, real_point2d p1) noexcept
+            constexpr gesture make_gesture(real_point2d p0, real_point2d p1) noexcept
             {
                 return
                 {
@@ -174,12 +174,12 @@ namespace ui
                     {
                         .fx
                         {
-                            .a1{ user_gesture::no_transformation_scale },
+                            .a1{ gesture::no_transformation_scale },
                             .a0{ p1.x() - p0.x() }
                         },
                         .fy
                         {
-                            .a1{ user_gesture::no_transformation_scale },
+                            .a1{ gesture::no_transformation_scale },
                             .a0{ p1.y() - p0.y() }
                         }
                     }
@@ -187,25 +187,25 @@ namespace ui
             }
 
             [[nodiscard]]
-            constexpr user_gesture make_gesture_opt(const vpoint_cache& v0, const vpoint_cache& v1) noexcept
+            constexpr gesture make_gesture_opt(const vpoint_cache& v0, const vpoint_cache& v1) noexcept
             {
                 return (2u == size(v0)) ? make_gesture(v0, v1) : no_gesture;
             }
 
             [[nodiscard]]
-            constexpr user_gesture make_gesture_opt(const vpoint_cache& v, real_point2d p) noexcept
+            constexpr gesture make_gesture_opt(const vpoint_cache& v, real_point2d p) noexcept
             {
                 return (1u == size(v)) ? make_gesture(v._0, p) : no_gesture;
             }
 
             [[nodiscard]]
-            constexpr user_gesture new_manipulation(vpoint_cache& cached_p, vpoint_cache new_p) noexcept
+            constexpr gesture new_manipulation(vpoint_cache& cached_p, vpoint_cache new_p) noexcept
             {
                 return make_gesture_opt(std::exchange(cached_p, new_p), new_p);
             }
 
             [[nodiscard]]
-            constexpr user_gesture new_manipulation(vpoint_cache& cached_p, real_point2d new_p) noexcept
+            constexpr gesture new_manipulation(vpoint_cache& cached_p, real_point2d new_p) noexcept
             {
                 return make_gesture_opt
                 (
@@ -225,7 +225,7 @@ namespace ui
             }
         }
 
-        user_gesture new_manipulation(vpoint_cache& cached_p, const ui::pointer_event& e) noexcept
+        gesture new_manipulation(vpoint_cache& cached_p, const ui::pointer_event& e) noexcept
         {
             D_ASSERT(cache_is_valid(cached_p));
 

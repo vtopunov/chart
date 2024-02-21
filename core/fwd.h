@@ -133,11 +133,13 @@ static_assert(sizeof(u32argb_t) == 4u);
 using u8tint_t = uint8_t;
 static_assert(sizeof(u8tint_t) == 1u);
 
+using tintf_t = float;
+
 template<class T>
 struct rgba_color;
 
 using rgba_color32_t = rgba_color<u8tint_t>;
-
+using rgba_colorf_t = rgba_color<tintf_t>;
 
 using doublemax_t = long double;
 

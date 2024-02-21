@@ -89,11 +89,11 @@ Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_texture", "apps\vtest
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "utility", "utility\utility.vcxproj", "{47C90779-22F4-49A5-8B9F-B5D799E5D3B5}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_gray_textrue", "vtest_gray_textrue", "{6B702A14-3F94-4A0C-B607-9AE36DFC02BD}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_luminance_texture", "vtest_luminance_texture", "{6B702A14-3F94-4A0C-B607-9AE36DFC02BD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_gray_textrue_applib", "apps\vtest_gray_textrue\vtest_gray_textrue_applib.vcxproj", "{48308630-638F-46AB-8A5E-51DF5038AE5D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_luminance_texture_applib", "apps\vtest_luminance_texture\vtest_luminance_texture_applib.vcxproj", "{48308630-638F-46AB-8A5E-51DF5038AE5D}"
 EndProject
-Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_gray_textrue", "apps\vtest_gray_textrue\vtest_gray_textrue.androidproj", "{FC1B86AE-5233-416B-993E-3A49A5618FE6}"
+Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_luminance_texture", "apps\vtest_luminance_texture\vtest_luminance_texture.androidproj", "{FC1B86AE-5233-416B-993E-3A49A5618FE6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_texture_positioning", "vtest_texture_positioning", "{85E15F8B-CA59-4194-9DC8-F0B72AB3FBD1}"
 EndProject
@@ -111,11 +111,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_pixspan_texture_appli
 EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_pixspan_texture", "apps\vtest_pixspan_texture\vtest_pixspan_texture.androidproj", "{1131DBB3-278B-4992-8183-C0578EF35A25}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_pixspan_gray_texture", "vtest_pixspan_gray_texture", "{5225C2BD-72F8-4DA1-9D77-5FD84A73E02F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_pixspan_luminance_texture", "vtest_pixspan_luminance_texture", "{5225C2BD-72F8-4DA1-9D77-5FD84A73E02F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_pixspan_gray_texture_applib", "apps\vtest_pixspan_gray_texture\vtest_pixspan_gray_texture_applib.vcxproj", "{F6FF7311-5108-4611-AC2B-CD124A38EBBA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_pixspan_luminance_texture_applib", "apps\vtest_pixspan_luminance_texture\vtest_pixspan_luminance_texture_applib.vcxproj", "{F6FF7311-5108-4611-AC2B-CD124A38EBBA}"
 EndProject
-Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_pixspan_gray_texture", "apps\vtest_pixspan_gray_texture\vtest_pixspan_gray_texture.androidproj", "{75D22B77-A2DC-42D7-B829-FB8CAC9E0A25}"
+Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_pixspan_luminance_texture", "apps\vtest_pixspan_luminance_texture\vtest_pixspan_luminance_texture.androidproj", "{75D22B77-A2DC-42D7-B829-FB8CAC9E0A25}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_text", "vtest_text", "{3E112BEA-2577-467A-BA07-932AA424DCB5}"
 EndProject

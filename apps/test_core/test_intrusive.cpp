@@ -201,15 +201,19 @@ void test_intrusive() noexcept
     static_assert(std::is_same_v<decl_view_type_t<intrusive_list_ref<i_node>>, intrusive_list_ref<i_node>::view_type>);
 
     {
-        i_node nodes[10];
+        i_node nodes[10]{};
+        D_ASSERT(!nodes->intrusive_prev_pnode);
+        D_ASSERT(!nodes->intrusive_next_pnode);
+        intrusive_reset_ref(*nodes);;
+        D_ASSERT(nodes->intrusive_prev_pnode == nodes);
+        D_ASSERT(nodes->intrusive_next_pnode == nodes);
 
-        *as_basic_intrusive_pnode(std::data(nodes)) = make_intrusive_cyclic_node(nodes);
 
         const auto make_list = [&nodes] (auto make_node) noexcept
         {
             for (auto it = std::next(std::begin(nodes)); it < std::end(nodes); ++it)
             {
-                *as_basic_intrusive_pnode(it) = make_node(it, nodes);
+                intrusive_write(it, make_node(it, nodes));
             }
         };
 

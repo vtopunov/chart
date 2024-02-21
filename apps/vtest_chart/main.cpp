@@ -1,18 +1,18 @@
 ﻿#include <widget/run.h>
 #include <widget/button.h>
 
-#include <chart/chart_widget.h>
-
+#include <chart/space.h>
+#include <chart/background.h>
 
 namespace
 {
-    [[nodiscard]] bool initialize_container_of_points(chart_line_vpoint_t& v) noexcept
+    [[nodiscard]] bool initialize_container_of_points(chart::real_vpoint2d& v) noexcept
     {
         constexpr auto n_points = 1000_uz;
 
         if (!v.try_reserve(n_points)) [[unlikely]]
         {
-            e_debug("chart_widget: initialize_container_of_points: out of memory");
+            e_debug("chart: initialize_container_of_points: out of memory");
             return false;
         }
 
@@ -35,7 +35,7 @@ namespace
         return true;
     }
 
-    [[nodiscard]] bool initialize_second_container_of_points(chart_line_vpoint_t& v, chart::real_point2d_cspan points) noexcept
+    [[nodiscard]] bool initialize_second_container_of_points(chart::real_vpoint2d& v, chart::real_point2d_cspan points) noexcept
     {
         if (!v.try_reserve(points.size())) [[unlikely]]
         {
@@ -96,67 +96,50 @@ namespace
             size2d{ -20_npxz, -20_npxz }
         };
 
-        chart_line_vpoint_t chart_line_points0{};
-        chart_line_vpoint_t chart_line_points1{};
-
-        chart_spanline chart_line0{ .pen_color{ gl::colors::red_f } };
-        chart_spanline chart_line1{ .pen_color{ gl::colors::blue_f } };
-
-        chart_widget chart
+        chart::space chart_space
         {
             .geometry{ chart_boundaries },
         };
 
-        [[nodiscard]]
-        constexpr bool test_is_empty() const noexcept
+        static constexpr chart::background chart_background{ .color{ colors::yellow_f.with_blue(0.85f) } };
+
+        struct tunable_polyline : chart::polyspanline
         {
-            const auto is_empty = !chart_line0.points.size();
+            chart::real_vpoint2d points;
 
+            void setup() noexcept
             {
-                [[maybe_unused]] const auto test_chart_line = [is_empty] (px::real_point2d_cspan line, px::real_point2d_cspan pts) noexcept
-                {
-                    constexpr px::real_point2d_cspan no_pts{};
-                    const auto test_line = ((is_empty) ? no_pts : pts);
-                    return test_line == line;
-                };
-
-                D_ASSERT(test_chart_line(chart_line0.points, chart_line_points0));
-                D_ASSERT(test_chart_line(chart_line1.points, chart_line_points1));
+                set_model(std::as_const(points));
             }
+        };
 
-            return is_empty;
-        }
+        tunable_polyline polyline0{ {.pen_color{colors::red_f } } };
+        tunable_polyline polyline1{ {.pen_color{colors::blue_f} } };
 
         bool operator () (os::const_module_handle_t app) noexcept
         {
-            if (!initialize_container_of_points(chart_line_points0)) [[unlikely]]
+            if (!initialize_container_of_points(polyline0.points)) [[unlikely]]
             {
                 return false;
             };
 
-            if (!initialize_second_container_of_points(chart_line_points1, chart_line_points0)) [[unlikely]]
+            if (!initialize_second_container_of_points(polyline1.points, polyline0.points)) [[unlikely]]
             {
                 return false;
             };
 
             b_plot.clicked = [this] () noexcept
             {
-                if (test_is_empty())
-                {
-                    chart_line0.set_points(chart_line_points0);
-                    chart_line1.set_points(chart_line_points1);
-                    chart.clear_cache();
-                }
+                polyline0.setup();
+                polyline1.setup();
+                chart_space.clear_cache();
             };
 
             b_clear.clicked = [this] () noexcept
             {
-                if (!test_is_empty())
-                {
-                    chart_line0.clear();
-                    chart_line1.clear();
-                    chart.clear_cache();
-                }
+                polyline0.clear();
+                polyline1.clear();
+                chart_space.clear_cache();
             };
 
             b_exit.clicked = [app] () noexcept
@@ -172,7 +155,7 @@ namespace
         template<class Fn>
         decltype(auto) apply(Fn fn) noexcept
         {
-            return fn(b_plot, b_clear, b_exit, chart(chart_line0, chart_line1));
+            return fn(b_plot, b_clear, b_exit, chart_space(chart_background, polyline0, polyline1));
         }
     };
 }

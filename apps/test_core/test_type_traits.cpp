@@ -1,5 +1,7 @@
 #include <core/type_traits.h>
 
+#include <vector>
+#include <span>
 #include <cerrno>
 
 
@@ -22,7 +24,7 @@ namespace
             return true;
         }
 
-        constexpr bool call_method_if_exist(no_overloaded) noexcept
+        constexpr bool call_method_if_exist(no_overload) noexcept
         {
             return false;
         }
@@ -260,6 +262,46 @@ namespace
         static_assert(!is_same_uncvref_v<int, float>);
         D_ASSERT(!errno);
     }
+
+    void test_has_assignment_op() noexcept
+    {
+        static_assert(has_assignment_op_v<int, int>);
+        static_assert(has_assignment_op_v<int&, int>);
+        static_assert(has_assignment_op_v<int&, const int>);
+        static_assert(has_assignment_op_v<int, int&>);
+        static_assert(has_assignment_op_v<int&, int&>);
+        static_assert(has_assignment_op_v<int, short>);
+        static_assert(has_assignment_op_v<double, int>);
+        static_assert(has_assignment_op_v<std::span<int>, std::vector<int>&>);
+        static_assert(!has_assignment_op_v<std::span<int>, std::vector<int>&&>);
+        D_ASSERT(!errno);
+    }
+
+    namespace private_detail_test_call_is_detected
+    {
+        template<int>
+        struct arg {};
+
+        template<int... ids>
+        struct functor_for
+        {
+            constexpr void operator () (arg<ids>...) const noexcept
+            {}
+        };
+    }
+
+    void test_call_is_detected() noexcept
+    {
+        using namespace private_detail_test_call_is_detected;
+
+        static_assert(call_is_detected_v<functor_for<0>, arg<0>>);
+        static_assert(!call_is_detected_v<functor_for<0>, arg<1>>);
+        static_assert(call_is_detected_v<functor_for<0, 1>, arg<0>, arg<1>>);
+        static_assert(!call_is_detected_v<functor_for<0, 1>, arg<0>, arg<0>>);
+        static_assert(!call_is_detected_v<functor_for<0, 1>, arg<1>, arg<0>>);
+        static_assert(!call_is_detected_v<functor_for<0, 1>, arg<1>, arg<1>>);
+        D_ASSERT(!errno);
+    }
 }
 
 void test_type_traits() noexcept
@@ -277,4 +319,6 @@ void test_type_traits() noexcept
     test_add_const_pointer();
     test_is_const_convertible();
     test_is_sameuncvref();
+    test_has_assignment_op();
+    test_call_is_detected();
 }

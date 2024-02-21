@@ -6,16 +6,16 @@
 
 namespace widget
 {
-    class user_gesture : public ui::user_gesture
+    class gesture : public ui::gesture
     {
-        using base_type = ui::user_gesture;
+        using base_type = ui::gesture;
 
     public:
-        constexpr user_gesture() noexcept 
-            : base_type{ ui::no_gesture } 
+        constexpr gesture() noexcept
+            : base_type{ ui::no_gesture }
         {}
 
-        D_DISABLE_COPYMOVE_CA(user_gesture);
+        D_DISABLE_COPYMOVE_CA(gesture);
 
         void operator () (ui::viewport_event) noexcept
         {
@@ -59,10 +59,9 @@ namespace widget
 
 #endif
 
-        template<class Fn>
-        decltype(auto) apply(Fn fn) noexcept
+        constexpr noapply_t apply(no_overload) const noexcept
         {
-            return fn();
+            return noapply;
         }
 
     private:
@@ -72,7 +71,7 @@ namespace widget
             base_ref() = ui::no_gesture;
         }
 
-        constexpr ui::user_gesture& base_ref() noexcept
+        constexpr ui::gesture& base_ref() noexcept
         {
             return *this;
         }

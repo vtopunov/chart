@@ -12,20 +12,18 @@ namespace widget
 {
     namespace private_detail_run
     {
-        [[nodiscard]]
-        constexpr bool initialization_was_successful(event_result_processor<>) noexcept
+        template<class ER>
+        [[nodiscard]] constexpr std::enable_if_t<std::negation_v<has_event_result<ER>>, bool> initialization_was_successful(event_result_processor<ER>) noexcept
         {
             return true;
         }
 
-        [[nodiscard]]
-        constexpr bool initialization_was_successful(event_result_processor<bool> result) noexcept
+        [[nodiscard]] constexpr bool initialization_was_successful(event_result_processor<bool> result) noexcept
         {
             return result.result;
         }
 
-        [[nodiscard]]
-        constexpr bool initialization_was_successful(event_result_processor<event_result> result) noexcept
+        [[nodiscard]] constexpr bool initialization_was_successful(event_result_processor<event_result> result) noexcept
         {
             return e_bit_check(result.result, event_result::invalid);
         }
@@ -171,7 +169,7 @@ namespace widget
             {
                 const egl_painting_owner painting_owner{ cref_window() };
                 gl::viewport(cref_window().viewport);
-                gl::clear(colors::gl_dialog_color_f);
+                gl::clear(colors::dialog_color_f);
                 D_UNUSED(apply_event(widget_, common_context_));
             }
 

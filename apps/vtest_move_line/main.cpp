@@ -42,7 +42,7 @@ namespace
     class main_processor
     {
         static constexpr auto background_color = colors::cyan;
-        static constexpr auto gl_background_color_f = gl::to_colorf(background_color);
+        static constexpr auto gl_background_color_f = to_colorf(background_color);
 
     public:
         [[nodiscard]]

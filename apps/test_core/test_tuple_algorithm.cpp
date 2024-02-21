@@ -11,6 +11,13 @@ namespace
 
     template<int... I>
     using test_tuple = std::tuple<test_type<I>...>;
+
+    template<int... call_ids>
+    struct test_call_type
+    {
+        constexpr void operator () (test_type<call_ids>...) const noexcept
+        {}
+    };
 }
 
 
@@ -18,6 +25,8 @@ void test_tuple_algorithm() noexcept
 {
     using test_tuple_0_5 = test_tuple<0, 1, 2, 3, 4>;
     using test_tuple_0_6 = test_tuple<0, 1, 2, 3, 4, 5>;
+    using test_tuple_0_7 = test_tuple<0, 1, 2, 3, 4, 5, 6>;
+    using test_tuple_0_8 = test_tuple<0, 1, 2, 3, 4, 5, 6, 7>;
 
     using arithmetic_tuple1 = std::tuple<char>;
     using arithmetic_tuple2 = std::tuple<char, double>;
@@ -32,6 +41,11 @@ void test_tuple_algorithm() noexcept
     static_assert(!tuple_has_type_v<char, std::tuple<>>);
     static_assert(!tuple_has_type_v<std::tuple<>, std::tuple<>>);
     static_assert(tuple_has_type_v<std::tuple<>, std::tuple<std::tuple<>>>);
+
+    static_assert(tuple_has_call_v<std::tuple<test_call_type<0>>, test_type<0>>);
+    static_assert(!tuple_has_call_v<std::tuple<test_call_type<0>>, test_type<1>>);
+    static_assert(tuple_has_call_v<std::tuple<test_call_type<0>, test_call_type<1>>, test_type<1>>);
+    static_assert(tuple_has_call_v<std::tuple<test_call_type<0>, test_call_type<0, 1>>, test_type<0>, test_type<1>>);
 
     static_assert(std::is_same_v<tuple_swap_t<0, 0, test_tuple_0_5>, test_tuple_0_5>);
     static_assert(std::is_same_v<tuple_swap_t<0, 1, test_tuple_0_5>, test_tuple<1, 0, 2, 3, 4>>);
@@ -143,6 +157,15 @@ void test_tuple_algorithm() noexcept
     static_assert(std::is_same_v<tuple_unique_push_back_t<std::tuple<char>, char>, std::tuple<char>>);
     static_assert(std::is_same_v<tuple_unique_push_back_t<std::tuple<char>, double>, std::tuple<char, double>>);
 
+    static_assert(std::is_same_v<tuple_unique_insert_back_t<std::tuple<>>, std::tuple<>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_t<std::tuple<char>>, std::tuple<char>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_t<std::tuple<>, char>, std::tuple<char>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_t<std::tuple<char>, char>, std::tuple<char>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_t<std::tuple<>, char, char>, std::tuple<char>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_t<std::tuple<char>, char, char>, std::tuple<char>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_t<std::tuple<>, char, char, char, double, char, char>, std::tuple<char, double>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_t<std::tuple<char>, char, char, char, double, char, char>, std::tuple<char, double>>);
+
     static_assert(std::is_same_v<tuple_unique_push_back_tuple_t<std::tuple<>, std::tuple<>>, std::tuple<>>);
     static_assert(std::is_same_v<tuple_unique_push_back_tuple_t<std::tuple<>, std::tuple<char>>, std::tuple<char>>);
     static_assert(std::is_same_v<tuple_unique_push_back_tuple_t<std::tuple<char>, std::tuple<>>, std::tuple<char>>);
@@ -163,6 +186,12 @@ void test_tuple_algorithm() noexcept
         static_assert(std::is_same_v<unique_tuple_t<test_tuple<0, 1, 0, 2, 1, 2>>, test_unique_t>);
         static_assert(std::is_same_v<unique_tuple_t<test_tuple<0, 0, 1, 2>>, test_unique_t>);
     }
+
+    static_assert(std::is_same_v<tuple_unique_insert_back_tuple_t<std::tuple<>>, std::tuple<>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_tuple_t<std::tuple<>, std::tuple<>>, std::tuple<>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_tuple_t<std::tuple<>, std::tuple<>, std::tuple<>>, std::tuple<>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_tuple_t<std::tuple<>, test_tuple<1, 2, 5>, test_tuple<1, 2, 3, 5, 6>>, test_tuple<1, 2, 5, 3, 6>>);
+    static_assert(std::is_same_v<tuple_unique_insert_back_tuple_t<test_tuple<0, 1>, test_tuple<0, 2, 3>, test_tuple<1, 4, 5>, test_tuple<6, 2, 7>>, test_tuple_0_8>);
 
     D_ASSERT(!errno);
 }

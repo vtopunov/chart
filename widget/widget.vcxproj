@@ -14,6 +14,7 @@
     <ClInclude Include="button.h" />
     <ClInclude Include="context.h" />
     <ClInclude Include="event_matching.h" />
+    <ClInclude Include="ex_context.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="label.h" />
     <ClInclude Include="event.h" />
@@ -22,7 +23,7 @@
     <ClInclude Include="stretchable.h" />
     <ClInclude Include="temp_buffer.h" />
     <ClInclude Include="text.h" />
-    <ClInclude Include="user_gesture.h" />
+    <ClInclude Include="gesture.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>

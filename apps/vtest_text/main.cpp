@@ -131,7 +131,7 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shader_library<vert::positioned_texture, frag::gray_texture_mix_color> shaders{};
+    shader_library<vert::positioned_texture, frag::luminance8_texture_mix_color> shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");
@@ -146,7 +146,7 @@ int app_main(os::module_handle_t app) noexcept
     {
         const egl_painting_owner painting_owner{ egl };
         gl::viewport(egl.viewport);
-        gl::clear(gl::colors::white_f);
+        gl::clear(colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();
 
@@ -162,7 +162,7 @@ int app_main(os::module_handle_t app) noexcept
 
             for (pxsize_t x = 0; x < w; x += dx)
             {
-                shaders.frag.u_color.store(gl::to_colorf(yx_color_lerp(x)));
+                shaders.frag.u_color.store(to_colorf(yx_color_lerp(x)));
                 shaders.vert.u_position.store(x, y);
 
                 vb.draw();

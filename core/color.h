@@ -26,6 +26,29 @@ template<class T>
     }
 }
 
+template<class T = void>
+struct tint_max_t
+{
+    constexpr operator T () const noexcept
+    {
+        return tint_max<T>();
+    }
+};
+
+template<>
+struct tint_max_t<void>
+{
+    template<class T>
+    constexpr operator T () const noexcept
+    {
+        return tint_max<T>();
+    }
+};
+
+template<class T = void>
+constexpr tint_max_t<T> tint_max_v{};
+
+
 template<class Target, class Source>
 [[nodiscard]] constexpr Target color_cast(const Source& src) noexcept;
 
@@ -68,21 +91,27 @@ struct rgba_color
     }
 
     [[nodiscard]]
-    static constexpr rgba_color instance(tint_type a, tint_type r, tint_type g, tint_type b) noexcept
+    constexpr rgba_color with_red(tint_type value) const noexcept
     {
-        return { r, g, b, a };
+        return { value, g, b, a };
     }
 
     [[nodiscard]]
-    static constexpr rgba_color instance(view_type view) noexcept
+    constexpr rgba_color with_green(tint_type value) const noexcept
     {
-        return instance(view[0], view[1], view[2], view[3]);
+        return { r, value, b, a };
     }
 
     [[nodiscard]]
-    static constexpr rgba_color instance(tint_type r, tint_type g, tint_type b) noexcept
+    constexpr rgba_color with_blue(tint_type value) const noexcept
     {
-        return instance(tint_max<tint_type>(), r, g, b);
+        return { r, g, value, a };
+    }
+
+    [[nodiscard]]
+    constexpr rgba_color with_alpha(tint_type value) const noexcept
+    {
+        return { r, g, b, value };
     }
 };
 
@@ -124,35 +153,37 @@ D_WARNING_POP
 [[nodiscard]]
 constexpr rgba_color32_t u32argb_to_color(u32argb_t argb) noexcept
 {
-    return rgba_color32_t::instance
-    (
-        a_argb32(argb),
-        r_argb32(argb),
-        g_argb32(argb),
-        b_argb32(argb)
-    );
+    return
+    {
+        .r{ r_argb32(argb) },
+        .g{ g_argb32(argb) },
+        .b{ b_argb32(argb) },
+        .a{ a_argb32(argb) }
+    };
 }
 
 [[nodiscard]]
 constexpr rgba_color32_t u32rgb_to_color(u32argb_t rgb) noexcept
 {
     D_ASSERT(!a_argb32(rgb));
-    return rgba_color32_t::instance
-    (
-        r_argb32(rgb),
-        g_argb32(rgb),
-        b_argb32(rgb)
-    );
+    return
+    {
+        .r{ r_argb32(rgb) },
+        .g{ g_argb32(rgb) },
+        .b{ b_argb32(rgb) },
+        .a{ tint_max_v<> }
+    };
 }
 
 [[nodiscard]]
-constexpr u32argb_t color32_to_uint(rgba_color32_t color) noexcept
+constexpr u32argb_t color_to_u32argb(rgba_color32_t color) noexcept
 {
     return static_cast<u32argb_t>(color.a) << 24
         | static_cast<u32argb_t>(color.r) << 16
         | static_cast<u32argb_t>(color.g) << 8
         | static_cast<u32argb_t>(color.b);
 }
+
 
 template <class T>
 struct is_rgba_color : std::false_type
@@ -231,13 +262,13 @@ template<class Target, class Source>
                 return color_tint_cast<target_tint_t>(tint);
             };
 
-            return Target::instance
-            (
-                tint_cast(src.a),
-                tint_cast(src.r),
-                tint_cast(src.g),
-                tint_cast(src.b)
-            );
+            return
+            {
+                .r{ tint_cast(src.r) },
+                .g{ tint_cast(src.g) },
+                .b{ tint_cast(src.b) },
+                .a{ tint_cast(src.a) }
+            };
         }
         else
         {
@@ -251,23 +282,30 @@ template<class Target, class Source>
     {
         static_assert(std::is_integral_v<Target> && is_rgba_color_v<Source>);
         const auto rgba_color32 = color_cast<rgba_color32_t>(src);
-        const auto argb_uint32 = color32_to_uint(rgba_color32);
+        const auto argb_uint32 = color_to_u32argb(rgba_color32);
         return narrow<Target>(argb_uint32);
     }
+}
+
+template<class T>
+[[nodiscard]] constexpr rgba_colorf_t to_colorf(const rgba_color<T>& source) noexcept
+{
+    return color_cast<rgba_colorf_t>(source);
 }
 
 template<class T>
 [[nodiscard]] constexpr rgba_color<T> inverse(const rgba_color<T>& c) noexcept
 {
     constexpr auto tint_max_c = tint_max<T>();
+    D_ASSERT(tint_max_c == c.a);
 
-    return rgba_color<T>::instance
-    (
-        tint_max_c,
-        tint_max_c - c.r,
-        tint_max_c - c.g,
-        tint_max_c - c.b
-    );
+    return
+    {
+        .r{ tint_max_c - c.r },
+        .g{ tint_max_c - c.g },
+        .b{ tint_max_c - c.b },
+        .a{ tint_max_c }
+    };
 }
 
 namespace private_detail_argb_color
@@ -279,10 +317,10 @@ namespace private_detail_argb_color
     >;
 
     template<class T>
-    using signed_int_t = conditional_op_t<std::is_integral_v<T>, signed_int0_t, T>;
+    using signed_t = conditional_op_t<std::is_integral_v<T>, signed_int0_t, T>;
 
     template<class L, class R>
-    using common_signed_int_t = std::common_type_t<signed_int_t<L>, signed_int_t<R>>;
+    using common_signed_t = std::common_type_t<signed_t<L>, signed_t<R>>;
 
     template<class L, class R>
     struct common_rational_deductor
@@ -291,15 +329,21 @@ namespace private_detail_argb_color
         using RDR = rational_detector<R>;
         using removed_rational_L = typename RDL::removed_rational_type;
         using removed_rational_R = typename RDR::removed_rational_type;
-        using common_type = common_signed_int_t<removed_rational_L, removed_rational_R>;
+        using common_type = common_signed_t<removed_rational_L, removed_rational_R>;
         using L_type = conditional_op_t<RDL::value, rational, common_type>;
         using R_type = conditional_op_t<RDR::value, rational, common_type>;
     };
 
     template<class T, class A>
-    [[nodiscard]] constexpr rgba_color<T> make_argb_color(A a, T r, T g, T b) noexcept
+    [[nodiscard]] constexpr rgba_color<T> make_rgba_color(T r, T g, T b, A a) noexcept
     {
-        return rgba_color<T>::instance(color_tint_cast<T>(a), r, g, b);
+        return
+        {
+            .r{ r },
+            .g{ g },
+            .b{ b },
+            .a{ color_tint_cast<T>(a) }
+        };
     }
 
     template<class L, class R, class Op2>
@@ -327,22 +371,22 @@ namespace private_detail_argb_color
         {
             D_ASSERT(left.a == right.a);
 
-            return make_argb_color
+            return make_rgba_color
             (
-                left.a,
                 upgrade_op2(left.r, right.r, op2),
                 upgrade_op2(left.g, right.g, op2),
-                upgrade_op2(left.b, right.b, op2)
+                upgrade_op2(left.b, right.b, op2),
+                left.a
             );
         }
         else
         {
-            return make_argb_color
+            return make_rgba_color
             (
-                left.a,
                 upgrade_op2(left.r, right, op2),
                 upgrade_op2(left.g, right, op2),
-                upgrade_op2(left.b, right, op2)
+                upgrade_op2(left.b, right, op2),
+                left.a
             );
         }
     }
@@ -381,7 +425,7 @@ namespace private_detail_argb_color
         {
             if constexpr (std::is_integral_v<L> && std::is_integral_v<R>)
             {
-                using common_t = common_signed_int_t<L, R>;
+                using common_t = common_signed_t<L, R>;
 
                 return simplify
                 (
@@ -397,7 +441,6 @@ namespace private_detail_argb_color
     };
 }
 
-
 template<class L, class R>
 [[nodiscard]] constexpr decltype(auto) operator + (const rgba_color<L>& left, const rgba_color<R>& right) noexcept
 {
@@ -412,25 +455,26 @@ template<class L, class R>
     return universal_op2(left, right, minus{});
 }
 
-template<class L, class R, class = std::enable_if_t<std::disjunction_v<std::is_integral<R>, is_rational<R>> > >
+template<class L, class R, std::enable_if_t<std::disjunction_v<std::is_arithmetic<R>, is_rational<R>>, int> = 0>
 [[nodiscard]] constexpr decltype(auto) operator * (const rgba_color<L>& left, const R& right) noexcept
 {
     using namespace private_detail_argb_color;
     return universal_op2(left, right, multiplies{});
 }
 
-template<class L, class R, class = std::enable_if_t<std::disjunction_v<std::is_integral<R>, is_rational<R>> > >
+template<class L, class R, std::enable_if_t<std::disjunction_v<std::is_arithmetic<L>, is_rational<L>>, int> = 0>
 [[nodiscard]] constexpr decltype(auto) operator * (const L& left, const rgba_color<R>& right) noexcept
 {
     return right * left;
 }
 
-template<class L, class R, class = std::enable_if_t<std::disjunction_v<std::is_integral<R>, is_rational<R>> > >
+template<class L, class R, std::enable_if_t<std::disjunction_v<std::is_arithmetic<R>, is_rational<R>>, int> = 0>
 [[nodiscard]] constexpr decltype(auto) operator / (const rgba_color<L>& left, const R& right) noexcept
 {
     using namespace private_detail_argb_color;
     return universal_op2(left, right, divides{});
 }
+
 
 namespace color_literals
 {
@@ -444,6 +488,18 @@ namespace color_literals
     constexpr rgba_color32_t operator "" _argb(unsigned long long argb) noexcept
     {
         return u32argb_to_color(narrow<u32argb_t>(argb));
+    }
+
+    [[nodiscard]]
+    constexpr rgba_colorf_t operator "" _rgbf(unsigned long long rgb) noexcept
+    {
+        return to_colorf(u32rgb_to_color(narrow<u32argb_t>(rgb)));
+    }
+
+    [[nodiscard]]
+    constexpr rgba_colorf_t operator "" _argbf(unsigned long long argb) noexcept
+    {
+        return to_colorf(u32argb_to_color(narrow<u32argb_t>(argb)));
     }
 }
 
@@ -462,4 +518,16 @@ namespace colors
     constexpr auto cyan = 0x00ffff_rgb;
     constexpr auto magenta = 0xff00ff_rgb;
     constexpr auto yellow = 0xffff00_rgb;
+
+    constexpr auto black_f = to_colorf(black);
+    constexpr auto gray_f = to_colorf(gray);
+    constexpr auto white_f = to_colorf(white);
+
+    constexpr auto red_f = to_colorf(red);
+    constexpr auto green_f = to_colorf(green);
+    constexpr auto blue_f = to_colorf(blue);
+
+    constexpr auto cyan_f = to_colorf(cyan);
+    constexpr auto magenta_f = to_colorf(magenta);
+    constexpr auto yellow_f = to_colorf(yellow);
 }

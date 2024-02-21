@@ -2,7 +2,8 @@
 
 #include <string>
 
-#include <widget/context.h>
+#include <widget/ex_context.h>
+#include <widget/event.h>
 #include <widget/shader.h>
 #include <widget/text.h>
 
@@ -26,16 +27,16 @@ namespace widget
         }
 
         using redraw_event_type = redraw_event<
-            shader::gray_texture_mix_color,
+            shader::luminance8_texture_mix_color,
             buffer_view
         >;
 
         void operator () (redraw_event_type e) noexcept;
 
         template<class Fn>
-        decltype(auto) apply(Fn fn) noexcept
+        constexpr decltype(auto) apply(Fn&& fn) const noexcept
         {
-            return fn(ex_context_v<redraw_event_type>);
+            return ex_context_v<redraw_event_type>(std::forward<Fn>(fn));
         }
     };
 }

@@ -13,10 +13,9 @@ namespace
             ++n_calls;
         }
 
-        template<class Fn>
-        decltype(auto) apply(Fn fn) noexcept
+        constexpr widget::noapply_t apply(no_overload) const noexcept
         {
-            return fn();
+            return widget::noapply;
         }
     };
 
@@ -29,10 +28,9 @@ namespace
             ++n_calls;
         }
 
-        template<class Fn>
-        decltype(auto) apply(Fn fn) noexcept
+        constexpr widget::noapply_t apply(no_overload) const noexcept
         {
-            return fn();
+            return widget::noapply;
         }
     };
 

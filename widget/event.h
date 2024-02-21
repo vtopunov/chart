@@ -1,6 +1,6 @@
 #pragma once
 
-#include <functional>
+#include <core/tuple_algorithm.h>
 
 #include <ui/event.h>
 
@@ -28,9 +28,6 @@ namespace widget
             is_nothrow_copiable_v<T>, std::add_const_t<T>,
             std::add_lvalue_reference_t<std::add_const_t<T>>
         >;
-
-        template<class Tuple>
-        using cref_if_need_first_tuple_element_t = cref_if_need_t<std::tuple_element_t<0u, Tuple>>;
     }
 
     template<class EventBase, class... Args>
@@ -39,17 +36,8 @@ namespace widget
     private:
         using cref_wrap_tuple_type = std::tuple<helpers::cref_wrap_if_need_t<Args>...>;
 
-        static constexpr auto has_only_first_element = (1u == sizeof...(Args));
-
     public:
         using context_tuple_type = std::tuple<Args...>;
-
-        using first_element_type = conditional_op_or_t<
-            has_only_first_element,
-            const widget_event&,
-            helpers::cref_if_need_first_tuple_element_t,
-            context_tuple_type
-        >;
 
         constexpr explicit widget_event(const EventBase& e, const Args&... args) noexcept
             : EventBase{ e }
@@ -62,19 +50,9 @@ namespace widget
             return std::get<helpers::cref_wrap_if_need_t<T>>(tuple_);
         }
 
-        constexpr first_element_type as_first() const noexcept
-        {
-            if constexpr (has_only_first_element)
-            {
-                return std::get<0u>(tuple_);
-            }
-            else
-            {
-                return *this;
-            }
-        }
-
     private:
         cref_wrap_tuple_type tuple_{};
     };
+
+    static_assert(std::is_same_v<widget_event<ui::event, nonesuch>::context_tuple_type, decl_context_tuple_t<widget_event<ui::event, nonesuch>>>);
 }

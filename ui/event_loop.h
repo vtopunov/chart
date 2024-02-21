@@ -37,7 +37,7 @@ namespace ui
     }
 
     [[nodiscard]]
-    constexpr milliseconds do_idle(no_overloaded) noexcept
+    constexpr milliseconds do_idle(no_overload) noexcept
     {
         return infinite;
     }

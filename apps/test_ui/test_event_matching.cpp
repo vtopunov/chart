@@ -107,7 +107,7 @@ namespace
     }
 
     template<class T>
-    constexpr std::nullopt_t call_c_event(T&, no_overloaded) noexcept
+    constexpr std::nullopt_t call_c_event(T&, no_overload) noexcept
     {
         return std::nullopt;
     }

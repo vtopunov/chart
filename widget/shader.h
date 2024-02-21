@@ -65,40 +65,16 @@ namespace widget
             }
 
             template<class VS, class FS>
-            struct widget_shader_user
+            struct widget_shader_user_base
             {
-                const widget_shader_user& store(pxpoint2d position) const noexcept
-                {
-                    library.vert.u_position.store(position);
-                    return *this;
-                }
+                using shader_library_type = shader_library<VS, FS>;
+                using vertex_shader_type = typename shader_library_type::vertex_shader_type;
+                using fragment_shader_type = typename shader_library_type::fragment_shader_type;
 
-                const widget_shader_user& store(pxsize2d sizes) const noexcept
+                template<class Derived>
+                constexpr const Derived& as() const noexcept
                 {
-                    library.vert.u_size.store(sizes);
-                    return *this;
-                }
-
-                const widget_shader_user& store(pxrectangle rc) const noexcept
-                {
-                    return store(rc.position).store(rc.sizes);
-                }
-
-                const widget_shader_user& store(gl::rgba_colorf_t colorf) const noexcept
-                {
-                    library.frag.u_color.store(colorf);
-                    return *this;
-                }
-
-                const widget_shader_user& store(gl::texture2d_resource texture) const noexcept
-                {
-                    library.frag.s_texture.store(texture);
-                    return *this;
-                }
-
-                const widget_shader_user& store(gl::texture2d_resources texture) const noexcept
-                {
-                    return store(sizes(texture)).store(static_cast<gl::texture2d_resource>(texture));
+                    return identical_derived_cast<const Derived&>(*this);
                 }
 
                 void draw() const noexcept
@@ -111,10 +87,70 @@ namespace widget
             };
 
             template<class VS, class FS>
+            struct default_widget_shader_user;
+
+            template<class Derived, class VS, class FS>
+            struct widget_shader_user : widget_shader_user_base<VS, FS>
+            {
+                using widget_shader_user_base<VS, FS>::library;
+
+                const Derived& store(pxpoint2d position) const noexcept
+                {
+                    library.vert.u_position.store(position);
+                    return self();
+                }
+
+                const Derived& store(pxsize2d sizes) const noexcept
+                {
+                    library.vert.u_size.store(sizes);
+                    return self();
+                }
+
+                const Derived& store(pxrectangle rc) const noexcept
+                {
+                    return store(rc.position).store(rc.sizes);
+                }
+
+                const Derived& store(rgba_colorf_t colorf) const noexcept
+                {
+                    library.frag.u_color.store(colorf);
+                    return self();
+                }
+
+                const Derived& store(gl::texture2d_resource texture) const noexcept
+                {
+                    library.frag.s_texture.store(texture);
+                    return self();
+                }
+
+                const Derived& store(gl::texture2d_resources texture) const noexcept
+                {
+                    return store(sizes(texture)).store(static_cast<gl::texture2d_resource>(texture));
+                }
+
+                constexpr const Derived& self() const noexcept
+                {
+                    return identical_derived_cast<const Derived&>(*this);
+                }
+
+                void draw() const noexcept
+                {
+                    D_ASSERT(all_is_initialized(library));
+                    attribute_frame::vertex_buffer_user::draw();
+                }
+            };
+
+            template<class VS, class FS>
+            struct default_widget_shader_user : widget_shader_user<default_widget_shader_user<VS, FS>, VS, FS>
+            {};
+
+            template<class VS, class FS>
             class widget_shader_library
             {
             public:
-                using shader_user_type = widget_shader_user<VS, FS>;
+                using shader_user_type = default_widget_shader_user<VS, FS>;
+                using vertex_shader_type = typename shader_user_type::vertex_shader_type;
+                using fragment_shader_type = typename shader_user_type::fragment_shader_type;
 
                 bool operator()(viewport_size2d viewport) noexcept
                 {
@@ -128,27 +164,35 @@ namespace widget
                     return u_;
                 }
 
-                template<class Fn>
-                decltype(auto) apply(Fn fn) noexcept
+                constexpr noapply_t apply(no_overload) const noexcept
                 {
-                    return fn();
+                    return noapply;
                 }
 
             private:
                 shader_user_type u_{};
             };
+
+            template<class Derived, class Lib>
+            using widget_shader_user_for_t = widget_shader_user<Derived, typename Lib::vertex_shader_type, typename Lib::fragment_shader_type>;
         }
 
         using private_detail_shader::widget_shader_library;
         using private_detail_shader::widget_shader_user;
+        using private_detail_shader::default_widget_shader_user;
+        using private_detail_shader::widget_shader_user_for_t;
 
-        using gray_texture_mix_color = widget_shader_library<vert::positioned_texture, frag::gray_texture_mix_color>;
+        using luminance8_texture_mix_color = widget_shader_library<vert::positioned_texture, frag::luminance8_texture_mix_color>;
         using colored_rectangle = widget_shader_library<vert::positioned_rectangle, frag::default_color>;
     }
 
     using shader::widget_shader_library;
     using shader::widget_shader_user;
+    using shader::default_widget_shader_user;
+    using shader::widget_shader_user_for_t;
 }
 
 using widget::widget_shader_library;
 using widget::widget_shader_user;
+using widget::default_widget_shader_user;
+using widget::widget_shader_user_for_t;

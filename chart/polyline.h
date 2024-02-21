@@ -4,16 +4,14 @@
 
 #include <px/algorithm.h>
 
-#include <gl/color.h>
 #include <gl/texture.h>
 
-#include <widget/shader.h>
-
 #include <chart/fwd.h>
+#include <chart/shader.h>
 
 
 namespace chart
-{
+{    
     [[nodiscard]]
     constexpr space_diagonal_t space_diagonal_with(const space_diagonal_t& dia, const real_point2d& pt) noexcept
     {
@@ -24,7 +22,7 @@ namespace chart
         };
     }
 
-    constexpr void update_line_space_diagonal(space_diagonal_t& diagonal, real_point2d_cspan line) noexcept
+    constexpr void update_polyline_space_diagonal(space_diagonal_t& diagonal, real_point2d_cspan line) noexcept
     {
         for (const auto& pt : line) [[likely]]
         {
@@ -35,41 +33,42 @@ namespace chart
         }
     }
 
-    template<class Points>
-    struct basic_chart_line
+    template<class Model>
+    struct basic_polyline
     {
-        using points_type = Points;
+        using model_type = Model;
 
-        points_type points{};
-        gl::rgba_colorf_t pen_color{ gl::colors::red_f };
+        model_type model{};
+        rgba_colorf_t pen_color{ colors::red_f };
         gl::unique_texture2d_resource texture_cache{};
 
-        void set_points(points_type new_points) noexcept
+
+        template<class M, std::enable_if_t<has_assignment_op_v<model_type, M>, int> = 0>
+        void set_model(M&& new_model) noexcept
         {
-            points = std::move(new_points);
+            model = std::forward<M>(new_model);
             texture_cache.reset();
         }
 
         void clear() noexcept
         {
-            points = null_v<points_type>;
+            model = null_v<model_type>;
             texture_cache.reset();
         }
 
         void operator () (space_diagonal_t& diagonal) const noexcept
         {
-            update_line_space_diagonal(diagonal, points);
+            update_polyline_space_diagonal(diagonal, model);
         }
 
         void operator()(pix8span pixs, transformation_t value2px) noexcept
         {
             zero_memory(pixs);
-            px::draw_polyline(pixs, points, value2px);
+            px::draw_polyline(pixs, model, value2px);
             D_ASSERT_OR_UNUSED(gl::update(texture_cache, pixs));
         }
 
-        template<class VS, class FS>
-        void operator()(const widget_shader_user<VS, FS>& shdr) const noexcept
+        void operator()(const shader::pix8_figure_shader_user& shdr) const noexcept
         {
             shdr.store(pen_color)
                 .store(texture_cache)
@@ -77,12 +76,6 @@ namespace chart
         }
     };
 
-    using chart_line_vpoint_t = small_vector<real_point2d>;
-    using chart_line = basic_chart_line<chart_line_vpoint_t>;
-    using chart_spanline = basic_chart_line<real_point2d_cspan>;
+    using polyline = basic_polyline<real_vpoint2d>;
+    using polyspanline = basic_polyline<real_point2d_cspan>;
 }
-
-using chart::basic_chart_line;
-using chart::chart_line_vpoint_t;
-using chart::chart_line;
-using chart::chart_spanline;

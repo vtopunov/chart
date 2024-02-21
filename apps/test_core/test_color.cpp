@@ -38,17 +38,21 @@ void test_color() noexcept
     static_assert(sizeof(rgba_color32_t) == 4);
 
     {
-        constexpr auto c = rgba_color32_t::instance(0x04, 0x01, 0x02, 0x03);
+        constexpr rgba_color32_t c{ 0x01, 0x02, 0x03, 0x04 };
         test_argb(c, 0x04, 0x01, 0x02, 0x03);
         static_assert(color_cast<u32argb_t>(c) == 0x04010203ul);
         static_assert(color_cast<rgba_color32_t>(0x04010203ul) == c);
     }
 
     {
-        constexpr auto c = rgba_color32_t::instance(0x01, 0x02, 0x03);
-        test_argb(c, 0xff, 0x01, 0x02, 0x03);
-        static_assert(color_cast<u32argb_t>(c) == 0xff010203ul);
-        static_assert(color_cast<rgba_color32_t>(0xff010203ul) == c);
+        constexpr rgba_color32_t c{ 0x01, 0x02, 0x03 };
+        test_argb(c, 0x00, 0x01, 0x02, 0x03);
+        static_assert(color_cast<u32argb_t>(c) == 0x00010203ul);
+        static_assert(color_cast<rgba_color32_t>(0x00010203ul) == c);
+        constexpr auto c2 = c.with_alpha(0xff);
+        test_argb(c2, 0xff, 0x01, 0x02, 0x03);
+        static_assert(color_cast<u32argb_t>(c2) == 0xff010203ul);
+        static_assert(color_cast<rgba_color32_t>(0xff010203ul) == c2);
     }
 
     test_argb(colors::red, 0xff, 0xff, 0, 0);

@@ -1,7 +1,9 @@
 #include <widget/context.h>
+#include <widget/ex_context.h>
 
 using widget::redraw_event;
 using widget::ex_context_v;
+
 
 namespace
 {
@@ -21,9 +23,9 @@ namespace
         >;
 
         template<class Fn>
-        decltype(auto) apply(Fn fn) noexcept
+        constexpr decltype(auto) apply(Fn fn) const noexcept
         {
-            return fn(ex_context_v<ex_type>);
+            return ex_context_v<ex_type>(fn);
         }
     };
 
@@ -36,9 +38,9 @@ namespace
         >;
 
         template<class Fn>
-        decltype(auto) apply(Fn fn) noexcept
+        constexpr decltype(auto) apply(Fn fn) const noexcept
         {
-            return fn(ex_context_v<ex_type>);
+            return ex_context_v<ex_type>(fn);
         }
     };
 

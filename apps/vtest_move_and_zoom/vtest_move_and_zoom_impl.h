@@ -74,7 +74,7 @@ namespace vtest_move_and_zoom
         }
 
     private:
-        shader_library<vert::positioned_texture, frag::gray_texture_mix_color> lib{};
+        shader_library<vert::positioned_texture, frag::luminance8_texture_mix_color> lib{};
     };
 
     [[nodiscard]]

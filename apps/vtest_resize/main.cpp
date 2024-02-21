@@ -31,7 +31,7 @@ namespace
             }
 
             lib_.use();
-            lib_.frag.u_color.store(gl::colors::blue_f);
+            lib_.frag.u_color.store(colors::blue_f);
             lib_.vert.u_viewport.store(viewport);
             return true;
         }
@@ -74,10 +74,9 @@ namespace
             draw();
         }
 
-        template<class Fn>
-        decltype(auto) apply(Fn fn) noexcept
+        constexpr widget::noapply_t apply(no_overload) const noexcept
         {
-            return fn();
+            return widget::noapply;
         }
 
 #endif
@@ -115,7 +114,7 @@ namespace
         {
             const egl_painting_owner painting_owner{ egl };
             gl::viewport(egl.viewport);
-            gl::clear(gl::colors::white_f);
+            gl::clear(colors::white_f);
             widget.draw();
             return ui::infinite;
         }

@@ -5,7 +5,7 @@
 
 namespace widget
 {
-    template<class ER = void>
+    template<class ER>
     struct event_result_processor
     {
         static_assert(!std::is_const_v<ER>);
@@ -31,54 +31,90 @@ namespace widget
         {
             std::forward<T>(function)(e);
         }
-
-        constexpr event_result_processor() noexcept = default;
     };
 
-    template<class T>
-    event_result_processor(T) -> event_result_processor<std::remove_const_t<T>>;
-
-    constexpr event_result_processor<> no_event_result_processor{};
-
-    [[nodiscard]]
-    constexpr event_result_processor<> operator | (event_result_processor<>, event_result_processor<>) noexcept
+    template<>
+    struct event_result_processor<noapply_t>
     {
-        return no_event_result_processor;
+        constexpr event_result_processor(no_overload, no_overload) noexcept
+        {}
+    };
+
+    using no_event_result_processor_t = event_result_processor<noapply_t>;
+
+    constexpr no_event_result_processor_t no_event_result_processor{ nullptr, nullptr };
+
+    namespace private_detail_has_event_result
+    {
+        template<class ERP>
+        using decl_result_member_t = decltype(std::declval<const ERP&>().result);
     }
 
-    template<class ERR>
-    [[nodiscard]] constexpr event_result_processor<ERR> operator | (event_result_processor<ERR> left, event_result_processor<>) noexcept
+    template<class ER>
+    using has_event_result = is_detected<private_detail_has_event_result::decl_result_member_t, event_result_processor<ER>>;
+
+    template<class ER>
+    constexpr auto has_event_result_v = has_event_result<ER>::value;
+
+    template<class ERL, class ERR>
+    [[nodiscard]] constexpr decltype(auto) operator | (event_result_processor<ERL> left, event_result_processor<ERR> right) noexcept
+    {
+        constexpr auto left_has_result = has_event_result_v<ERL>;
+        constexpr auto right_has_result = has_event_result_v<ERR>;
+
+        if constexpr (left_has_result)
+        {
+            if constexpr (right_has_result)
+            {
+                if constexpr (std::conjunction_v<is_same_uncvref<bool, ERR>, is_same_uncvref<bool, ERL>>)
+                {
+                    const bool result{ left.result && right.result };
+                    return event_result_processor<bool>{ result };
+                }
+                else
+                {
+                    using common_t = std::remove_cvref_t<decltype(left.result | right.result)>;
+                    return event_result_processor<common_t>{ left.result | right.result };
+                }
+            }
+            else
+            {
+                return left;
+            }
+        }
+        else
+        {
+            if constexpr (right_has_result)
+            {
+                return right;
+            }
+            else
+            {
+                return no_event_result_processor;
+            }
+        }
+    }
+
+    template<class ER>
+    [[nodiscard]] constexpr decltype(auto) operator | (event_result_processor<ER> left, noapply_t) noexcept
     {
         return left;
     }
 
-    template<class ERL>
-    [[nodiscard]] constexpr event_result_processor<ERL> operator | (event_result_processor<>, event_result_processor<ERL> right) noexcept
+    template<class ER>
+    [[nodiscard]] constexpr decltype(auto) operator | (noapply_t, event_result_processor<ER> right) noexcept
     {
         return right;
-    }
-
-    template<class ERR, class ERL>
-    [[nodiscard]] constexpr decltype(auto) operator | (event_result_processor<ERR> left, event_result_processor<ERL> right) noexcept
-    {
-        return event_result_processor{ left.result | right.result };
-    }
-
-    [[nodiscard]]
-    constexpr event_result_processor<bool> operator | (event_result_processor<bool> left, event_result_processor<bool> right) noexcept
-    {
-        return { left.result && right.result };
     }
 
     template<class Cache, class ER>
     constexpr void write_event_result(Cache& cache, event_result_processor<ER> result) noexcept
     {
-        cache = result.result;
+        if constexpr (has_event_result_v<ER>)
+        {
+            cache = result.result;
+        }
     }
-
-    template<class Cache>
-    constexpr void write_event_result(Cache& cache, event_result_processor<>) noexcept
-    {}
 
     template<class Cache, class ER>
     constexpr void combine_event_result(Cache& cache, event_result_processor<ER> result) noexcept
@@ -93,7 +129,7 @@ namespace widget
         return { std::forward<T>(function), e };
     }
 
-    [[nodiscard]] event_result_processor<> call_widget_event(no_overloaded, no_overloaded)
+    [[nodiscard]] no_event_result_processor_t call_widget_event(no_overload, no_overload)
     {
         return no_event_result_processor;
     }
@@ -101,11 +137,9 @@ namespace widget
     template<class Widget, class Event>
     [[nodiscard]] decltype(auto) apply_event(Widget&& wgt, const Event& e) noexcept
     {
-        return call_widget_event(std::forward<Widget>(wgt), e) 
-            | std::forward<Widget>(wgt)
-            .apply([&e] <class... W> (W&&... wgts) noexcept 
-        { 
-            return (no_event_result_processor | ... | apply_event(std::forward<W>(wgts), e)); 
+        return call_widget_event(std::forward<Widget>(wgt), e) | std::forward<Widget>(wgt).apply([&e] <class... W> (W&&... wgts) noexcept
+        {
+            return (no_event_result_processor | ... | apply_event(std::forward<W>(wgts), e));
         });
     }
 }

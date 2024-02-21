@@ -418,12 +418,11 @@ namespace ui
         }
     };
 
-
     template<event_style style>
     [[nodiscard]] constexpr const specialized_event<style>& event_for(const event& e) noexcept
     {
         D_ASSERT(style == e.style());
-        return static_cast<const specialized_event<style>&>(e);
+        return identical_derived_cast<const specialized_event<style>&>(e);
     }
 
 

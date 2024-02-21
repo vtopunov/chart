@@ -10,22 +10,19 @@ namespace widget
 
     using stretchable_pxrectangle = ::rectangle<pxsize_t, pxoff_t>;
 
-    
     class window;
 
+    struct ex_context_type_enumerator {};
 
-    template<class Ex>
-    struct ex_context
-    {
-        template<class Fn>
-        decltype(auto) apply(Fn fn) const noexcept
-        {
-            return fn();
-        }
-    };
+    using noapply_t = std::tuple<>;
 
-    template<class Ex>
-    constexpr ex_context<Ex> ex_context_v{};
+    constexpr noapply_t noapply{};
+
+    template<class... Types>
+    struct ex_context;
+
+    template<class T>
+    using decl_context_tuple_t = typename T::context_tuple_type;
 
     template<class... Types>
     class common_context;
@@ -53,6 +50,8 @@ namespace widget
     template<class... Args>
     using mouse_double_click_event = widget_event<ui::mouse_double_click_event, Args...>;
 
+    template<class... Args>
+    using gesture_event = mouse_move_event<ui::gesture, Args...>;
 
     enum class event_result : size_t
     {

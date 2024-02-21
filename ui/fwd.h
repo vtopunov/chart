@@ -44,20 +44,22 @@ namespace ui
 
     static_assert(std::is_same_v<event_result_t, os::long_result_t>);
 
-    enum class event_style : D_CONDITIONAL_OS_WINDOWS(uint_t, int32_t)
+    using event_style_underlying_t = D_CONDITIONAL_OS_WINDOWS(uint_t, int32_t);
+
+    enum class event_style : event_style_underlying_t
     {
-            null = D_CONDITIONAL_OS_WINDOWS(0x0000, -1),
+        null = D_CONDITIONAL_OS_WINDOWS(0x0000, -1),
 
 #ifdef D_OS_WINDOWS
-            size = 0x0005,
-            quit = 0x0012,
-            mouse_double_click = 0x0203,
-            mouse_wheel = 0x020A,
+        size = 0x0005,
+        quit = 0x0012,
+        mouse_double_click = 0x0203,
+        mouse_wheel = 0x020A,
 #endif
 
-            mouse_move = D_CONDITIONAL_OS_WINDOWS(0x0200, 0x02),
-            mouse_down = D_CONDITIONAL_OS_WINDOWS(0x0201, 0x00),
-            mouse_up = D_CONDITIONAL_OS_WINDOWS(0x0202, 0x01),
+        mouse_move = D_CONDITIONAL_OS_WINDOWS(0x0200, 0x02),
+        mouse_down = D_CONDITIONAL_OS_WINDOWS(0x0201, 0x00),
+        mouse_up = D_CONDITIONAL_OS_WINDOWS(0x0202, 0x01),
     };
 
     template<event_style>
@@ -128,4 +130,11 @@ namespace ui
     }
 
     static_assert(!window_sizes_is_valid(no_window_sizes));
+
+    namespace manipulator
+    {
+        struct gesture;
+    }
+
+    using manipulator::gesture;
 }

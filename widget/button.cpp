@@ -25,26 +25,28 @@ namespace widget
 
         struct button_colors
         {
-            gl::rgba_colorf_t frame;
-            gl::rgba_colorf_t body;
+            rgba_colorf_t frame;
+            rgba_colorf_t body;
 
             [[nodiscard]]
             static constexpr button_colors instance(button_state state) noexcept
             {
+                using namespace color_literals;
+
                 switch (state)
                 {
                     case button_state::hovered:
                         return
                         {
-                            .frame{0x0078d7_glrgb},
-                            .body{0xe5f1fb_glrgb}
+                            .frame{0x0078d7_rgbf},
+                            .body{0xe5f1fb_rgbf}
                         };
 
                     case button_state::pressed:
                         return
                         {
-                            .frame{0x005499_glrgb},
-                            .body{0xcce4f7_glrgb}
+                            .frame{0x005499_rgbf},
+                            .body{0xcce4f7_rgbf}
                         };
 
                     default:
@@ -53,8 +55,8 @@ namespace widget
 
                 return
                 {
-                    .frame{0xadadad_glrgb},
-                    .body{0xe1e1e1_glrgb}
+                    .frame{0xadadad_rgbf},
+                    .body{0xe1e1e1_rgbf}
                 };
             }
         };
@@ -168,10 +170,10 @@ namespace widget
         {
             const auto ft_position = center(client_rc) - text_cache.center();
 
-            e.get<shader::gray_texture_mix_color>()
+            e.get<shader::luminance8_texture_mix_color>()
                 .use()
                 .store(ft_to_pxpoint2d(ft_position))
-                .store(gl::colors::black_f)
+                .store(colors::black_f)
                 .store(text_cache.texture())
                 .draw();
         }

@@ -11,14 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="chart_line.h" />
-    <ClInclude Include="chart_widget.h" />
+    <ClInclude Include="background.h" />
+    <ClInclude Include="polyline.h" />
+    <ClInclude Include="space.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="fwd.h" />
+    <ClInclude Include="shader.h" />
     <ClInclude Include="space_diagonal.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="chart_widget.cpp" />
+    <ClCompile Include="space.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

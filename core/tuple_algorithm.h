@@ -1,7 +1,8 @@
 #pragma once
 
 #include <tuple>
-#include <utility>
+
+#include <core/type_traits.h>
 
 
 template<template <class> class Fn, class Tuple>
@@ -21,14 +22,24 @@ template<class Tuple>
 using make_tuple_index_sequence = std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<Tuple>>>;
 
 
-template <typename T, typename Tuple>
+template <class T, class Tuple>
 struct tuple_has_type;
 
-template <typename T, typename... Types>
+template <class T, class... Types>
 struct tuple_has_type<T, std::tuple<Types...>> : std::disjunction<std::is_same<T, Types>...> {};
 
-template <typename T, typename Tuple>
+template <class T, class Tuple>
 constexpr auto tuple_has_type_v = tuple_has_type<T, Tuple>::value;
+
+
+template <class Tuple, class... Args>
+struct tuple_has_call;
+
+template <class... Types, class... Args>
+struct tuple_has_call<std::tuple<Types...>, Args...> : std::disjunction<call_is_detected<Types, Args...>...> {};
+
+template <class Tuple, class... Args>
+constexpr auto tuple_has_call_v = tuple_has_call<Tuple, Args...>::value;
 
 
 template <size_t I, size_t J, class IS>
@@ -131,6 +142,8 @@ struct tuple_push_back_type<std::tuple<Types...>, T>
 template <class Tuple, class T>
 using tuple_push_back_t = typename tuple_push_back_type<Tuple, T>::type;
 
+template<class Tuple, bool test, class T>
+using tuple_push_back_if_t = conditional_op_or_t<test, Tuple, tuple_push_back_t, Tuple, T>;
 
 template <class... Tuples>
 struct tuple_cat_type;
@@ -161,8 +174,8 @@ struct min_tuple_index_element_type<Cmp, Tuple, std::index_sequence<I0> > : std:
 template<template <class, class> class Cmp, class Tuple, size_t I0, size_t I1, size_t... Indices>
 struct min_tuple_index_element_type<Cmp, Tuple, std::index_sequence<I0, I1, Indices...> > : std::conditional_t<
     Cmp<
-        std::tuple_element_t<I0, Tuple>,
-        std::tuple_element_t<I1, Tuple>
+    std::tuple_element_t<I0, Tuple>,
+    std::tuple_element_t<I1, Tuple>
     >::value,
     min_tuple_index_element_type<Cmp, Tuple, std::index_sequence<I0, Indices...> >,
     min_tuple_index_element_type<Cmp, Tuple, std::index_sequence<I1, Indices...> >
@@ -192,7 +205,7 @@ struct sort_tuple_indices<Cmp, Tuple, std::index_sequence<I0, Indices...> >
     using sorted_tail = typename sort_tuple_indices<Cmp, Tuple, tail>::type;
 
     using type = index_sequence_push_front_t<
-        min_index_element_value, 
+        min_index_element_value,
         sorted_tail
     >;
 };
@@ -240,33 +253,61 @@ using tuple_sizeof_optimization_t = typename tuple_sizeof_optimization_type<Tupl
 
 
 template<class Tuple, class T>
-using tuple_unique_push_back_t = std::conditional_t<
-    tuple_has_type_v<T, Tuple>,
-    Tuple,
-    tuple_push_back_t<Tuple, T>
->;
+using tuple_unique_push_back_t = tuple_push_back_if_t<Tuple, std::negation_v<tuple_has_type<T, Tuple>>, T>;
 
-template<class Tuple, class TailTuple>
-struct tuple_unique_push_back_tuple_type;
+template<class Tuple, class... Types>
+struct tuple_unique_insert_back_type;
 
 template<class Tuple>
-struct tuple_unique_push_back_tuple_type<Tuple, std::tuple<> >
+struct tuple_unique_insert_back_type<Tuple>
 {
     using type = Tuple;
 };
 
 template<class Tuple, class T0, class... Types>
-struct tuple_unique_push_back_tuple_type<Tuple, std::tuple<T0, Types...> >
+struct tuple_unique_insert_back_type<Tuple, T0, Types...>
 {
-    using type = typename tuple_unique_push_back_tuple_type<
+    using type = typename tuple_unique_insert_back_type<
         tuple_unique_push_back_t<Tuple, T0>,
-        std::tuple<Types...>
+        Types...
     >::type;
+};
+
+template<class Tuple, class... Types>
+using tuple_unique_insert_back_t = typename tuple_unique_insert_back_type<Tuple, Types...>::type;
+
+template<class Tuple, class TailTuple>
+struct tuple_unique_push_back_tuple_type;
+
+template<class Tuple, class... Types>
+struct tuple_unique_push_back_tuple_type<Tuple, std::tuple<Types...> >
+{
+    using type = tuple_unique_insert_back_t<Tuple, Types...>;
 };
 
 template<class Tuple, class TailTuple>
 using tuple_unique_push_back_tuple_t = typename tuple_unique_push_back_tuple_type<Tuple, TailTuple>::type;
 
-
 template<class Tuple>
 using unique_tuple_t = tuple_unique_push_back_tuple_t<std::tuple<>, Tuple>;
+
+template<class Tuple, class... Types>
+struct tuple_unique_insert_back_tuple_type;
+
+template<class Tuple>
+struct tuple_unique_insert_back_tuple_type<Tuple>
+{
+    using type = Tuple;
+};
+
+template<class Tuple, class T0, class... Types>
+struct tuple_unique_insert_back_tuple_type<Tuple, T0, Types...>
+{
+    using type = typename tuple_unique_insert_back_tuple_type<
+        tuple_unique_push_back_tuple_t<Tuple, T0>,
+        Types...
+    >::type;
+};
+
+template<class Tuple, class... Types>
+using tuple_unique_insert_back_tuple_t = typename tuple_unique_insert_back_tuple_type<Tuple, Types...>::type;

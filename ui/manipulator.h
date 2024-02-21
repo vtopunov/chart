@@ -13,7 +13,7 @@ namespace ui
         using px::real_point2d;
         using px::real_size2d;
 
-        struct user_gesture
+        struct gesture
         {
             static constexpr real_t no_transformation_scale{ 1.0 };
             static constexpr real_t no_transformation_shift{ 0.0 };
@@ -53,7 +53,7 @@ namespace ui
             }
         };
 
-        constexpr user_gesture no_gesture{ user_gesture::no_transformation };
+        constexpr gesture no_gesture{ gesture::no_transformation };
 
         using vpoint_cache = vec2<real_point2d>;
 
@@ -62,10 +62,9 @@ namespace ui
         constexpr auto no_cached_vpoint = fill_to<vpoint_cache>(no_cached_point);
 
         [[nodiscard]]
-        user_gesture new_manipulation(vpoint_cache& cached_p, const ui::pointer_event& e) noexcept;
+        gesture new_manipulation(vpoint_cache& cached_p, const ui::pointer_event& e) noexcept;
     }
 
-    using manipulator::user_gesture;
     using manipulator::no_gesture;
 
     using user_vpoint_cache = manipulator::vpoint_cache;

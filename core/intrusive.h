@@ -28,17 +28,6 @@ struct basic_intrusive_node
 struct intrusive_node : basic_intrusive_node<intrusive_node>
 {};
 
-template<class T>
-[[nodiscard]] constexpr basic_intrusive_node<T>* as_basic_intrusive_pnode(basic_intrusive_node<T>* const pnode) noexcept
-{
-    return pnode;
-}
-
-template<class T>
-[[nodiscard]] constexpr const basic_intrusive_node<T>* as_basic_intrusive_pnode(const basic_intrusive_node<T>* const pnode) noexcept
-{
-    return pnode;
-}
 
 template<class T>
 [[nodiscard]] constexpr T* as_intrusive_pnode(basic_intrusive_node<T>* const pnode) noexcept
@@ -67,7 +56,7 @@ template<class T>
 
 
 template<class T>
-[[nodiscard]] constexpr basic_intrusive_node<T> make_intrusive_cyclic_node(T* pnode) noexcept
+[[nodiscard]] constexpr basic_intrusive_node<T> make_intrusive_cyclic_node(T* const pnode) noexcept
 {
     return { pnode, pnode };
 }
@@ -112,19 +101,41 @@ constexpr void intrusive_force_unlink_ref(basic_intrusive_node<T>& node) noexcep
 }
 
 template<class T>
-[[nodiscard]] constexpr const_intrusive_node_for_t<T> make_intrusive_front_node(T* new_dependency, T* linker) noexcept
+[[nodiscard]] constexpr const_intrusive_node_for_t<T> make_intrusive_node(T* const new_dependency, T* const prev_dependency, T* const next_dependency) noexcept
 {
-    const_intrusive_node_for_t<T> linked_dependency{ linker, linker->intrusive_next_pnode };
+    const_intrusive_node_for_t<T> linked_dependency{ prev_dependency, next_dependency };
     intrusive_write_link(linked_dependency, new_dependency);
     return linked_dependency;
 }
 
 template<class T>
-[[nodiscard]] constexpr const_intrusive_node_for_t<T> make_intrusive_back_node(T* new_dependency, T* linker) noexcept
+[[nodiscard]] constexpr const_intrusive_node_for_t<T> make_intrusive_front_node(T* const new_dependency, T* const linker) noexcept
 {
-    const_intrusive_node_for_t<T> linked_dependency{ linker->intrusive_prev_pnode, linker };
-    intrusive_write_link(linked_dependency, new_dependency);
-    return linked_dependency;
+    return make_intrusive_node(new_dependency, linker, linker->intrusive_next_pnode);
+}
+
+template<class T>
+[[nodiscard]] constexpr const_intrusive_node_for_t<T> make_intrusive_back_node(T* const new_dependency, T* const linker) noexcept
+{
+    return make_intrusive_node(new_dependency, linker->intrusive_prev_pnode, linker);
+}
+
+template<class T>
+constexpr void intrusive_write(basic_intrusive_node<T>*const pnode, const basic_intrusive_node<T> item) noexcept
+{
+    *pnode = item;
+}
+
+template<class T>
+[[nodiscard]] constexpr void intrusive_write_front_node(T* const new_dependency, T* const linker) noexcept
+{
+    intrusive_write(new_dependency, make_intrusive_front_node(new_dependency, linker));
+}
+
+template<class T>
+[[nodiscard]] constexpr void intrusive_write_back_node(T* const new_dependency, T* const linker) noexcept
+{
+    intrusive_write(new_dependency, make_intrusive_back_node(new_dependency, linker));
 }
 
 template<class T>
@@ -191,13 +202,13 @@ struct intrusive_node_object : basic_intrusive_node<T>
 namespace private_detail_intrusive_list
 {
     template<class T>
-    [[nodiscard]] constexpr bool is_self_cyclic_node_object_test(const basic_intrusive_node<T>*) noexcept
+    [[nodiscard]] constexpr bool is_self_cyclic_node_object_test(const basic_intrusive_node<T>* const) noexcept
     {
         return true;
     }
 
     template<class T>
-    [[nodiscard]] constexpr bool is_self_cyclic_node_object_test(const intrusive_node_object<T>* obj) noexcept
+    [[nodiscard]] constexpr bool is_self_cyclic_node_object_test(const intrusive_node_object<T>* const obj) noexcept
     {
         return intrusive_prev_pnode_is_this(obj)
             && intrusive_next_pnode_is_this(obj);
@@ -307,7 +318,7 @@ public:
             D_ASSERT(is_self_cyclic_node_object_test(value_ptr));
         }
 
-        *as_basic_intrusive_pnode(value_ptr) = make_intrusive_back_node(value_ptr, _p_root());
+       intrusive_write_back_node(value_ptr, _p_root());
     }
 
     constexpr void attach_to_front(pointer value_ptr) noexcept
@@ -317,7 +328,7 @@ public:
             D_ASSERT(is_self_cyclic_node_object_test(value_ptr));
         }
 
-        *as_basic_intrusive_pnode(value_ptr) = make_intrusive_front_node(value_ptr, _p_root());
+        intrusive_write_front_node(value_ptr, _p_root());
     }
 
     [[nodiscard]]

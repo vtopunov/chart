@@ -41,6 +41,7 @@
   <Import Project="..\build\static_library.props" />
   <ItemGroup>
     <ClInclude Include="..\..\..\ui\app.h" />
+    <ClInclude Include="..\..\..\ui\event.h" />
     <ClInclude Include="..\..\..\ui\event_loop.h" />
     <ClInclude Include="..\..\..\ui\event_matching.h" />
     <ClInclude Include="..\..\..\ui\fwd.h" />

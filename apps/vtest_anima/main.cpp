@@ -34,7 +34,7 @@ namespace
     }
 
     [[nodiscard]]
-    constexpr gl::rgba_colorf_t anima_color(duration_t now) noexcept
+    constexpr rgba_colorf_t anima_color(duration_t now) noexcept
     {
         constexpr auto period = anima_lerp_period.count();
 
@@ -44,10 +44,10 @@ namespace
             anima_start_color, anima_end_color
         );
 
-        return color_cast<gl::rgba_colorf_t>(anima_lerp(oscillating_time(now.count(), period)));
+        return color_cast<rgba_colorf_t>(anima_lerp(oscillating_time(now.count(), period)));
     }
 
-    void draw_figure(pxsize2d viewport, gl::rgba_colorf_t color) noexcept
+    void draw_figure(pxsize2d viewport, rgba_colorf_t color) noexcept
     {
         static const auto shaders = gl::create_shaders_program
         (
@@ -74,7 +74,7 @@ namespace
         static const auto u_color = gl::uniform_vec4f::instance(shaders, "u_color"_zsv);
 
         gl::viewport(viewport);
-        gl::clear(gl::colors::white_f);
+        gl::clear(colors::white_f);
         gl::use(shaders);
 
         u_color.store(color);
@@ -124,7 +124,7 @@ namespace
     {
         egl_ui_owner egl;
         anima_timer timer;
-        gl::rgba_colorf_t color{ gl::to_colorf(anima_start_color) };
+        rgba_colorf_t color{ to_colorf(anima_start_color) };
         bool force_redraw{ true };
 
         void draw() const noexcept

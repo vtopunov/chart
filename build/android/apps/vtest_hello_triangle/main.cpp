@@ -17,7 +17,7 @@ namespace
             return !!egl;
         }
 
-        void draw() const
+        void draw() const noexcept
         {
             static const auto program = gl::create_shaders_program
             (
@@ -41,7 +41,7 @@ namespace
 
             const egl_painting_owner painting_owner{ egl };
             gl::viewport(egl.viewport);
-            gl::clear(gl::colors::white_f);
+            gl::clear(colors::white_f);
             gl::use(program);
 
             constexpr GLfloat radius{ 0.25f };
@@ -62,7 +62,7 @@ namespace
         }
 
 #ifdef D_OS_ANDROID
-        void operator () (ui::content_rect_changed_event)
+        void operator () (ui::content_rect_changed_event) noexcept
         {
             egl.viewport = app_ui_viewport_request(egl);
             if (!egl.viewport)
@@ -82,7 +82,7 @@ namespace
             need_redraw = true;
         }
 
-        ui::milliseconds operator () (ui::idle_event)
+        ui::milliseconds operator () (ui::idle_event) noexcept
         {
             if (need_redraw)
             {

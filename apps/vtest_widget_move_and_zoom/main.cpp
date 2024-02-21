@@ -1,4 +1,5 @@
 ﻿#include <widget/run.h>
+#include <widget/ex_context.h>
 
 
 #include "vtest_move_and_zoom_fwd.h"
@@ -48,15 +49,15 @@ namespace
 
         event_result operator () (widget::mouse_double_click_event<viewport_size2d> e) noexcept
         {
-            area_ = default_area(e.as_first());
+            area_ = default_area(e.get<viewport_size2d>());
             return event_result::redraw;
         }
 
-        using mouse_move_event_type = widget::mouse_move_event<widget::user_gesture>;
+        using gesture_event_type = widget::gesture_event<>;
 
-        event_result operator () (mouse_move_event_type e) noexcept
+        event_result operator () (gesture_event_type e) noexcept
         {
-            if(const auto new_area =  e.as_first().transformation_as(area_); 
+            if(const auto new_area =  e.get<ui::gesture>().transformation_as(area_); 
                 new_area != area_ && is_safe_conversion_glpx(new_area))
             {
                 area_ = new_area;
@@ -72,9 +73,9 @@ namespace
         }
 
         template<class Fn>
-        decltype(auto) apply(Fn fn) const noexcept
+        constexpr decltype(auto) apply(Fn fn) const noexcept
         {
-            return fn(widget::ex_context_v<mouse_move_event_type>);
+            return widget::ex_context_v<gesture_event_type>(fn);
         }
 
     private:

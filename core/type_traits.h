@@ -31,10 +31,10 @@ namespace ordered_overload
     constexpr _order<_0> _start{ nullptr };
 }
 
-struct no_overloaded
+struct no_overload
 {
     template<class T>
-    constexpr no_overloaded(const T&) noexcept
+    constexpr no_overload(const T&) noexcept
     {}
 };
 
@@ -46,13 +46,13 @@ struct no_overload_for
 };
 
 template<class Fn, class... Args>
-constexpr auto call_if_exist(Fn& fn, Args&&... args) noexcept -> decltype(fn(std::forward<Args>(args)...))
+constexpr auto call_if_exist(Fn&& fn, Args&&... args) noexcept -> decltype(std::forward<Fn>(fn)(std::forward<Args>(args)...))
 {
-    return fn(std::forward<Args>(args)...);
+    return std::forward<Fn>(fn)(std::forward<Args>(args)...);
 }
 
-template<class Fn, class... Args>
-constexpr auto call_if_exist(no_overloaded, const Args&... args) noexcept -> std::void_t<decltype(no_overloaded(args))...>
+template <class... Args>
+constexpr auto call_if_exist(no_overload, const Args&... args) noexcept -> std::void_t<decltype(no_overload(args))...>
 {}
 
 
@@ -112,6 +112,16 @@ using is_detected_convertible = std::is_convertible<detected_t<Op, Args...>, To>
 
 template <class To, template<class...> class Op, class... Args>
 constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
+
+
+template<class Fn, class... Args>
+using decl_call_t = decltype(std::declval<Fn>()(std::declval<Args>()...));
+
+template<class Fn, class... Args>
+using call_is_detected = is_detected<decl_call_t, Fn, Args...>;
+
+template<class Fn, class... Args>
+constexpr bool call_is_detected_v = call_is_detected<Fn, Args...>::value;
 
 
 template<bool test, class Default, template<class...> class Op, class... Args>
@@ -246,6 +256,17 @@ template<class T>
     return static_cast<remove_unsigned_t<T>>(value);
 }
 
+template<class Derived, class Base>
+[[nodiscard]] constexpr Derived identical_derived_cast(const Base& base) noexcept
+{
+    {
+        using derived_t = std::remove_reference_t<Derived>;
+        static_assert(std::is_base_of_v<Base, derived_t>);
+        static_assert(sizeof(Base) == sizeof(derived_t));
+    }
+    return static_cast<Derived>(base);
+}
+
 
 template<class T>
 constexpr bool is_pointer_or_nullptr_v = std::disjunction_v<std::is_pointer<T>, std::is_null_pointer<T>>;
@@ -274,6 +295,16 @@ using has_pre_dec_op = is_detected<decl_pre_dec_op_t, T>;
 
 template<class T>
 using has_post_dec_op = is_detected<decl_post_dec_op_t, T>;
+
+
+template<class L, class R>
+using decl_assignment_op_t = decltype(std::declval<L&>() = std::declval<R>());
+
+template<class L, class R>
+using has_assignment_op = is_detected<decl_assignment_op_t, L, R>;
+
+template<class L, class R>
+constexpr auto has_assignment_op_v = has_assignment_op<L, R>::value;
 
 
 namespace type_traits_compare

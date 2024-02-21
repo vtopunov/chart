@@ -2,8 +2,6 @@
 
 #include <debug/debug.h>
 
-#include <px/pixspan.h>
-
 #include <egl_ui/egl_ui_owner.h>
 
 #include <utility/shader_library.h>
@@ -11,21 +9,17 @@
 
 namespace
 {
-    gl::texture2d pix8map_gallery_rendering() noexcept
+    gl::texture2d pix8map_rendering() noexcept
     {
-        using pix8_t = pix8span::pixel_type;
+        static constexpr pix8space image_space{ 9_npx, 9_npx };
 
-        constexpr pix8space image_sizes{ 9_npx, 11_npx };
-
-        static constexpr pix8_t image[image_sizes.size()]
+        static constexpr pix8_t image_data[image_space.size_bytes()]
         {
             0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0x00, 0x00, 0x00,
             0xff, 0xcc, 0xcc,  0xcc, 0xcc, 0xcc,  0xcc, 0xcc, 0xff,  0x00, 0x00, 0x00,
             0xff, 0xcc, 0x99,  0x99, 0x99, 0x99,  0x99, 0xcc, 0xff,  0x00, 0x00, 0x00,
 
             0xff, 0xcc, 0x99,  0x66, 0x66, 0x66,  0x99, 0xcc, 0xff,  0x00, 0x00, 0x00,
-            0xff, 0xcc, 0x99,  0x66, 0x33, 0x66,  0x99, 0xcc, 0xff,  0x00, 0x00, 0x00,
-            0xff, 0xcc, 0x99,  0x66, 0x33, 0x66,  0x99, 0xcc, 0xff,  0x00, 0x00, 0x00,
             0xff, 0xcc, 0x99,  0x66, 0x33, 0x66,  0x99, 0xcc, 0xff,  0x00, 0x00, 0x00,
             0xff, 0xcc, 0x99,  0x66, 0x66, 0x66,  0x99, 0xcc, 0xff,  0x00, 0x00, 0x00,
 
@@ -34,24 +28,9 @@ namespace
             0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0x00, 0x00, 0x00
         };
 
-        constexpr const_pix8span image_span{ image, image_sizes };
-
-        constexpr auto w_image_space = image_span.width() + 1_npx;
-        constexpr auto h_image_space = image_span.height() + 1_npx;
-
-        constexpr pix8space gallery_sizes{ 4u * w_image_space, 3u * h_image_space };
-        pix8_t gallery[gallery_sizes.size()]{};
-        const pix8span gallery_span{ gallery, gallery_sizes };
-
-        for (pxsize_t y = 0_npx; y < gallery_sizes.height(); y += h_image_space)
-        {
-            for (pxsize_t x = 0_npx; x < gallery_sizes.width(); x += w_image_space)
-            {
-                gallery_span.store(x, y, image_span);
-            }
-        }
-
-        return gl::create_texture2d(gallery_span);
+        static constexpr pixspan image{ image_data, image_space };
+        
+        return gl::create_texture2d(image);
     }
 }
 
@@ -65,14 +44,14 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    const auto texture = pix8map_gallery_rendering();
+    const auto texture = pix8map_rendering();
     if (!texture)
     {
         e_debug("pixmap rendering fail: {}", glGetError());
         return EXIT_FAILURE;
     }
 
-    shader_library<vert::positioned_texture, frag::gray_texture_mix_color>  shaders{};
+    shader_library<vert::positioned_texture, frag::luminance8_texture_mix_color> shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");
@@ -87,7 +66,7 @@ int app_main(os::module_handle_t app) noexcept
     {
         const egl_painting_owner painting_owner{ egl };
         gl::viewport(egl.viewport);
-        gl::clear(gl::colors::white_f);
+        gl::clear(colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();
 
@@ -103,7 +82,7 @@ int app_main(os::module_handle_t app) noexcept
 
             for (pxsize_t y = 0_npx; y < h; y += dy)
             {
-                shaders.frag.u_color.store(gl::to_colorf(xy_color_lerp(y)));
+                shaders.frag.u_color.store(color_cast<rgba_colorf_t>(xy_color_lerp(y)));
                 shaders.vert.u_position.store(point2d{ x, y });
                 vb.draw();
             }

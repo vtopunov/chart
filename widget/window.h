@@ -1,7 +1,5 @@
 #pragma once
 
-#include <gl/color.h>
-
 #include <egl_ui/egl_ui_owner.h>
 
 #include <widget/fwd.h>
@@ -12,9 +10,10 @@ namespace widget
     namespace colors
     {
         using namespace ::color_literals;
+        using namespace ::colors;
 
         constexpr auto dialog_color = 0xf0f0f0_rgb;
-        constexpr auto gl_dialog_color_f = gl::to_colorf(dialog_color);
+        constexpr auto dialog_color_f = to_colorf(dialog_color);
     }
 
     class window : public egl_ui_owner
@@ -33,10 +32,9 @@ namespace widget
             return { D_CONDITIONAL_OS_WINDOWS(content_sizes_cache_, as_size2d(viewport)) };
         }
 
-        template<class Fn>
-        decltype(auto) apply(Fn fn) noexcept
+        constexpr noapply_t apply(no_overload) const noexcept
         {
-            return fn();
+            return noapply;
         }
 
     public:

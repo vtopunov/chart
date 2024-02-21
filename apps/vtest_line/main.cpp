@@ -126,7 +126,7 @@ int app_main(os::module_handle_t app) noexcept
     {
         const egl_painting_owner painting_owner{ egl };
         gl::viewport(egl.viewport);
-        gl::clear(gl::colors::white_f);
+        gl::clear(colors::white_f);
 
         shaders.use();
         shaders.frag.s_texture.store(texture);

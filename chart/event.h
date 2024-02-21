@@ -1,8 +1,6 @@
 #pragma once
 
 #include <widget/event.h>
-#include <widget/shader.h>
-#include <widget/user_gesture.h>
 
 
 namespace chart
@@ -10,27 +8,15 @@ namespace chart
     using widget::content_size2d;
     using widget::event_result;
 
-    namespace shader
-    {
-        using namespace widget::shader;
-    }
+    template<template<class...> class WidgetEvent, class... Args>
+    using chart_event = WidgetEvent<Args..., content_size2d>;
 
+    using mouse_wheel_event = chart_event<widget::mouse_wheel_event>;
 
-    using mouse_wheel_event_t = widget::mouse_wheel_event<content_size2d>;
+    using gesture_event = chart_event<widget::gesture_event>;
 
-    using mouse_move_event_t = widget::mouse_move_event<
-        ui::user_gesture,
-        content_size2d
-    >;
+    using mouse_double_click_event = chart_event<widget::mouse_double_click_event>;
 
-    using mouse_double_click_event_t = widget::mouse_double_click_event<
-        content_size2d
-    >;
-
-    using redraw_event_t = widget::redraw_event<
-        shader::gray_texture_mix_color,
-        shader::colored_rectangle,
-        buffer_view,
-        content_size2d
-    >;
+    template<class... Args>
+    using redraw_event = chart_event<widget::redraw_event, Args...>;    
 }

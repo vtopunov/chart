@@ -53,13 +53,13 @@ struct uniform_vec2glpx
 };
 
 template<class T>
-constexpr bool is_safe_conversion_glpx(const vec2<T>& v) noexcept
+[[nodiscard]] constexpr bool is_safe_conversion_glpx(const vec2<T>& v) noexcept
 {
     return md_is_safe_narrowing_conversion<uniform_vec2glpx::value_tuple_type>(v);
 }
 
 template<class Value, class Size>
-constexpr bool is_safe_conversion_glpx(const rectangle<Value, Size>& v) noexcept
+[[nodiscard]] constexpr bool is_safe_conversion_glpx(const rectangle<Value, Size>& v) noexcept
 {
     return is_safe_conversion_glpx(v.position)
         && is_safe_conversion_glpx(v.sizes);
@@ -234,7 +234,7 @@ namespace frag
         }
     };
 
-    struct gray_texture_mix_color
+    struct luminance8_texture_mix_color
     {
         static constexpr auto shader_text = R"(
             precision mediump float;
@@ -267,8 +267,11 @@ namespace frag
 template<class VS, class FS>
 struct shader_library
 {
-    VS vert{};
-    FS frag{};
+    using vertex_shader_type = VS;
+    using fragment_shader_type = FS;
+
+    vertex_shader_type vert{};
+    fragment_shader_type frag{};
 
     gl::shaders_program program{};
 

@@ -116,6 +116,7 @@ namespace chart
         static constexpr real_t invalid_dvalue{ 0.0 };
         static constexpr auto invalid_dline = fill_to<point2d>(invalid_dvalue);
 
+        [[nodiscard]]
         static constexpr bool dline_has_value(const real_point2d& pt) noexcept
         {
             return invalid_dvalue != pt.y();

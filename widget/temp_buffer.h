@@ -17,10 +17,9 @@ namespace widget
             return as_mutable(*this);
         }
 
-        template<class Fn>
-        decltype(auto) apply(Fn fn) noexcept
+        constexpr noapply_t apply(no_overload) const noexcept
         {
-            return fn();
+            return noapply;
         }
     };
 }
