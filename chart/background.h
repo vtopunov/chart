@@ -7,11 +7,11 @@ namespace chart
 {
     struct background
     {
-        rgba_colorf_t color{ colors::white_f };
+        rgbaf_color_t color{ colors::white_f };
 
-        void operator()(const shader::background_shader_user& shdr) const noexcept
+        void operator()(const shader::background_user& shdr) const noexcept
         {
-            shdr.store(color)
+            shdr.color(color)
                 .draw();
         }
     };

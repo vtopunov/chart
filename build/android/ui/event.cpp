@@ -10,6 +10,7 @@ namespace ui
         static_assert(event::action_mask == AMOTION_EVENT_ACTION_MASK);
         static_assert(event::p_index_mask == AMOTION_EVENT_ACTION_POINTER_INDEX_MASK);
         static_assert(event::p_index_shift == AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT);
+        static_assert(event_style::null == event{}.style());
         static_assert(event_style::mouse_down == to_event_style(AMOTION_EVENT_ACTION_DOWN));
         static_assert(event_style::mouse_up == to_event_style(AMOTION_EVENT_ACTION_UP));
         static_assert(event_style::mouse_move == to_event_style(AMOTION_EVENT_ACTION_MOVE));

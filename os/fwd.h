@@ -7,8 +7,10 @@
 
 #if defined(D_OS_WINDOWS)
 #define D_ONLY_OS_WINDOWS(A) A
+#define D_ONLY_NOT_OS_WINDOWS(A)
 #else
 #define D_ONLY_OS_WINDOWS(A)
+#define D_ONLY_NOT_OS_WINDOWS(A) A
 #endif
 
 #if defined(D_OS_WINDOWS)

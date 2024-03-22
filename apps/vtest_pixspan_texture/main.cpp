@@ -34,7 +34,7 @@ namespace
         const auto w_image_space = png.width() + sep;
         const auto h_image_space = png.height() + sep;
 
-        pixmap<rgba_color32_t> gallery{ 3u * w_image_space + sep, 3u * h_image_space + sep };
+        pixmap<rgba_color_t> gallery{ 3u * w_image_space + sep, 3u * h_image_space + sep };
         if (!gallery)
         {
             e_debug("out of memory");
@@ -86,17 +86,17 @@ int app_main(os::module_handle_t app) noexcept
 
     shaders.use();
     shaders.vert.u_size.store(sizes(texture));
-    shaders.vert.u_viewport.store(egl.viewport);
+    shaders.vert.u_viewport.store(viewport(egl));
     shaders.frag.s_texture.store(texture);
 
     {
         const egl_painting_owner painting_owner{ egl };
-        gl::viewport(egl.viewport);
+        gl::viewport(viewport(egl));
         gl::clear(colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();
 
-        const auto [w, h] = egl.viewport;
+        const auto [w, h] = viewport(egl);
         const auto dx = width(texture) + 1_npx;
         const auto dy = height(texture) + 1_npx;
 

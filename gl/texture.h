@@ -233,7 +233,7 @@ namespace gl
     constexpr auto glsl_sampler_typeid_v = select_glsl_sampler_typeid<target>::value;
 
     [[nodiscard]]
-    std::underlying_type_t<uniform_location> get_sampler_number(shaders_program_resource program, uniform_location location) noexcept;
+    std::underlying_type_t<uniform_location> get_sampler_number(program_resource program, uniform_location location) noexcept;
 
     struct null_tex_sampler;
 
@@ -258,7 +258,7 @@ namespace gl
         }
 
         [[nodiscard]]
-        static texture_sampler instance(shaders_program_resource program, zstring_view name) noexcept
+        static texture_sampler instance(program_resource program, zstring_view name) noexcept
         {
             const auto sampler_location = uniform_sampler_type::instance(program, name);
 

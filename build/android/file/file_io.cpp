@@ -2,7 +2,6 @@
 
 #include <unistd.h>
 
-#include <core/narrow.h>
 #include <core/clamp_cast.h>
 
 #include "private/private_file.h"

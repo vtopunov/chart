@@ -100,7 +100,7 @@ namespace gl
         return {};
     }
 
-    std::underlying_type_t<uniform_location> get_sampler_number(shaders_program_resource program, uniform_location location) noexcept
+    std::underlying_type_t<uniform_location> get_sampler_number(program_resource program, uniform_location location) noexcept
     {
         std::underlying_type_t<uniform_location> number{ 0u };
 

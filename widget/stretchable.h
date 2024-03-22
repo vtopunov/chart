@@ -47,11 +47,11 @@ namespace widget
         };
     }
 
-    template<class Pos, class Sz, class EventBase, class... EventExts>
-    constexpr auto stretchable_sizes(const rectangle<Pos, Sz>& r, const widget_event<EventBase, EventExts...>& e) noexcept
-        -> decltype(stretchable_sizes(r, e.template get<content_size2d>()))
+    template<class Pos, class Sz, class... EArgs>
+    constexpr auto stretchable_sizes(const rectangle<Pos, Sz>& r, const basic_widget_event<EArgs...>& e) noexcept
+        -> decltype(stretchable_sizes(r, e.content().sizes()))
     {
-        return stretchable_sizes(r, e.template get<content_size2d>());
+        return stretchable_sizes(r, e.content().sizes());
     }
 }
 

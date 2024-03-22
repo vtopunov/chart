@@ -271,6 +271,8 @@ template<class Derived, class Base>
 template<class T>
 constexpr bool is_pointer_or_nullptr_v = std::disjunction_v<std::is_pointer<T>, std::is_null_pointer<T>>;
 
+template<class T>
+using decl_unary_munis_op_t = decltype(-std::declval<const T&>());
 
 template<class T>
 using decl_pre_inc_op_t = decltype(++std::declval<T&>());
@@ -283,6 +285,9 @@ using decl_pre_dec_op_t = decltype(--std::declval<T&>());
 
 template<class T>
 using decl_post_dec_op_t = decltype(std::declval<T&>()--);
+
+template<class T>
+using has_unary_munis_op = is_detected<decl_unary_munis_op_t, T>;
 
 template<class T>
 using has_pre_inc_op = is_detected<decl_pre_inc_op_t, T>;
@@ -328,15 +333,24 @@ namespace type_traits_compare
     }
 
     template<class T>
-    using decl_eq_op_t = decltype(eq_op<T>(std::declval<const T&>(), std::declval<const T&>()));
+    using decl_eq_op_t = decltype(eq_op(std::declval<const T&>(), std::declval<const T&>()));
 
     template<class T>
-    using decl_neq_op_t = decltype(neq_op<T>(std::declval<const T&>(), std::declval<const T&>()));
+    using decl_neq_op_t = decltype(neq_op(std::declval<const T&>(), std::declval<const T&>()));
 
     template<class T>
-    using decl_less_op_t = decltype(less_op<T>(std::declval<const T&>(), std::declval<const T&>()));
+    using decl_less_op_t = decltype(less_op(std::declval<const T&>(), std::declval<const T&>()));
 }
 
 using type_traits_compare::decl_eq_op_t;
 using type_traits_compare::decl_neq_op_t;
 using type_traits_compare::decl_less_op_t;
+
+template<class T>
+using has_eq_op = is_detected<decl_eq_op_t, T>;
+
+template<class T>
+using has_neq_op = is_detected<decl_neq_op_t, T>;
+
+template<class T>
+using has_less_op = is_detected<decl_less_op_t, T>;

@@ -28,10 +28,10 @@ namespace
 
     constexpr auto names_npxs = [] () noexcept
     {
-        struct name_npx 
-        { 
-            std::decay_t<decltype(names[0])> name;  
-            std::decay_t<decltype(npxs[0])> px;  
+        struct name_npx
+        {
+            std::decay_t<decltype(names[0])> name;
+            std::decay_t<decltype(npxs[0])> px;
         };
 
         std::array<name_npx, names_npxs_size> result{};

@@ -3,7 +3,6 @@
 #include <utility>
 #include <iterator>
 
-#include <core/type_traits.h>
 #include <core/limits.h>
 
 
@@ -219,7 +218,7 @@ template<size_t align>
 }
 
 template<class L, class R>
-[[nodiscard]] constexpr auto scalar_min
+[[nodiscard]] constexpr auto u_min
 (
     const L& a,
     const R& b
@@ -229,7 +228,7 @@ template<class L, class R>
 }
 
 template<class L, class R>
-[[nodiscard]] constexpr auto scalar_max
+[[nodiscard]] constexpr auto u_max
 (
     const L& a,
     const R& b

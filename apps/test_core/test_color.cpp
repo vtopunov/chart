@@ -24,35 +24,67 @@ void test_color() noexcept
     using namespace color_literals;
     using namespace rational_literals;
 
-    static_assert(std::is_trivial_v<rgba_color32_t> && std::is_standard_layout_v<rgba_color32_t>);
+    static_assert(std::is_trivial_v<rgba_color_t> && std::is_standard_layout_v<rgba_color_t>);
 
-    static_assert(is_rgba_color_v< rgba_color32_t >);
-    static_assert(is_rgba_color_v< const rgba_color32_t >);
-    static_assert(!is_rgba_color_v< u8tint_t >);
-    static_assert(!is_rgba_color_v< u32argb_t >);
+    static_assert(is_rgba_color_v< rgba_color_t >);
+    static_assert(is_rgba_color_v< const rgba_color_t >);
+    static_assert(!is_rgba_color_v< byte_tint_t >);
+    static_assert(!is_rgba_color_v< argb_t >);
     static_assert(!is_rgba_color_v< float >);
-    static_assert(!is_rgba_color_v< span<u8tint_t> >);
-    static_assert(!is_rgba_color_v< span<u8tint_t, 4u> >);
-    static_assert(!is_rgba_color_v< span<const u8tint_t> >);
-    static_assert(!is_rgba_color_v< span<const u8tint_t, 4u> >);
-    static_assert(sizeof(rgba_color32_t) == 4);
+    static_assert(!is_rgba_color_v< span<byte_tint_t> >);
+    static_assert(!is_rgba_color_v< span<byte_tint_t, 4u> >);
+    static_assert(!is_rgba_color_v< span<const byte_tint_t> >);
+    static_assert(!is_rgba_color_v< span<const byte_tint_t, 4u> >);
+    static_assert(std::is_same_v<decl_value_type_t<rgba_color_t>, byte_tint_t>);
+    static_assert(std::is_same_v<decl_view_type_t<rgba_color_t>, span<const byte_tint_t, 4u> >);
+    static_assert(rgba_color_view_extent == 4u);
+    static_assert(extent_v<rgba_color_view> == 4u);
+    static_assert(extent_v<rgba_color_t> == 4u);
+    static_assert(rgba_color_t::extent == 4u);
+    static_assert(sizeof(rgba_color_t) == 4u);
 
     {
-        constexpr rgba_color32_t c{ 0x01, 0x02, 0x03, 0x04 };
+        constexpr rgba_color_t c{ 0x01, 0x02, 0x03, 0x04 };
         test_argb(c, 0x04, 0x01, 0x02, 0x03);
-        static_assert(color_cast<u32argb_t>(c) == 0x04010203ul);
-        static_assert(color_cast<rgba_color32_t>(0x04010203ul) == c);
+        static_assert(color_cast<argb_t>(c) == 0x04010203ul);
+        static_assert(color_cast<rgba_color_t>(0x04010203ul) == c);
+
+        const span c_view{ c };
+        D_ASSERT(color_cast<rgba_color_t>(c_view) == c);
+        D_ASSERT(color_cast<argb_t>(c_view) == 0x04010203ul);
     }
 
     {
-        constexpr rgba_color32_t c{ 0x01, 0x02, 0x03 };
+        constexpr byte_tint_t color_array[] = { 0x01, 0x02, 0x03, 0x04 };
+        constexpr auto c = color_cast<rgba_color_t>(color_array);
+        test_argb(c, 0x04, 0x01, 0x02, 0x03);
+        static_assert(color_cast<argb_t>(color_array) == 0x04010203ul);
+
+        const span c_view{ color_array };
+        D_ASSERT(color_cast<rgba_color_t>(c_view) == c);
+        D_ASSERT(color_cast<argb_t>(c_view) == 0x04010203ul);
+    }
+
+    {
+        constexpr std::array<byte_tint_t, rgba_color_view_extent> color_array{ 0x01, 0x02, 0x03, 0x04 };
+        constexpr auto c = color_cast<rgba_color_t>(color_array);
+        test_argb(c, 0x04, 0x01, 0x02, 0x03);
+        static_assert(color_cast<argb_t>(color_array) == 0x04010203ul);
+
+        const span c_view{ color_array };
+        D_ASSERT(color_cast<rgba_color_t>(c_view) == c);
+        D_ASSERT(color_cast<argb_t>(c_view) == 0x04010203ul);
+    }
+
+    {
+        constexpr rgba_color_t c{ 0x01, 0x02, 0x03 };
         test_argb(c, 0x00, 0x01, 0x02, 0x03);
-        static_assert(color_cast<u32argb_t>(c) == 0x00010203ul);
-        static_assert(color_cast<rgba_color32_t>(0x00010203ul) == c);
+        static_assert(color_cast<argb_t>(c) == 0x00010203ul);
+        static_assert(color_cast<rgba_color_t>(0x00010203ul) == c);
         constexpr auto c2 = c.with_alpha(0xff);
         test_argb(c2, 0xff, 0x01, 0x02, 0x03);
-        static_assert(color_cast<u32argb_t>(c2) == 0xff010203ul);
-        static_assert(color_cast<rgba_color32_t>(0xff010203ul) == c2);
+        static_assert(color_cast<argb_t>(c2) == 0xff010203ul);
+        static_assert(color_cast<rgba_color_t>(0xff010203ul) == c2);
     }
 
     test_argb(colors::red, 0xff, 0xff, 0, 0);
@@ -101,6 +133,4 @@ void test_color() noexcept
         static_assert(eq(colors::yellow - colors::red, colors::green));
         static_assert(eq(colors::yellow - colors::green, colors::red));
     }
-
-    D_ASSERT(!errno);
 }

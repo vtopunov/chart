@@ -1,44 +1,60 @@
 #pragma once
 
-#include <egl_ui/app_ui_owner.h>
+#include <egl_ui/ui_owner.h>
 #include <egl_ui/egl_context.h>
 
 
 namespace egl_ui
 {
-    struct egl_ui_owner : app_ui_owner
+    class egl_ui_owner : public ui_owner
     {
-        egl_context egl;
+    public:
+        constexpr egl_ui_owner() noexcept = default;
+
+        constexpr egl_ui_owner(ui_owner&& ui, egl_context&& egl) noexcept
+            : ui_owner{ std::move(ui) }
+            , egl_{ std::move(egl) }
+        {}
 
         constexpr explicit operator bool() const noexcept
         {
-            return !!egl;
+            return !!egl_;
         }
 
         constexpr operator display_surface () const noexcept
         {
-            return egl;
+            return egl_;
         }
+
+    private:
+        egl_context egl_;
+
     };
 
-    using egl_ui_parameters = app_ui_parameters;
+    using egl_ui_parameters = ui_parameters;
 
     [[nodiscard]]
-    inline egl_ui_owner create_egl_ui(view_t<egl_ui_parameters> module) noexcept
+    inline egl_ui_owner create_egl_ui(const egl_ui_parameters& params) noexcept
     {
-        egl_ui_owner result{ ui_startup_request(module) };
-        if (const app_ui_owner& ui{ result }; ui) [[likely]]
+        auto ui = create_ui(params);
+        egl_context egl{};
+
+        if (ui) [[likely]]
         {
-            result.egl = create_egl_context(render_window_handle(ui));
+            egl = create_egl_context(ui.render_window());
         }
 
-        return result;
+        return 
+        {
+            std::move(ui),
+            std::move(egl)
+        };
     }
 
-    template<class Builder>
-    using egl_ui_gatherer = app_ui_gatherer<Builder, egl_ui_parameters>;
+    template<class Builder, class Params>
+    using egl_ui_gatherer = ui_gatherer<Builder, Params>;
 
-    struct egl_ui_builder : egl_ui_gatherer<egl_ui_builder>
+    struct egl_ui_builder : egl_ui_gatherer<egl_ui_builder, egl_ui_parameters>
     {
         [[nodiscard]]
         egl_ui_owner build() const noexcept
@@ -47,14 +63,11 @@ namespace egl_ui
         }
     };
 
-#ifdef D_OS_WINDOWS
     [[nodiscard]]
     inline egl_ui_owner create_egl_ui(ui::module_handle_t module) noexcept
     {
         return egl_ui_builder{}.module(module).build();
     }
-
-#endif
 }
 
 using egl_ui::egl_ui_owner;

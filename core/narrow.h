@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/limits.h>
 #include <core/underlying.h>
 #include <core/zero.h>
 
@@ -53,24 +52,28 @@ namespace private_detail_narrow
     >;
 
     template<class T, class S>
-    constexpr bool is_safe_numeric_conversion0_v = std::disjunction_v<
+    using is_safe_numeric_conversion0 = std::disjunction<
         std::is_same<T, S>,
         is_safe_numeric_conversion1<T, S>
     >;
 
     template<class T, class S>
-    constexpr bool is_safe_numeric_not_same_conversion0_v = std::conjunction_v<
+    using is_safe_numeric_not_same_conversion0 = std::conjunction<
         std::negation<std::is_same<T, S>>,
         is_safe_numeric_conversion1<T, S>
     >;
 
     template<class T, class S>
-    constexpr bool is_safe_numeric_conversion_v 
-        = is_safe_numeric_conversion0_v<std::remove_cvref_t<T>, std::remove_cvref_t<S>>;
+    using is_safe_numeric_conversion = is_safe_numeric_conversion0<std::remove_cvref_t<T>, std::remove_cvref_t<S>>;
 
     template<class T, class S>
-    constexpr bool is_safe_numeric_not_same_conversion_v
-        = is_safe_numeric_not_same_conversion0_v<std::remove_cvref_t<T>, std::remove_cvref_t<S>>;
+    using is_safe_numeric_not_same_conversion = is_safe_numeric_not_same_conversion0<std::remove_cvref_t<T>, std::remove_cvref_t<S>>;
+
+    template<class T, class S>
+    constexpr bool is_safe_numeric_conversion_v = is_safe_numeric_conversion<T, S>::value;
+
+    template<class T, class S>
+    constexpr bool is_safe_numeric_not_same_conversion_v = is_safe_numeric_not_same_conversion<T, S>::value;
 
     template<class Target, class Source>
     [[nodiscard]] constexpr bool is_safe_upper_narrowing_conversion(const Source& v) noexcept
@@ -117,7 +120,7 @@ namespace private_detail_narrow
         {
             constexpr auto upper_source = numeric_max_v<Source>;
             constexpr auto max_mantissa = upper_source >> (source_digits - target_digits);
-            return constexpr_abs(v) <= max_mantissa;
+            return u_abs(v) <= max_mantissa;
         }
         else
         {
@@ -221,6 +224,8 @@ namespace private_detail_narrow
 
 using private_detail_narrow::is_narrowing_v;
 using private_detail_narrow::is_narrowing_or_same_v;
+using private_detail_narrow::is_safe_numeric_conversion;
+using private_detail_narrow::is_safe_numeric_not_same_conversion;
 using private_detail_narrow::is_safe_numeric_conversion_v;
 using private_detail_narrow::is_safe_numeric_not_same_conversion_v;
 using private_detail_narrow::is_safe_narrowing_conversion;

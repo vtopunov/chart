@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core/intrusive.h>
-#include <core/utility.h>
 #include <core/view.h>
 #include <core/null.h>
 
@@ -171,11 +170,7 @@ public:
         if (this != std::addressof(right))
         {
             deattach_and_reset(right.resource_);
-            as_basic_intrusive_node_ref(copies_) = make_intrusive_front_node
-            (
-                std::addressof(copies_),
-                right._p_mutable_copies()
-            );
+            intrusive_write_front_node(std::addressof(copies_), right._p_mutable_copies());
         }
 
         return *this;
@@ -259,6 +254,3 @@ private:
     resource_type resource_;
     intrusive_node copies_;
 };
-
-template<class T>
-using resource_type_t = detected_or_t<T, decl_resource_type_t, T>;

@@ -32,22 +32,23 @@ int app_main(os::module_handle_t app) noexcept
 
     shaders.use();
     shaders.vert.u_size.store(sizes(texture));
-    shaders.vert.u_viewport.store(egl.viewport);
+    shaders.vert.u_viewport.store(viewport(egl));
     shaders.frag.s_texture.store(texture);
 
     {
         const egl_painting_owner painting_owner{ egl };
-        gl::viewport(egl.viewport);
+        gl::viewport(viewport(egl));
         gl::clear(colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();
 
+        const auto [w, h] = viewport(egl);
         const auto dx = width(texture) + 1_npx;
         const auto dy = height(texture) + 1_npx;
 
-        for (pxsize_t y = 0_npx; y < egl.viewport.height(); y += dy)
+        for (pxsize_t y = 0_npx; y < h; y += dy)
         {
-            for (pxsize_t x = 0_npx; x < egl.viewport.width(); x += dx)
+            for (pxsize_t x = 0_npx; x < w; x += dx)
             {
                 shaders.vert.u_position.store(x, y);
                 vb.draw();

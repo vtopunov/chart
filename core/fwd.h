@@ -74,8 +74,10 @@
 
 #ifdef _MSC_VER
 #define D_FORCEINLINE inline __forceinline
+#define D_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]] 
 #else
 #define D_FORCEINLINE inline __attribute__((always_inline))
+#define D_NO_UNIQUE_ADDRESS [[no_unique_address]] 
 #endif
 
 
@@ -127,25 +129,32 @@ template<class T>
 struct size2d;
 
 
-using u32argb_t = uint32_t;
-static_assert(sizeof(u32argb_t) == 4u);
+using argb_t = uint32_t;
+static_assert(sizeof(argb_t) == 4u);
 
-using u8tint_t = uint8_t;
-static_assert(sizeof(u8tint_t) == 1u);
+using byte_tint_t = uint8_t;
+static_assert(sizeof(byte_tint_t) == 1u);
 
-using tintf_t = float;
+using float_tint_t = float;
+static_assert(sizeof(float_tint_t) == 4u);
 
 template<class T>
 struct rgba_color;
 
-using rgba_color32_t = rgba_color<u8tint_t>;
-using rgba_colorf_t = rgba_color<tintf_t>;
+using rgba_color_t = rgba_color<byte_tint_t>;
+using rgbaf_color_t = rgba_color<float_tint_t>;
 
 using doublemax_t = long double;
 
 template<class T>
 struct rational;
 
+constexpr auto small_size_v = 4u * sizeof(size_t);
+
+constexpr auto dynamic_extent = static_cast<size_t>(-1);
+
+template <class T, size_t = dynamic_extent>
+class span;
 
 template<class T>
 class buffer;
@@ -153,6 +162,11 @@ class buffer;
 static_assert(1u == sizeof(std::byte));
 using buffer_t = buffer<std::byte>;
 
+template<bool immutable>
+class basic_buffer_view;
+
+using buffer_view = basic_buffer_view<false>;
+using const_buffer_view = basic_buffer_view<true>;
 
 template<class T>
 class optional_reference_wrapper;
@@ -166,9 +180,6 @@ using decl_view_type_t = typename T::view_type;
 
 template<class T>
 using decl_null_type_t = typename T::null_type;
-
-template<class T>
-using decl_resource_type_t = typename T::resource_type;
 
 
 template <class T, class D>
@@ -184,3 +195,5 @@ struct nothing
     constexpr void operator () (Args&&...) const noexcept
     {}
 };
+
+struct dummy {};

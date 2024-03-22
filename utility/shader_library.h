@@ -6,56 +6,56 @@
 #include <gl/draw.h>
 
 
-struct uniform_vec2glpx
+namespace private_detail_is_safe_conversion_glpx
 {
-    using glsl_uniform_type = gl::uniform_vec2f;
-    static constexpr auto type_id = glsl_uniform_type::type_id;
-    using value_tuple_type = gl::glsl_type_t<type_id>;
-    using value_type = typename value_tuple_type::value_type;
-
-    glsl_uniform_type uniform;
-
-    template<class T>
-    void store(::vec2<T> p) const noexcept
+    template<class GL, class PX, class Source>
+    [[nodiscard]] constexpr bool is_safe_conversion_glpx_impl(const Source& v) noexcept
     {
-        if constexpr (std::is_same_v<value_tuple_type, ::vec2<T>>)
+        static_assert(std::is_floating_point_v<GL>);
+        static_assert(std::is_integral_v<PX>);
+        static_assert(std::is_signed_v<PX>);
+
+        constexpr auto gl_digits = numeric_digits_v<GL>;
+        constexpr auto px_digits = numeric_digits_v<PX>;
+        constexpr auto glpx_digits = std::min(gl_digits, px_digits);
+        constexpr auto source_digits = numeric_digits_v<Source>;
+
+        if constexpr (std::is_floating_point_v<Source> || (glpx_digits < source_digits))
         {
-            uniform.store(std::move(p));
+            constexpr auto px_max = numeric_max_v<PX>;
+            constexpr auto glpx_max = px_max >> (px_digits - glpx_digits);
+            constexpr auto glpx_max_source = static_cast<Source>(glpx_max);
+
+            if constexpr (std::is_unsigned_v<Source>)
+            {
+                return v <= glpx_max_source;
+            }
+            else
+            {
+                constexpr auto glpx_lowest = -glpx_max;
+                constexpr auto glpx_lowest_source = static_cast<Source>(glpx_lowest);
+                return (v >= glpx_lowest_source)
+                    && (v <= glpx_max_source);
+            }
         }
         else
         {
-            uniform.store(md_narrow<value_tuple_type>(std::move(p)));
+            return true;
         }
     }
+}
 
-    template<class T>
-    void store(T p0, T p1) const noexcept
-    {
-        if constexpr (std::is_same_v<value_type, std::remove_cvref_t<T>>)
-        {
-            uniform.store(std::move(p0), std::move(p1));
-        }
-        else
-        {
-            uniform.store
-            (
-                narrow<value_type>(std::move(p0)),
-                narrow<value_type>(std::move(p1))
-            );
-        }
-    }
-
-    [[nodiscard]]
-    static uniform_vec2glpx instance(gl::shaders_program_resource program, zstring_view name) noexcept
-    {
-        return { .uniform{ glsl_uniform_type::instance(program, name) } };
-    }
-};
+template<class Source>
+[[nodiscard]] constexpr std::enable_if_t<std::is_arithmetic_v<Source>, bool> is_safe_conversion_glpx(const Source& v) noexcept
+{
+    return private_detail_is_safe_conversion_glpx::is_safe_conversion_glpx_impl<GLfloat, pxoff_t>(v);
+}
 
 template<class T>
 [[nodiscard]] constexpr bool is_safe_conversion_glpx(const vec2<T>& v) noexcept
 {
-    return md_is_safe_narrowing_conversion<uniform_vec2glpx::value_tuple_type>(v);
+    return is_safe_conversion_glpx(v._0)
+        && is_safe_conversion_glpx(v._1);
 }
 
 template<class Value, class Size>
@@ -65,7 +65,54 @@ template<class Value, class Size>
         && is_safe_conversion_glpx(v.sizes);
 }
 
+template<class T>
+[[nodiscard]] constexpr std::enable_if_t<std::is_arithmetic_v<T>, GLfloat> to_glpx(const T& value) noexcept
+{
+    D_WARNING_PUSH;
+    D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
+    D_ASSERT(is_safe_conversion_glpx(value));
+    return static_cast<GLfloat>(value);
+    D_WARNING_POP;
+}
 
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr auto to_glpx(const Vec<T>& v) noexcept -> Vec<decltype(to_glpx(as_vec2(v)._0))>
+{
+    return
+    {
+        to_glpx(v._0),
+        to_glpx(v._1)
+    };
+}
+
+
+struct uniform_vec2glpx
+{
+    using glsl_uniform_type = gl::uniform_vec2f;
+    glsl_uniform_type uniform;
+
+    template<class T>
+    void store(const vec2<T>& p) const noexcept
+    {
+        uniform.store(to_glpx(p));
+    }
+
+    template<class T>
+    void store(T p0, T p1) const noexcept
+    {
+        uniform.store
+        (
+            to_glpx(p0),
+            to_glpx(p1)
+        );
+    }
+
+    [[nodiscard]]
+    static uniform_vec2glpx instance(gl::program_resource program, zstring_view name) noexcept
+    {
+        return { .uniform{ glsl_uniform_type::instance(program, name) } };
+    }
+};
 
 struct attribute_frame
 {
@@ -80,7 +127,7 @@ struct attribute_frame
     gl::attribute_location attrib;
 
     [[nodiscard]]
-    static attribute_frame instance(gl::shaders_program_resource program, zstring_view name) noexcept
+    static attribute_frame instance(gl::program_resource program, zstring_view name) noexcept
     {
         return { .attrib{ gl::get_attribute_location(program, name) } };
     }
@@ -128,6 +175,8 @@ namespace vert
     struct positioned_texture : positioned_frame
     {
         static constexpr auto shader_text = R"(
+            precision mediump float;
+
             uniform vec2 u_position;
             uniform vec2 u_size;
             uniform vec2 u_viewport;
@@ -148,6 +197,8 @@ namespace vert
     struct positioned_rectangle : positioned_frame
     {
         static constexpr auto shader_text = R"(
+            precision mediump float;
+
             uniform vec2 u_position;
             uniform vec2 u_size;
             uniform vec2 u_viewport;
@@ -273,7 +324,7 @@ struct shader_library
     vertex_shader_type vert{};
     fragment_shader_type frag{};
 
-    gl::shaders_program program{};
+    gl::program program{};
 
     constexpr explicit operator bool() const noexcept
     {
@@ -285,7 +336,7 @@ struct shader_library
     {
         D_ASSERT(!program);
 
-        program = gl::create_shaders_program(vert.shader_text, frag.shader_text);
+        program = gl::create_program(vert.shader_text, frag.shader_text);
         if (program) [[likely]]
         {
             const auto unfiorm_factory = [p = view(program)]<class T>(T & target, zstring_view name) noexcept

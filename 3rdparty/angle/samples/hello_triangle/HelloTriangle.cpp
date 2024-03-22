@@ -16,14 +16,14 @@
 #include "SampleApplication.h"
 #include "shader_utils.h"
 
-class HelloTriangleSample : public SampleApplication
+class HelloTriangleSample final : public SampleApplication
 {
   public:
     HelloTriangleSample()
         : SampleApplication("HelloTriangle", 1280, 720)
     {}
 
-    virtual bool initialize()
+    bool initialize() override
     {
         const std::string vs =
             R"(attribute vec4 vPosition;
@@ -50,12 +50,12 @@ class HelloTriangleSample : public SampleApplication
         return true;
     }
 
-    virtual void destroy()
+    void destroy() override
     {
         glDeleteProgram(mProgram);
     }
 
-    virtual void draw()
+    void draw() override
     {
         GLfloat vertices[] =
         {

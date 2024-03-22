@@ -35,8 +35,9 @@
   <Import Project="..\build\static_library.props" />
   <ItemGroup>
     <ClInclude Include="..\..\..\chart\background.h" />
-    <ClInclude Include="..\..\..\chart\event.h" />
     <ClInclude Include="..\..\..\chart\fwd.h" />
+    <ClInclude Include="..\..\..\chart\grid.h" />
+    <ClInclude Include="..\..\..\chart\grid_shader.h" />
     <ClInclude Include="..\..\..\chart\polyline.h" />
     <ClInclude Include="..\..\..\chart\shader.h" />
     <ClInclude Include="..\..\..\chart\space.h" />
@@ -49,9 +50,6 @@
     <ProjectReference Include="..\utility\utility.vcxproj">
       <Project>{47c90779-22f4-49a5-8b9f-b5d799e5d3b5}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\chart\chart.vcxproj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

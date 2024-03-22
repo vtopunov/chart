@@ -1,7 +1,5 @@
 #include <file/file_io.h>
 
-#include <core/span.h>
-
 
 namespace
 {

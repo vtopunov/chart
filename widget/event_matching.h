@@ -124,12 +124,13 @@ namespace widget
     }
 
     template<class T, class E>
-    [[nodiscard]] auto call_widget_event(T&& function, const E& e) -> event_result_processor<std::remove_const_t<decltype(std::forward<T>(function)(e))>>
+    [[nodiscard]] auto call_widget_event(T&& function, const E& e) noexcept 
+        -> event_result_processor<std::remove_const_t<decltype(std::forward<T>(function)(e))>>
     {
         return { std::forward<T>(function), e };
     }
 
-    [[nodiscard]] no_event_result_processor_t call_widget_event(no_overload, no_overload)
+    [[nodiscard]] constexpr no_event_result_processor_t call_widget_event(no_overload, no_overload) noexcept
     {
         return no_event_result_processor;
     }

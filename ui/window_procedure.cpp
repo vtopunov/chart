@@ -1,5 +1,6 @@
 #include <os/os.h>
 
+#include <ui/window_procedure.h>
 #include <ui/event.h>
 #include <ui/window.h>
 #include <ui/event_processors_storage.h>

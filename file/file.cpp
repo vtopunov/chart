@@ -1,10 +1,9 @@
 #include "file.h"
 
-#include <core/narrow.h>
-
 #include <os/os.h>
 
 #include <file/file_io.h>
+
 
 namespace file
 {

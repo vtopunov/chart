@@ -28,18 +28,18 @@ namespace
         [[nodiscard]]
         bool reinitialize() noexcept
         {
-            texture_ = pix8map_test_texture_generate(egl_.viewport / 4u);
+            texture_ = pix8map_test_texture_generate(viewport(egl_) / 4u);
             if (!texture_)
             {
                 return false;
             }
 
-            if (!shaders_.initialize(egl_.viewport, texture_))
+            if (!shaders_.initialize(viewport(egl_), texture_))
             {
                 return false;
             }
 
-            area_ = default_area(egl_.viewport);
+            area_ = default_area(viewport(egl_));
 
             return true;
         }
@@ -57,7 +57,7 @@ namespace
 
         std::nullopt_t operator () (const ui::mouse_double_click_event&) noexcept
         {
-            area_ = default_area(egl_.viewport);
+            area_ = default_area(viewport(egl_));
             need_redraw_ = true;
             return std::nullopt;
         }
@@ -88,27 +88,7 @@ namespace
 
         void operator () (ui::content_rect_changed_event)
         {
-            const auto new_viewport = app_ui_viewport_request(egl_);
-            if (!new_viewport)
-            {
-                ui_fatal_debug(egl_, "content rect error: ui error: {}, egl error: {}",
-                    ui::error_code(), eglGetError());
-                return;
-            }
-
-            if (new_viewport != egl_.viewport)
-            {
-                egl_.viewport = new_viewport;
-
-                if (!reinitialize())
-                {
-                    ui_fatal_debug(egl_, "reinitialize viewport error: ui error: {}, egl error: {}",
-                        ui::error_code(), eglGetError());
-                    return;
-                }
-            }
-
-            return;
+            D_UNUSED(egl_.update_viewport());
         }
 
         void operator () (ui::redraw_needed_event) noexcept
@@ -137,7 +117,7 @@ namespace
         void draw() const noexcept
         {
             const egl_painting_owner painting_owner{ egl_ };
-            gl::viewport(egl_.viewport);
+            gl::viewport(viewport(egl_));
             gl::clear(colors::white_f);
             shaders_.draw(area_);
         }

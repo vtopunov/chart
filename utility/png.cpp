@@ -36,3 +36,9 @@ gl::texture2d png_texture_from_asset(file::path_zstring_view path, buffer_t& tem
     return png_texture_from_bytes(map_file, temp);
 }
 
+gl::texture2d png_texture_from_asset(file::path_zstring_view path) noexcept
+{
+    buffer_t temp{};
+    return png_texture_from_asset(path, temp);
+}
+

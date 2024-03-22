@@ -5,12 +5,6 @@
 #include <core/span.h>
 
 
-template<bool immutable>
-class basic_buffer_view;
-
-using buffer_view = basic_buffer_view<false>;
-using const_buffer_view = basic_buffer_view<true>;
-
 template <class T>
 struct is_buffer_view : std::false_type
 {};

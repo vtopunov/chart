@@ -11,8 +11,8 @@ struct spng_ctx;
 
 namespace image
 {
-    using color32map = pixmap<rgba_color32_t>;
-    using const_color32span = pixspan<const rgba_color32_t>;
+    using r8g8b8a8_color_pixmap = pixmap<rgba_color_t>;
+    using const_r8g8b8a8_color_pixspan = pixspan<const rgba_color_t>;
 
     enum class png_errno
     {
@@ -197,9 +197,9 @@ namespace image
     png_errno png_decode_image(png_resource png, png_format format, buffer_view out) noexcept;
 
 
-    class r8g8b8a8_result : public const_color32span
+    class r8g8b8a8_result : public const_r8g8b8a8_color_pixspan
     {
-        using base_type = const_color32span;
+        using base_type = const_r8g8b8a8_color_pixspan;
 
     public:
         using base_type::space_type;
@@ -231,15 +231,15 @@ namespace image
 
     r8g8b8a8_result png_decode_to_r8g8b8a8(const_buffer_view image, buffer_t& temp) noexcept;
 
-    class r8g8b8a8pixmap_result : public color32map
+    class r8g8b8a8pixmap_result : public r8g8b8a8_color_pixmap
     {
-        using base_type = color32map;
+        using base_type = r8g8b8a8_color_pixmap;
 
     public:
         using base_type::space_type;
 
-        constexpr r8g8b8a8pixmap_result(buffer_t& mem, const space_type& space) noexcept
-            : base_type{ px::pixmap_construct, mem, space }
+        constexpr r8g8b8a8pixmap_result(buffer_t&& mem, const space_type& space) noexcept
+            : base_type{ px::pixmap_construct, std::move(mem), space }
         {}
 
         constexpr r8g8b8a8pixmap_result(png_errno error_code) noexcept
@@ -264,7 +264,7 @@ namespace image
 
     inline r8g8b8a8pixmap_result png_decode_to_r8g8b8a8(const_buffer_view image) noexcept
     {
-        buffer_t temp;
+        buffer_t temp{};
 
         const auto space = png_decode_to_r8g8b8a8(image, temp);
         if (!space)
@@ -272,6 +272,6 @@ namespace image
             return space.error_code();
         }
 
-        return { temp, space };
+        return { std::move(temp), space };
     }
 }

@@ -118,6 +118,8 @@ namespace ui
         static constexpr int32_t p_index_mask{ 0xff00 };
         static constexpr int32_t p_index_shift{ 8 };
 
+        constexpr event() noexcept = default;
+
         event(const AInputEvent* input_e) noexcept;
 
         constexpr explicit operator bool() const noexcept
@@ -168,8 +170,8 @@ namespace ui
         size_t _size() const noexcept;
 
     private:
-        const AInputEvent* input_e_;
-        int32_t action_;
+        const AInputEvent* input_e_{ nullptr };
+        int32_t action_{ invalid_action };
     };
 #endif
 

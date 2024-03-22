@@ -22,8 +22,10 @@ namespace px
         using space_type = pixspace<sizeof(T), Alignment>;
         using span_type = pixspan<T, Alignment>;
         using const_span_type = pixspan<const_pixel_type, Alignment>;
-        using pixline_type = typename span_type::pixline_type;
-        using const_pixline_type = typename const_span_type::pixline_type;
+        using line_type = typename span_type::line_type;
+        using const_line_type = typename const_span_type::line_type;
+        using line_span_type = typename line_type::span_type;
+        using const_line_span_type = typename const_line_type::const_span_type;
         using view_type = const_span_type;
         using line_size_type = typename space_type::line_size_type;
 
@@ -34,7 +36,7 @@ namespace px
 
         constexpr pixmap(const pixmap&) noexcept = delete;
 
-        constexpr pixmap(pixmap_construct_t, buffer_t& buffer, const space_type& space) noexcept
+        constexpr pixmap(pixmap_construct_t, buffer_t&& buffer, const space_type& space) noexcept
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
@@ -46,7 +48,7 @@ namespace px
             , buffer_{ std::move(right.buffer_) }
         {}
 
-        explicit pixmap(const space_type& space) noexcept
+        constexpr explicit pixmap(const space_type& space) noexcept
             : space_type{ space }
             , buffer_{ buffer_construct, space.size_bytes() }
         {
@@ -60,7 +62,7 @@ namespace px
             }
         }
 
-        pixmap(buffer_t buffer, const space_type& space) noexcept
+        constexpr pixmap(buffer_t&& buffer, const space_type& space) noexcept
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
@@ -74,39 +76,39 @@ namespace px
             }
         }
 
-        explicit pixmap(buffer_t buffer) noexcept
+        constexpr explicit pixmap(buffer_t&& buffer) noexcept
             : pixmap{ std::move(buffer), space_type{} }
         {}
 
-        explicit pixmap(pxsize2d sizes) noexcept
+        constexpr explicit pixmap(pxsize2d sizes) noexcept
             : pixmap{ space_type{ sizes } }
         {}
 
-        pixmap(buffer_t buffer, pxsize2d sizes) noexcept
+        constexpr pixmap(buffer_t&& buffer, pxsize2d sizes) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes } }
         {}
 
-        pixmap(pxsize_t x, pxsize_t y) noexcept
+        constexpr pixmap(pxsize_t x, pxsize_t y) noexcept
             : pixmap{ space_type{ x, y } }
         {}
 
-        pixmap(buffer_t buffer, pxsize_t x, pxsize_t y) noexcept
+        constexpr pixmap(buffer_t&& buffer, pxsize_t x, pxsize_t y) noexcept
             : pixmap{ std::move(buffer), space_type{ x, y } }
         {}
 
-        pixmap(pxsize2d sizes, line_size_type line_size) noexcept
+        constexpr pixmap(pxsize2d sizes, line_size_type line_size) noexcept
             : pixmap{ space_type{ sizes, line_size } }
         {}
 
-        pixmap(buffer_t buffer, pxsize2d sizes, line_size_type line_size) noexcept
+        constexpr pixmap(buffer_t&& buffer, pxsize2d sizes, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes, line_size } }
         {}
 
-        pixmap(pxsize_t x, pxsize_t y, line_size_type line_size) noexcept
+        constexpr pixmap(pxsize_t x, pxsize_t y, line_size_type line_size) noexcept
             : pixmap{ space_type{ x, y, line_size } }
         {}
 
-        pixmap(buffer_t buffer, pxsize_t x, pxsize_t y, line_size_type line_size) noexcept
+        constexpr pixmap(buffer_t&& buffer, pxsize_t x, pxsize_t y, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ x, y, line_size } }
         {}
 
@@ -136,6 +138,13 @@ namespace px
         }
 
         [[nodiscard]]
+        buffer_t release_buffer() noexcept
+        {
+            _reject_space();
+            return std::exchange(buffer_, nullmem);
+        }
+
+        [[nodiscard]]
         constexpr pointer data() noexcept
         {
             return static_cast<pointer>(buffer_.void_data());
@@ -154,37 +163,91 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr const_pixline_type cline0() const noexcept
+        constexpr const_line_type clines() const noexcept
         {
-            return { cdata(), space_type::line_size() };
+            return _cspan().lines();
         }
 
         [[nodiscard]]
-        constexpr const_pixline_type line0() const noexcept
+        constexpr const_line_type lines() const noexcept
         {
-            return cline0();
+            return clines();
         }
 
         [[nodiscard]]
-        constexpr pixline_type line0() noexcept
+        constexpr line_type lines() noexcept
         {
-            return { data(), space_type::line_size() };
+            return _span().lines();
         }
 
         [[nodiscard]]
-        constexpr const_pixline_type cbegin() const noexcept
+        constexpr const_line_type clines(pxsize_t index) const noexcept
         {
-            return cline0();
+            return _cspan().lines(index);
+        }
+
+        [[nodiscard]]
+        constexpr const_line_type lines(pxsize_t index) const noexcept
+        {
+            return clines(index);
+        }
+
+        [[nodiscard]]
+        constexpr line_type lines(pxsize_t index) noexcept
+        {
+            return _span().lines(index);
+        }
+
+        [[nodiscard]]
+        constexpr const_line_span_type cline() const noexcept
+        {
+            return clines().cpixels();
+        }
+
+        [[nodiscard]]
+        constexpr const_line_span_type line() const noexcept
+        {
+            return cline();
+        }
+
+        [[nodiscard]]
+        constexpr line_span_type line() noexcept
+        {
+            return lines().pixels();
+        }
+
+        [[nodiscard]]
+        constexpr const_line_span_type cline(pxsize_t index) const noexcept
+        {
+            return clines(index).cpixels();
+        }
+
+        [[nodiscard]]
+        constexpr const_line_span_type line(pxsize_t index) const noexcept
+        {
+            return cline(index);
+        }
+
+        [[nodiscard]]
+        constexpr line_span_type line(pxsize_t index) noexcept
+        {
+            return lines(index).pixels();
+        }
+
+        [[nodiscard]]
+        constexpr const_line_type cbegin() const noexcept
+        {
+            return clines();
         }
 
         [[nodiscard]]
         constexpr const_pointer cend() const noexcept
         {
-            return cdata() + space_type::size();
+            return _cspan().end();
         }
 
         [[nodiscard]]
-        constexpr const_pixline_type begin() const noexcept
+        constexpr const_line_type begin() const noexcept
         {
             return cbegin();
         }
@@ -196,15 +259,15 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr pixline_type begin() noexcept
+        constexpr line_type begin() noexcept
         {
-            return line0();
+            return lines();
         }
 
         [[nodiscard]]
         constexpr const_pointer end() noexcept
         {
-            return data() + space_type::size();
+            return _span().end();
         }
 
         template<class C>
@@ -239,6 +302,12 @@ namespace px
 
         [[nodiscard]]
         constexpr span_type _span() noexcept
+        {
+            return *this;
+        }
+
+        [[nodiscard]]
+        constexpr const_span_type _cspan() const noexcept
         {
             return *this;
         }

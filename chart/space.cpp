@@ -3,7 +3,7 @@
 
 namespace chart
 {
-    event_result space::process(mouse_wheel_event e) noexcept
+    event_result space::process(mouse_wheel_event<> e) noexcept
     {
         if (items_space_cache)
         {
@@ -34,7 +34,7 @@ namespace chart
         return event_result::idle;
     }
 
-    event_result space::process(gesture_event e) noexcept
+    event_result space::process(gesture_event<> e) noexcept
     {
         if (e.keys().is_left() && items_space_cache)
         {

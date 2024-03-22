@@ -45,6 +45,15 @@ namespace
         }
     };
 
+    struct test_buffer
+    {
+        const void* data() const { return nullptr; }
+        size_t size() const { return {}; }
+    };
+
+    template<class T>
+    using is_view_by_copy = std::bool_constant<private_detail_view::is_view_by_copy_v<T>>;
+
     template<class T>
     using is_qualified = std::disjunction<
         std::is_reference<T>,
@@ -56,7 +65,7 @@ namespace
     template<class T>
     constexpr auto test_view_by_copy_v = std::conjunction_v<
         std::negation<is_qualified<T>>,
-        private_detail_view::is_view_by_copy<T>,
+        is_view_by_copy<T>,
         std::is_same<view_by_copy_t<T>, std::add_const_t<T>>,
         std::is_same<view_t<T>, std::add_const_t<T>>
     >;
@@ -64,7 +73,7 @@ namespace
     template<class T>
     constexpr auto test_view_by_cref_v = std::conjunction_v<
         std::negation<is_qualified<T>>,
-        std::negation<private_detail_view::is_view_by_copy<T>>,
+        std::negation<is_view_by_copy<T>>,
         std::is_same<view_by_copy_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>,
         std::is_same<view_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>
     >;
@@ -72,7 +81,7 @@ namespace
     template<class T>
     constexpr auto test_view_with_copy_v = std::conjunction_v<
         std::negation<is_qualified<T>>,
-        private_detail_view::is_view_by_copy<T>,
+        is_view_by_copy<T>,
         std::is_same<view_by_copy_t<T>, std::add_const_t<T>>,
         std::is_same<decl_view_type_t<T>, typename T::view_type>,
         std::is_same<view_t<T>, std::add_const_t<typename T::view_type>>
@@ -81,19 +90,55 @@ namespace
     template<class T>
     constexpr auto test_view_with_cref_v = std::conjunction_v<
         std::negation<is_qualified<T>>,
-        std::negation<private_detail_view::is_view_by_copy<T>>,
+        std::negation<is_view_by_copy<T>>,
         std::is_same<view_by_copy_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>,
         std::is_same<decl_view_type_t<T>, typename T::view_type>,
         std::is_same<view_t<T>, std::add_const_t<typename T::view_type>>
+    >;
+
+    template<class T>
+    constexpr auto test_spanview_with_copy_v = std::conjunction_v<
+        std::negation<is_qualified<T>>,
+        is_view_by_copy<T>,
+        std::is_same<view_by_copy_t<T>, std::add_const_t<T>>,
+        std::negation<is_detected<decl_view_type_t, T>>,
+        std::is_same<view_t<T>, std::add_const_t<span<std::add_const_t<value_type_t<T>>, extent_v<T>> > >
+    >;
+
+    template<class T>
+    constexpr auto test_spanview_with_cref_v = std::conjunction_v<
+        std::negation<is_qualified<T>>,
+        std::negation<is_view_by_copy<T>>,
+        std::is_same<view_by_copy_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>,
+        std::negation<is_detected<decl_view_type_t, T>>,
+        std::is_same<view_t<T>, std::add_const_t<span<std::add_const_t<value_type_t<T>>, extent_v<T>> > >
+    >;
+
+    template<class T>
+    constexpr auto test_bufferview_with_copy_v = std::conjunction_v<
+        std::negation<is_qualified<T>>,
+        is_view_by_copy<T>,
+        std::is_same<view_by_copy_t<T>, std::add_const_t<T>>,
+        std::negation<is_detected<decl_view_type_t, T>>,
+        std::is_same<view_t<T>, std::add_const_t<const_buffer_view> >
     >;
 }
 
 void test_view() noexcept
 {
     {
+        static_assert(std::is_same_v<view_t<char*>, char* const>);
+        static_assert(std::is_same_v<view_t<const char*>, const char*const>);
+        static_assert(std::is_same_v<view_t<const char*const>, const char*const>);
+        static_assert(std::is_same_v<view_t<std::byte*>, std::byte*const>);
+        static_assert(std::is_same_v<view_t<const std::byte*>, const std::byte*const>);
+        static_assert(std::is_same_v<view_t<const std::byte*const>, const std::byte*const>);
+    }
+
+    {
         using namespace private_detail_view;
 
-        static_assert(is_small_size<bytes_array<small_size_v-1u>>::value);
+        static_assert(is_small_size<bytes_array<small_size_v - 1u>>::value);
         static_assert(is_small_size<bytes_array<small_size_v>>::value);
         static_assert(std::negation_v<is_small_size<bytes_array<small_size_v + 1u>>>);
 
@@ -101,22 +146,32 @@ void test_view() noexcept
         static_assert(is_small_size<bytes_array_with_copy_op<small_size_v>>::value);
         static_assert(std::negation_v<is_small_size<bytes_array_with_copy_op<small_size_v + 1u>>>);
 
-        static_assert(is_view_by_copy<long double>::value);
-        static_assert(is_view_by_copy<intmax_t>::value);
-        static_assert(is_view_by_copy<uintmax_t>::value);
+        static_assert(is_small_size<std::array<std::byte, small_size_v - 1u>>::value);
+        static_assert(is_small_size<std::array<std::byte, small_size_v>>::value);
+        static_assert(std::negation_v<is_small_size<std::array<std::byte, small_size_v + 1u>>>);
 
-        static_assert(is_view_by_copy<bytes_array<small_size_v - 1u>>::value);
-        static_assert(is_view_by_copy<bytes_array<small_size_v>>::value);
+        static_assert(is_view_by_copy_v<long double>);
+        static_assert(is_view_by_copy_v<intmax_t>);
+        static_assert(is_view_by_copy_v<uintmax_t>);
+
+        static_assert(is_view_by_copy_v<bytes_array<small_size_v - 1u>>);
+        static_assert(is_view_by_copy_v<bytes_array<small_size_v>>);
+        static_assert(std::negation_v<is_view_by_copy<bytes_array<small_size_v + 1u>>>);
+
+        static_assert(is_view_by_copy_v<bytes_array<small_size_v - 1u>>);
+        static_assert(is_view_by_copy_v<bytes_array<small_size_v>>);
         static_assert(std::negation_v<is_view_by_copy<bytes_array<small_size_v + 1u>>>);
 
         static_assert(std::negation_v<is_view_by_copy<bytes_array_with_copy_op<small_size_v - 1u>>>);
         static_assert(std::negation_v<is_view_by_copy<bytes_array_with_copy_op<small_size_v>>>);
         static_assert(std::negation_v<is_view_by_copy<bytes_array_with_copy_op<small_size_v + 1u>>>);
+
+        static_assert(is_view_by_copy_v<std::array<std::byte, small_size_v - 1u>>);
+        static_assert(is_view_by_copy_v<std::array<std::byte, small_size_v>>);
+        static_assert(std::negation_v<is_view_by_copy<std::array<std::byte, small_size_v + 1u>>>);
     }
 
     {
-        using private_detail_view::small_size_v;        
-
         static_assert(test_view_by_copy_v<long double>);
         static_assert(test_view_by_copy_v<intmax_t>);
         static_assert(test_view_by_copy_v<uintmax_t>);
@@ -136,6 +191,12 @@ void test_view() noexcept
         static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_v - 1u>>);
         static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_v>>);
         static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_v + 1u>>);
+
+        static_assert(test_spanview_with_copy_v<std::array<std::byte, small_size_v - 1u>>);
+        static_assert(test_spanview_with_copy_v<std::array<std::byte, small_size_v>>);
+        static_assert(test_spanview_with_cref_v<std::array<std::byte, small_size_v + 1>>);
+
+        static_assert(test_bufferview_with_copy_v<test_buffer>);
     }
 
     {

@@ -84,8 +84,8 @@ constexpr auto is_rational_v = is_rational<T>::value;
 template<class T>
 using remove_rational_t = typename remove_rational<T>::type;
 
-template<class T> [[nodiscard]]
-constexpr rational<T> simplify(T num, T den) noexcept
+template<class T> 
+[[nodiscard]] constexpr rational<T> simplify(T num, T den) noexcept
 {
     D_ASSERT(den);
 
@@ -98,14 +98,14 @@ constexpr rational<T> simplify(T num, T den) noexcept
     };
 }
 
-template<class T> [[nodiscard]]
-constexpr rational<T> simplify(const rational<T> value) noexcept
+template<class T> 
+[[nodiscard]] constexpr rational<T> simplify(const rational<T> value) noexcept
 {
     return simplify(value.num, value.den);
 }
 
-template<class T> [[nodiscard]]
-constexpr rational<T> inverse(const rational<T> value) noexcept
+template<class T> 
+[[nodiscard]] constexpr rational<T> inverse(const rational<T> value) noexcept
 {
     D_ASSERT(value.num);
 
@@ -116,8 +116,8 @@ constexpr rational<T> inverse(const rational<T> value) noexcept
     };
 }
 
-template<class Target, class Source> [[nodiscard]]
-constexpr Target rational_cast(const Source src) noexcept
+template<class Target, class Source>
+[[nodiscard]] constexpr Target rational_cast(const Source src) noexcept
 {
     if constexpr (is_rational_v<Source>)
     {
@@ -153,14 +153,14 @@ constexpr Target rational_cast(const Source src) noexcept
     }
 }
 
-template<class T> [[nodiscard]]
-constexpr std::enable_if_t<std::is_signed_v<T>, rational<T> > operator - (const rational<T> left) noexcept
+template<class T> 
+[[nodiscard]] constexpr std::enable_if_t<std::is_signed_v<T>, rational<T> > operator - (const rational<T> left) noexcept
 {
     return { -left.num, left.den };
 }
 
-template<class T> [[nodiscard]]
-constexpr rational<T> operator + (const rational<T> left, const rational<T> right) noexcept
+template<class T> 
+[[nodiscard]] constexpr rational<T> operator + (const rational<T> left, const rational<T> right) noexcept
 {
     const auto gcd = std::gcd(left.den, right.den);
     const auto mul_left = right.den / gcd;
@@ -173,8 +173,8 @@ constexpr rational<T> operator + (const rational<T> left, const rational<T> righ
     };
 }
 
-template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t
+template<class T, class U> 
+[[nodiscard]] constexpr std::enable_if_t
 <
     is_safe_numeric_conversion_v<T, U>,
     rational<T>
@@ -188,8 +188,8 @@ operator + (const rational<T> left, const U right) noexcept
     };
 }
 
-template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t
+template<class T, class U>
+[[nodiscard]] constexpr std::enable_if_t
 <
     is_safe_numeric_conversion_v<T, U>,
     rational<T>
@@ -199,12 +199,11 @@ operator + (const U left, const rational<T> right) noexcept
     return right + left;
 }
 
-template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t
+
+template<class T, class U>
+[[nodiscard]] constexpr std::enable_if_t
 <
-    is_safe_numeric_conversion_v<T, U>
-    && std::is_signed_v<T>
-    && std::is_signed_v<U>,
+    std::conjunction_v<is_safe_numeric_conversion<T, U>, std::is_signed<T>, std::is_signed<U>>,
     rational<T>
 >
 operator - (const rational<T> left, const U right) noexcept
@@ -216,12 +215,10 @@ operator - (const rational<T> left, const U right) noexcept
     };
 }
 
-template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t
+template<class T, class U> 
+[[nodiscard]] constexpr std::enable_if_t
 <
-    is_safe_numeric_conversion_v<T, U>
-    && std::is_signed_v<T>
-    && std::is_signed_v<U>,
+    std::conjunction_v<is_safe_numeric_conversion<T, U>, std::is_signed<T>, std::is_signed<U>>,
     rational<T>
 >
 operator - (const U left, const rational<T> right) noexcept
@@ -233,8 +230,8 @@ operator - (const U left, const rational<T> right) noexcept
     };
 }
 
-template<class T> [[nodiscard]]
-constexpr std::enable_if_t
+template<class T> 
+[[nodiscard]] constexpr std::enable_if_t
 <
     std::is_signed_v<T>,
     rational<T>
@@ -243,8 +240,8 @@ constexpr std::enable_if_t
     return left + (-right);
 }
 
-template<class T> [[nodiscard]]
-constexpr rational<T> operator * (const rational<T> left, const rational<T> right) noexcept
+template<class T>
+[[nodiscard]] constexpr rational<T> operator * (const rational<T> left, const rational<T> right) noexcept
 {
     const auto gcd_left = std::gcd(left.num, right.den);
     const auto gcd_right = std::gcd(right.num, left.den);
@@ -256,8 +253,8 @@ constexpr rational<T> operator * (const rational<T> left, const rational<T> righ
     };
 }
 
-template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t
+template<class T, class U> 
+[[nodiscard]] constexpr std::enable_if_t
 <
     is_safe_numeric_conversion_v<T, U>,
     rational<T>
@@ -274,8 +271,8 @@ operator * (const rational<T> left, const U right) noexcept
     };
 }
 
-template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t
+template<class T, class U>
+[[nodiscard]] constexpr std::enable_if_t
 <
     is_safe_numeric_conversion_v<T, U>,
     rational<T>
@@ -285,8 +282,8 @@ operator * (const U left, const rational<T> right) noexcept
     return right * left;
 }
 
-template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t
+template<class T, class U>
+[[nodiscard]] constexpr std::enable_if_t
 <
     is_safe_numeric_conversion_v<T, U>,
     rational<T>
@@ -306,8 +303,8 @@ operator / (const rational<T> left, const U right) noexcept
 }
 
 
-template<class T, class U> [[nodiscard]]
-constexpr std::enable_if_t
+template<class T, class U>
+[[nodiscard]] constexpr std::enable_if_t
 <
     is_safe_numeric_conversion_v<T, U>,
     rational<T>
@@ -317,14 +314,14 @@ operator / (const U left, const rational<T> right) noexcept
     return left * inverse(right);
 }
 
-template<class T> [[nodiscard]]
-constexpr rational<T> operator / (const rational<T> left, const rational<T> right) noexcept
+template<class T> 
+[[nodiscard]] constexpr rational<T> operator / (const rational<T> left, const rational<T> right) noexcept
 {
     return left * inverse(right);
 }
 
-template<class T> [[nodiscard]]
-constexpr bool operator < (const rational<T> left, const rational<T> right) noexcept
+template<class T>
+[[nodiscard]] constexpr bool operator < (const rational<T> left, const rational<T> right) noexcept
 {
     const auto gcd = std::gcd(left.den, right.den);
     const auto mul_left = right.den / gcd;
@@ -333,26 +330,26 @@ constexpr bool operator < (const rational<T> left, const rational<T> right) noex
     return left.num * mul_left < right.num * mul_right;
 }
 
-template<class T> [[nodiscard]]
-constexpr bool operator <= (const rational<T> left, const rational<T> right) noexcept
+template<class T> 
+[[nodiscard]] constexpr bool operator <= (const rational<T> left, const rational<T> right) noexcept
 {
-    return left == right || left < right;
+    return (left == right) || (left < right);
 }
 
-template<class T> [[nodiscard]]
-constexpr bool operator > (const rational<T> left, const rational<T> right) noexcept
+template<class T>
+[[nodiscard]] constexpr bool operator > (const rational<T> left, const rational<T> right) noexcept
 {
     return right < left;
 }
 
-template<class T> [[nodiscard]]
-constexpr bool operator >= (const rational<T> left, const rational<T> right) noexcept
+template<class T>
+[[nodiscard]] constexpr bool operator >= (const rational<T> left, const rational<T> right) noexcept
 {
     return left == right || left > right;
 }
 
-template<class T> [[nodiscard]]
-constexpr rational<T> rational<T>::from_string(span<const char> string) noexcept
+template<class T>
+[[nodiscard]] constexpr rational<T> rational<T>::from_string(span<const char> string) noexcept
 {
     constexpr T max_v = numeric_max_v<T>;
 

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core/zero.h>
-#include <core/limits.h>
 
 
 namespace private_detail_null
@@ -87,6 +86,13 @@ namespace private_detail_null
 
     namespace private_detail_null_type
     {
+        template<class To, class From>
+        using decl_cref_cast_t = decltype(static_cast<const To&>(std::declval<const From&>()));
+
+        template<class To, class From>
+        using has_cref_cast = is_detected<decl_cref_cast_t, To, From>;
+
+
         template<class T, class = void>
         struct null_type_type0
         {
@@ -101,20 +107,11 @@ namespace private_detail_null
             using is_null_constructible_constant_type = std::true_type;
         };
 
-        namespace private_detail_decl_null
-        {
-            template<class To, class From>
-            using decl_cref_cast_t = decltype(static_cast<const To&>(std::declval<const From&>()));
-
-            template<class T, class DeclNullT>
-            using is_decl_null_constructible = is_detected<decl_cref_cast_t, T, DeclNullT>;
-        }
-
         template<class T>
         struct null_type_type0<T, std::void_t<decl_null_type_t<T>> >
         {
             using type = decl_null_type_t<T>;
-            using is_null_constructible_constant_type = private_detail_decl_null::is_decl_null_constructible<T, type>;
+            using is_null_constructible_constant_type = has_cref_cast<T, type>;
         };
 
         template<class T>

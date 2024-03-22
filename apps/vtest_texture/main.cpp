@@ -1,3 +1,5 @@
+#include <core/buffer.h>
+
 #include <gl/draw.h>
 
 #include <debug/debug.h>
@@ -11,7 +13,7 @@ namespace
 {
     void draw_texture_mix(gl::texture2d_resource base_texture, gl::texture2d_resource mix_texture) noexcept
     {
-        static const auto shaders = gl::create_shaders_program
+        static const auto shaders = gl::create_program
         (
             R"(
                 attribute vec2 a_position;
@@ -97,7 +99,7 @@ int app_main(os::module_handle_t app) noexcept
 
     {
         const egl_painting_owner painting_owner{ egl };
-        gl::viewport(egl.viewport);
+        gl::viewport(viewport(egl));
         gl::clear(colors::white_f);
 
         draw_texture_mix(base_texture, mix_texture);

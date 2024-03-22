@@ -1,5 +1,7 @@
 #include "shader.h"
 
+#include <string>
+
 #include <core/small_vector.h>
 
 #include <debug/debug.h>
@@ -9,40 +11,71 @@ namespace gl
 {
     namespace
     {
+        using string = std::basic_string<GLchar>;
+
+        namespace resource
+        {
+            [[nodiscard]]
+            GLint ivalue(shader_resource r, GLenum e, GLint defValue = {}) noexcept
+            {
+                glGetShaderiv(to_underlying(r), e, std::addressof(defValue));
+                return defValue;
+            }
+
+            [[nodiscard]]
+            GLint ivalue(program_resource r, GLenum e, GLint defValue = {}) noexcept
+            {
+                glGetProgramiv(to_underlying(r), e, std::addressof(defValue));
+                return defValue;
+            }
+
+            [[nodiscard]]
+            GLsizei log(shader_resource r, GLsizei size, GLchar* s) noexcept
+            {
+                glGetShaderInfoLog(to_underlying(r), size, &size, s);
+                return size;
+            }
+
+            [[nodiscard]]
+            GLsizei log(program_resource r, GLsizei size, GLchar* s) noexcept
+            {
+                glGetProgramInfoLog(to_underlying(r), size, &size, s);
+                return size;
+            }
+        }
+
+        template<class R>
+        [[nodiscard]] size_t size_log(const R r) noexcept
+        {
+            return narrow<size_t>(resource::ivalue(r, GL_INFO_LOG_LENGTH));
+        }
+
+        template<class R>
+        size_t log(const R r, span<GLchar> chars) noexcept
+        {
+            return narrow<size_t>(resource::log(r, narrow<GLsizei>(chars.size()), chars.data()));
+        }
+
+        template<class R>
+        [[nodiscard]] string log(const R r) noexcept
+        {
+            constexpr auto zero_ch = zero_v<string::value_type>();
+            string log_string(size_log(r), zero_ch);
+            log_string.erase(log(r, log_string));
+            return log_string;
+        }
+
         [[nodiscard]]
         bool compile_status(shader_resource shader) noexcept
         {
-            GLint status{ 0 };
-            glGetShaderiv(to_underlying(shader), GL_COMPILE_STATUS, &status);
-            return !!status;
+            return !!resource::ivalue(shader, GL_COMPILE_STATUS);
         }
 
         [[nodiscard]]
-        size_t compile_log_size(shader_resource shader) noexcept
+        bool link_status(program_resource program)  noexcept
         {
-            GLint size{ 0 };
-            glGetShaderiv(to_underlying(shader), GL_INFO_LOG_LENGTH, &size);
-            return narrow<size_t>(size);
+            return !!resource::ivalue(program, GL_LINK_STATUS);
         }
-
-        size_t compile_log_read(shader_resource shader, span<GLchar> chars) noexcept
-        {
-            auto size = narrow<GLsizei>(chars.size());
-            glGetShaderInfoLog(to_underlying(shader), size, &size, chars.data());
-            return narrow<size_t>(size);
-        }
-
-        [[nodiscard]]
-        bool link_status(shaders_program_resource program)  noexcept
-        {
-            GLint status{ 0 };
-            glGetProgramiv(to_underlying(program), GL_LINK_STATUS, &status);
-            return !!status;
-        }
-
-        using location_index_t = GLuint;
-        static_assert(std::is_same_v<location_index_t, std::underlying_type_t<attribute_location>>);
-        static_assert(std::is_same_v<location_index_t, std::underlying_type_t<uniform_location>>);
 
         using location_detail_getter_t = decltype(glGetActiveAttrib);
         static_assert(std::is_same_v<location_detail_getter_t, decltype(glGetActiveUniform)>);
@@ -51,7 +84,7 @@ namespace gl
         bool test_location
         (
             location_detail_getter_t get_location_detail,
-            shaders_program_resource program,
+            program_resource program,
             location_index_t location,
             glsl_typeid test_typeid,
             string_view test_name
@@ -117,7 +150,7 @@ namespace gl
         template <class LocationType>
         [[nodiscard]] bool test_location
         (
-            shaders_program_resource program,
+            program_resource program,
             LocationType location,
             glsl_typeid test_typeid,
             string_view test_name
@@ -134,14 +167,9 @@ namespace gl
         }
 
         template<class LocationType>
-        [[nodiscard]] LocationType get_location(shaders_program_resource program, zstring_view name) noexcept
+        [[nodiscard]] LocationType get_location(program_resource program, zstring_view name) noexcept
         {
-            const auto location = location_getter_v<LocationType>(to_underlying(program), name.c_str());
-
-            static_assert(std::is_signed_v<decltype(location)>);
-            static_assert(std::is_unsigned_v<location_index_t>);
-            static_assert(std::is_same_v<location_index_t, std::underlying_type_t<LocationType>>);
-            return narrow<LocationType>(location);
+            return narrow<LocationType>(location_getter_v<LocationType>(to_underlying(program), name.c_str()));
         }
     }
 
@@ -160,10 +188,7 @@ namespace gl
 
     void shader_resource_deleter::operator()(shader_resource shader) const noexcept
     {
-        if (shader_resource::null != shader)
-        {
-            glDeleteShader(to_underlying(shader));
-        }
+        glDeleteShader(to_underlying(shader));
     }
 
     shader create_shader(shader_type type) noexcept
@@ -175,12 +200,12 @@ namespace gl
         };
     }
 
-    void attach_shader(shaders_program_resource program, shader_resource shader) noexcept
+    void attach_shader(program_resource program, shader_resource shader) noexcept
     {
         glAttachShader(to_underlying(program), to_underlying(shader));
     }
 
-    bool compile(shaders_program_resource program, source_view source, shader_type type) noexcept
+    bool compile(program_resource program, source_view source, shader_type type) noexcept
     {
         if (const auto shader = create_shader(type)) [[likely]]
         {
@@ -193,47 +218,36 @@ namespace gl
             }
             else
             {
-                const auto log_size = compile_log_size(shader);
-
-                if (log_size > 1_uz)
-                {
-                    std::basic_string<GLchar> chars(log_size, GLchar{});
-                    compile_log_read(shader, chars);
-                    e_debug("GLSL {}", chars.c_str());
-                }
+                e_debug("GLSL: {}", log(view(shader)));
             }
         }
 
         return false;
     }
 
-    bool link(shaders_program_resource program) noexcept
+    bool link(program_resource program) noexcept
     {
         glLinkProgram(to_underlying(program));
         return link_status(program);
     }
 
-    void shaders_program_resource_deleter::operator()(shaders_program_resource program) const noexcept
+    void program_resource_deleter::operator()(program_resource program) const noexcept
     {
-        if (shaders_program_resource::null != program)
-        {
-            glDeleteProgram(to_underlying(program));
-        }
+        glDeleteProgram(to_underlying(program));
     }
 
-    shaders_program create_shaders_program() noexcept
+    program create_program() noexcept
     {
         return
         {
             resource_construct,
-            underlying_cast<shaders_program_resource>(glCreateProgram())
+            underlying_cast<program_resource>(glCreateProgram())
         };
     }
 
-    shaders_program create_shaders_program(source_view vertex, source_view fragment) noexcept
+    program create_program(source_view vertex, source_view fragment) noexcept
     {
-        auto program = create_shaders_program();
-        D_ASSERT(program);
+        auto program = create_program();
 
         if (program) [[likely]]
         {
@@ -241,9 +255,9 @@ namespace gl
             const auto fragment_ok = vertext_ok && compile(program, fragment, shader_type::fragment);
             const auto link_ok = fragment_ok && link(program);
 
-            D_ASSERT(link_ok);
             if (!link_ok) [[unlikely]]
             {
+                e_debug("GL program: {}", log(view(program)));
                 program.reset();
             }
         }
@@ -251,17 +265,17 @@ namespace gl
         return program;
     }
 
-    attribute_location get_attribute_location(shaders_program_resource program, zstring_view name) noexcept
+    attribute_location get_attribute_location(program_resource program, zstring_view name) noexcept
     {
         return get_location<attribute_location>(program, name);
     }
 
-    uniform_location get_uniform_location(shaders_program_resource program, zstring_view name) noexcept
+    uniform_location get_uniform_location(program_resource program, zstring_view name) noexcept
     {
         return get_location<uniform_location>(program, name);
     }
 
-    bool test_uniform(shaders_program_resource program, uniform_location location, glsl_typeid test_typeid, string_view test_name) noexcept
+    bool test_uniform(program_resource program, uniform_location location, glsl_typeid test_typeid, string_view test_name) noexcept
     {
         return test_location(program, location, test_typeid, test_name);
     }

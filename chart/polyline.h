@@ -11,7 +11,9 @@
 
 
 namespace chart
-{    
+{
+    using real_vpoint2d = small_vector<real_point2d>;
+
     [[nodiscard]]
     constexpr space_diagonal_t space_diagonal_with(const space_diagonal_t& dia, const real_point2d& pt) noexcept
     {
@@ -39,7 +41,7 @@ namespace chart
         using model_type = Model;
 
         model_type model{};
-        rgba_colorf_t pen_color{ colors::red_f };
+        rgbaf_color_t pen_color{ colors::red_f };
         gl::unique_texture2d_resource texture_cache{};
 
 
@@ -50,7 +52,7 @@ namespace chart
             texture_cache.reset();
         }
 
-        void clear() noexcept
+        void reset_model() noexcept
         {
             model = null_v<model_type>;
             texture_cache.reset();
@@ -68,10 +70,10 @@ namespace chart
             D_ASSERT_OR_UNUSED(gl::update(texture_cache, pixs));
         }
 
-        void operator()(const shader::pix8_figure_shader_user& shdr) const noexcept
+        void operator()(const shader::pix8_figure_user& shdr) const noexcept
         {
-            shdr.store(pen_color)
-                .store(texture_cache)
+            shdr.color(pen_color)
+                .texture(texture_cache)
                 .draw();
         }
     };

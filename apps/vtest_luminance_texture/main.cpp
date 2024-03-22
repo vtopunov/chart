@@ -60,17 +60,17 @@ int app_main(os::module_handle_t app) noexcept
 
     shaders.use();
     shaders.vert.u_size.store(sizes(texture));
-    shaders.vert.u_viewport.store(egl.viewport);
+    shaders.vert.u_viewport.store(viewport(egl));
     shaders.frag.s_texture.store(texture);
 
     {
         const egl_painting_owner painting_owner{ egl };
-        gl::viewport(egl.viewport);
+        gl::viewport(viewport(egl));
         gl::clear(colors::white_f);
 
         const auto vb = shaders.vert.a_frame.bind();
 
-        const auto [w, h] = egl.viewport;
+        const auto [w, h] = viewport(egl);
         const auto dx = width(texture) + 1_npx;
         const auto dy = height(texture) + 1_npx;
 
@@ -78,12 +78,12 @@ int app_main(os::module_handle_t app) noexcept
 
         for (pxsize_t x = 0_npx; x < w; x += dx)
         {
-            const auto xy_color_lerp = lerp(0_npx, h, color_cast<rgba_color32_t>(x_color_lerp(x)), colors::green);
+            const auto xy_color_lerp = lerp(0_npx, h, to_color(x_color_lerp(x)), colors::green);
 
             for (pxsize_t y = 0_npx; y < h; y += dy)
             {
-                shaders.frag.u_color.store(color_cast<rgba_colorf_t>(xy_color_lerp(y)));
-                shaders.vert.u_position.store(point2d{ x, y });
+                shaders.frag.u_color.store(to_colorf(xy_color_lerp(y)));
+                shaders.vert.u_position.store(x, y);
                 vb.draw();
             }
         }

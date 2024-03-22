@@ -5,6 +5,42 @@
 
 namespace px
 {
+    namespace alignment_implementation
+    {
+        constexpr size_t default_alignment{ 4_uz };
+        constexpr size_t dynamic_alignment{ numeric_max_v<> };
+
+        template<size_t Alignment>
+        struct is_dynamic_alignment : std::bool_constant<Alignment == dynamic_alignment>
+        {};
+
+        template<size_t Alignment>
+        constexpr bool is_dynamic_alignment_v = is_dynamic_alignment<Alignment>::value;
+
+        template<size_t PxSize, size_t Alignment>
+        [[nodiscard]] constexpr size_t aligned_width(size_t width) noexcept
+        {
+            constexpr auto px_size = PxSize;
+            constexpr auto alignment = Alignment;
+
+            if constexpr (px_size < alignment)
+            {
+                static_assert((alignment % px_size) == 0_uz);
+
+                constexpr auto size_line_alignment = alignment / px_size;
+                return size_align< size_line_alignment >(width);
+            }
+            else
+            {
+                static_assert((px_size % alignment) == 0_uz);
+                return width;
+            }
+        }
+    }
+
+    using namespace alignment_implementation;
+
+
     template<bool>
     class line_size_opt
     {
@@ -54,6 +90,7 @@ namespace px
     private:
         size_t line_size_{};
     };
+
 
     template<size_t PxSize, size_t Alignment = default_alignment>
     class pixspace : private line_size_opt<px::is_dynamic_alignment_v<Alignment>>
@@ -158,7 +195,7 @@ namespace px
         [[nodiscard]] constexpr bool operator != (const pixspace&) const = default;
 
     private:
-        template<size_t Align> 
+        template<size_t Align>
         [[nodiscard]] static constexpr line_size_opt<false> _clone_line_size_opt(const pixspace<px_size, Align>&, std::false_type)
         {
             return {};

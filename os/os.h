@@ -1,12 +1,13 @@
 #pragma once
 
-#include <type_traits>
-
 #include <os/fwd.h>
 
 #if defined(D_OS_WINDOWS)
 #include <os/os_windows.h>
 
+static_assert(std::is_same_v<wchar_t, WCHAR>);
+static_assert(std::is_same_v<wchar_t*, LPWSTR>);
+static_assert(std::is_same_v<const wchar_t*, LPCWSTR>);
 static_assert(std::is_same_v<os::handle_t, HANDLE>);
 static_assert(std::is_same_v<os::gdi_object_handle_t, HGDIOBJ>);
 static_assert(std::is_same_v<os::brush_handle_t, HBRUSH>);

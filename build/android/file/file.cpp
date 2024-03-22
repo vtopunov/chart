@@ -5,8 +5,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <core/narrow.h>
-
 #include <file/file_io.h>
 
 #include "private/private_file.h"

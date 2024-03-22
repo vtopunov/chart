@@ -2,16 +2,15 @@
 
 #include <algorithm>
 
-#include <core/span.h>
+#include <core/narrow.h>
 #include <core/round.h>
 
 
 template<class T>
 struct vec2
 {
-    static constexpr size_t tuple_size{ 2_uz };
+    static constexpr size_t extent{ 2u };
     using value_type = T;
-    using view_type = span<const T, tuple_size>;
 
     T _0;
     T _1;
@@ -19,19 +18,13 @@ struct vec2
     [[nodiscard]]
     constexpr size_t size() const noexcept
     {
-        return tuple_size;
+        return extent;
     }
 
     [[nodiscard]]
     constexpr const T* data() const noexcept
     {
         return std::addressof(_0);
-    }
-
-    [[nodiscard]]
-    constexpr operator view_type() const noexcept
-    {
-        return view_type{ data(), tuple_size };
     }
 
     [[nodiscard]]
@@ -79,7 +72,6 @@ struct vec2
 
 template<class T>
 vec2(T, T) -> vec2<T>;
-
 
 namespace private_detail_is_base_of_vec2
 {
@@ -195,15 +187,27 @@ template<template<class> class Vec, class T>
 }
 
 template<class T>
-[[nodiscard]] constexpr auto md_abs(const T& v) noexcept -> decltype(constexpr_abs(v))
+[[nodiscard]] constexpr auto md_abs(const T& v) noexcept -> decltype(u_abs(v))
 {
-    return constexpr_abs(v);
+    return u_abs(v);
 }
 
 template<template<class> class Vec, class T>
 [[nodiscard]] constexpr auto md_abs(const Vec<T>& v) noexcept -> Vec<decltype(md_abs(as_vec2(v)._0))>
 {
     return { md_abs(v._0), md_abs(v._1) };
+}
+
+template<class T>
+[[nodiscard]] constexpr auto md_round(const T& v) noexcept -> decltype(std::round(v))
+{
+    return std::round(v);
+}
+
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr auto md_round(const Vec<T>& v) noexcept -> Vec<decltype(md_round(as_vec2(v)._0))>
+{
+    return { md_round(v._0), md_round(v._1) };
 }
 
 template<template<class> class Vec, class T>
@@ -437,9 +441,9 @@ template<class R, class T>
 
 
 template<class L, class R>
-[[nodiscard]] constexpr auto md_min(const L& a, const R& b) noexcept -> decltype(scalar_min(a, b))
+[[nodiscard]] constexpr auto md_min(const L& a, const R& b) noexcept -> decltype(u_min(a, b))
 {
-    return scalar_min(a, b);
+    return u_min(a, b);
 }
 
 template<template<class> class Vec, class L, class R>
@@ -457,9 +461,9 @@ template<template<class> class Vec, class L, class R>
 }
 
 template<class L, class R>
-[[nodiscard]] constexpr auto md_max(const L& a, const R& b) noexcept -> decltype(scalar_max(a, b))
+[[nodiscard]] constexpr auto md_max(const L& a, const R& b) noexcept -> decltype(u_max(a, b))
 {
-    return scalar_max(a, b);
+    return u_max(a, b);
 }
 
 template<template<class> class Vec, class L, class R>

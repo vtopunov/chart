@@ -125,12 +125,12 @@ int app_main(os::module_handle_t app) noexcept
     
     {
         const egl_painting_owner painting_owner{ egl };
-        gl::viewport(egl.viewport);
+        gl::viewport(viewport(egl));
         gl::clear(colors::white_f);
 
         shaders.use();
         shaders.frag.s_texture.store(texture);
-        shaders.vert.u_viewport.store(egl.viewport);
+        shaders.vert.u_viewport.store(viewport(egl));
         shaders.vert.u_position.store(30_npx, 50_npx);
         shaders.vert.u_size.store(sizes(texture));
         shaders.vert.a_frame.draw();

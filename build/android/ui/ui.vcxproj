@@ -44,15 +44,20 @@
     <ClInclude Include="..\..\..\ui\event.h" />
     <ClInclude Include="..\..\..\ui\event_loop.h" />
     <ClInclude Include="..\..\..\ui\event_matching.h" />
+    <ClInclude Include="..\..\..\ui\event_processor.h" />
+    <ClInclude Include="..\..\..\ui\event_processor_fwd.h" />
     <ClInclude Include="..\..\..\ui\fwd.h" />
     <ClInclude Include="..\..\..\ui\manipulator.h" />
+    <ClInclude Include="..\..\..\ui\type_window.h" />
     <ClInclude Include="..\..\..\ui\window.h" />
+    <ClInclude Include="..\..\..\ui\window_procedure.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\ui\manipulator.cpp" />
     <ClCompile Include="app.cpp" />
     <ClCompile Include="event.cpp" />
     <ClCompile Include="event_loop.cpp" />
+    <ClCompile Include="type_window.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

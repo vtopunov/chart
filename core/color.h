@@ -3,45 +3,54 @@
 #include <core/rational.h>
 
 
-template<class T>
-[[nodiscard]] constexpr T tint_max() noexcept
-{
-    if constexpr (std::is_floating_point_v<T>)
-    {
-        return static_cast<T>(1.0);
-    }
-    else
-    {
-        constexpr auto byte_max = numeric_max_v<u8tint_t>;
+constexpr auto byte_tint_max = numeric_max_v<byte_tint_t>;
 
-        if constexpr (is_rational_v<T>)
+namespace private_detail_argb_color
+{
+    template<class T>
+    struct tint_max_impl_t
+    {
+        constexpr operator T () const noexcept
         {
-            return rational_cast<T>(byte_max);
+            if constexpr (std::is_floating_point_v<T>)
+            {
+                return static_cast<T>(1.0);
+            }
+            else
+            {
+                if constexpr (is_rational_v<T>)
+                {
+                    return rational_cast<T>(byte_tint_max);
+                }
+                else
+                {
+                    static_assert(std::is_integral_v<T>);
+                    return narrow<T>(byte_tint_max);
+                }
+            }
         }
-        else
-        {
-            static_assert(std::is_integral_v<T>);
-            return narrow<T>(byte_max);
-        }
-    }
+    };
 }
 
 template<class T = void>
-struct tint_max_t
+struct tint_max_t : private_detail_argb_color::tint_max_impl_t<T>
 {
-    constexpr operator T () const noexcept
+    static_assert(!std::is_reference_v<T>);
+
+    [[nodiscard]] constexpr T operator () () const noexcept
     {
-        return tint_max<T>();
+        return tint_max_t::operator T();
     }
 };
 
 template<>
 struct tint_max_t<void>
 {
-    template<class T>
+    template<class T, std::enable_if_t<std::negation_v<std::is_reference<T>>, int> = 0>
     constexpr operator T () const noexcept
     {
-        return tint_max<T>();
+        constexpr private_detail_argb_color::tint_max_impl_t<T> impl{};
+        return impl.operator T();
     }
 };
 
@@ -52,13 +61,18 @@ constexpr tint_max_t<T> tint_max_v{};
 template<class Target, class Source>
 [[nodiscard]] constexpr Target color_cast(const Source& src) noexcept;
 
+constexpr size_t rgba_color_view_extent{ 4u };
+
+template<class T>
+using rgba_color_view = span<const T, rgba_color_view_extent>;
+
 template<class T>
 struct rgba_color
 {
-    static constexpr size_t extent{ 4u };
-
     using tint_type = T;
-    using view_type = span<const tint_type, extent>;
+    using value_type = tint_type;
+    using view_type = rgba_color_view<tint_type>;
+    static constexpr auto extent = rgba_color_view_extent;
 
     tint_type r;
     tint_type g;
@@ -115,73 +129,98 @@ struct rgba_color
     }
 };
 
-using rgba_color32_view = rgba_color32_t::view_type;
+template<class T, class A>
+[[nodiscard]] constexpr rgba_color<std::remove_cvref_t<T>> make_rgba(T&& r, T&& g, T&& b, A&& a) noexcept
+{
+    return
+    {
+        .r{ std::forward<T>(r) },
+        .g{ std::forward<T>(g) },
+        .b{ std::forward<T>(b) },
+        .a{ std::forward<A>(a) }
+    };
+}
 
-static_assert(sizeof(rgba_color32_t) == 4u);
+template<class T>
+[[nodiscard]] constexpr rgba_color<std::remove_cvref_t<T>> make_rgb(T&& r, T&& g, T&& b) noexcept
+{
+    return make_rgba
+    (
+        std::forward<T>(r),
+        std::forward<T>(g),
+        std::forward<T>(b),
+        tint_max_v<>
+    );
+}
+
+template<class T>
+[[nodiscard]] constexpr rgba_color<T> make_white(const T& value) noexcept
+{
+    return make_rgb(value, value, value);
+}
 
 
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
 
 [[nodiscard]]
-constexpr u8tint_t a_argb32(u32argb_t argb) noexcept
+constexpr byte_tint_t a_argb(argb_t argb) noexcept
 {
-    return static_cast<u8tint_t>(argb >> 24);
+    return static_cast<byte_tint_t>(argb >> 24);
 }
 
 [[nodiscard]]
-constexpr u8tint_t r_argb32(u32argb_t argb) noexcept
+constexpr byte_tint_t r_argb(argb_t argb) noexcept
 {
-    return static_cast<u8tint_t>((argb >> 16) & 0xffu);
+    return static_cast<byte_tint_t>((argb >> 16) & 0xffu);
 }
 
 [[nodiscard]]
-constexpr u8tint_t g_argb32(u32argb_t argb) noexcept
+constexpr byte_tint_t g_argb(argb_t argb) noexcept
 {
-    return static_cast<u8tint_t>((argb >> 8) & 0xffu);
+    return static_cast<byte_tint_t>((argb >> 8) & 0xffu);
 }
 
 [[nodiscard]]
-constexpr u8tint_t b_argb32(u32argb_t argb) noexcept
+constexpr byte_tint_t b_argb(argb_t argb) noexcept
 {
-    return static_cast<u8tint_t>(argb & 0xffu);
+    return static_cast<byte_tint_t>(argb & 0xffu);
 }
 
 D_WARNING_POP
 
 
 [[nodiscard]]
-constexpr rgba_color32_t u32argb_to_color(u32argb_t argb) noexcept
+constexpr rgba_color_t argb_to_color(argb_t argb) noexcept
 {
     return
     {
-        .r{ r_argb32(argb) },
-        .g{ g_argb32(argb) },
-        .b{ b_argb32(argb) },
-        .a{ a_argb32(argb) }
+        .r{ r_argb(argb) },
+        .g{ g_argb(argb) },
+        .b{ b_argb(argb) },
+        .a{ a_argb(argb) }
     };
 }
 
 [[nodiscard]]
-constexpr rgba_color32_t u32rgb_to_color(u32argb_t rgb) noexcept
+constexpr rgba_color_t rgb_to_color(argb_t rgb) noexcept
 {
-    D_ASSERT(!a_argb32(rgb));
-    return
-    {
-        .r{ r_argb32(rgb) },
-        .g{ g_argb32(rgb) },
-        .b{ b_argb32(rgb) },
-        .a{ tint_max_v<> }
-    };
+    D_ASSERT(!a_argb(rgb));
+    return make_rgb
+    (
+        r_argb(rgb),
+        g_argb(rgb),
+        b_argb(rgb)
+    );
 }
 
 [[nodiscard]]
-constexpr u32argb_t color_to_u32argb(rgba_color32_t color) noexcept
+constexpr argb_t color_to_argb(rgba_color_t color) noexcept
 {
-    return static_cast<u32argb_t>(color.a) << 24
-        | static_cast<u32argb_t>(color.r) << 16
-        | static_cast<u32argb_t>(color.g) << 8
-        | static_cast<u32argb_t>(color.b);
+    return static_cast<argb_t>(color.a) << 24
+        | static_cast<argb_t>(color.r) << 16
+        | static_cast<argb_t>(color.g) << 8
+        | static_cast<argb_t>(color.b);
 }
 
 
@@ -205,19 +244,19 @@ template<class Target, class Source>
 {
     if constexpr (std::is_floating_point_v<Target>)
     {
-        constexpr auto target_max = tint_max<Target>();
+        constexpr auto target_max = tint_max_v<Target>();
 
         if constexpr (is_rational_v<Source>)
         {
             using rational_int_type_t = typename Source::int_type;
-            constexpr auto source_max = tint_max<rational_int_type_t>();
+            constexpr auto source_max = tint_max_v<rational_int_type_t>();
             return target_max * rational_cast<Target>(source / source_max);
         }
         else
         {
             if constexpr (std::is_integral_v<Source>)
             {
-                constexpr auto source_max = tint_max<Source>();
+                constexpr auto source_max = tint_max_v<Source>();
                 constexpr auto ratio = target_max / narrow<Target>(source_max);
                 return ratio * narrow<Target>(source);
             }
@@ -253,15 +292,13 @@ template<class Target, class Source>
     {
         using target_tint_t = typename Target::tint_type;
 
+        constexpr auto tint_cast = [] (auto tint) noexcept
+        {
+            return color_tint_cast<target_tint_t>(tint);
+        };
+
         if constexpr (is_rgba_color_v<Source>)
         {
-            using source_tint_t = typename Source::tint_type;
-
-            constexpr auto tint_cast = [] (source_tint_t tint) noexcept
-            {
-                return color_tint_cast<target_tint_t>(tint);
-            };
-
             return
             {
                 .r{ tint_cast(src.r) },
@@ -270,41 +307,61 @@ template<class Target, class Source>
                 .a{ tint_cast(src.a) }
             };
         }
+        else if constexpr (rgba_color_view_extent == extent_v<Source>)
+        {
+            return
+            {
+                .r{ tint_cast(src[0_uz])},
+                .g{ tint_cast(src[1_uz])},
+                .b{ tint_cast(src[2_uz])},
+                .a{ tint_cast(src[3_uz])}
+            };
+        }
         else
         {
             static_assert(std::is_integral_v<Source>);
-            const auto argb_uint32 = narrow<u32argb_t>(src);
-            const auto rgba_color32 = u32argb_to_color(argb_uint32);
-            return color_cast<Target>(rgba_color32);
+            const auto argb = narrow<argb_t>(src);
+            const auto color = argb_to_color(argb);
+            return color_cast<Target>(color);
         }
     }
     else
     {
-        static_assert(std::is_integral_v<Target> && is_rgba_color_v<Source>);
-        const auto rgba_color32 = color_cast<rgba_color32_t>(src);
-        const auto argb_uint32 = color_to_u32argb(rgba_color32);
-        return narrow<Target>(argb_uint32);
+        static_assert(std::is_integral_v<Target>);
+        const auto color = color_cast<rgba_color_t>(src);
+        const auto argb = color_to_argb(color);
+        return narrow<Target>(argb);
     }
 }
 
 template<class T>
-[[nodiscard]] constexpr rgba_colorf_t to_colorf(const rgba_color<T>& source) noexcept
+[[nodiscard]] constexpr rgba_color_t to_color(const rgba_color<T>& source) noexcept
 {
-    return color_cast<rgba_colorf_t>(source);
+    return color_cast<rgba_color_t>(source);
+}
+
+template<class T>
+[[nodiscard]] constexpr rgbaf_color_t to_colorf(const rgba_color<T>& source) noexcept
+{
+    return color_cast<rgbaf_color_t>(source);
+}
+
+template<class T>
+[[nodiscard]] constexpr T inverse_tint(const T& tint) noexcept
+{
+    constexpr auto tint_max_c = tint_max_v<T>();
+    return static_cast<T>(tint_max_c - tint);
 }
 
 template<class T>
 [[nodiscard]] constexpr rgba_color<T> inverse(const rgba_color<T>& c) noexcept
 {
-    constexpr auto tint_max_c = tint_max<T>();
-    D_ASSERT(tint_max_c == c.a);
-
     return
     {
-        .r{ tint_max_c - c.r },
-        .g{ tint_max_c - c.g },
-        .b{ tint_max_c - c.b },
-        .a{ tint_max_c }
+        .r{ inverse_tint(c.r) },
+        .g{ inverse_tint(c.g) },
+        .b{ inverse_tint(c.b) },
+        .a{ c.a }
     };
 }
 
@@ -479,27 +536,39 @@ template<class L, class R, std::enable_if_t<std::disjunction_v<std::is_arithmeti
 namespace color_literals
 {
     [[nodiscard]]
-    constexpr rgba_color32_t operator "" _rgb(unsigned long long rgb) noexcept
+    constexpr byte_tint_t operator "" _tint(unsigned long long value) noexcept
     {
-        return u32rgb_to_color(narrow<u32argb_t>(rgb));
+        return narrow<byte_tint_t>(value);
     }
 
     [[nodiscard]]
-    constexpr rgba_color32_t operator "" _argb(unsigned long long argb) noexcept
+    constexpr float_tint_t operator "" _tint(long double value) noexcept
     {
-        return u32argb_to_color(narrow<u32argb_t>(argb));
+        return static_cast<float_tint_t>(value);
     }
 
     [[nodiscard]]
-    constexpr rgba_colorf_t operator "" _rgbf(unsigned long long rgb) noexcept
+    constexpr rgba_color_t operator "" _rgb(unsigned long long rgb) noexcept
     {
-        return to_colorf(u32rgb_to_color(narrow<u32argb_t>(rgb)));
+        return rgb_to_color(narrow<argb_t>(rgb));
     }
 
     [[nodiscard]]
-    constexpr rgba_colorf_t operator "" _argbf(unsigned long long argb) noexcept
+    constexpr rgba_color_t operator "" _argb(unsigned long long argb) noexcept
     {
-        return to_colorf(u32argb_to_color(narrow<u32argb_t>(argb)));
+        return argb_to_color(narrow<argb_t>(argb));
+    }
+
+    [[nodiscard]]
+    constexpr rgbaf_color_t operator "" _rgbf(unsigned long long rgb) noexcept
+    {
+        return to_colorf(rgb_to_color(narrow<argb_t>(rgb)));
+    }
+
+    [[nodiscard]]
+    constexpr rgbaf_color_t operator "" _argbf(unsigned long long argb) noexcept
+    {
+        return to_colorf(argb_to_color(narrow<argb_t>(argb)));
     }
 }
 
@@ -507,21 +576,21 @@ namespace colors
 {
     using namespace color_literals;
 
-    constexpr auto black = 0x000000_rgb;
-    constexpr auto gray = 0x7f7f7f_rgb;
-    constexpr auto white = 0xffffff_rgb;
+    constexpr auto white = make_white(byte_tint_max);
+    constexpr auto gray = make_white(0x7f_tint);
+    constexpr auto black = inverse(white);
 
-    constexpr auto red = 0xff0000_rgb;
-    constexpr auto green = 0x00ff00_rgb;
-    constexpr auto blue = 0x0000ff_rgb;
+    constexpr auto red = black.with_red(tint_max_v<>);
+    constexpr auto green = black.with_green(tint_max_v<>);
+    constexpr auto blue = black.with_blue(tint_max_v<>);
 
-    constexpr auto cyan = 0x00ffff_rgb;
-    constexpr auto magenta = 0xff00ff_rgb;
-    constexpr auto yellow = 0xffff00_rgb;
+    constexpr auto cyan = inverse(red);
+    constexpr auto magenta = inverse(green);
+    constexpr auto yellow = inverse(blue);
 
-    constexpr auto black_f = to_colorf(black);
-    constexpr auto gray_f = to_colorf(gray);
     constexpr auto white_f = to_colorf(white);
+    constexpr auto gray_f = make_white(0.5_tint);
+    constexpr auto black_f = to_colorf(black);
 
     constexpr auto red_f = to_colorf(red);
     constexpr auto green_f = to_colorf(green);

@@ -125,18 +125,12 @@ namespace ui
         const window_handle_t window;
     };
 
-    template<class T>
-    using decl_event_binder_type_t = typename T::event_binder_type;
-
-    template<class T>
-    using event_binder_type_t = std::add_const_t<detected_or_t<default_event_binder, decl_event_binder_type_t, T>>;
-
     template<class EventSource, class EventTarget>
     int run_event_loop(const EventSource& source, EventTarget&& target) noexcept
     {
-        using event_binder_type = event_binder_type_t<resource_type_t<std::remove_cvref_t<EventSource>>>;
+        using event_source_binder_type = event_binder_type_t<std::remove_cvref_t<EventSource>>;
         auto& target_ref = as_reference(target);
-        const auto event_bind_holder = event_binder_type{source}.bind(target_ref);
+        const auto event_bind_holder = event_source_binder_type{source}.bind(target_ref);
         private_detail_event_loop::sizes_initialization();
         return private_detail_event_loop::run_event_loop_impl(target_ref);
     }

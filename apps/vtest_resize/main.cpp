@@ -101,7 +101,7 @@ namespace
 
         bool initialize() noexcept
         {
-            return widget.initialize(egl.viewport);
+            return widget.initialize(viewport(egl));
         }
 
         std::nullopt_t operator () (const ui::size_event& e) noexcept
@@ -113,7 +113,7 @@ namespace
         ui::milliseconds operator () (ui::idle_event) const noexcept
         {
             const egl_painting_owner painting_owner{ egl };
-            gl::viewport(egl.viewport);
+            gl::viewport(viewport(egl));
             gl::clear(colors::white_f);
             widget.draw();
             return ui::infinite;

@@ -34,6 +34,20 @@ namespace widget
             return initialization_was_successful(apply_event(widget, e));
         }
 
+        class paining_owner
+        {
+        public:
+            explicit paining_owner(const widget::window& w) noexcept
+                : owner_{ w }
+            {
+                gl::viewport(viewport(w));
+                gl::clear(colors::dialog_color_f);
+            }
+
+        private:
+            egl_painting_owner owner_;
+        };
+
         template<class Widget>
         class processor
         {
@@ -50,8 +64,8 @@ namespace widget
                 const auto new_size = e.sizes();
                 if (new_size.width() > 0_npx && new_size.height() > 0_npx) [[likely]]
                 {
-                    D_ASSERT(new_size.width() <= cref_window().viewport.width());
-                    D_ASSERT(new_size.height() <= cref_window().viewport.height());
+                    D_ASSERT(new_size.width() <= cref_window().viewport().width());
+                    D_ASSERT(new_size.height() <= cref_window().viewport().height());
                     ref_window().content_sizes(new_size);
                     apply_ui_event(e);
                 }
@@ -60,29 +74,16 @@ namespace widget
             }
 #endif
 
-            void operator () (const ui::content_rect_changed_event&) noexcept
+            void operator () (ui::content_rect_changed_event) noexcept
             {
-                const auto new_viewport = app_ui_viewport_request(cref_window());
-                if (!new_viewport) [[unlikely]]
+                if (ref_window().update_viewport())
                 {
-                    ui_fatal_debug(cref_window(), "content rect error: ui error: {}, egl error: {}",
-                        ui::error_code(), eglGetError());
-                    return;
-                }
-
-                    if (new_viewport != cref_window().viewport)
+                    if (!apply_ui_initialization_event(viewport_event_base_v))
                     {
-                        ref_window().viewport = new_viewport;
-
-                        if (!apply_ui_initialization_event(new_viewport))
-                        {
-                            ui_fatal_debug(cref_window(), "update viewport error: ui error: {}, egl error: {}",
-                                ui::error_code(), eglGetError());
-                            return;
-                        }
+                        ui_fatal_debug(cref_window(), "update viewport error: ui error: {}, egl error: {}",
+                            ui::error_code(), eglGetError());
                     }
-
-                return;
+                }
             }
 
             void operator () (ui::redraw_needed_event) noexcept
@@ -143,34 +144,32 @@ namespace widget
             [[nodiscard]]
             bool initialize() noexcept
             {
-                return apply_ui_initialization_event(cref_window());
+                return apply_ui_initialization_event(initialization_event_base_v)
+                    && apply_ui_initialization_event(viewport_event_base_v);
             }
 
         private:
             template<class Event>
-            void apply_ui_event(const Event& e) noexcept
+            bool apply_ui_initialization_event(const Event& e) noexcept
             {
-                combine_event_result(combined_event_result_, apply_event(common_context_, e));
-
-                {
-                    const event_common_context e_cc{ e, common_context_ };
-                    combine_event_result(combined_event_result_, apply_event(widget_, e_cc));
-                }
+                const event_common_context e_cc{ e, common_context_ };
+                return apply_initialization_event(common_context_, e_cc)
+                    && apply_initialization_event(widget_, e_cc);
             }
 
             template<class Event>
-            [[nodiscard]] bool apply_ui_initialization_event(const Event& e) noexcept
+            void apply_ui_event(const Event& e) noexcept
             {
-                return apply_initialization_event(common_context_, e)
-                    && apply_initialization_event(widget_, e);
+                const event_common_context e_cc{ e, common_context_ };
+                combine_event_result(combined_event_result_, apply_event(common_context_, e_cc));
+                combine_event_result(combined_event_result_, apply_event(widget_, e_cc));
             }
 
             void draw() noexcept
             {
-                const egl_painting_owner painting_owner{ cref_window() };
-                gl::viewport(cref_window().viewport);
-                gl::clear(colors::dialog_color_f);
-                D_UNUSED(apply_event(widget_, common_context_));
+                [[maybe_unused]] const paining_owner painting_owner{ cref_window() };
+                const event_common_context e_cc{ redraw_event_base_v, common_context_ };
+                D_UNUSED(apply_event(widget_, e_cc));
             }
 
         private:

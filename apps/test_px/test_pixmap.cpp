@@ -30,9 +30,9 @@ namespace
 
 void test_pixmap() noexcept
 {
-    using rgba_pixmap = pixmap<rgba_color32_t>;
+    using rgba_pixmap = pixmap<rgba_color_t>;
 
-    static_assert(std::is_same_v<rgba_pixmap::pixel_type, rgba_color32_t>);
+    static_assert(std::is_same_v<rgba_pixmap::pixel_type, rgba_color_t>);
     static_assert(std::is_same_v<rgba_pixmap::space_type, pix32space>);
     static_assert(rgba_pixmap::alignment == px::default_alignment);
 
@@ -44,12 +44,12 @@ void test_pixmap() noexcept
 
     {
         rgba_pixmap rgba_pixmap;
-        test_convert_to_pixspan<rgba_color32_t>(rgba_pixmap, rgba_pixmap);
+        test_convert_to_pixspan<rgba_color_t>(rgba_pixmap, rgba_pixmap);
     }
 
     {
         rgba_pixmap rgba_pixmap{ 2_npx, 3_npx };
-        test_convert_to_pixspan<rgba_color32_t>(rgba_pixmap, rgba_pixmap);
+        test_convert_to_pixspan<rgba_color_t>(rgba_pixmap, rgba_pixmap);
     }
 
     {

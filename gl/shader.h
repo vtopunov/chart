@@ -10,6 +10,11 @@
 
 namespace gl
 {
+    using zstring_view = basic_zstring_view<GLchar>;
+    using string_view = std::basic_string_view<GLchar>;
+    using source_view = string_view;
+
+
     inline bool is_correct() noexcept
     {
         return GL_NO_ERROR == glGetError();
@@ -20,10 +25,6 @@ namespace gl
         return !is_correct();
     }
 
-
-    using zstring_view = basic_zstring_view<GLchar>;
-    using string_view = std::basic_string_view<GLchar>;
-    using source_view = string_view;
 
     enum class shader_resource : GLuint
     {
@@ -47,66 +48,72 @@ namespace gl
         vertex = GL_VERTEX_SHADER
     };
 
-    [[nodiscard]]
+    [[nodiscard]] 
     shader create_shader(shader_type type) noexcept;
 
-    enum class shaders_program_resource : GLuint
+    enum class program_resource : GLuint
     {
         null
     };
 
-    void attach_shader(shaders_program_resource program, shader_resource shader) noexcept;
+    void attach_shader(program_resource program, shader_resource shader) noexcept;
 
-    bool compile(shaders_program_resource program, source_view source, shader_type type) noexcept;
+    [[nodiscard]]
+    bool compile(program_resource program, source_view source, shader_type type) noexcept;
 
-    bool link(shaders_program_resource program) noexcept;
+    [[nodiscard]]
+    bool link(program_resource program) noexcept;
 
-    inline void use(shaders_program_resource program) noexcept
+    inline void use(program_resource program) noexcept
     {
         glUseProgram(to_underlying(program));
     }
 
-    struct shaders_program_resource_deleter
+    struct program_resource_deleter
     {
-        void operator () (shaders_program_resource program) const noexcept;
+        void operator () (program_resource program) const noexcept;
     };
 
-    using shaders_program = unique_resource<shaders_program_resource, shaders_program_resource_deleter>;
+    using program = unique_resource<program_resource, program_resource_deleter>;
 
     [[nodiscard]]
-    shaders_program create_shaders_program() noexcept;
+    program create_program() noexcept;
 
     [[nodiscard]]
-    shaders_program create_shaders_program(source_view vertex, source_view fragment) noexcept;
+    program create_program(source_view vertex, source_view fragment) noexcept;
 
-    using location_numer_t = GLuint;
-    static_assert(std::is_unsigned_v<location_numer_t>);
-    constexpr auto invalid_location_number = numeric_max_v<location_numer_t>;
+    using location_index_t = GLuint;
+    static_assert(std::is_unsigned_v<location_index_t>);
+    constexpr auto invalid_location_index = numeric_max_v<location_index_t>;
 
-    enum class attribute_location : location_numer_t
+    enum class attribute_location : location_index_t
     {
-        invalid = invalid_location_number
+        invalid = invalid_location_index
     };
 
-    using invalidattribute_t = null_t<attribute_location>;   
+    using invalidattribute_t = null_t<attribute_location>;
     constexpr invalidattribute_t invalidattribute{};
     static_assert(attribute_location::invalid == invalidattribute);
 
     [[nodiscard]]
-    attribute_location get_attribute_location(shaders_program_resource program, zstring_view name) noexcept;
+    attribute_location get_attribute_location(program_resource program, zstring_view name) noexcept;
 
-    template<class... Names> [[nodiscard]]
-    std::array<attribute_location, sizeof...(Names)>  get_attribute_locations(shaders_program_resource program, const Names&... names) noexcept
+    template<class... Names>
+    [[nodiscard]] std::array<attribute_location, sizeof...(Names)> get_attribute_locations
+    (
+        program_resource program, 
+        const Names&... names
+    ) noexcept
     {
-         return { get_attribute_location(program, names)... };
+        return { get_attribute_location(program, names)... };
     }
 
-    enum class uniform_location : location_numer_t
+    enum class uniform_location : location_index_t
     {
-        invalid = invalid_location_number
+        invalid = invalid_location_index
     };
 
-    using location_int_t = std::make_signed_t<location_numer_t>;
+    using location_int_t = std::make_signed_t<location_index_t>;
     static_assert(std::is_same_v<location_int_t, GLint>);
 
     [[nodiscard]]
@@ -116,7 +123,7 @@ namespace gl
     }
 
     [[nodiscard]]
-    uniform_location get_uniform_location(shaders_program_resource program, zstring_view name) noexcept;
+    uniform_location get_uniform_location(program_resource program, zstring_view name) noexcept;
 
     inline void store_uniform_value(uniform_location u, GLint value) noexcept
     {
@@ -189,7 +196,7 @@ namespace gl
     [[nodiscard]]
     bool test_uniform
     (
-        shaders_program_resource program,
+        program_resource program,
         uniform_location location,
         glsl_typeid test_typeid,
         string_view test_name
@@ -221,7 +228,7 @@ namespace gl
     {
         static constexpr glsl_typeid type_id{ TypeId };
         using value_view_type = glsl_view_t<type_id>;
-       
+
 #if D_IS_DEBUG
         bool debug_is_stored__{ false };
 
@@ -237,12 +244,12 @@ namespace gl
 #endif
 
         [[nodiscard]]
-        bool test(shaders_program_resource program, string_view name) const noexcept
+        bool test(program_resource program, string_view name) const noexcept
         {
             return test_uniform(program, location, type_id, name);
         }
 
-        void store(value_view_type view) const
+        void store(value_view_type view) const noexcept
         {
             D_ONLY_DEBUG(__debug_store());
             store_uniform_value(location, view);
@@ -255,8 +262,8 @@ namespace gl
             return store_uniform_method_v<type_id>(location_as_int(location), values...);
         }
 
-        [[nodiscard]] 
-        static uniform instance(shaders_program_resource program, zstring_view name) noexcept
+        [[nodiscard]]
+        static uniform instance(program_resource program, zstring_view name) noexcept
         {
             const uniform result{ get_uniform_location(program, name) };
             D_ASSERT(result.test(program, name.c_str()));

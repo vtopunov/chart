@@ -5,15 +5,15 @@ namespace vtest_move_and_zoom
 {
     [[nodiscard]]
     constexpr pxzrectangle zoom(pxzrectangle rc, lpxoff2d zoom) noexcept
-    { 
+    {
         const auto position = md_trunc_cast<pxoff2d>(rc.position - zoom / 2);
         const auto sizes = md_trunc_cast<pxsize2d>(rc.sizes + zoom);
 
-        const auto ok 
+        const auto ok
             = md_is_safe_narrowing_conversion<gl::vec2f>(position)
             && md_is_safe_narrowing_conversion<gl::vec2f>(sizes);
 
-        if(ok)
+        if (ok)
         {
             return
             {
@@ -89,17 +89,17 @@ namespace vtest_move_and_zoom
             return {};
         }
 
-        std::default_random_engine content_generator{};
-
         {
-            const auto width = tex_mem.width();
-            for (auto line_it : tex_mem)
+            std::default_random_engine content_generator{};
+
+            for (auto line : tex_mem)
             {
-                for (const auto end = line_it + width; line_it < end; line_it += pixmap_t::alignment)
+                const auto cend = line.cend();
+                for (auto it = line.begin(); it < cend; it += pixmap_t::alignment)
                 {
                     const auto value = content_generator();
                     static_assert(pixmap_t::alignment == sizeof(value));
-                    memcpy(line_it, &value, sizeof(value));
+                    memcpy(it, &value, sizeof(value));
                 }
             }
         }

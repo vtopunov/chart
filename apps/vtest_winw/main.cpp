@@ -5,6 +5,7 @@
 
 using namespace std::chrono_literals;
 
+
 namespace
 {
     constexpr pxrectangle subwindow_geometry(pxsize2d mainwindow_sizes) noexcept
@@ -53,18 +54,17 @@ namespace
     };
 }
 
-using instance_t = os::module_handle_t;
 
-int D_OS_APICALL wWinMain(instance_t instance, instance_t, wchar_t*, int command_show)
+int app_main(os::module_handle_t app) noexcept
 {
     debug("create main window");
     ui::window_builder builder{};
-    builder.module(instance);
+    builder.module(app);
 
     const auto mainwindow 
         = builder
         .background(ui::stock_brush::dark_gray)
-        .title(L"vtest_win32app")
+        .title(L"vtest_winw")
         .build();
 
     if ( !mainwindow )
@@ -87,7 +87,7 @@ int D_OS_APICALL wWinMain(instance_t instance, instance_t, wchar_t*, int command
     }
 
     debug("show main window");
-    ui::show(mainwindow, command_show);
+    ui::show(mainwindow);
 
     debug("run event loop");
     return ui::run_event_loop(mainwindow, main_processor{});

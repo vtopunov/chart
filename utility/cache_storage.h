@@ -182,5 +182,5 @@ private:
 
 private:
     storage_type storage_;
-    ref_count_type unused_time_{ numeric_min_v<ref_count_type> };
+    ref_count_type unused_time_{ numeric_min_v<> };
 };

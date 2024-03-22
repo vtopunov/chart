@@ -11,8 +11,6 @@
 
 namespace gl
 {
-    static_assert(std::is_same_v<tintf_t, GLfloat>);
-
     inline void viewport(pxsize2d sizes) noexcept
     {
         glViewport
@@ -34,7 +32,7 @@ namespace gl
         clear(red, green, blue, 1.0f);
     }
 
-    inline void clear(rgba_colorf_t color) noexcept
+    inline void clear(rgbaf_color_t color) noexcept
     {
         clear(color.r, color.g, color.b, color.a);
     }
@@ -292,7 +290,7 @@ namespace gl
         }
 
     private:
-        gl::buffer bo_;
+        gl::buffer bo_{};
         size_t size_{ 0_uz };
     };
 

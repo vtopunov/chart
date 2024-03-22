@@ -19,20 +19,20 @@ namespace
     class main_widget
     {
     public:
-        bool operator () (viewport_size2d viewport) noexcept
+        bool operator () (widget::viewport_event<> e) noexcept
         {
-            texture_ = pix8map_test_texture_generate(viewport / 4u);
+            texture_ = pix8map_test_texture_generate(e.viewport() / 4u);
             if (!texture_)
             {
                 return false;
             }
 
-            if (!shaders_.initialize(viewport, texture_))
+            if (!shaders_.initialize(e.viewport(), texture_))
             {
                 return false;
             }
 
-            area_ = default_area(viewport);
+            area_ = default_area(e.viewport());
             return true;
         }
 
@@ -47,9 +47,9 @@ namespace
             return event_result::idle;
         }
 
-        event_result operator () (widget::mouse_double_click_event<viewport_size2d> e) noexcept
+        event_result operator () (widget::mouse_double_click_event<> e) noexcept
         {
-            area_ = default_area(e.get<viewport_size2d>());
+            area_ = default_area(e.viewport());
             return event_result::redraw;
         }
 
@@ -73,9 +73,9 @@ namespace
         }
 
         template<class Fn>
-        constexpr decltype(auto) apply(Fn fn) const noexcept
+        constexpr decltype(auto) apply(Fn&& fn) const noexcept
         {
-            return widget::ex_context_v<gesture_event_type>(fn);
+            return widget::ex_context_v<gesture_event_type>(std::forward<Fn>(fn));
         }
 
     private:

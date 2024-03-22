@@ -42,7 +42,7 @@
     <ClInclude Include="..\..\..\egl_ui\egl_config.h" />
     <ClInclude Include="..\..\..\egl_ui\egl_context.h" />
     <ClInclude Include="..\..\..\egl_ui\egl_ui_owner.h" />
-    <ClInclude Include="..\..\..\egl_ui\app_ui_owner.h" />
+    <ClInclude Include="..\..\..\egl_ui\ui_owner.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\egl_ui\egl_context.cpp" />

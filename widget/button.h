@@ -4,7 +4,6 @@
 #include <string>
 
 #include <widget/ex_context.h>
-#include <widget/event.h>
 #include <widget/shader.h>
 #include <widget/text.h>
 
@@ -36,15 +35,15 @@ namespace widget
             }
         }
 
-        event_result operator () (const ui::mouse_down_event& e) noexcept;
-        event_result operator () (const ui::mouse_up_event& e) noexcept;
+        [[nodiscard]] event_result operator () (const ui::mouse_down_event& e) noexcept;
+        [[nodiscard]] event_result operator () (const ui::mouse_up_event& e) noexcept;
 
 #ifdef D_OS_WINDOWS
-        event_result operator () (const ui::mouse_move_event& e) noexcept;
+        [[nodiscard]] event_result operator () (const ui::mouse_move_event& e) noexcept;
 
 #endif       
 
-        using redraw_event_type = redraw_event<
+        using redraw_event_type = basic_redraw_event<
             shader::luminance8_texture_mix_color,
             shader::colored_rectangle,
             buffer_view

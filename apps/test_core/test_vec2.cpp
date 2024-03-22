@@ -4,6 +4,7 @@ D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_signed_unsigned_mismatch)
 
 #include <core/vec2.h>
+#include <core/view.h>
 
 #include <vector>
 
@@ -13,7 +14,8 @@ namespace
     template<class T>
     void test_view0(span<const T, 2_uz> view, const vec2<T>& vec) noexcept
     {
-        static_assert(std::is_same_v<decltype(view), typename std::decay_t<decltype(vec)>::view_type>);
+        static_assert(2u == extent_v<decltype(vec)>);
+        static_assert(std::is_same_v<const decltype(view), view_t<decltype(vec)>>);
         static_assert(std::is_same_v<typename vec2<T>::value_type, T>);
         static_assert(std::is_same_v<decltype(vec2<T>::_0), T>);
         static_assert(vec2<T>{}.size() == 2_uz);
@@ -26,12 +28,19 @@ namespace
     {
         test_view0<T>(vec, vec);
     }
+
+    template<class T>
+    void test_view(vec2<T>& vec) noexcept
+    {
+        test_view0<T>(vec, vec);
+    }
 }
 
 void test_vec2() noexcept
 {
     {
-        static_assert(std::is_same_v<decl_view_type_t<vec2<int>>, vec2<int>::view_type>);
+        static_assert(std::is_same_v<view_t<vec2<int>>, const span<const int, 2_uz>>);
+        static_assert(2u == extent_v<vec2<int>>);
     }
 
     {
@@ -50,6 +59,11 @@ void test_vec2() noexcept
 
         static_assert(v1.data() == std::addressof(v1._0));
         test_view(v1);
+
+        {
+            vec2 v{ 3, 1 };
+            test_view(v);
+        }
 
         static_assert(std::is_trivial_v<vec2<int>> && std::is_standard_layout_v<vec2<int>>);
 
@@ -200,14 +214,17 @@ void test_vec2() noexcept
         }
 
         {
-            constexpr auto vvvz = fill_vec2(fill_vec2(fill_vec2(0.0)));
-            constexpr auto d_vvv0 = 1.0 * vvv0;
-            static_assert(d_vvv0 == vvv0 * 1.0);
-            static_assert(d_vvv0 == vvv0 + vvvz);
-            static_assert(d_vvv0 == vvvz + vvv0);
-            static_assert(d_vvv0 == vvv0 - vvvz);
-            static_assert(d_vvv0 == -(vvvz - vvv0));
-            static_assert(d_vvv0._1._1._0 == 1.0 * vvv0._1._1._0);
+            constexpr auto vvvz_d = fill_vec2(fill_vec2(fill_vec2(0.0)));
+            constexpr auto vvve_d = fill_vec2(fill_vec2(fill_vec2(1.0)));
+            constexpr auto vvv0_d = 1.0 * vvv0;
+            constexpr auto vvv0_p1_d = vvv0 + vvve_d;
+            static_assert(vvv0_d == vvv0 * 1.0);
+            static_assert(vvv0_d == vvv0 + vvvz_d);
+            static_assert(vvv0_d == vvvz_d + vvv0);
+            static_assert(vvv0_d == vvv0 - vvvz_d);
+            static_assert(vvv0_d == -(vvvz_d - vvv0));
+            static_assert(vvv0_d._1._1._0 == 1.0 * vvv0._1._1._0);
+            static_assert(vvv0_d + vvve_d == vvv0_p1_d);
 
             constexpr auto inc_0_9 = fill_vec2(fill_vec2(fill_vec2(0.9)));
             constexpr auto inc_0_1 = fill_vec2(fill_vec2(fill_vec2(0.1)));
@@ -225,11 +242,17 @@ void test_vec2() noexcept
             D_ASSERT(vvv0 == md_round_to_near(vvv0 + inc_0_1, vvv0));
             D_ASSERT(vvv0 == md_round_to_near(vvv0_m0_1, vvv0));
 
-            static_assert(d_vvv0 == md_narrow<decltype(d_vvv0)>(vvv0));
-            static_assert(d_vvv0 == md_numeric_cast<decltype(d_vvv0)>(vvv0));
-            static_assert(d_vvv0 == md_trunc_cast<decltype(d_vvv0)>(vvv0));
+            D_ASSERT(vvv0_p1_d == md_round(vvv0_0_9));
+            D_ASSERT(vvv0_d == md_round(vvv0 + inc_0_1));
+            D_ASSERT(vvv0_d == md_round(vvv0_m0_1));
+            D_ASSERT(vvv0_p1_d == md_round(vvv0 + 0.5 * vvve_d + inc_0_1));
+            D_ASSERT(vvv0_d == md_round(vvv0 + 0.5 * vvve_d - inc_0_1));
 
-            D_ASSERT(vvv0 == md_trunc_cast<decltype(vvv0)>(d_vvv0));
+            static_assert(vvv0_d == md_narrow<decltype(vvv0_d)>(vvv0));
+            static_assert(vvv0_d == md_numeric_cast<decltype(vvv0_d)>(vvv0));
+            static_assert(vvv0_d == md_trunc_cast<decltype(vvv0_d)>(vvv0));
+
+            D_ASSERT(vvv0 == md_trunc_cast<decltype(vvv0)>(vvv0_d));
             D_ASSERT(vvv0 == md_trunc_cast<decltype(vvv0)>(vvv0 + inc_0_9));
             D_ASSERT(vvv0 == -md_trunc_cast<decltype(vvv0)>(-(vvv0 + inc_0_9)));
         }
@@ -257,7 +280,7 @@ void test_vec2() noexcept
         };
 
         auto inf_vvv0 = vvv0;
-        inf_vvv0._1._1._1 = numeric_inf_v<double>;
+        inf_vvv0._1._1._1 = numeric_inf_v<>;
 
         auto denorm_vvv0 = vvv0;
         const auto denorm_zero = std::nextafter(0.0, 1.0);

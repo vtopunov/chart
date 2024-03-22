@@ -1,29 +1,15 @@
 #include <widget/event_matching.h>
-#include <widget/window.h>
+#include <widget/context.h>
 
 
 namespace
 {
-    struct widget0
+    template<class Event>
+    struct e_widget
     {
         size_t n_calls{ 0 };
 
-        void operator () (ui::const_module_handle_t) noexcept
-        {
-            ++n_calls;
-        }
-
-        constexpr widget::noapply_t apply(no_overload) const noexcept
-        {
-            return widget::noapply;
-        }
-    };
-
-    struct widget1
-    {
-        size_t n_calls{ 0 };
-
-        void operator () (viewport_size2d) noexcept
+        void operator () (Event) noexcept
         {
             ++n_calls;
         }
@@ -36,27 +22,32 @@ namespace
 
     struct main_widget
     {
-        widget0 w0{};
-        widget1 w1{};
+        e_widget<widget::viewport_event_base > w0{};
+        e_widget<widget::basic_viewport_event<> > w1{};
+        e_widget<widget::viewport_event<> >  w2{};
 
         template<class Fn>
         decltype(auto) apply(Fn fn) noexcept
         {
-            return fn(w0, w1);
+            return fn(w0, w1, w2);
         }
     };
 }
 
 void test_event_matching() noexcept
 {
-    widget::window testnullw{};
+    const widget::window w{};
+    const widget::common_context_t<main_widget> cc{ w };
+    const widget::event_common_context e{ widget::viewport_event_base_v, cc};
     main_widget main_wgt{};
 
     {
         D_ASSERT(0u == main_wgt.w0.n_calls);
         D_ASSERT(0u == main_wgt.w1.n_calls);
-        D_UNUSED(widget::apply_event(main_wgt, testnullw));
+        D_ASSERT(0u == main_wgt.w2.n_calls);
+        D_UNUSED(widget::apply_event(main_wgt, e));
         D_ASSERT(1u == main_wgt.w0.n_calls);
         D_ASSERT(1u == main_wgt.w1.n_calls);
+        D_ASSERT(1u == main_wgt.w2.n_calls);
     }
 }

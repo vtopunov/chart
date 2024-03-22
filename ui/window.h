@@ -4,19 +4,159 @@
 
 #ifdef D_OS_WINDOWS
 #include <string>
-
 #include <core/small_vector.h>
+#endif
 
 #include <ui/type_window.h>
-
-#else
-#include <ui/fwd.h>
-
-#endif
 
 
 namespace ui
 {
+    using title_string_t = D_CONDITIONAL_OS_WINDOWS(std::wstring, wzstring_view);
+
+    struct window_parameters
+    {
+        mutable type_window_builder type_builder{};
+        mutable shared_type_window cached_type{};
+
+#ifdef D_OS_WINDOWS
+        title_string_t title{};
+        pxrectangle geometry{ rc_usedefault };
+        window_handle_t parent{ nullptr };
+#endif
+    };
+
+    inline void prepare(const window_parameters& params) noexcept
+    {
+        if (params.cached_type)
+        {
+            if (!params.type_builder.module())
+            {
+                params.type_builder.module(params.cached_type.r().module);
+            }
+        }
+        else
+        {
+            params.cached_type = params.type_builder.build();
+        }
+
+        D_ASSERT(!params.cached_type || (params.cached_type.r().module == params.type_builder.module()));
+    }
+
+    template<class Builder, class Params>
+    class window_gatherer
+    {
+    public:
+        static_assert(std::disjunction_v<std::is_same<window_parameters, Params>, std::is_base_of<window_parameters, Params>>);
+
+        Builder& type(unique_type_window type) noexcept
+        {
+            params_.cached_type = std::move(type);
+            return _builder();
+        }
+
+        Builder& background(stock_brush brush) noexcept
+        {
+            params_.type_builder.background(brush);
+            params_.cached_type.deattach_and_reset();
+            return _builder();
+        }
+
+        Builder& background(unique_brush brush) noexcept
+        {
+            params_.type_builder.background(std::move(brush));
+            params_.cached_type.deattach_and_reset();
+            return _builder();
+        }
+
+        Builder& window_procedure(wndproc_t proc) noexcept
+        {
+            params_.type_builder.window_procedure(proc);
+            params_.cached_type.deattach_and_reset();
+            return _builder();
+        }
+
+        [[nodiscard]]
+        const_brush_handle_t background() const noexcept
+        {
+            return params_.type_builder.background();
+        }
+
+        Builder& title(title_string_t title) noexcept
+        {
+            D_CONDITIONAL_OS_WINDOWS(params_.title = std::move(title), D_UNUSED(title));
+            return _builder();
+        }
+
+        constexpr Builder& parent(window_handle_t parent_window) noexcept
+        {
+            D_CONDITIONAL_OS_WINDOWS(params_.parent = parent_window, D_UNUSED(parent_window));
+            return _builder();
+        }
+
+        constexpr Builder& position(pxpoint2d position) noexcept
+        {
+            D_CONDITIONAL_OS_WINDOWS(params_.geometry.position = position, D_UNUSED(position));
+            return _builder();
+        }
+
+        constexpr Builder& position(pxsize_t x, pxsize_t y) noexcept
+        {
+            return position(pxpoint2d{ x, y });
+        }
+
+        constexpr Builder& sizes(pxsize2d sizes) noexcept
+        {
+            D_CONDITIONAL_OS_WINDOWS(params_.geometry.sizes = sizes, D_UNUSED(sizes));
+            return _builder();
+        }
+
+        constexpr Builder& sizes(pxsize_t width, pxsize_t height) noexcept
+        {
+            return sizes(pxsize2d{ width, height });
+        }
+
+        constexpr Builder& geometry(const pxrectangle& rc) noexcept
+        {
+            D_CONDITIONAL_OS_WINDOWS(params_.geometry = rc, D_UNUSED(rc));
+            return _builder();
+        }
+
+        Builder& module(module_handle_t module) noexcept
+        {
+            params_.type_builder.module(module);
+            if(params_.cached_type.r().module != module)
+            {
+                params_.cached_type.deattach_and_reset();
+            }
+            return _builder();
+        }
+
+    protected:
+        [[nodiscard]]
+        constexpr const Params& _c_params() const noexcept
+        {
+            return params_;
+        }
+
+        [[nodiscard]]
+        constexpr Params& _params() noexcept
+        {
+            return params_;
+        }
+
+        [[nodiscard]]
+        constexpr Builder& _builder() noexcept
+        {
+            static_assert(std::is_base_of_v<window_gatherer, Builder>);
+            return static_cast<Builder&>(*this);
+        }
+
+    private:
+        Params params_{};
+    };
+
+
 #ifdef D_OS_WINDOWS
     struct window_dependency
     {
@@ -102,16 +242,6 @@ namespace ui
 
     bool show(window_handle_t window, int cmd) noexcept;
 
-    inline bool show(window_handle_t window, show_command cmd) noexcept
-    {
-        return show(window, to_underlying(cmd));
-    }
-
-    inline bool show(window_handle_t window) noexcept
-    {
-        return show(window, show_command::show);
-    }
-
     bool close(window_handle_t window) noexcept;
 
     bool window_text(window_handle_t window, wzstring_view text) noexcept;
@@ -120,7 +250,7 @@ namespace ui
     pxrectangle geometry(window_handle_t window) noexcept;
 
     [[nodiscard]]
-    pxsize2d sizes(window_handle_t window) noexcept;
+    pxsize2d adjust_sizes(pxsize2d sizes) noexcept;
 
     bool geometry(window_handle_t window, pxrectangle rc) noexcept;
 
@@ -137,155 +267,61 @@ namespace ui
 
     using window = unique_resource<window_handle_t, window_resource_deleter>;
 
-    struct window_parameters
+#else
+    constexpr bool show(window_handle_t, int) noexcept
     {
-        mutable type_window_builder type_builder{};
-        mutable shared_type_window cached_type{};
-        std::wstring title{};
-        pxrectangle geometry{ rc_usedefault };
-        window_handle_t parent{ nullptr };
+        return false;
+    }
+
+    [[nodiscard]] constexpr pxsize2d adjust_sizes(pxsize2d sizes) noexcept
+    {
+        return sizes;
+    }
+
+    struct window
+    {
+        shared_type_window type{};
+        window_handle_t handle{ nullptr };
+
+        constexpr operator const_module_handle_t () const noexcept
+        {
+            return type.r().module;
+        }
+
+        constexpr operator window_handle_t () const noexcept
+        {
+            return handle;
+        }
+
+        constexpr explicit operator bool () const noexcept
+        {
+            return type && handle;
+        }
     };
 
-    inline void prepare(const window_parameters& params) noexcept
-    {
-        if (params.cached_type)
-        {
-            if (!params.type_builder.module())
-            {
-                params.type_builder.module(params.cached_type.r().module);
-            }
-        }
-        else
-        {
-            params.cached_type = params.type_builder.build();
-        }
+#endif
 
-        D_ASSERT(!params.cached_type || (params.cached_type.r().module == params.type_builder.module()));
+    [[nodiscard]]
+    pxsize2d sizes(window_handle_t window) noexcept;
+
+    D_CONDITIONAL_OS_WINDOWS(inline, constexpr) bool show(window_handle_t window, show_command cmd) noexcept
+    {
+        return show(window, to_underlying(cmd));
+    }
+
+    D_CONDITIONAL_OS_WINDOWS(inline, constexpr) bool show(window_handle_t window) noexcept
+    {
+        return show(window, show_command::show);
     }
 
     [[nodiscard]]
-    inline module_handle_t mutable_app_module_handle(const window_parameters& param) noexcept
+    D_CONDITIONAL_OS_WINDOWS(inline, constexpr) pxsize2d adjust_sizes(pxsize_t w, pxsize_t h) noexcept
     {
-        return param.type_builder.module();
+        return adjust_sizes(size2d{ w, h });
     }
 
     [[nodiscard]]
     window create_window(const window_parameters& params) noexcept;
-
-    template<class Builder, class Params>
-    class window_gatherer
-    {
-    public:
-        static_assert(std::is_base_of_v<window_parameters, Params>);
-
-        Builder& type(unique_type_window type) noexcept
-        {
-            params_.cached_type = std::move(type);
-            return _builder();
-        }
-
-        Builder& title(std::wstring title) noexcept
-        {
-            params_.title = std::move(title);
-            return _builder();
-        }
-
-        constexpr Builder& parent(window_handle_t window) noexcept
-        {
-            params_.parent = window;
-            return _builder();
-        }
-
-        constexpr Builder& position(pxpoint2d position) noexcept
-        {
-            params_.geometry.position = position;
-            return _builder();
-        }
-
-        constexpr Builder& position(pxsize_t x, pxsize_t y) noexcept
-        {
-            return position(pxpoint2d{ x, y });
-        }
-
-        constexpr Builder& sizes(pxsize2d sizes) noexcept
-        {
-            params_.geometry.sizes = sizes;
-            return _builder();
-        }
-
-        constexpr Builder& sizes(pxsize_t width, pxsize_t height) noexcept
-        {
-            return sizes(pxsize2d{ width, height });
-        }
-
-        constexpr Builder& geometry(const pxrectangle& rc) noexcept
-        {
-            params_.geometry = rc;
-            return _builder();
-        }
-
-        Builder& module(module_handle_t module) noexcept
-        {
-            params_.type_builder.module(module);
-            return _builder();
-        }
-
-        Builder& background(stock_brush brush) noexcept
-        {
-            params_.type_builder.background(brush);
-            params_.cached_type.deattach_and_reset();
-            return _builder();
-        }
-
-        Builder& background(unique_brush brush) noexcept
-        {
-            params_.type_builder.background(std::move(brush));
-            params_.cached_type.deattach_and_reset();
-            return _builder();
-        }
-
-        Builder& window_procedure(wndproc_t proc) noexcept
-        {
-            params_.type_builder.window_procedure(proc);
-            params_.cached_type.deattach_and_reset();
-            return _builder();
-        }
-
-        [[nodiscard]]
-        module_handle_t module() const noexcept
-        {
-            return mutable_app_module_handle(_c_params());
-        }
-
-        [[nodiscard]]
-        const_brush_handle_t background() const noexcept
-        {
-            return params_.type_builder.background();
-        }
-
-    protected:
-        [[nodiscard]]
-        constexpr const Params& _c_params() const noexcept
-        {
-            return params_;
-        }
-
-        [[nodiscard]]
-        constexpr Params& _params() noexcept
-        {
-            return params_;
-        }
-
-        [[nodiscard]]
-        constexpr Builder& _builder() noexcept
-        {
-            static_assert(std::is_base_of_v<window_gatherer, Builder>);
-            return static_cast<Builder&>(*this);
-        }
-
-    private:
-        Params params_{};
-    };
 
     struct window_builder : window_gatherer<window_builder, window_parameters>
     {
@@ -295,58 +331,4 @@ namespace ui
             return create_window(_c_params());
         }
     };
-
-#else
-    [[nodiscard]]
-    pxsize2d sizes(window_handle_t window) noexcept;
-
-    using window_parameters = module_handle_t;
-
-    [[nodiscard]]
-    constexpr module_handle_t mutable_app_module_handle(window_parameters param) noexcept
-    {
-        return param;
-    }
-
-    template<class Builder, class Params>
-    class window_gatherer
-    {
-    public:
-        constexpr Builder& module(module_handle_t module) noexcept
-        {
-            params_ = module;
-            return _builder();
-        }
-
-        [[nodiscard]]
-        constexpr module_handle_t module() const noexcept
-        {
-            return params_;
-        }
-
-    protected:
-        [[nodiscard]]
-        constexpr const Params& _c_params() const noexcept
-        {
-            return params_;
-        }
-
-        [[nodiscard]]
-        constexpr Params& _params() noexcept
-        {
-            return params_;
-        }
-
-        [[nodiscard]]
-        constexpr Builder& _builder() noexcept
-        {
-            static_assert(std::is_base_of_v<window_gatherer, Builder>);
-            return static_cast<Builder&>(*this);
-        }
-
-    private:
-        Params params_{ nullptr };
-    };
-
-#endif
 }

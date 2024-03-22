@@ -41,20 +41,6 @@ template<class T>
     return static_cast<const T*>(pnode);
 }
 
-
-template<class T>
-[[nodiscard]] constexpr basic_intrusive_node<T>& as_basic_intrusive_node_ref(basic_intrusive_node<T>& node) noexcept
-{
-    return node;
-}
-
-template<class T>
-[[nodiscard]] constexpr const basic_intrusive_node<T>& as_basic_intrusive_node_ref(const basic_intrusive_node<T>& node) noexcept
-{
-    return node;
-}
-
-
 template<class T>
 [[nodiscard]] constexpr basic_intrusive_node<T> make_intrusive_cyclic_node(T* const pnode) noexcept
 {
@@ -127,13 +113,13 @@ constexpr void intrusive_write(basic_intrusive_node<T>*const pnode, const basic_
 }
 
 template<class T>
-[[nodiscard]] constexpr void intrusive_write_front_node(T* const new_dependency, T* const linker) noexcept
+constexpr void intrusive_write_front_node(T* const new_dependency, T* const linker) noexcept
 {
     intrusive_write(new_dependency, make_intrusive_front_node(new_dependency, linker));
 }
 
 template<class T>
-[[nodiscard]] constexpr void intrusive_write_back_node(T* const new_dependency, T* const linker) noexcept
+constexpr void intrusive_write_back_node(T* const new_dependency, T* const linker) noexcept
 {
     intrusive_write(new_dependency, make_intrusive_back_node(new_dependency, linker));
 }

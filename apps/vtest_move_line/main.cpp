@@ -77,7 +77,7 @@ namespace
                 return false;
             }
 
-            if (!shaders_.initialize(egl_.viewport))
+            if (!shaders_.initialize(viewport(egl_)))
             {
                 return false;
             }
@@ -86,24 +86,19 @@ namespace
             return true;
         }
 
-#if defined(D_OS_WINDOWS)
         std::nullopt_t operator () (const ui::mouse_double_click_event&) noexcept
         {
             D_ASSERT_OR_UNUSED(lines_rendering_by_default());
             return std::nullopt;
         }
 
-#endif
-
         std::nullopt_t operator () (const ui::mouse_move_event& e) noexcept
         {
-#if  defined(D_OS_WINDOWS)
             if (!e.keys().is_left())
             {
                 mouse_trace_finish();
                 return std::nullopt;
             }
-#endif
 
             if (1u == e.size())
             {
@@ -149,7 +144,7 @@ namespace
         void draw() const noexcept
         {
             const egl_painting_owner painting_owner{ egl_ };
-            gl::viewport(egl_.viewport);
+            gl::viewport(viewport(egl_));
             gl::clear(gl_background_color_f);
 
             shaders_.draw(texture_);

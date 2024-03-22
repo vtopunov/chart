@@ -9,8 +9,6 @@ namespace file
 {
     struct file_mmap_resource
     {
-        using view_type = const_buffer_view;
-
         struct _private_detail
         {
 #ifdef D_OS_WINDOWS
@@ -73,7 +71,7 @@ namespace file
     };
 
     static_assert(std::is_same_v<null_t<file_mmap_resource>, file_mmap_resource::null_type>);
-    static_assert(std::is_same_v<view_t<file_mmap_resource>, const file_mmap_resource::view_type>);
+    static_assert(std::is_same_v<view_t<file_mmap_resource>, const const_buffer_view>);
 
     struct file_mmap_resource_deleter
     {

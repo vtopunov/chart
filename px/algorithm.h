@@ -125,11 +125,13 @@ namespace px
             return static_cast<T>(~value);
         }
 
-        enum class antialiasing_line_result_types : uint8_t
+        using antialiasing_line_result_types_underlying_t = uint8_t;
+
+        enum class antialiasing_line_result_types : antialiasing_line_result_types_underlying_t
         {
             along_x,
             along_y,
-            invalid = numeric_max_v<std::underlying_type_t<antialiasing_line_result_types>>
+            invalid = numeric_max_v<antialiasing_line_result_types_underlying_t>
         };
 
         struct antialiasing_line_result

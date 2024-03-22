@@ -34,7 +34,7 @@ namespace
     }
 
     [[nodiscard]]
-    constexpr rgba_colorf_t anima_color(duration_t now) noexcept
+    constexpr rgbaf_color_t anima_color(duration_t now) noexcept
     {
         constexpr auto period = anima_lerp_period.count();
 
@@ -44,12 +44,12 @@ namespace
             anima_start_color, anima_end_color
         );
 
-        return color_cast<rgba_colorf_t>(anima_lerp(oscillating_time(now.count(), period)));
+        return to_colorf(anima_lerp(oscillating_time(now.count(), period)));
     }
 
-    void draw_figure(pxsize2d viewport, rgba_colorf_t color) noexcept
+    void draw_figure(pxsize2d viewport, rgbaf_color_t color) noexcept
     {
-        static const auto shaders = gl::create_shaders_program
+        static const auto shaders = gl::create_program
         (
             R"(
                 attribute vec2 a_position;
@@ -124,30 +124,19 @@ namespace
     {
         egl_ui_owner egl;
         anima_timer timer;
-        rgba_colorf_t color{ to_colorf(anima_start_color) };
+        rgbaf_color_t color{ to_colorf(anima_start_color) };
         bool force_redraw{ true };
 
         void draw() const noexcept
         {
             const egl_painting_owner painting_owner{ egl };
-            draw_figure(egl.viewport, color);
+            draw_figure(viewport(egl), color);
         }
 
-#ifdef D_OS_ANDROID
         void operator () (ui::content_rect_changed_event) noexcept
         {
-            egl.viewport = app_ui_viewport_request(egl);
-            if (!egl.viewport)
-            {
-                e_debug("content rect error: ui error: {}, egl error: {}",
-                    ui::error_code(), eglGetError());
-                ui::quit(egl);
-                return;
-            }
-
-            return;
+            D_UNUSED(egl.update_viewport());
         }
-#endif
 
         void operator () (ui::redraw_needed_event) noexcept
         {

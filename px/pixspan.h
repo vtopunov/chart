@@ -91,7 +91,8 @@ namespace px
         using pixel_type = T;
         static constexpr auto alignment = Alignment;
         using space_type = pixspace<sizeof(pixel_type), alignment>;
-        using pixline_type = pixline<pixel_type>;
+        using line_type = pixline<pixel_type>;
+        using line_span_type = typename line_type::span_type;
         using line_size_type = typename space_type::line_size_type;
 
         using pointer = pixel_type*;
@@ -138,7 +139,7 @@ namespace px
         template<class C, std::enable_if_t<is_compatible_pixspacecontainer_v<C, space_type>, int> = 0>
         constexpr pixspan(C& container) noexcept
             : space_type{ space(container) }
-            , data_{ as_pointer(std::data(container)) }
+            , data_{ std::data(container) }
         {}
 
         constexpr pixspan& operator = (const pixspan&) noexcept = default;
@@ -149,12 +150,6 @@ namespace px
             space_type::operator = (span);
             data_ = span.data();
             return *this;
-        }
-
-        [[nodiscard]]
-        constexpr pointer operator [] (size_t index) const noexcept
-        {
-            return data_ + index * space_type::line_size();
         }
 
         [[nodiscard]]
@@ -170,15 +165,35 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr pixline_type line0() const noexcept
+        constexpr line_type lines() const noexcept
         {
-            return { data_, space_type::line_size() };
+            return { data_, space_type::line_size(), space_type::width() };
         }
 
         [[nodiscard]]
-        constexpr pixline_type begin() const noexcept
+        constexpr line_type lines(pxsize_t index) const noexcept
         {
-            return line0();
+            D_ASSERT(index < space_type::height());
+            const auto line_size = space_type::line_size();
+            return { data_ + index * line_size, line_size, space_type::width() };
+        }
+
+        [[nodiscard]]
+        constexpr line_span_type line() const noexcept
+        {
+            return lines().pixels();
+        }
+
+        [[nodiscard]]
+        constexpr line_span_type line(pxsize_t index) const noexcept
+        {
+            return lines(index).pixels();
+        }
+
+        [[nodiscard]]
+        constexpr line_type begin() const noexcept
+        {
+            return lines();
         }
 
         [[nodiscard]]

@@ -128,7 +128,7 @@ public:
 
     D_DEFAULT_ONLYMOVE_CA(buffer_void_collection);
 
-    buffer_void_collection(buffer_construct_t, size_type count) noexcept
+    constexpr buffer_void_collection(buffer_construct_t, size_type count) noexcept
         : base_type{ buffer_attach_construct, _alloc(count), count }
     {}
 
@@ -174,7 +174,7 @@ public:
         return size_mul<element_size>(size());
     }
 
-    [[nodiscard]] bool try_reserve(size_type new_count) noexcept
+    [[nodiscard]] constexpr bool try_reserve(size_type new_count) noexcept
     {
         if (size() < new_count)
         {
@@ -190,7 +190,7 @@ public:
         return true;
     }
 
-    void reserve(size_type new_count) noexcept
+    constexpr void reserve(size_type new_count) noexcept
     {
         D_ASSERT_OR_UNUSED(try_reserve(new_count));
     }
@@ -234,7 +234,7 @@ private:
     }
 
     [[nodiscard]]
-    static void* _alloc(size_type size) noexcept
+    static constexpr void* _alloc(size_type size) noexcept
     {
         void* result{ nullptr };
 
@@ -273,7 +273,7 @@ public:
 
     D_DEFAULT_ONLYMOVE_CA(buffer);
 
-    buffer(buffer_construct_t, size_t size) noexcept
+    constexpr buffer(buffer_construct_t, size_t size) noexcept
         : base_type{ buffer_construct, size }
     {}
 
@@ -411,8 +411,5 @@ public:
         return base_type::template as_span<value_type>();
     }
 };
-
-static_assert(1_uz == sizeof(buffer_t::value_type));
-static_assert(1_uz == buffer_t::element_size);
 
 D_WARNING_POP

@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ProjectVersion>1.0</ProjectVersion>
-    <ProjectGuid>113a303b-d17e-45b4-bb22-bca7253d9f6f</ProjectGuid>
+    <ProjectGuid>457869f1-1d11-4847-8ccd-f2b773b09d13</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(AndroidTargetsPath)\Android.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">

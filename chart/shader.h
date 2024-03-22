@@ -7,13 +7,13 @@ namespace chart
 {
     namespace shader
     {
-        using background_shader = widget::shader::colored_rectangle;
-        using pix8_figure_shader = widget::shader::luminance8_texture_mix_color;
+        using background = widget::shader::colored_rectangle;
+        using pix8_figure = widget::shader::luminance8_texture_mix_color;
 
-        struct background_shader_user : widget_shader_user_for_t<background_shader_user, background_shader>
+        struct background_user : widget_shader_user_for_t<background_user, background>
         {};
 
-        struct pix8_figure_shader_user : widget_shader_user_for_t<pix8_figure_shader_user, pix8_figure_shader>
+        struct pix8_figure_user : widget_shader_user_for_t<pix8_figure_user, pix8_figure>
         {};
     }
 }

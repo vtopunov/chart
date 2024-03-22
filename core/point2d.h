@@ -25,6 +25,18 @@ struct point2d : vec2<T>
     }
 
     [[nodiscard]]
+    constexpr point2d with_x(T x) const noexcept
+    {
+        return { std::move(x), _1 };
+    }
+
+    [[nodiscard]]
+    constexpr point2d with_y(T y) const noexcept
+    {
+        return { _0, std::move(y) };
+    }
+
+    [[nodiscard]]
     constexpr reference ref_x() noexcept
     {
         return as_mutable(cref_x());
@@ -90,5 +102,5 @@ template<class T>
 template<class T>
 [[nodiscard]] constexpr point2d<T> to_point2d(const vec2<T>& v) noexcept
 {
-    return { v }; 
+    return { v };
 }

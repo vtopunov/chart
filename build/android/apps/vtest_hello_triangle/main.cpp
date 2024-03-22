@@ -19,7 +19,7 @@ namespace
 
         void draw() const noexcept
         {
-            static const auto program = gl::create_shaders_program
+            static const auto program = gl::create_program
             (
                 R"(
                         attribute vec2 a_position;    
@@ -40,7 +40,7 @@ namespace
             static const auto a_position = gl::get_attribute_location(program, "a_position"_zsv);
 
             const egl_painting_owner painting_owner{ egl };
-            gl::viewport(egl.viewport);
+            gl::viewport(viewport(egl));
             gl::clear(colors::white_f);
             gl::use(program);
 
@@ -61,21 +61,10 @@ namespace
             gl::draw_arrays(gl::draw_mode::triangles, 0, std::size(vertices));
         }
 
-#ifdef D_OS_ANDROID
         void operator () (ui::content_rect_changed_event) noexcept
         {
-            egl.viewport = app_ui_viewport_request(egl);
-            if (!egl.viewport)
-            {
-                e_debug("content rect error: ui error: {}, egl error: {}",
-                    ui::error_code(), eglGetError());
-                ui::quit(egl);
-                return;
-            }
-
-            return;
+            egl_.update_viewport();
         }
-#endif
 
         void operator () (ui::redraw_needed_event) noexcept
         {

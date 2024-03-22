@@ -1,54 +1,27 @@
 #pragma once
 
 #include <core/zstring_view.h>
-#include <core/resource.h>
-#include <core/color.h>
 
 #include <ui/app.h>
+#include <ui/window_procedure.h>
+#include <ui/brush.h>
 
 
 namespace ui
-{  
+{
     struct type_window_parameters;
 
-    struct gdi_object_deleter
-    {
-        void operator () (gdi_object_handle_t o) const noexcept;
-    };
-    
-    using unique_brush = unique_resource<brush_handle_t, gdi_object_deleter>;
-
-    unique_brush create_brush(rgba_color32_t color) noexcept;
-
-    extern event_result_t D_OS_APICALL window_procedure
-    (
-        window_handle_t window,
-        uint_t message,
-        word_parameter_t word_parameter,
-        long_parameter_t long_parameter
-    ) noexcept;
-
-    enum class stock_brush
-    {
-        white,
-        light_gray,
-        gray,
-        dark_gray,
-        black,
-        null
-    };
+    using type_window_handle_t = D_CONDITIONAL_OS_ANDROID(sensor_event_queue_resource, const wchar_t*);
 
     struct type_window_resource
     {
-        using name_id_t = const wchar_t*;
-
+        type_window_handle_t handle;
         module_handle_t module;
-        name_id_t name_id;
 
         [[nodiscard]]
         constexpr explicit operator bool() const noexcept
         {
-            return !!name_id;
+            return !!handle;
         }
     };
 
@@ -105,11 +78,12 @@ namespace ui
         const_brush_handle_t background() const noexcept;
 
         [[nodiscard]]
-        unique_type_window build_as(wzstring_view name) noexcept;
+        unique_type_window build(wzstring_view name) noexcept;
 
-        [[nodiscard]] 
+        [[nodiscard]]
         unique_type_window build() noexcept;
 
+#ifdef D_OS_WINDOWS
     private:
         [[nodiscard]]
         type_window_parameters* _p_impl() noexcept;
@@ -121,5 +95,9 @@ namespace ui
         static constexpr size_t storage_size{ 104u };
         static constexpr size_t storage_align{ 8u };
         alignas(storage_align) std::byte storage_[storage_size]{};
+#else
+    private:
+        module_handle_t module_;
+#endif
     };
 }

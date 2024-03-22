@@ -1,28 +1,10 @@
 #pragma once
 
-#include <core/vec2.h>
-
-#include <gl/config.h>
+#include <gl/fwd.h>
 
 
 namespace gl
 {
-    using vec2i = vec2<GLint>;
-    using vec2f = vec2<GLfloat>;
-    using vec2b = vec2<GLboolean>;
-
-    using const_span2i = span<const GLint, 2_uz>;
-    using const_span2f = span<const GLfloat, 2_uz>;
-    using const_span2b = span<const GLboolean, 2_uz>;
-
-    using const_span3i = span<const GLint, 3_uz>;
-    using const_span3f = span<const GLfloat, 3_uz>;
-    using const_span3b = span<const GLboolean, 3_uz>;
-
-    using const_span4i = span<const GLint, 4_uz>;
-    using const_span4f = span<const GLfloat, 4_uz>;
-    using const_span4b = span<const GLboolean, 4_uz>;
-
     enum class glsl_typeid : GLenum
     {
         boolean = GL_BOOL,
@@ -286,7 +268,7 @@ namespace gl
         {};
 
         template<glsl_typeid id, size_t tuple_size, class T>
-        struct select_glsl_view1 : select_glsl_view2<id, tuple_size, T, std::remove_cvref_t<typename T::view_type>>
+        struct select_glsl_view1 : select_glsl_view2<id, tuple_size, T, std::remove_cvref_t<view_t<T>>>
         {};
 
         template<glsl_typeid id, size_t tuple_size>
@@ -302,6 +284,10 @@ namespace gl
         {
             using type = glsl_type_t<id>;
         };
+
+        template<glsl_typeid id>
+        struct select_glsl_view0<id, 0_uz>
+        {};
     }
 
     template<glsl_typeid id>

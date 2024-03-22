@@ -142,8 +142,8 @@ namespace font
     constexpr metrics initial_metrics
     {
         .width{ 0 },
-        .top{ numeric_max_v<fixed_t::value_type> },
-        .bottom{ numeric_min_v<fixed_t::value_type> },
+        .top{ numeric_max_v<> },
+        .bottom{ numeric_lowest_v<> },
         .success_bit{ true }
     };
 

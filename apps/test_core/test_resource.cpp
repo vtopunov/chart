@@ -169,38 +169,21 @@ namespace
     static_assert(!std::is_same_v<null_t<tested_resource>, null_t<verifiable_resource>>);
     static_assert(std::is_same_v<null_t<verifiable_unique>, null_t<verifiable_resource>>);
     static_assert(std::is_same_v<null_t<verifiable_linked>, null_t<verifiable_resource>>);
-    static_assert(std::is_same_v<resource_type_t<tested_unique>, tested_resource>);
-    static_assert(std::is_same_v<resource_type_t<tested_shared>, tested_resource>);
-    static_assert(std::is_same_v<resource_type_t<const tested_unique>, tested_resource>);
-    static_assert(std::is_same_v<resource_type_t<const tested_shared>, tested_resource>);
+
+    struct test_buffer
+    {
+        const void* data() const { return nullptr; }
+        size_t size() const { return {}; }
+    };
+
+    static_assert(std::is_same_v<view_t<test_buffer>, const const_buffer_view>);
+    static_assert(std::is_same_v<view_t<unique_resource<test_buffer, skip_op>>, const const_buffer_view>);
+    static_assert(std::is_same_v<view_t<shared_resource<test_buffer, skip_op>>, const const_buffer_view>);
 }
 
 
 void test_resource() noexcept
 {
-    constexpr struct
-    {
-        void operator () (const tested_shared& h1, int value) const noexcept
-        {
-            test_shaded(value, h1);
-        }
-
-        void operator () (const tested_shared& h1, const tested_shared& h2, int value) const noexcept
-        {
-            test_shaded(value, h1, h2);
-        }
-
-        void operator () (const tested_shared& h1, const tested_shared& h2, const tested_shared& h3, int value) const noexcept
-        {
-            test_shaded(value, h1, h2, h3);
-        };
-
-        void operator () (const tested_shared& h1, const tested_shared& h2, const tested_shared& h3, const tested_shared& h4, int value) const noexcept
-        {
-            test_shaded(value, h1, h2, h3, h4);
-        };
-    } check{};
-
     {
         {
             verifiable_unique safe;
@@ -224,11 +207,11 @@ void test_resource() noexcept
     }
 
     tested_shared h1{ resource_construct, 1 };
-    check(h1, 1);
+    test_shaded(1, h1);
 
     { // self assignment
         h1 = h1;
-        check(h1, 1);
+        test_shaded(1, h1);
     }
 
     {   // smart resource closure
@@ -246,9 +229,9 @@ void test_resource() noexcept
 
     { // copy constructor
         tested_shared h2{ h1 };
-        check(h1, h2, 1);
+        test_shaded(1, h1, h2);
     }
-    check(h1, 1);
+    test_shaded(1, h1);
 
     { // assignment initialization 
         int h2_closed_value = 0;
@@ -259,10 +242,10 @@ void test_resource() noexcept
             h2_closed_value = closing_handle.value;
         };
         h2 = h1;
-        check(h1, h2, 1);
+        test_shaded(1, h1, h2);
         D_ASSERT(h2_closed_value == 2);
     }
-    check(h1, 1);
+    test_shaded(1, h1);
 
     {   // assignment
         tested_shared h2{ resource_construct, 2 };
@@ -276,129 +259,129 @@ void test_resource() noexcept
 
         D_ASSERT(h1.r().value == 1);
         h1 = h2;
-        check(h1, h2, 2);
+        test_shaded(2, h1, h2);
         D_ASSERT(h1_closed_value == 1);
     }
-    check(h1, 2);
+    test_shaded(2, h1);
     as_mutable(h1.r()).value = 1;
 
     {   // cyclic assignment
         tested_shared h2{ h1 };
-        check(h1, h2, 1);
+        test_shaded(1, h1, h2);
         h1 = h2;
-        check(h1, h2, 1);
+        test_shaded(1, h1, h2);
         h2 = h1;
-        check(h1, h2, 1);
+        test_shaded(1, h1, h2);
     }
-    check(h1, 1);
+    test_shaded(1, h1);
 
     {   // cyclic assignment (ref count > 2)
         tested_shared h2{ h1 };
         tested_shared h3{ h2 };
-        check(h1, h2, h3, 1);
+        test_shaded(1, h1, h2, h3);
 
         h1 = h2;
-        check(h1, h3, h2, 1);
+        test_shaded(1, h1, h3, h2);
         h2 = h1;
-        check(h1, h2, h3, 1);
+        test_shaded(1, h1, h2, h3);
 
         h2 = h3;
-        check(h1, h3, h2, 1);
+        test_shaded(1, h1, h3, h2);
         h3 = h2;
-        check(h1, h2, h3, 1);
+        test_shaded(1, h1, h2, h3);
 
         h3 = h1;
-        check(h1, h3, h2, 1);
+        test_shaded(1, h1, h3, h2);
         h1 = h3;
-        check(h1, h2, h3, 1);
+        test_shaded(1, h1, h2, h3);
     }
-    check(h1, 1);
+    test_shaded(1, h1);
 
     {   // cyclic assignment (ref count > 3)
         tested_shared h2{ h1 };
         tested_shared h3{ h2 };
         tested_shared h4{ h3 };
-        check(h1, h2, h3, h4, 1); 
+        test_shaded(1, h1, h2, h3, h4); 
 
         h1 = h2;
-        check(h2, h1, h3, h4, 1);
+        test_shaded(1, h2, h1, h3, h4);
         h2 = h1;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h1 = h3;
-        check(h3, h1, h4, h2, 1);
+        test_shaded(1, h3, h1, h4, h2);
         h4 = h3;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h1 = h4;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h2 = h1;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h2 = h3;
-        check(h3, h2, h4, h1, 1);
+        test_shaded(1, h3, h2, h4, h1);
         h3 = h2;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h2 = h4;
-        check(h4, h2, h1, h3, 1);
+        test_shaded(1, h4, h2, h1, h3);
         h1 = h4;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h3 = h1;
-        check(h1, h3, h2, h4, 1);
+        test_shaded(1, h1, h3, h2, h4);
         h2 = h1;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h3 = h2;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h3 = h4;
-        check(h4, h3, h1, h2, 1);
+        test_shaded(1, h4, h3, h1, h2);
         h4 = h3;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h4 = h1;
-        check(h1, h4, h2, h3, 1);
+        test_shaded(1, h1, h4, h2, h3);
         h1 = h4;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h4 = h2;
-        check(h2, h4, h3, h1, 1);
+        test_shaded(1, h2, h4, h3, h1);
         h3 = h2;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
 
         h4 = h3;
-        check(h1, h2, h3, h4, 1);
+        test_shaded(1, h1, h2, h3, h4);
     }
-    check(h1, 1);
+    test_shaded(1, h1);
 
     {   // assignment (ref count >= 2)
         int h2_closed_value = 0;
         {
             tested_shared ch1{ h1 };
-            check(h1, ch1, 1);
+            test_shaded(1, h1, ch1);
 
             tested_shared h2{ resource_construct, 2 };
             tested_shared ch2{ h2 };
-            check(h2, ch2, 2);
+            test_shaded(2, h2, ch2);
 
             h2 = h1;
-            check(ch1, h1, h2, 1);
-            check(ch2, 2);
+            test_shaded(1, ch1, h1, h2);
+            test_shaded(2, ch2);
 
             ch1 = ch2;
-            check(ch1, ch2, 2);
-            check(h1, h2, 1);
+            test_shaded(2, ch1, ch2);
+            test_shaded(1, h1, h2);
 
             h2 = ch2;
-            check(ch1, ch2, h2, 2);
-            check(h1, 1);
+            test_shaded(2, ch1, ch2, h2);
+            test_shaded(1, h1);
 
             ch1 = h1;
-            check(h2, ch2, 2);
-            check(h1, ch1, 1);
+            test_shaded(2, h2, ch2);
+            test_shaded(1, h1, ch1);
 
             as_mutable(h2.r()).check_close = [&h2_closed_value] (const tested_resource& closing_handle) noexcept
             {
@@ -425,7 +408,7 @@ void test_resource() noexcept
         }
     } h1_check_dtor;
 
-    check(h1, 1);
+    test_shaded(1, h1);
 
     as_mutable(h1.r()).check_close = std::ref(h1_check_dtor);
 }

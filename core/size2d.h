@@ -100,83 +100,64 @@ template<class T>
 }
 
 template<class T>
-[[nodiscard]] constexpr size2d<T> to_size2d(const vec2<T>& v) noexcept
+[[nodiscard]] constexpr auto to_size2d(const T& v) noexcept -> size2d<decltype(as_vec2(v)._0)>
 {
-    return { v };
+    return { as_vec2(v) };
 }
 
 namespace private_detail_sizes
 {
-    template<class T>
-    using type_t = typename T::type;
-
-    template<class Default, class T, class = void>
-    struct select_sizes2 : type_t<Default>
-    {};
-
-    template<class Default, class T>
-    struct select_sizes2<Default, T, std::void_t<decltype(as_size2d(std::declval<const T&>()))> >
-    {
-        [[nodiscard]] static constexpr auto sizes(const T& value) noexcept
-        {
-            return as_size2d(value);
-        }
-    };
-
-    template<class Default, class T, class = void>
-    struct select_sizes1 : select_sizes2<Default, T>
-    {};
-
-    template<class Default, class T>
-    struct select_sizes1<Default, T, std::void_t<decltype(as_size2d(std::declval<const T&>().sizes()))> >
-    {
-        [[nodiscard]] static constexpr auto sizes(const T& value) noexcept
-        {
-            return as_size2d(value.sizes());
-        }
-    };
-
-    template<class Default, class T, class = void>
-    struct select_sizes0 : select_sizes1<Default, T>
-    {};
-
-    template<class Default, class T>
-    struct select_sizes0<Default, T, std::void_t<decltype(as_size2d(std::declval<const T&>().sizes))> >
-    {
-        [[nodiscard]] static constexpr auto sizes(const T& value) noexcept
-        {
-            return as_size2d(value.sizes);
-        }
-    };
-
-    template<class T, class = void>
-    struct select_view_sizes1
-    {};
+    using namespace ordered_overload;
 
     template<class T>
-    struct select_view_sizes1<T, std::void_t<decl_view_type_t<T>>>
-    {
-        using type = select_sizes0<nonesuch, decl_view_type_t<T>>;
-    };
-
-    template<class T, class = void>
-    struct select_view_sizes0 : select_view_sizes1<T>
-    {};
+    using decl_size2d_t = std::remove_reference_t<decltype(as_size2d(std::declval<const T&>()))>;
 
     template<class T>
-    struct select_view_sizes0<T, std::void_t<decl_resource_type_t<T>>>
+    [[nodiscard]] constexpr decl_size2d_t<T> sizes1(const T& value, _order<_2>) noexcept
     {
-        using type = select_sizes0<select_view_sizes1<T>, decl_resource_type_t<T>>;
-    };
+        return value;
+    }
 
     template<class T>
-    struct sizes_traits : select_sizes0<select_view_sizes0<T>, T>
-    {};
+    [[nodiscard]] constexpr auto sizes1(const T& value, _order<_1>) noexcept -> decl_size2d_t<decltype(value.sizes())>
+    {
+        return value.sizes();
+    }
 
     template<class T>
-    [[nodiscard]] constexpr auto sizes(const T& value) noexcept -> decltype(sizes_traits<T>::sizes(value))
+    [[nodiscard]] constexpr auto sizes1(const T& value, _order<_0>) noexcept -> decl_size2d_t<decltype(value.sizes)>
     {
-        return sizes_traits<T>::sizes(value);
+        return value.sizes;
+    }
+    
+    template<class T>
+    [[nodiscard]] constexpr auto sizes1(const T& value) noexcept -> decltype(sizes1(value, _start))
+    {
+        return sizes1(value, _start);
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto sizes0(const T& value, _order<_2>) noexcept -> decltype(sizes1(view(value)))
+    {
+        return sizes1(view(value));
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto sizes0(const T& value, _order<_1>) noexcept -> decltype(sizes1(value.r()))
+    {
+        return sizes1(value.r());
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto sizes0(const T& value, _order<_0>) noexcept -> decltype(sizes1(value))
+    {
+        return sizes1(value);
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto sizes(const T& value) noexcept -> decltype(sizes0(value, _start))
+    {
+        return sizes0(value, _start);
     }
 }
 

@@ -2,7 +2,7 @@
 
 #include <utility/shader_library.h>
 
-#include <widget/fwd.h>
+#include <widget/event.h>
 
 
 namespace widget
@@ -52,19 +52,6 @@ namespace widget
 
 
             template<class VS, class FS>
-            [[nodiscard]] bool initialize_lib(shader_library<VS, FS>& lib, pxsize2d viewport_sizes) noexcept
-            {
-                if (lib || lib.build()) [[likely]]
-                {
-                    lib.use();
-                    lib.vert.u_viewport.store(viewport_sizes);
-                    return true;
-                }
-
-                return false;
-            }
-
-            template<class VS, class FS>
             struct widget_shader_user_base
             {
                 using shader_library_type = shader_library<VS, FS>;
@@ -94,38 +81,38 @@ namespace widget
             {
                 using widget_shader_user_base<VS, FS>::library;
 
-                const Derived& store(pxpoint2d position) const noexcept
+                const Derived& position(pxpoint2d new_position) const noexcept
                 {
-                    library.vert.u_position.store(position);
+                    library.vert.u_position.store(new_position);
                     return self();
                 }
 
-                const Derived& store(pxsize2d sizes) const noexcept
+                const Derived& sizes(pxsize2d new_sizes) const noexcept
                 {
-                    library.vert.u_size.store(sizes);
+                    library.vert.u_size.store(new_sizes);
                     return self();
                 }
 
-                const Derived& store(pxrectangle rc) const noexcept
+                const Derived& geometry(pxrectangle rc) const noexcept
                 {
-                    return store(rc.position).store(rc.sizes);
+                    return position(rc.position).sizes(rc.sizes);
                 }
 
-                const Derived& store(rgba_colorf_t colorf) const noexcept
+                const Derived& color(rgbaf_color_t colorf) const noexcept
                 {
                     library.frag.u_color.store(colorf);
                     return self();
                 }
 
-                const Derived& store(gl::texture2d_resource texture) const noexcept
+                const Derived& texture(gl::texture2d_resource new_texture) const noexcept
                 {
-                    library.frag.s_texture.store(texture);
+                    library.frag.s_texture.store(new_texture);
                     return self();
                 }
 
-                const Derived& store(gl::texture2d_resources texture) const noexcept
+                const Derived& texture(gl::texture2d_resources new_texture) const noexcept
                 {
-                    return store(sizes(texture)).store(static_cast<gl::texture2d_resource>(texture));
+                    return sizes(new_texture.sizes).texture(static_cast<gl::texture2d_resource>(new_texture));
                 }
 
                 constexpr const Derived& self() const noexcept
@@ -144,23 +131,37 @@ namespace widget
             struct default_widget_shader_user : widget_shader_user<default_widget_shader_user<VS, FS>, VS, FS>
             {};
 
-            template<class VS, class FS>
+            template<class VS, class FS, class User = default_widget_shader_user<VS, FS>>
             class widget_shader_library
             {
             public:
-                using shader_user_type = default_widget_shader_user<VS, FS>;
+                using shader_user_type = User;
                 using vertex_shader_type = typename shader_user_type::vertex_shader_type;
                 using fragment_shader_type = typename shader_user_type::fragment_shader_type;
 
-                bool operator()(viewport_size2d viewport) noexcept
+                bool operator()(basic_initialization_event<>) noexcept
                 {
-                    return initialize_lib(u_.library, viewport);
+                    return u_.library.build();
+                }
+
+                void operator()(viewport_event<> e) const noexcept
+                {
+                    if constexpr ( std::is_base_of_v<vert::positioned_frame, VS> )
+                    {
+                        u_.library.use();
+                        u_.library.vert.u_viewport.store(e.viewport());
+                    }
                 }
 
                 const shader_user_type& use() const noexcept
                 {
                     u_.library.use();
-                    u_.library.vert.a_frame.bind();
+
+                    if constexpr ( std::is_base_of_v<vert::positioned_frame, VS> )
+                    {
+                        u_.library.vert.a_frame.bind();
+                    }
+                    
                     return u_;
                 }
 

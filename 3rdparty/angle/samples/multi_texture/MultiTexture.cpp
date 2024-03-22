@@ -19,7 +19,7 @@
 #include "system_utils.h"
 #include "tga_utils.h"
 
-class MultiTextureSample : public SampleApplication
+class MultiTextureSample final : public SampleApplication
 {
   public:
     MultiTextureSample()
@@ -38,7 +38,7 @@ class MultiTextureSample : public SampleApplication
         return LoadTextureFromTGAImage(img);
     }
 
-    virtual bool initialize()
+    bool initialize() override
     {
         const std::string vs =
             R"(attribute vec2 a_position;
@@ -96,16 +96,16 @@ class MultiTextureSample : public SampleApplication
         return true;
     }
 
-    virtual void destroy()
+    void destroy() override
     {
         glDeleteProgram(mProgram);
         glDeleteTextures(1, &mBaseMapTexID);
         glDeleteTextures(1, &mLightMapTexID);
     }
 
-    virtual void draw()
+    void draw() override
     {
-        GLfloat vertices[] =
+        constexpr GLfloat vertices[] =
         {
             -0.5f,  0.5f,   // Position 0
              0.0f,  0.0f,   // TexCoord 0
@@ -117,7 +117,7 @@ class MultiTextureSample : public SampleApplication
              1.0f,  1.0f    // TexCoord 2
 
         };
-        GLubyte indices[] = { 0, 1, 3, 0, 3, 2 };
+        constexpr GLubyte indices[] = { 0, 1, 3, 0, 3, 2 };
 
         // Set the viewport
         glViewport(0, 0, getWindow()->getWidth(), getWindow()->getHeight());

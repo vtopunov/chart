@@ -5,11 +5,6 @@
 
 namespace chart
 {
-    constexpr auto real_inf = numeric_inf_v<real_t>;
-    constexpr auto real_lowest_inf = -real_inf;
-    constexpr auto real_point2d_inf = fill_to<point2d>(real_inf);
-    constexpr auto real_point2d_lowest_inf = fill_to<point2d>(real_lowest_inf);
-
     constexpr space_diagonal_t space_diagonal_initializer
     {
         real_point2d_inf,
@@ -18,7 +13,7 @@ namespace chart
 
     namespace private_detail_space_diagonal
     {
-        [[nodiscard]] inline bool is_great_neq(real_t  value, real_t min_value) noexcept
+        [[nodiscard]] inline bool is_great_neq(real_t value, real_t min_value) noexcept
         {
             return min_value < u_prev(value);
         }

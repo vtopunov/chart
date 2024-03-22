@@ -14,4 +14,10 @@
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
   </ItemDefinitionGroup>
+  
+  <ItemGroup>
+	<ProjectReference Include="$(RepoDir)\entry_point\entry_point.vcxproj">
+      <Project>{d7f4dacc-5d6f-4349-9d71-12de6e29cf94}</Project>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

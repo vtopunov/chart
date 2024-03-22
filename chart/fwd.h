@@ -1,9 +1,8 @@
 #pragma once
 
 #include <core/transformation.h>
-#include <core/small_vector.h>
 
-#include <px/fwd.h>
+#include <widget/fwd.h>
 
 
 namespace chart
@@ -12,9 +11,17 @@ namespace chart
     using px::real_vec2;
     using px::real_point2d;
     using px::real_point2d_cspan;
-    using real_vpoint2d = small_vector<real_point2d>;
+
+    constexpr auto real_inf = numeric_inf_v<real_t>;
+    constexpr auto real_lowest_inf = -real_inf;
+    constexpr auto real_point2d_inf = fill_to<point2d>(real_inf);
+    constexpr auto real_point2d_lowest_inf = fill_to<point2d>(real_lowest_inf);
 
     using space_diagonal_t = vec2<real_point2d>;
 
     using transformation_t = decltype(::make_transformation(std::declval<const space_diagonal_t&>(), std::declval<const space_diagonal_t&>()));
+
+    using widget::stretchable_pxrectangle;
+    using widget::event_result;
+    using namespace widget::event_declaration;
 }

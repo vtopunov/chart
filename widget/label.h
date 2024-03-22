@@ -3,7 +3,6 @@
 #include <string>
 
 #include <widget/ex_context.h>
-#include <widget/event.h>
 #include <widget/shader.h>
 #include <widget/text.h>
 
@@ -26,7 +25,7 @@ namespace widget
             }
         }
 
-        using redraw_event_type = redraw_event<
+        using redraw_event_type = basic_redraw_event<
             shader::luminance8_texture_mix_color,
             buffer_view
         >;

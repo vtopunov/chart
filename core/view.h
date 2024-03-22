@@ -1,59 +1,61 @@
 #pragma once
 
-#include <core/type_traits.h>
+#include <core/span.h>
 
 
 namespace private_detail_view
 {
-    constexpr auto small_size_v = 4u * sizeof(size_t);
-    static_assert(small_size_v >= 2u * sizeof(size_t));
-
     template<class T>
     using is_small_size = std::bool_constant<sizeof(T) <= small_size_v>;
 
     template<class T>
-    using is_view_by_copy = std::disjunction
+    constexpr auto is_view_by_copy_v = std::disjunction_v
     <
         std::is_scalar<T>, 
         std::conjunction<std::is_trivially_copyable<T>, is_small_size<T>>
     >;
 
     template<class T>
-    using view_by_copy_t = std::conditional_t
-    <
-        is_view_by_copy<T>::value, 
-        std::add_const_t<T>, 
-        std::add_lvalue_reference_t<std::add_const_t<T>>
-    >;
+    using view_by_copy_t = std::conditional_t<is_view_by_copy_v<T>, T, std::add_lvalue_reference_t<std::add_const_t<T>>>;
 
     template<class T, class = void>
-    struct view_type
+    struct view_type1
     {
         using type = view_by_copy_t<T>;
     };
 
     template<class T>
-    struct view_type<T, std::void_t<decl_view_type_t<T>>>
+    struct view_type1<T, std::void_t<value_type_t<T>>>
     {
-        using type = std::add_const_t<decl_view_type_t<T>>;
+        using value_type = value_type_t<T>;
+        using type = std::conditional_t<
+            std::is_void_v<value_type>, const_buffer_view, span<std::add_const_t<value_type>, extent_v<T>> 
+        >;
+    };
+
+    template<class T, class = void>
+    struct view_type0 : view_type1<T>
+    {};
+
+    template<class T>
+    struct view_type0<T, std::void_t<decl_view_type_t<T>>>
+    {
+        using type = decl_view_type_t<T>;
     };
 
     template <class T>
-    using view_t = typename view_type<T>::type;
+    using view_t = std::add_const_t<typename view_type0<std::remove_cvref_t<T>>::type>;
 }
 
-template<class T>
-using view_by_copy_t = private_detail_view::view_by_copy_t<std::remove_cvref_t<T>>;
+using private_detail_view::view_t;
 
-template <class T>
-using view_t = private_detail_view::view_t<std::remove_cvref_t<T>>;
+template<class T>
+using view_by_copy_t = std::add_const_t<private_detail_view::view_by_copy_t<std::remove_cvref_t<T>>>;
+
 
 template<class T> [[nodiscard]]
 constexpr view_t<T> view(const T& r) noexcept
 {
-    D_WARNING_PUSH;
-    D_WARNING_DISABLE_MSVC(W_do_not_slice);
     return static_cast<view_t<T>>(r);
-    D_WARNING_POP;
 }
 

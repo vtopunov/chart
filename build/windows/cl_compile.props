@@ -17,6 +17,7 @@
       <SupportJustMyCode>false</SupportJustMyCode>
       <WarningLevel>Level4</WarningLevel>
       <BuildStlModules>false</BuildStlModules>
+      <DisableSpecificWarnings>26437;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   

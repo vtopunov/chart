@@ -25,8 +25,8 @@ namespace widget
 
         struct button_colors
         {
-            rgba_colorf_t frame;
-            rgba_colorf_t body;
+            rgbaf_color_t frame;
+            rgbaf_color_t body;
 
             [[nodiscard]]
             static constexpr button_colors instance(button_state state) noexcept
@@ -157,12 +157,12 @@ namespace widget
         {
             const auto& shdr = e.get<shader::colored_rectangle>().use();
             
-            shdr.store(geometry)
-                .store(colors.frame)
+            shdr.geometry(geometry)
+                .color(colors.frame)
                 .draw();
 
-            shdr.store(client_rc)
-                .store(colors.body)
+            shdr.geometry(client_rc)
+                .color(colors.body)
                 .draw();
         }
 
@@ -172,9 +172,9 @@ namespace widget
 
             e.get<shader::luminance8_texture_mix_color>()
                 .use()
-                .store(ft_to_pxpoint2d(ft_position))
-                .store(colors::black_f)
-                .store(text_cache.texture())
+                .position(ft_to_pxpoint2d(ft_position))
+                .color(colors::black_f)
+                .texture(text_cache.texture())
                 .draw();
         }
     }

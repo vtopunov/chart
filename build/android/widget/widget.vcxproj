@@ -41,9 +41,11 @@
     <ClInclude Include="..\..\..\widget\context.h" />
     <ClInclude Include="..\..\..\widget\event.h" />
     <ClInclude Include="..\..\..\widget\event_matching.h" />
+    <ClInclude Include="..\..\..\widget\ex_context.h" />
+    <ClInclude Include="..\..\..\widget\gesture.h" />
     <ClInclude Include="..\..\..\widget\shader.h" />
+    <ClInclude Include="..\..\..\widget\stretchable.h" />
     <ClInclude Include="..\..\..\widget\temp_buffer.h" />
-    <ClInclude Include="..\..\..\widget\user_gesture.h" />
     <ClInclude Include="..\..\..\widget\window.h" />
     <ClInclude Include="..\..\..\widget\fwd.h" />
   </ItemGroup>

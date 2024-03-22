@@ -76,7 +76,7 @@ namespace widget
         template<class Widget>
         bool draw_to_cache(Widget& w, buffer_view buffer) noexcept
         {
-            constexpr pxsize2d max_sizes{ fill_vec2(numeric_max_v<pxsize_t>) };
+            constexpr auto max_sizes = fill_to<size2d>(numeric_max_v<pxsize_t>);
             return draw_to_cache(w, buffer, max_sizes);
         }
     }

@@ -3,35 +3,37 @@
 #include <memory>
 
 #include <core/buffer.h>
-#include <core/span.h>
 
 
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_const_cast)
 D_WARNING_DISABLE_MSVC(W_variable_is_uninitialized)
 
-template<class It>
-constexpr It back_move(It to, It back) noexcept
+namespace private_detail_back_move
 {
-    constexpr auto is_trivially_copyable =
-        std::is_trivially_copyable_v<typename std::iterator_traits<It>::value_type>;
+    template<class It>
+    [[nodiscard]] constexpr It back_move(It to, It back) noexcept
+    {
+        constexpr auto is_trivially_copyable =
+            std::is_trivially_copyable_v<typename std::iterator_traits<It>::value_type>;
 
-    if constexpr (is_trivially_copyable)
-    {
-        auto temp = std::move(*back);
-        std::copy(to, back, std::next(to));
-        *to = std::move(temp);
-    }
-    else
-    {
-        while (back != to)
+        if constexpr (is_trivially_copyable)
         {
-            auto& temp = *back;
-            u_swap(*--back, temp);
+            auto temp = std::move(*back);
+            std::copy(to, back, std::next(to));
+            *to = std::move(temp);
         }
-    }
+        else
+        {
+            while (back != to)
+            {
+                auto& temp = *back;
+                u_swap(*--back, temp);
+            }
+        }
 
-    return to;
+        return to;
+    }
 }
 
 template<class size_type>
@@ -41,7 +43,7 @@ template<class size_type>
     constexpr size_type factor = 2;
     constexpr auto max_size = numeric_max_v<size_type>;
     constexpr auto overflow = max_size / factor;
-    return (value < overflow) ? (factor * value) : max_size;
+    return (value <= overflow) ? (factor * value) : max_size;
 }
 
 template<class size_type>
@@ -56,10 +58,15 @@ struct attach_construct_t
 constexpr attach_construct_t attach_construct{};
 
 template<class T>
-constexpr auto small_size_v = std::max(sizeof(buffer<T>) / sizeof(T), 1_uz);
+constexpr auto small_vector_default_static_size_v = (std::max)(sizeof(buffer<T>) / sizeof(T), 1_uz);
 
 
-template<class T, size_t N = small_size_v<T>, class Buffer = buffer<T>>
+template
+<
+    class T, 
+    size_t N = small_vector_default_static_size_v<T>, 
+    class Buffer = buffer<T>
+>
 class small_vector
 {
     using self = small_vector;
@@ -113,13 +120,13 @@ public:
         _copy_initialization_elements(right);
     }
 
-    constexpr small_vector(attach_construct_t, buffer_type mem) noexcept
+    constexpr small_vector(attach_construct_t, buffer_type&& mem) noexcept
         : self{}
     {
         _dynamic_buffer_construct(mem);
     }
 
-    small_vector(attach_construct_t, self& right) noexcept
+    constexpr small_vector(attach_construct_t, self& right) noexcept
         : self{}
     {
         if (right.is_static())
@@ -132,17 +139,17 @@ public:
         }
     }
 
-    small_vector(self&& right) noexcept
+    constexpr small_vector(self&& right) noexcept
         : self{ attach_construct, right }
     {}
 
-    self& operator = (null_type) noexcept
+    constexpr self& operator = (null_type) noexcept
     {
         clear();
         return *this;
     }
 
-    self& operator = (const self& right) noexcept
+    constexpr self& operator = (const self& right) noexcept
     {
         if (this != std::addressof(right)) [[likely]]
         {
@@ -158,7 +165,7 @@ public:
         return *this;
     }
 
-    self& operator = (self&& right) noexcept
+    constexpr self& operator = (self&& right) noexcept
     {
         if (this != std::addressof(right)) [[likely]]
         {
@@ -184,7 +191,7 @@ public:
         return *this;
     }
 
-    constexpr explicit operator bool () const noexcept
+    constexpr explicit operator bool() const noexcept
     {
         return !!size_;
     }
@@ -211,7 +218,7 @@ public:
         return true;
     }
 
-    void attach_buffer(buffer_type mem) noexcept
+    constexpr void attach_buffer(buffer_type&& mem) noexcept
     {
         D_ASSERT(mem.size() > capacity());
         _attach_buffer(mem);
@@ -231,22 +238,23 @@ public:
     }
 
     template<class... Args>
-    [[nodiscard]] const_iterator try_emplace(const_iterator position, Args&&... args) noexcept
+    [[nodiscard]] constexpr const_iterator try_emplace(const_iterator position, Args&&... args) noexcept
     {
         D_ASSERT(position >= cbegin());
         D_ASSERT(position <= cend());
-
+        
         const auto position_index = (position - data_);
 
         if (const auto last = try_emplace_back(std::forward<Args>(args)...)) [[likely]]
         {
-            return back_move(data_ + position_index, last);
+            // TODO: c++23 start_lifetime_as_array optimization: copy(index, last, index+1) without placement new for last
+            return private_detail_back_move::back_move(data_ + position_index, last);
         }
 
         return nullptr;
     }
 
-    size_type erase(const_iterator first, const_iterator last) noexcept
+    constexpr size_type erase(const_iterator first, const_iterator last) noexcept
     {
         class collector
         {
@@ -265,7 +273,7 @@ public:
                 return _set_removed_data(_remove_elements(first, last));
             }
 
-            ~collector() noexcept
+            constexpr ~collector() noexcept
             {
                 std::destroy_n(locked_data_, locked_size_);
                 store_._collect();
@@ -313,7 +321,7 @@ public:
     }
 
     [[nodiscard]]
-    bool try_reserve(size_type new_capacity) noexcept
+    constexpr bool try_reserve(size_type new_capacity) noexcept
     {
         return (new_capacity <= capacity()) || _try_reallocate(new_capacity);
     }
@@ -324,7 +332,7 @@ public:
     }
 
     [[nodiscard]]
-    bool try_shrink_to_fit() noexcept
+    constexpr bool try_shrink_to_fit() noexcept
     {
         bool ok{ true };
 
@@ -349,7 +357,7 @@ public:
     }
 
     template<class... Args>
-    [[nodiscard]] pointer try_emplace_back(Args&&... args) noexcept
+    [[nodiscard]] constexpr pointer try_emplace_back(Args&&... args) noexcept
     {
         if (_try_indeterminate_reserve(size() + 1_uz)) [[likely]]
         {
@@ -363,7 +371,7 @@ public:
     }
 
     template<class... Args>
-    reference emplace_back(Args&&... args) noexcept
+    constexpr reference emplace_back(Args&&... args) noexcept
     {
         const auto last = try_emplace_back(std::forward<Args>(args)...);
         D_ASSERT(last);
@@ -382,7 +390,7 @@ public:
         erase(position, std::next(position));
     }
 
-    void clear() noexcept
+    constexpr void clear() noexcept
     {
         D_UNUSED(_destroy_elements());
         _collect(0_uz);
@@ -526,7 +534,7 @@ public:
         return !is_static();
     }
 
-    ~small_vector() noexcept
+    constexpr ~small_vector() noexcept
     {
         _destroy();
     }
@@ -561,14 +569,14 @@ private:
     }
 
     [[nodiscard]]
-    size_type _destroy_elements() noexcept
+    constexpr size_type _destroy_elements() noexcept
     {
         const auto size = _release_size();
         std::destroy_n(data_, size);
         return size;
     }
 
-    void _destroy() noexcept
+    constexpr void _destroy() noexcept
     {
         D_UNUSED(_destroy_elements());
 
@@ -625,7 +633,7 @@ private:
         std::swap(size_, right.size_);
     }
 
-    void _attach_buffer(buffer_type& mem) noexcept
+    constexpr void _attach_buffer(buffer_type& mem) noexcept
     {
         size_ = _uninitialized_move_to(mem);
 
@@ -688,7 +696,7 @@ private:
     }
 
     [[nodiscard]]
-    bool _try_indeterminate_reserve(size_type require_capacity) noexcept
+    constexpr bool _try_indeterminate_reserve(size_type require_capacity) noexcept
     {
         const auto old_capacity = capacity();
         return require_capacity <= old_capacity
@@ -696,7 +704,7 @@ private:
     }
 
     [[nodiscard]]
-    bool _try_collect(size_type expected_capacity) noexcept
+    constexpr bool _try_collect(size_type expected_capacity) noexcept
     {
         bool ok{ true };
 
@@ -729,12 +737,12 @@ private:
         return ok;
     }
 
-    void _collect(size_type expected_capacity) noexcept
+    constexpr void _collect(size_type expected_capacity) noexcept
     {
         D_ASSERT_OR_UNUSED(_try_collect(expected_capacity));
     }
 
-    void _collect() noexcept
+    constexpr void _collect() noexcept
     {
         _collect(size_);
     }
@@ -748,5 +756,7 @@ private:
     pointer data_;
     size_type size_;
 };
+
+static_assert(sizeof(small_vector<char>) == small_size_v);
 
 D_WARNING_POP

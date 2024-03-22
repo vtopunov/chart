@@ -7,23 +7,6 @@
 
 namespace ui
 {
-    void gdi_object_deleter::operator()(gdi_object_handle_t o) const noexcept
-    {
-        if (o)
-        {
-            D_ASSERT_OR_UNUSED(DeleteObject(o));
-        }
-    }
-
-    unique_brush create_brush(rgba_color32_t color) noexcept
-    {
-        return
-        {
-            resource_construct,
-            CreateSolidBrush(RGB(color.r, color.g, color.b))
-        };
-    }
-
     namespace
     {
         [[nodiscard]]
@@ -47,30 +30,59 @@ namespace ui
 #pragma pop_macro("MAKEINTRESOURCE")
         }
 
-        [[nodiscard]]
-        uint16_t generate_unique_ui16() noexcept
+        template<class T>
+        [[nodiscard]] T generate_unique_window_type_id_as() noexcept
         {
-            static uint16_t id{ 0u };
+            static T id{};
             return ++id;
         }
 
-        [[nodiscard]]
-        HBRUSH stock(stock_brush brush) noexcept
-        {
-            static_assert(std::is_same_v<int, std::underlying_type_t<stock_brush>>);
-            static_assert(WHITE_BRUSH  == to_underlying(stock_brush::white));
-            static_assert(LTGRAY_BRUSH == to_underlying(stock_brush::light_gray));
-            static_assert(GRAY_BRUSH   == to_underlying(stock_brush::gray));
-            static_assert(DKGRAY_BRUSH == to_underlying(stock_brush::dark_gray));
-            static_assert(BLACK_BRUSH  == to_underlying(stock_brush::black));
-            static_assert(NULL_BRUSH   == to_underlying(stock_brush::null));
+        template<class UniqueId>
+        constexpr auto unqiue_name_max_size_v = 2u * sizeof(UniqueId) + 1u;
 
-            return static_cast<HBRUSH>(GetStockObject(to_underlying(brush)));
+        template<class UniqueId, class Char>
+        constexpr basic_zstring_view<Char> unique_name(UniqueId id, Char(&buffer)[unqiue_name_max_size_v<UniqueId>]) noexcept
+        {
+            constexpr auto back_index = narrow<ptrdiff_t>(sizeof(UniqueId));
+            Char* pname{ buffer + back_index };
+            *pname = {};
+
+            do
+            {
+                constexpr char hexchars[]
+                {
+                    '0', '1', '2', '3',
+                    '4', '5', '6', '7',
+                    '8', '9', 'a', 'b',
+                    'c', 'd', 'e', 'f'
+                };
+                static_assert(16_uz == std::size(hexchars));
+
+                *--pname = hexchars[id & 0xfu];
+            }
+            while (id >>= 4);
+
+            return pname;
         }
     }
 
     struct type_window_parameters : WNDCLASSEXW
     {
+        using base_type = WNDCLASSEXW;
+
+        constexpr type_window_parameters() noexcept
+            : base_type
+            {
+                .cbSize{ sizeof(base_type) },
+                .style{ CS_DBLCLKS },
+                .lpfnWndProc{ ui::window_procedure }
+            }
+        {}
+
+        constexpr type_window_parameters(const type_window_parameters&) = default;
+
+        constexpr type_window_parameters& operator = (const type_window_parameters&) = default;
+
         shared_resource<HBRUSH, gdi_object_deleter> background_brush{};
     };
 
@@ -78,21 +90,13 @@ namespace ui
     {
         if (type)
         {
-            static_assert(std::is_same_v<decltype(type.name_id), LPCWSTR>);
-            D_ASSERT_OR_UNUSED(UnregisterClassW(type.name_id, type.module));
+            D_ASSERT_OR_UNUSED(UnregisterClassW(type.handle, type.module));
         }
     }
 
     type_window_builder::type_window_builder() noexcept
     {
-        using base_type = WNDCLASSEXW;
-
-        const auto p_impl = _p_impl();
-        static_assert(std::is_base_of_v<base_type, std::remove_cvref_t<decltype(*p_impl)>>);
-
-        std::construct_at(p_impl);
-        p_impl->cbSize = sizeof(base_type);
-        p_impl->style = CS_DBLCLKS;
+        std::construct_at(_p_impl());
     }
 
     type_window_builder::type_window_builder(const type_window_builder& builder) noexcept
@@ -111,7 +115,7 @@ namespace ui
         return *this;
     }
 
-    unique_type_window type_window_builder::build_as(wzstring_view name) noexcept
+    unique_type_window type_window_builder::build(wzstring_view name) noexcept
     {
         const auto p_impl = _p_impl();
         p_impl->lpszClassName = name.c_str();
@@ -121,11 +125,6 @@ namespace ui
         {
             p_impl->hInstance = GetModuleHandleW(nullptr);
             D_ASSERT(p_impl->hInstance);
-        }
-
-        if (!p_impl->lpfnWndProc)
-        {
-            p_impl->lpfnWndProc = ui::window_procedure;
         }
 
         if (!p_impl->hCursor)
@@ -143,43 +142,23 @@ namespace ui
         return
         {
             resource_construct,
-            p_impl->hInstance,
-            MAKEINTATOMW(RegisterClassExW(p_impl))
+            MAKEINTATOMW(RegisterClassExW(as_const_pointer(p_impl))),
+            p_impl->hInstance
         };
     }
 
     unique_type_window type_window_builder::build() noexcept
     {
-        constexpr auto n_unique_name = 5_uz;
-        WCHAR unique_hexname[n_unique_name];
-
-        auto pname = unique_hexname + (n_unique_name - 1_uz);
-        *pname = L'\0';
-
-        auto unique_ui16 = generate_unique_ui16();
-        do
-        {
-            constexpr char hexchars[]
-            {
-                '0', '1', '2', '3',
-                '4', '5', '6', '7',
-                '8', '9', 'a', 'b',
-                'c', 'd', 'e', 'f'
-            };
-            static_assert(16_uz == std::size(hexchars));
-
-            *--pname = hexchars[unique_ui16 & 0xfu];
-        }
-        while (unique_ui16 >>= 4);
-
-        return build_as(pname);
+        using unique_id_t = uint16_t;
+        WCHAR buffer_for_unique_name[unqiue_name_max_size_v<unique_id_t>];
+        return build(unique_name(generate_unique_window_type_id_as<unique_id_t>(), buffer_for_unique_name));
     }
-    
+
     type_window_parameters* type_window_builder::_p_impl() noexcept
     {
         return as_mutable_pointer(_c_p_impl());
     }
-    
+
     const type_window_parameters* type_window_builder::_c_p_impl() const noexcept
     {
         static_assert(storage_size >= sizeof(type_window_parameters));

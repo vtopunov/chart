@@ -2,9 +2,9 @@
 
 using namespace std::string_view_literals;
 
-#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "hello_triangle", __VA_ARGS__))
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "hello_triangle", __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "hello_triangle", __VA_ARGS__))
+#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "org.hello_triangle", __VA_ARGS__))
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "org.hello_triangle", __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "org.hello_triangle", __VA_ARGS__))
 
 namespace
 {

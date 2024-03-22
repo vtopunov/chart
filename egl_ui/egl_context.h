@@ -115,7 +115,7 @@ namespace egl_ui
     class egl_painting_owner
     {
     public:
-        constexpr egl_painting_owner(display_surface ds) noexcept
+        constexpr explicit egl_painting_owner(display_surface ds) noexcept
             : lock_{ resource_construct, ds }
         {}
 

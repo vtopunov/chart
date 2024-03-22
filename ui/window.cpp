@@ -1,16 +1,19 @@
 #include "window.h"
 
-#include <algorithm>
-
 #include <os/os.h>
 
 #include <ui/event_processors_storage.h>
+#include <ui/app.h>
+
 
 namespace ui
 {
     namespace
     {
         using gdi_rect_t = RECT;
+
+        constexpr dword_t parent_window_style{ WS_OVERLAPPEDWINDOW };
+        constexpr dword_t child_window_style{ WS_VISIBLE | WS_CHILD };
 
         [[nodiscard]]
         window_set& windows_global() noexcept
@@ -55,16 +58,27 @@ namespace ui
             return { 0u, std::addressof(c), nullptr };
         }
 
-        [[nodiscard]] constexpr pxsize2d gdi_to_pxsizes(const gdi_rect_t& rect) noexcept
+        [[nodiscard]]
+        constexpr gdi_rect_t pxsizes_to_gdi(pxsize2d sizes) noexcept
+        {
+            return
+            {
+                .right{ narrow<decltype(gdi_rect_t::right)>(sizes.width()) },
+                .bottom{ narrow<decltype(gdi_rect_t::bottom)>(sizes.height()) }
+            };
+        }
+
+        [[nodiscard]]
+        constexpr pxsize2d gdi_to_pxsizes(const gdi_rect_t& rect) noexcept
         {
             static_assert(std::is_unsigned_v<pxsize_t>);
-            
+
             constexpr auto side_length = [] (auto p0, auto p1) noexcept
             {
                 D_ASSERT(p1 >= p0);
                 return narrow<pxsize_t>(p1 - p0);
             };
-        
+
             pxsize2d result{ side_length(rect.left, rect.right), 0_npx };
 
             if (result.width()) [[likely]]
@@ -88,7 +102,7 @@ namespace ui
         [[nodiscard]]
         gdi_rect_t gdi_geometry(window_handle_t window) noexcept
         {
-            gdi_rect_t rect{ 0, 0, 0, 0 };
+            gdi_rect_t rect{};
             D_ASSERT_OR_UNUSED(GetClientRect(window, &rect));
             return rect;
         }
@@ -176,6 +190,13 @@ namespace ui
         return gdi_to_pxsizes(gdi_geometry(window));
     }
 
+    pxsize2d adjust_sizes(pxsize2d sizes) noexcept
+    {
+        auto rect = pxsizes_to_gdi(sizes);
+        D_ASSERT_OR_UNUSED(AdjustWindowRect(std::addressof(rect), parent_window_style, FALSE));
+        return gdi_to_pxsizes(rect);
+    }
+
     bool geometry(window_handle_t window, pxrectangle rc) noexcept
     {
         return !!SetWindowPos
@@ -238,38 +259,34 @@ namespace ui
             return (px == px_usedefault) ? cw_usedefault : narrow<native_npx_t>(px);
         };
 
-        constexpr auto select_window_style = [] (bool has_parent) noexcept
-        {
-            constexpr dword_t main_window_style{ WS_OVERLAPPED | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX };
-            constexpr dword_t child_window_style{ WS_VISIBLE | WS_CHILD };
-            return (has_parent) ? child_window_style : main_window_style;
-        };
-
-        window result;
+        window result{};
 
         prepare(params);
-
         if (params.cached_type) [[likely]]
         {
-            result = window
             {
-                resource_construct,
-                CreateWindowExW
-                (
-                    0u,
-                    params.cached_type.r().name_id,
-                    params.title.c_str(),
-                    select_window_style(params.parent),
-                    px_to_native(params.geometry.x()),
-                    px_to_native(params.geometry.y()),
-                    px_to_native(params.geometry.width()),
-                    px_to_native(params.geometry.height()),
-                    params.parent,
-                    nullptr,
-                    mutable_app_module_handle(params),
-                    nullptr
-                )
-            };
+                const auto style = (params.parent) ? child_window_style : parent_window_style;
+
+                result =
+                {
+                    resource_construct,
+                    CreateWindowExW
+                    (
+                        0u,
+                        params.cached_type.r().handle,
+                        params.title.c_str(),
+                        style,
+                        px_to_native(params.geometry.x()),
+                        px_to_native(params.geometry.y()),
+                        px_to_native(params.geometry.width()),
+                        px_to_native(params.geometry.height()),
+                        params.parent,
+                        nullptr,
+                        params.cached_type.r().module,
+                        nullptr
+                    )
+                };
+            }
 
             if (result) [[likely]]
             {
@@ -278,7 +295,7 @@ namespace ui
                 const auto ok = !!window_set.try_emplace
                 (
                     std::upper_bound(window_set.cbegin(), window_set.cend(), by_parent{ params.parent }),
-                    result.r(),
+                    view(result),
                     params.parent,
                     params.cached_type
                 );

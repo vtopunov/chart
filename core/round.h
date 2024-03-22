@@ -141,4 +141,3 @@ template<class T>
 {
     return std::nextafter(value, -std::numeric_limits<T>::infinity());
 }
-

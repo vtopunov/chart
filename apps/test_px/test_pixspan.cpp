@@ -26,9 +26,10 @@ void test_pixspan() noexcept
 
     constexpr const_pix8span image_span{ std::data(image), image_sizes };
     static_assert(std::data(image) == image_span.data());
-    static_assert(std::data(image) == image_span.line0().position);
-    static_assert(line_size == image_span.line0().size);
-    static_assert(image_span.line0() == image_span.begin());
+    static_assert(std::data(image) == std::data(image_span.line()));
+    static_assert(image_sizes.width() == std::size(image_span.line()));
+    static_assert(line_size == std::size(image_span.lines()));
+    static_assert(image_span.line() == *image_span.begin());
     static_assert(std::end(image) == image_span.end());
     static_assert(line_size == image_span.line_size());
 

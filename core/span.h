@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 
 #include <core/utility.h>
@@ -18,8 +19,6 @@ struct is_container<C, std::void_t<decl_data_pointer_t<C>, decltype(std::size(st
 template<class C>
 inline constexpr bool is_container_v = is_container<C>::value;
 
-template <class T, size_t>
-class span;
 
 template <class T>
 struct is_span : std::false_type
@@ -42,24 +41,28 @@ struct is_convertible_data : std::is_convertible<decl_data_pointer_t<C>, DataPoi
 {};
 
 
-constexpr auto dynamic_extent = numeric_max_v<size_t>;
-
 namespace private_detail_extent_constant
 {
+    template<size_t Extent>
+    using extent_t = std::integral_constant<size_t, Extent>;
+
     template<class C>
-    struct extent_constant_impl : std::integral_constant<size_t, dynamic_extent>
+    using decl_extent_t = extent_t<C::extent>;
+
+    template<class C>
+    struct extent_constant_impl : detected_or_t<extent_t<dynamic_extent>, decl_extent_t, C>
     {};
 
     template<class T, size_t Extent>
-    struct extent_constant_impl<std::array<T, Extent>> : std::integral_constant<size_t, Extent>
+    struct extent_constant_impl<std::array<T, Extent>> : extent_t<Extent>
     {};
 
     template<class T, size_t Extent>
-    struct extent_constant_impl<span<T, Extent>> : std::integral_constant<size_t, Extent>
+    struct extent_constant_impl<span<T, Extent>> : extent_t<Extent>
     {};
 
     template<class T, size_t Extent>
-    struct extent_constant_impl<T[Extent]> : std::integral_constant<size_t, Extent>
+    struct extent_constant_impl<T[Extent]> : extent_t<Extent>
     {};
 
     template<class C>
@@ -110,9 +113,11 @@ struct span_data_impl
 
     D_DEFAULT_ALL_CAEQ(span_data_impl);
 
-    constexpr span_data_impl(pointer data, size_t) noexcept
+    constexpr span_data_impl(pointer data, [[maybe_unused]] size_t size) noexcept
         : data_{ data }
-    {}
+    {
+        D_ASSERT(size_ == size);
+    }
 };
 
 
@@ -139,7 +144,7 @@ constexpr bool is_compatible_span2span_v = std::conjunction_v
 >;
 
 
-template <class T, size_t Extent = dynamic_extent>
+template <class T, size_t Extent>
 class span : private span_data_impl<T, Extent>
 {
     using base_type = span_data_impl<T, Extent>;
@@ -185,8 +190,8 @@ public:
         : base_type{ static_cast<pointer>(span.data()), span.size() }
     {}
 
-    template<class C, std::enable_if_t<is_compatible_v<C>, int> = 0>
-    constexpr span(C& c) noexcept
+    template<class C, std::enable_if_t<is_compatible_v<std::remove_reference_t<C>>, int> = 0>
+    constexpr span(C&& c) noexcept
         : base_type{ std::data(c), narrow<size_type>(std::size(c)) }
     {}
 
@@ -198,7 +203,7 @@ public:
     template<class C>
     constexpr std::enable_if_t<is_compatible_v<C>, span&> operator = (C& container) noexcept
     {
-        _base_ref() = base_type{ std::data(container), std::size(container) };
+        _base_ref() = base_type{ std::data(container), narrow<size_type>(std::size(container)) };
         return *this;
     }
 
@@ -248,6 +253,7 @@ public:
     [[nodiscard]]
     constexpr reference value(size_type index) const noexcept
     {
+        D_ASSERT(index < size_);
         return data_[index];
     }
 
@@ -272,24 +278,29 @@ public:
     [[nodiscard]]
     constexpr span first(size_type size) const noexcept
     {
+        D_ASSERT(size <= size_);
         return { data_, size };
     }
 
     [[nodiscard]]
     constexpr span subspan(size_type pos, size_type size) const noexcept
     {
+        D_ASSERT(pos <= size_);
+        D_ASSERT(size <= (size_ - pos));
         return { data_ + pos, size };
     }
 
     [[nodiscard]]
     constexpr span subspan(size_type pos) const noexcept
     {
+        D_ASSERT(pos <= size_);
         return { data_ + pos, size_ - pos };
     }
 
     [[nodiscard]]
     constexpr span last(size_type size) const noexcept
     {
+        D_ASSERT(size <= size_);
         return { data_ + size_ - size, size };
     }
 
@@ -306,3 +317,16 @@ span(Rng&) -> span<value_type_t<Rng>, extent_v<Rng>>;
 
 template <class Rng>
 span(const Rng&) -> span<const value_type_t<Rng>, extent_v<Rng>>;
+
+
+template<class OutT, size_t Extent, class T>
+constexpr void fill(span<OutT, Extent> sp, const T& value) noexcept
+{
+    std::fill_n(sp.data(), sp.size(), value);
+}
+
+template<class InT, size_t Extent, class OutIt>
+constexpr OutIt copy(span<InT, Extent> sp, OutIt out) noexcept
+{
+    return std::copy_n(sp.data(), sp.size(), out);
+}

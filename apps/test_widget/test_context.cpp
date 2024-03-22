@@ -81,7 +81,7 @@ void test_context() noexcept
         static_assert(tuple_has_type_v<widget::windowrefwrap_t, tuple_cc_t>);
         static_assert(5u == std::tuple_size_v<tuple_cc_t>);
 
-        widget::window w;
+        widget::window w{};
         cc_t cc{ w };
         D_ASSERT(std::addressof(cc.cref_window()) == std::addressof(w));
         D_ASSERT(std::addressof(cc.ref_window()) == std::addressof(w));

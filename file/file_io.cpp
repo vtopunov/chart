@@ -1,8 +1,7 @@
 #include "file_io.h"
 
-#include <core/narrow.h>
-
 #include <os/os.h>
+
 
 namespace file
 {

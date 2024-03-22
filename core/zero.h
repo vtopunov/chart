@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/type_traits.h>
+#include <core/limits.h>
 
 
 namespace private_detail_zero
@@ -62,6 +62,11 @@ namespace private_detail_zero
         {
             static_assert(!std::is_reference_v<T>);
             using zero_value_type = T;
+
+            [[nodiscard]] constexpr T operator () () const noexcept
+            {
+                return zero_type::operator T();
+            }
         };
 
         template<>
@@ -268,23 +273,23 @@ using private_detail_zero::private_detail_is_neqz::is_neqz;
 
 
 template<class T>
-[[nodiscard]] constexpr decl_less_op_t<T> is_positive(const T& value) noexcept
+[[nodiscard]] constexpr std::enable_if_t<is_zero_constructible_v<T>, decl_less_op_t<T>> is_positive(const T& value) noexcept
 {
     return type_traits_compare::less_op<T>(zero_v<T>, value);
 }
 
 template<class T>
-[[nodiscard]] constexpr decl_less_op_t<T> is_negative(const T& value) noexcept
+[[nodiscard]] constexpr std::enable_if_t<is_zero_constructible_v<T>, decl_less_op_t<T>> is_negative(const T& value) noexcept
 {
     return type_traits_compare::less_op<T>(value, zero_v<T>);
 }
 
-
-template <class T0, class T1>
-[[nodiscard]] std::add_rvalue_reference_t<std::common_type_t<T0, T1>> declcommontype(const T0&, const T1&) noexcept;
-
 template<class T>
-[[nodiscard]] constexpr auto constexpr_abs(const T& value) noexcept -> std::remove_reference_t<decltype((is_negative(value), declcommontype(value, -value)))>
+[[nodiscard]] constexpr std::enable_if_t
+<
+    std::conjunction_v<is_zero_constructible<T>, has_less_op<T>, has_unary_munis_op<T>>, 
+    T
+> u_abs(const T& value) noexcept
 {
     if constexpr (std::is_unsigned_v<T>)
     {

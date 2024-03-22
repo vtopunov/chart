@@ -20,6 +20,7 @@ namespace egl_ui
     {
         using private_detail_egl_descriptor::config_descriptor_t;
 
+        [[nodiscard]]
         display_descriptor_t get_display() noexcept
         {
 #if defined(D_OS_WINDOWS)
@@ -37,21 +38,25 @@ namespace egl_ui
 #endif
         }
 
+        [[nodiscard]]
         bool egl_initialize(display_descriptor_t display) noexcept
         {
             return egl_to_bool(eglInitialize(display, nullptr, nullptr));
         }
 
+        [[nodiscard]]
         bool egl_bind_gles() noexcept
         {
             return egl_to_bool(eglBindAPI(EGL_OPENGL_ES_API));
         }
 
+        [[nodiscard]]
         bool choose_config(display_descriptor_t display, const EGLint* attribs, EGLConfig* cofigs, EGLint n_configs, EGLint* n_configs_result) noexcept
         {
             return egl_to_bool(eglChooseConfig(display, attribs, cofigs, n_configs, n_configs_result));
         }
 
+        [[nodiscard]]
         config_descriptor_t choose_config(display_descriptor_t display, const EGLint* attribs) noexcept
         {
             constexpr EGLint n_configs{ 1 };
@@ -68,6 +73,7 @@ namespace egl_ui
             return nullptr;
         }
 
+        [[nodiscard]]
         surface_descriptor_t create_surface
         (
             display_descriptor_t display, 
@@ -79,11 +85,13 @@ namespace egl_ui
             return static_cast<surface_descriptor_t>(eglCreateWindowSurface(display, config, window, attribs));
         }
 
+        [[nodiscard]]
         context_descriptor_t create_context(display_descriptor_t display, config_descriptor_t config, const EGLint* attribs) noexcept
         {
             return static_cast<context_descriptor_t>(eglCreateContext(display, config, nullptr, attribs));
         }
 
+        [[nodiscard]]
         bool make_current(display_descriptor_t display, surface_descriptor_t draw, surface_descriptor_t read, context_descriptor_t context) noexcept
         {
             return egl_to_bool(eglMakeCurrent(display, draw, read, context));
@@ -94,16 +102,19 @@ namespace egl_ui
             return make_current(display, nullptr, nullptr, nullptr);
         }
 
+        [[nodiscard]]
         bool destroy_context(display_descriptor_t display, context_descriptor_t context) noexcept
         {
             return egl_to_bool(eglDestroyContext(display, context));
         }
 
+        [[nodiscard]]
         bool destroy_surface(display_descriptor_t display, surface_descriptor_t surface) noexcept
         {
             return egl_to_bool(eglDestroySurface(display, surface));
         }
 
+        [[nodiscard]]
         bool egl_terminate(display_descriptor_t display)  noexcept
         {
             return egl_to_bool(eglTerminate(display));

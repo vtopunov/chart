@@ -9,9 +9,9 @@ namespace widget
         {
             e.get<shader::luminance8_texture_mix_color>()
                 .use()
-                .store(position)
-                .store(colors::black_f)
-                .store(text_cache.texture())
+                .position(position)
+                .color(colors::black_f)
+                .texture(text_cache.texture())
                 .draw();
         }
     }

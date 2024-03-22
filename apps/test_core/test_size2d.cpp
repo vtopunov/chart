@@ -7,6 +7,7 @@ namespace
     namespace private_detail_test_sizes
     {
         using size2d_t = size2d<int>;
+        using vec2_t = size2d_t::vec2_type;
 
         static constexpr size2d_t testconst_sizes_o{ 1, 2 };
         static constexpr size2d_t testconst_sizes_mem_fn{ 3, 4 };
@@ -37,10 +38,27 @@ namespace
             }
         } sizes_mem_fn_o_v{ sizes_o_v };
 
+        constexpr struct sizes_vec2mem_fn_o : sizes_o
+        {
+            [[nodiscard]] constexpr vec2_t sizes() const noexcept
+            {
+                return { testconst_sizes_mem_fn };
+            }
+        } sizes_vec2mem_fn_o_v{ sizes_o_v };
+
         constexpr struct sizes_mem_o : sizes_o
         {
             sizes_o sizes;
-        } sizes_mem_o_v{ .sizes{ testconst_sizes_mem } };
+        } sizes_mem_o_v{ { testconst_sizes_o }, testconst_sizes_mem };
+        static_assert(testconst_sizes_o == sizes_mem_o_v);
+        static_assert(testconst_sizes_mem == sizes_mem_o_v.sizes);
+
+        constexpr struct sizes_vec2mem_o : sizes_o
+        {
+            vec2_t sizes;
+        } sizes_vec2mem_o_v{ { testconst_sizes_o }, testconst_sizes_mem };;
+        static_assert(testconst_sizes_o == sizes_vec2mem_o_v);
+        static_assert(testconst_sizes_mem == to_size2d(sizes_vec2mem_o_v.sizes));
 
         constexpr struct sizes_mem_view
         {
@@ -72,7 +90,7 @@ namespace
                 return sizes_mem_v;
             }
 
-            constexpr operator resource_type () const noexcept
+            constexpr const resource_type& r() const noexcept
             {
                 return sizes_mem_fn_v;
             }
@@ -89,7 +107,7 @@ namespace
                 return sizes_mem_v;
             }
 
-            constexpr operator resource_type () const noexcept
+            constexpr const resource_type& r() const noexcept
             {
                 return {};
             }
@@ -106,6 +124,8 @@ namespace
 
         static_assert(testconst_sizes_mem_fn == sizes(sizes_mem_fn_o_v));
         static_assert(testconst_sizes_mem == sizes(sizes_mem_o_v));
+        static_assert(testconst_sizes_o == sizes(sizes_vec2mem_fn_o_v));
+        static_assert(testconst_sizes_o == sizes(sizes_vec2mem_o_v));
 
         static_assert(testconst_sizes_mem == sizes(sizes_mem_view_v));
         static_assert(testconst_sizes_o == sizes(sizes_mem_view_o_v));

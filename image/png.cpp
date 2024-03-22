@@ -2,6 +2,7 @@
 
 #include <spng.h>
 
+
 namespace image
 {
     static_assert(to_underlying(png_errno::PNG_IO_ERROR) == SPNG_IO_ERROR);
@@ -126,29 +127,21 @@ namespace image
             return png_errno::PNG_MEM;
         }
 
-        png_errno errc{ png_errno::PNG_OK };
-
-        const auto accept_errc = [&errc](png_errno new_errc) noexcept
+        if (const auto e = png_set_buffer(png, image); png_errno::PNG_OK != e) [[unlikely]]
         {
-            errc = new_errc;
-            return png_errno::PNG_OK != new_errc;
-        };
-
-        if (accept_errc(png_set_buffer(png, image))) [[unlikely]]
-        {
-            return errc;
+            return e;
         }
 
         const png_header png_header{ png };
-        if (accept_errc(png_header.error_code())) [[unlikely]]
+        if (const auto e = png_header.error_code(); png_errno::PNG_OK != e) [[unlikely]]
         {
-            return errc;
+            return e;
         }
 
         size_t size = 0;
-        if (accept_errc(png_decoded_image_size(png, png_format, &size))) [[unlikely]]
+        if (const auto e = png_decoded_image_size(png, png_format, &size); png_errno::PNG_OK != e) [[unlikely]]
         {
-            return errc;
+            return e;
         }
 
         if (!size) [[unlikely]]
@@ -167,14 +160,14 @@ namespace image
             return png_errno::PNG_MEM;
         }
 
-        if (accept_errc(png_decode_image(png, png_format, temp))) [[unlikely]]
+        if (const auto e = png_decode_image(png, png_format, temp); png_errno::PNG_OK != e) [[unlikely]]
         {
-            return errc;
+            return e;
         }
 
         return 
         { 
-            static_cast<r8g8b8a8_result::const_pointer>(temp.cvoid_data()), 
+            std::as_const(temp).as_span<r8g8b8a8_result::pixel_type>().data(),
             space
         };
     }

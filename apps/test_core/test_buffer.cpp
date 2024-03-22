@@ -6,9 +6,17 @@
 
 void test_buffer() noexcept
 {
+    static_assert(1_uz == buffer_t::element_size);
+    static_assert(1_uz == sizeof(decl_value_type_t<buffer_t>));
+    static_assert(std::is_same_v<decl_value_type_t<buffer_t>, buffer_t::value_type>);
     static_assert(std::is_same_v<decl_view_type_t<buffer_t>, buffer_t::view_type>);
     static_assert(std::is_same_v<decl_null_type_t<buffer_t>, buffer_t::null_type>);
     static_assert(std::is_same_v<decl_null_type_t<buffer_t>, nullmem_t>);
+    static_assert(!std::is_copy_constructible_v<buffer_t>);
+    static_assert(!std::is_copy_assignable_v<buffer_t>);
+    static_assert(std::is_move_constructible_v<buffer_t>);
+    static_assert(std::is_move_assignable_v<buffer_t>);
+
 
     using type_t = int32_t;
     constexpr auto size = 10_uz;
