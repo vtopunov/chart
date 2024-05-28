@@ -68,8 +68,7 @@ namespace widget
             {
                 if constexpr (std::conjunction_v<is_same_uncvref<bool, ERR>, is_same_uncvref<bool, ERL>>)
                 {
-                    const bool result{ left.result && right.result };
-                    return event_result_processor<bool>{ result };
+                    return event_result_processor<bool>{ left.result && right.result };
                 }
                 else
                 {

@@ -186,8 +186,8 @@ namespace px
         return right.prev(left);
     }
 
-    using pix8line = pixline<pix8_t>;
-    using const_pix8line = pixline<const pix8_t>;
+    using pix8line = pixline<luminance_t>;
+    using const_pix8line = pixline<const luminance_t>;
 }
 
 using px::pixline;

@@ -47,7 +47,7 @@ namespace ui
         sensor_event_queue_handle_t sensor_event_queue;
     };
 
-    static_assert(std::is_same_v<null_t<sensor_event_queue_resource>, sensor_event_queue_resource::null_type>);
+    static_assert(std::is_same_v<decl_null_type_t<sensor_event_queue_resource>, sensor_event_queue_resource::null_type>);
 
     struct sensor_event_queue_resource_collector
     {

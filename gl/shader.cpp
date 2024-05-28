@@ -169,7 +169,9 @@ namespace gl
         template<class LocationType>
         [[nodiscard]] LocationType get_location(program_resource program, zstring_view name) noexcept
         {
-            return narrow<LocationType>(location_getter_v<LocationType>(to_underlying(program), name.c_str()));
+            const auto location = location_getter_v<LocationType>(to_underlying(program), name.c_str());
+            static_assert(is_same_uncv_v<std::make_unsigned_t<decltype(location)>, std::underlying_type_t<LocationType>>);
+            return narrow<LocationType>(location);
         }
     }
 
@@ -193,11 +195,7 @@ namespace gl
 
     shader create_shader(shader_type type) noexcept
     {
-        return
-        {
-            resource_construct,
-            underlying_cast<shader_resource>(glCreateShader(to_underlying(type)))
-        };
+        return shader{ underlying_cast<shader_resource>(glCreateShader(to_underlying(type))) };
     }
 
     void attach_shader(program_resource program, shader_resource shader) noexcept
@@ -231,6 +229,15 @@ namespace gl
         return link_status(program);
     }
 
+    program_resource current_program() noexcept
+    {
+        using programi_t = std::make_signed_t<std::underlying_type_t<program_resource>>;
+        constexpr auto null_programi =  static_cast<programi_t>(program_resource::null);
+        programi_t programi{ null_programi };
+        glGetIntegerv(GL_CURRENT_PROGRAM, std::addressof(programi));
+        return static_cast<program_resource>(programi);
+    }
+
     void program_resource_deleter::operator()(program_resource program) const noexcept
     {
         glDeleteProgram(to_underlying(program));
@@ -238,11 +245,7 @@ namespace gl
 
     program create_program() noexcept
     {
-        return
-        {
-            resource_construct,
-            underlying_cast<program_resource>(glCreateProgram())
-        };
+        return program{ underlying_cast<program_resource>(glCreateProgram()) };
     }
 
     program create_program(source_view vertex, source_view fragment) noexcept

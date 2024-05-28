@@ -1,12 +1,25 @@
 #pragma once
 
 #include <chart/grid_shader.h>
+#include <chart/space_manipulation.h>
 
 
 namespace chart
 {
+    struct periodic_position
+    {
+        px::real_point2d begin;
+        px::real_point2d repeat;
+    };
+
+    struct periodic_value_position
+    {
+        periodic_position value;
+        periodic_position px;
+    };
+
     template<class T>
-    [[nodiscard]] T grid_increment(const T min_distance) noexcept
+    [[nodiscard]] constexpr T grid_increment(const T min_distance) noexcept
     {
         const auto max_increment = pow(10, ceil_cast<int64_t>(log10(min_distance)));
         const auto half_increment = 0.5 * max_increment;
@@ -16,7 +29,7 @@ namespace chart
     }
 
     template<class T>
-    [[nodiscard]] T grid_begin(T begin, T increment) noexcept
+    [[nodiscard]] constexpr T grid_begin(T begin, T increment) noexcept
     {
         const auto result = increment * std::ceil(begin / increment);
         D_ASSERT(begin <= result); // c++26+ contracts
@@ -25,7 +38,7 @@ namespace chart
     }
 
     template<class T>
-    [[nodiscard]] point2d<T> md_grid_increment(point2d<T> min_distances) noexcept
+    [[nodiscard]] constexpr point2d<T> md_grid_increment(point2d<T> min_distances) noexcept
     {
         return
         {
@@ -35,7 +48,7 @@ namespace chart
     }
 
     template<class T>
-    [[nodiscard]] point2d<T> md_grid_begin(point2d<T> begin, point2d<T> increment) noexcept
+    [[nodiscard]] constexpr point2d<T> md_grid_begin(point2d<T> begin, point2d<T> increment) noexcept
     {
         return
         {
@@ -44,29 +57,37 @@ namespace chart
         };
     }
 
-
     struct grid
     {
         static constexpr auto default_color = ::colors::green_f;
         static constexpr auto default_widths = fill_to<point2d>(1_npx);
         static constexpr point2d default_min_distances{ 50_npx, 30_npx };
 
-        rgbaf_color_t color{ default_color };
+        rgbaf_color color{ default_color };
         pxpoint2d widths{ default_widths };
         pxpoint2d min_distances{ default_min_distances };
 
-        void operator () (const shader::grid_user& shdr, const space_diagonal_t math_space, const transformation_t math2px) const noexcept
+        constexpr periodic_value_position operator () (const space_manipulation& sys) const noexcept
         {
-            const auto abs_math2px_scale = md_abs(math2px.scale());
-            const auto math_repeat = md_grid_increment(min_distances / abs_math2px_scale);
-            const auto repeat = abs_math2px_scale * math_repeat;
-            const auto math_begin = md_grid_begin(math_space._0, math_repeat);
-            const auto begin = abs_math2px_scale * (math_begin - math_space._0);
+            const auto abs_scale_to_px = md_abs(make_scale_transformation(sys).scale());
+            const auto math_repeat = md_grid_increment(min_distances / abs_scale_to_px);
+            const auto repeat = abs_scale_to_px * math_repeat;
+            const auto math_begin = md_grid_begin(sys._0._0, math_repeat);
+            const auto begin = abs_scale_to_px * (math_begin - sys._0._0);
 
+            return
+            {
+                .value{.begin{ math_begin }, .repeat{ math_repeat } },
+                .px{.begin{ begin }, .repeat{ repeat } }
+            };
+        }
+
+        void operator () (const shader::grid_user& shdr, const periodic_value_position& position) const noexcept
+        {
             shdr.color(color)
                 .width(widths)
-                .begin(begin)
-                .repeat(repeat)
+                .begin(position.px.begin)
+                .repeat(position.px.repeat)
                 .draw();
         }
     };

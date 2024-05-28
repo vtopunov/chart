@@ -65,6 +65,7 @@ namespace widget
             base_ref() = ui::no_gesture;
         }
 
+        [[nodiscard]]
         constexpr ui::gesture& base_ref() noexcept
         {
             return *this;

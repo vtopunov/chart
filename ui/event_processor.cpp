@@ -11,10 +11,6 @@ namespace ui
 
     event_processor create_event_processor(window_handle_t window, event_callback_t callback) noexcept
     {
-        return
-        {
-            resource_construct,
-            event_processors_global().create(window, std::move(callback))
-        };
+        return event_processor{ event_processors_global().create(window, std::move(callback)) };
     }
 }

@@ -8,9 +8,9 @@ namespace ui
     namespace
     {
         template<class T>
-        constexpr pxsize_t to_npx(T value) noexcept
+        constexpr npx_t to_npx(T value) noexcept
         {
-            return narrow<pxsize_t>(clamp_to_unsigned(value));
+            return narrow<npx_t>(clamp_to_unsigned(value));
         }
 
         window_handle_t startup_request(module_handle_t module) noexcept
@@ -53,7 +53,7 @@ namespace ui
 
     pxsize2d sizes(window_handle_t window) noexcept
     {
-        static_assert(std::is_unsigned_v<pxsize_t>);
+        static_assert(std::is_unsigned_v<npx_t>);
 
         pxsize2d result{ to_npx(ANativeWindow_getWidth(window)), 0_npx };
 

@@ -8,15 +8,6 @@
 D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_avoid_malloc_and_free)
 
-struct buffer_construct_t
-{};
-
-constexpr buffer_construct_t buffer_construct{};
-
-struct buffer_attach_construct_t
-{};
-
-constexpr buffer_attach_construct_t buffer_attach_construct{};
 
 class buffer_void
 {
@@ -28,14 +19,8 @@ public:
 
     D_DISABLE_COPY_CA(buffer_void);
 
-    constexpr buffer_void(buffer_attach_construct_t, void* mem, size_type count) noexcept
-        : data_{ mem }
-        , count_{ (mem) ? count : 0_uz }
-    {}
-
     constexpr buffer_void(buffer_void&& right) noexcept
-        : data_{ std::exchange(right.data_, nullptr) }
-        , count_{ std::exchange(right.count_, 0_uz) }
+        : mem_{ _release(right.mem_) }
     {}
 
     constexpr buffer_void(null_type) noexcept
@@ -57,19 +42,18 @@ public:
     ~buffer_void() noexcept
     {
         using std::free;
-        free(data_);
+        free(mem_.data);
     }
 
     [[nodiscard]]
     constexpr explicit operator bool() const noexcept
     {
-        return !!count_;
+        return !!mem_.count;
     }
 
     constexpr void swap(buffer_void& right) noexcept
     {
-        std::swap(data_, right.data_);
-        std::swap(count_, right.count_);
+        std::swap(mem_, right.mem_);
     }
 
     void reset() noexcept
@@ -81,37 +65,63 @@ public:
     [[nodiscard]]
     constexpr const void* cvoid_data() const noexcept
     {
-        return data_;
+        return mem_.data;
     }
 
     [[nodiscard]]
     constexpr const void* void_data() const noexcept
     {
-        return data_;
+        return mem_.data;
     }
 
     [[nodiscard]]
     constexpr void* void_data() noexcept
     {
-        return data_;
+        return mem_.data;
     }
 
 protected:
+    constexpr buffer_void(void* data, size_type count) noexcept
+        : mem_{ data, count }
+    {
+        D_ASSERT(data || !count);
+    }
+
+    struct memory_location
+    {
+        void* data;
+        size_type count;
+    };
+
+    static constexpr memory_location nullmem_location{ .data{ nullptr }, .count{ 0_uz } };
+
+    constexpr explicit buffer_void(memory_location mem) noexcept
+        : mem_{ mem }
+    {}
+
     [[nodiscard]]
     constexpr void* _void_data() const noexcept
     {
-        return data_;
+        return mem_.data;
     }
 
     [[nodiscard]]
     constexpr size_type _count() const noexcept
     {
-        return count_;
+        return mem_.count;
     }
 
 private:
-    void* data_{ nullptr };
-    size_type count_{ 0_uz };
+    [[nodiscard]]
+    static constexpr memory_location _release(memory_location& mem) noexcept
+    {
+        const auto temp = mem;
+        mem = nullmem_location;
+        return temp;
+    }
+
+private:
+    memory_location mem_{ nullmem_location };
 };
 
 template<size_t ElementSize>
@@ -128,12 +138,12 @@ public:
 
     D_DEFAULT_ONLYMOVE_CA(buffer_void_collection);
 
-    constexpr buffer_void_collection(buffer_construct_t, size_type count) noexcept
-        : base_type{ buffer_attach_construct, _alloc(count), count }
-    {}
-
     constexpr buffer_void_collection(null_type nullvalue) noexcept
         : base_type{ nullvalue }
+    {}
+
+    constexpr explicit buffer_void_collection(size_type count) noexcept
+        : base_type{ _alloc(count) }
     {}
 
     buffer_void_collection& operator = (null_type nullvalue) noexcept
@@ -178,7 +188,7 @@ public:
     {
         if (size() < new_count)
         {
-            buffer_void_collection new_buffer{ buffer_construct, new_count };
+            buffer_void_collection new_buffer{ new_count };
             if (!new_buffer) [[unlikely]]
             {
                 return false;
@@ -199,52 +209,58 @@ private:
     template<class T>
     [[nodiscard]] constexpr span<T> _as_span() const noexcept
     {
+        static_assert(!std::is_reference_v<T>);
         return
         {
             static_cast<T*>(base_type::_void_data()),
-            _count_for<T>()
+            _count_for<sizeof(T)>(size())
         };
     }
 
-    template<class T>
-    [[nodiscard]] constexpr size_t _count_for() const noexcept
+    template<size_t NewElementSize>
+    [[nodiscard]] static constexpr size_t _count_for(size_t size) noexcept
     {
-        static_assert(!std::is_reference_v<T>);
-        constexpr auto new_element_size = sizeof(T);
+        static_assert(std::is_same_v<size_type, size_t>);
+
+        constexpr auto new_element_size = NewElementSize;
 
         if constexpr (new_element_size > element_size)
         {
             static_assert(!(new_element_size % element_size));
             constexpr auto new_interpretable_element_size = new_element_size / element_size;
-            return size() / new_interpretable_element_size;
+            return size / new_interpretable_element_size;
         }
         else
         {
             if constexpr (element_size == new_element_size)
             {
-                return size();
+                return size;
             }
             else
             {
                 static_assert(!(element_size % new_element_size));
                 constexpr auto new_interpretable_element_size = element_size / new_element_size;
-                return size_mul<new_interpretable_element_size>(size());
+                return size_mul<new_interpretable_element_size>(size);
             }
         }
     }
 
     [[nodiscard]]
-    static constexpr void* _alloc(size_type size) noexcept
+    static constexpr memory_location _alloc(size_t count) noexcept
     {
-        void* result{ nullptr };
+        static_assert(std::is_same_v<size_type, size_t>);
 
-        if (has_size_mul<element_size>(size)) [[likely]]
+        if (has_size_mul<element_size>(count)) [[likely]]
         {
             using std::malloc;
-            result = malloc(element_size * size);
+
+            if (const auto data = malloc(element_size * count)) [[likely]]
+            {
+                return { .data{ data }, .count{ count } };
+            }
         }
 
-        return result;
+        return nullmem_location;
     }
 };
 
@@ -265,7 +281,6 @@ public:
     using view_type = span<const_value_type>;
     using typename base_type::size_type;
     using typename base_type::null_type;
-
     using base_type::size;
     using base_type::as_span;
 
@@ -273,12 +288,16 @@ public:
 
     D_DEFAULT_ONLYMOVE_CA(buffer);
 
-    constexpr buffer(buffer_construct_t, size_t size) noexcept
-        : base_type{ buffer_construct, size }
-    {}
-
     constexpr buffer(null_type nullvalue) noexcept
         : base_type{ nullvalue }
+    {}
+
+    constexpr explicit buffer(size_type count) noexcept
+        : base_type{ count }
+    {}
+
+    constexpr buffer(pointer mem, size_type size) noexcept
+        : base_type{ mem, size }
     {}
 
     buffer& operator = (null_type nullvalue) noexcept
@@ -411,5 +430,8 @@ public:
         return base_type::template as_span<value_type>();
     }
 };
+
+static_assert(!std::is_copy_constructible_v<byte_buffer>);
+static_assert(!std::is_copy_assignable_v<byte_buffer>);
 
 D_WARNING_POP

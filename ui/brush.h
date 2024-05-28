@@ -26,9 +26,9 @@ namespace ui
 
     using unique_brush = unique_resource<brush_handle_t, gdi_object_deleter>;
 
-    unique_brush create_brush(rgba_color_t color) noexcept;
+    [[nodiscard]] unique_brush create_brush(rgba_color color) noexcept;
 
-    brush_handle_t stock(stock_brush brush) noexcept;
+    [[nodiscard]] brush_handle_t stock(stock_brush brush) noexcept;
 
 #else
     struct dummy_unique_brush {};
@@ -39,11 +39,13 @@ namespace ui
     using brush_handle_t = dummy_brush_handle;
     using const_brush_handle_t = dummy_const_brush_handle;
 
-    constexpr unique_brush create_brush(rgba_color_t) noexcept
+    [[nodiscard]]
+    constexpr unique_brush create_brush(rgba_color) noexcept
     {
         return {};
     }
 
+    [[nodiscard]]
     constexpr brush_handle_t stock(stock_brush brush) noexcept
     {
         return {};

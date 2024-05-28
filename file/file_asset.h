@@ -55,7 +55,7 @@ namespace file
         };
 
 
-        static_assert(std::is_same_v<null_t<asset_mmap_resource>, asset_mmap_resource::null_type>);
+        static_assert(std::is_same_v<decl_null_type_t<asset_mmap_resource>, asset_mmap_resource::null_type>);
         static_assert(std::is_same_v<view_t<asset_mmap_resource>, const const_buffer_view>);
 
 #if defined(D_OS_ANDROID)

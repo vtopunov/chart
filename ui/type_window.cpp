@@ -139,9 +139,8 @@ namespace ui
             D_ASSERT(p_impl->hbrBackground);
         }
 
-        return
+        return unique_type_window
         {
-            resource_construct,
             MAKEINTATOMW(RegisterClassExW(as_const_pointer(p_impl))),
             p_impl->hInstance
         };

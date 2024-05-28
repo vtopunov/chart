@@ -1,176 +1,181 @@
-//
-// Copyright (c) 2014 The ANGLE Project Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-//
-
-//            Based on MultiTexture.c from
-// Book:      OpenGL(R) ES 2.0 Programming Guide
-// Authors:   Aaftab Munshi, Dan Ginsburg, Dave Shreiner
-// ISBN-10:   0321502795
-// ISBN-13:   9780321502797
-// Publisher: Addison-Wesley Professional
-// URLs:      http://safari.informit.com/9780321563835
-//            http://www.opengles-book.com
-
 #include "SampleApplication.h"
 
 #include "shader_utils.h"
 #include "system_utils.h"
 #include "tga_utils.h"
 
-class MultiTextureSample final : public SampleApplication
+
+namespace
 {
-  public:
-    MultiTextureSample()
-        : SampleApplication("MultiTexture", 1280, 720)
+    std::string concat(std::string_view left, std::string_view right)
     {
+        std::string result;
+        result.reserve(left.size() + right.size());
+        result.append(left);
+        result.append(right);
+        return result;
     }
 
-    GLuint loadTexture(const std::string &path)
+    bool loadTexture(GLuint texture, const std::string& path)
     {
-        TGAImage img;
-        if (!LoadTGAImageFromFile(path, &img))
+        TGAImage img{};
+        if (LoadTGAImageFromFile(path, &img))
         {
-            return 0;
-        }
-
-        return LoadTextureFromTGAImage(img);
-    }
-
-    bool initialize() override
-    {
-        const std::string vs =
-            R"(attribute vec2 a_position;
-            attribute vec2 a_texCoord;
-            varying vec2 v_texCoord;
-            void main()
+            if (img.width > 0 && img.height > 0)
             {
-                gl_Position = vec4(a_position, 0.0, 1.0);
-                v_texCoord = a_texCoord;
-            })";
+                LoadTextureFromTGAImage(texture, img);
+                return true;
+            }
+        }
 
-        const std::string fs =
-            R"(precision mediump float;
-            varying vec2 v_texCoord;
-            uniform sampler2D s_baseMap;
-            uniform sampler2D s_lightMap;
-            void main()
+        return false;
+    }
+
+    class MultiTextureSample final : public SampleApplication
+    {
+    public:
+        MultiTextureSample() : SampleApplication("MultiTexture", 1280, 720) {}
+
+        bool initialize() override
+        {
             {
-                vec4 baseColor;
-                vec4 lightColor;
+                constexpr std::string_view vs =
+                    R"(attribute vec2 a_position;
+                attribute vec2 a_texCoord;
+                varying vec2 v_texCoord;
+                void main()
+                {
+                    gl_Position = vec4(a_position, 0.0, 1.0);
+                    v_texCoord = a_texCoord;
+                })";
 
-                baseColor = texture2D(s_baseMap, v_texCoord);
-                lightColor = texture2D(s_lightMap, v_texCoord);
-                gl_FragColor = baseColor * (lightColor + 0.25);
-            })";
+                constexpr std::string_view fs =
+                    R"(precision mediump float;
+                varying vec2 v_texCoord;
+                uniform sampler2D s_baseMap;
+                uniform sampler2D s_lightMap;
+                void main()
+                {
+                    vec4 baseColor;
+                    vec4 lightColor;
+    
+                    baseColor = texture2D(s_baseMap, v_texCoord);
+                    lightColor = texture2D(s_lightMap, v_texCoord);
+                    gl_FragColor = baseColor * (lightColor + 0.25);
+                })";
 
-        mProgram = CompileProgram(vs, fs);
-        if (!mProgram)
-        {
-            return false;
+                mProgram = CompileProgram(vs, fs);
+                if (!mProgram)
+                {
+                    return false;
+                }
+            }
+
+            mPositionLoc = glGetAttribLocation(mProgram, "a_position");
+            mTexCoordLoc = glGetAttribLocation(mProgram, "a_texCoord");
+
+            {
+                constexpr const char* textureNames[]
+                {
+                    "s_baseMap",
+                    "s_lightMap"
+                };
+                static_assert(std::size(textureNames) == mNumberOfTextures);
+
+                for (GLsizei i = 0; i < mNumberOfTextures; ++i)
+                {
+                    mTextureLocations[i] = glGetUniformLocation(mProgram, textureNames[i]);
+                }
+            }
+
+            glGenTextures(mNumberOfTextures, std::data(mTextures));
+            {
+                constexpr const char* textureFiles[]
+                {
+                    "/basemap.tga",
+                    "/lightmap.tga"
+                };
+                static_assert(std::size(textureFiles) == mNumberOfTextures);
+
+                for (GLsizei i = 0; i < mNumberOfTextures; ++i)
+                {
+                    if (!loadTexture(mTextures[i], concat(angle::GetExecutableDirectory(), textureFiles[i])))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
-        // Get the attribute locations
-        mPositionLoc = glGetAttribLocation(mProgram, "a_position");
-        mTexCoordLoc = glGetAttribLocation(mProgram, "a_texCoord");
-
-        // Get the sampler location
-        mBaseMapLoc = glGetUniformLocation(mProgram, "s_baseMap");
-        mLightMapLoc = glGetUniformLocation(mProgram, "s_lightMap");
-
-        // Load the textures
-        std::stringstream baseStr;
-        baseStr << angle::GetExecutableDirectory() << "/basemap.tga";
-
-        std::stringstream lightStr;
-        lightStr << angle::GetExecutableDirectory() << "/lightmap.tga";
-
-        mBaseMapTexID  = loadTexture(baseStr.str());
-        mLightMapTexID = loadTexture(lightStr.str());
-        if (mBaseMapTexID == 0 || mLightMapTexID == 0)
+        void destroy() override
         {
-            return false;
+            glDeleteProgram(mProgram);
+            glDeleteTextures(mNumberOfTextures, std::data(mTextures));
         }
 
-        return true;
-    }
-
-    void destroy() override
-    {
-        glDeleteProgram(mProgram);
-        glDeleteTextures(1, &mBaseMapTexID);
-        glDeleteTextures(1, &mLightMapTexID);
-    }
-
-    void draw() override
-    {
-        constexpr GLfloat vertices[] =
+        void draw() override
         {
-            -0.5f,  0.5f,   // Position 0
-             0.0f,  0.0f,   // TexCoord 0
-            -0.5f, -0.5f,   // Position 1
-             0.0f,  1.0f,   // TexCoord 1
-             0.5f,  0.5f,   // Position 3
-             1.0f,  0.0f,   // TexCoord 3
-             0.5f, -0.5f,   // Position 2
-             1.0f,  1.0f    // TexCoord 2
+            constexpr GLfloat vertices[]
+            {
+                -0.5f, 0.5f,   // Position 0
+                0.0f,  0.0f,   // TexCoord 0
+                -0.5f, -0.5f,  // Position 1
+                0.0f,  1.0f,   // TexCoord 1
+                0.5f,  0.5f,   // Position 3
+                1.0f,  0.0f,   // TexCoord 3
+                0.5f,  -0.5f,  // Position 2
+                1.0f,  1.0f    // TexCoord 2
 
-        };
-        constexpr GLubyte indices[] = { 0, 1, 3, 0, 3, 2 };
+            };
+            constexpr GLubyte indices[] { 0, 1, 3, 0, 3, 2 };
 
-        // Set the viewport
-        glViewport(0, 0, getWindow()->getWidth(), getWindow()->getHeight());
+            // Set the viewport
+            glViewport(0, 0, getWindow()->getWidth(), getWindow()->getHeight());
 
-        // Clear the color buffer
-        glClear(GL_COLOR_BUFFER_BIT);
+            // Clear the color buffer
+            glClear(GL_COLOR_BUFFER_BIT);
 
-        // Use the program object
-        glUseProgram(mProgram);
+            // Use the program object
+            glUseProgram(mProgram);
 
-        // Load the vertex position
-        glVertexAttribPointer(mPositionLoc, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), vertices);
-        // Load the texture coordinate
-        glVertexAttribPointer(mTexCoordLoc, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), vertices + 2);
+            // Load the vertex position
+            glVertexAttribPointer(mPositionLoc, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), vertices);
+            // Load the texture coordinate
+            glVertexAttribPointer(mTexCoordLoc, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat),
+                                  vertices + 2);
 
-        glEnableVertexAttribArray(mPositionLoc);
-        glEnableVertexAttribArray(mTexCoordLoc);
+            glEnableVertexAttribArray(mPositionLoc);
+            glEnableVertexAttribArray(mTexCoordLoc);
 
-        // Bind the base map
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mBaseMapTexID);
+            for (GLsizei i = 0; i < mNumberOfTextures; ++i)
+            {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, mTextures[i]);
+                glUniform1i(mTextureLocations[i], i);
+            };
 
-        // Set the base map sampler to texture unit to 0
-        glUniform1i(mBaseMapLoc, 0);
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
+        }
 
-        // Bind the light map
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, mLightMapTexID);
+    private:
+        // Handle to a program object
+        GLuint mProgram{};
 
-        // Set the light map sampler to texture unit 1
-        glUniform1i(mLightMapLoc, 1);
+        // Attribute locations
+        GLint mPositionLoc;
+        GLint mTexCoordLoc;
 
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, indices);
-    }
+        // Texture
+        static constexpr GLsizei mNumberOfTextures{ 2 };
+        std::array<GLint, mNumberOfTextures> mTextureLocations{};
+        std::array<GLuint, mNumberOfTextures> mTextures{};
+    };
+}
 
-  private:
-    // Handle to a program object
-    GLuint mProgram;
 
-    // Attribute locations
-    GLint mPositionLoc;
-    GLint mTexCoordLoc;
-
-    // Sampler locations
-    GLint mBaseMapLoc;
-    GLint mLightMapLoc;
-
-    // Texture handle
-    GLuint mBaseMapTexID;
-    GLuint mLightMapTexID;
-};
-
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     MultiTextureSample app;
     return app.run();

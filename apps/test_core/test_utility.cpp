@@ -15,9 +15,10 @@ namespace
             };
 
             static_assert(std::is_same_v<decl_value_type_t<my_vector0>, typename my_vector0::value_type>);
+            static_assert(is_detected_v<value_type_t, my_vector0>);
             static_assert(std::is_same_v<value_type_t<my_vector0>, typename my_vector0::value_type>);
-            static_assert(!is_data_pointer<my_vector0>::value);
-            static_assert(!is_data_pointer<const my_vector0&>::value);
+            static_assert(!has_std_data_pointer<my_vector0>::value);
+            static_assert(!has_std_data_pointer<const my_vector0&>::value);
         }
 
         {
@@ -32,9 +33,10 @@ namespace
                 }
             };
 
-            static_assert(std::is_same_v<decl_data_pointer_t<my_vector1>, const typename my_vector1::value_type_impl*>);
+            static_assert(std::is_same_v<decl_std_data_pointer_t<my_vector1>, const typename my_vector1::value_type_impl*>);
+            static_assert(is_detected_v<value_type_t, my_vector1>);
             static_assert(std::is_same_v<value_type_t<my_vector1>, const typename my_vector1::value_type_impl>);
-            static_assert(is_data_pointer<my_vector1>::value);
+            static_assert(has_std_data_pointer<my_vector1>::value);
         }
 
 
@@ -55,11 +57,12 @@ namespace
                 }
             };
 
-            static_assert(std::is_same_v<decl_data_pointer_t<my_vector2>, typename my_vector2::value_type_impl*>);
-            static_assert(std::is_same_v<decl_data_pointer_t<const my_vector2>, const typename my_vector2::value_type_impl*>);
+            static_assert(std::is_same_v<decl_std_data_pointer_t<my_vector2>, typename my_vector2::value_type_impl*>);
+            static_assert(std::is_same_v<decl_std_data_pointer_t<const my_vector2>, const typename my_vector2::value_type_impl*>);
+            static_assert(is_detected_v<value_type_t, my_vector2>);
             static_assert(std::is_same_v<value_type_t<my_vector2>, typename my_vector2::value_type_impl>);
             static_assert(std::is_same_v<value_type_t<const my_vector2>, const typename my_vector2::value_type_impl>);
-            static_assert(is_data_pointer<my_vector2>::value);
+            static_assert(has_std_data_pointer<my_vector2>::value);
         }
 
         {
@@ -84,17 +87,42 @@ namespace
                 }
             };
 
-            static_assert(std::is_same_v<decl_data_pointer_t<my_vector3>, typename my_vector3::data_value_type*>);
-            static_assert(std::is_same_v<decl_data_pointer_t<const my_vector3>, const typename my_vector3::data_value_type*>);
-            static_assert(std::is_same_v<typename private_detail_value_type::value_type_by_data_pointer<my_vector3>::type, typename my_vector3::data_value_type>);
+            static_assert(std::is_same_v<decl_std_data_pointer_t<my_vector3>, typename my_vector3::data_value_type*>);
+            static_assert(std::is_same_v<decl_std_data_pointer_t<const my_vector3>, const typename my_vector3::data_value_type*>);
+            static_assert(std::is_same_v<typename std_data_value_type_type<my_vector3>::type, typename my_vector3::data_value_type>);
+            static_assert(is_detected_v<value_type_t, my_vector3>);
             static_assert(std::is_same_v<value_type_t<my_vector3>, typename my_vector3::value_type>);
             static_assert(std::is_same_v<value_type_t<const my_vector3>, typename my_vector3::value_type>);
-            static_assert(is_data_pointer<my_vector3>::value);
-            static_assert(is_data_pointer<const my_vector3&>::value);
+            static_assert(has_std_data_pointer<my_vector3>::value);
+            static_assert(has_std_data_pointer<const my_vector3&>::value);
         }
 
         {
-            static_assert(is_data_pointer<int[3]>::value);
+            struct my_vector4
+            {
+                constexpr const dummy data() const noexcept
+                {
+                    return {};
+                }
+
+                constexpr dummy data() noexcept
+                {
+                    return {};
+                }
+            };
+
+            static_assert(!is_detected_v<decl_std_data_pointer_t, my_vector4>);
+            static_assert(!is_detected_v<decl_value_type_t, my_vector4>);
+            static_assert(!is_detected_v<value_type_t, my_vector4>);
+            static_assert(!has_std_data_pointer<my_vector4>::value);
+            static_assert(!is_detected_v<decl_std_data_pointer_t, const my_vector4>);
+            static_assert(!is_detected_v<decl_value_type_t, const my_vector4>);
+            static_assert(!is_detected_v<value_type_t, const my_vector4>);
+            static_assert(!has_std_data_pointer<const my_vector4>::value);
+        }
+
+        {
+            static_assert(has_std_data_pointer<int[3]>::value);
             static_assert(std::is_same_v<value_type_t<int[3]>, int>);
         }
 

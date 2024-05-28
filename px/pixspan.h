@@ -6,15 +6,15 @@
 
 namespace px
 {
-    template<class T, size_t A>
+    template<class T, size_t Alignment>
     class pixspan;
 
     template <class T>
     struct is_pixspan : std::false_type
     {};
 
-    template <class T, size_t A>
-    struct is_pixspan<pixspan<T, A>> : std::true_type
+    template <class T, size_t Alignment>
+    struct is_pixspan<pixspan<T, Alignment>> : std::true_type
     {};
 
     template <class T>
@@ -23,65 +23,68 @@ namespace px
 
 
     template<class T>
-    using decl_space_type_t = typename T::space_type;
-
-    template<class T>
     using decl_pixel_type_t = typename T::pixel_type;
 
+    template<class T>
+    using decl_space_t = std::remove_cvref_t<decltype(space(std::declval<const T&>()))>;
 
     template<class T>
-    constexpr auto decl_alignment_v = decl_space_type_t<T>::alignment;
+    constexpr auto decl_alignment_v = T::alignment;
 
     template<class T>
-    using is_space_type = is_detected<decl_space_type_t, T>;
+    constexpr auto decl_space_alignment_v = decl_alignment_v<decl_space_t<T>>;
 
     template<class T>
-    using is_pixel_type = is_detected<decl_pixel_type_t, T>;
+    using decl_space_alignment_t = decltype(decl_space_alignment_v<T>);
 
-    template<class T, class Space>
-    struct is_convertible_space : std::is_convertible<decl_space_type_t<T>, Space>
-    {};
+    template<class T>
+    using has_space_alignment = is_detected<decl_space_alignment_t, T>;
 
-    template<class T, class Px>
-    struct is_same_px : std::is_same<std::remove_const_t<decl_pixel_type_t<T>>, Px>
-    {};
+    template<class C, class ToSpace>
+    using is_pixcontainer_space_convertible = is_detected_convertible<ToSpace, decl_space_t, C>;
 
 
-    template <class C, class Space>
-    constexpr bool is_compatible_pixspacecontainer_v = std::conjunction_v<
-        std::negation<is_pixspan<C>>,
-        is_space_type<C>,
-        is_data_pointer<C>,
-        is_convertible_space<C, Space>
+    template<class OtherContainer, class Px, class Space>
+    using is_compatible_pixcontainer = std::conjunction<
+        std::negation<is_pixspan<OtherContainer>>,
+        is_std_data_convertible<OtherContainer, Px*>,
+        is_pixcontainer_space_convertible<OtherContainer, Space>
     >;
 
-    template <class C, class Px>
-    constexpr bool is_compatible_for_write_v = std::conjunction_v<
-        is_space_type<C>,
-        is_data_pointer<C>,
-        is_pixel_type<C>,
-        is_same_px<C, Px>,
-        std::negation<std::is_const<Px>>
-    >;
+    template <class OtherContainer, class Px, class Space>
+    constexpr bool is_compatible_pixcontainer_v = is_compatible_pixcontainer<OtherContainer, Px, Space>::value;
 
-    template<class TestT, size_t TestAlign, class BaseT, size_t BaseAling>
+
+    template<class Px0, size_t Align0, class Px1, size_t Align1>
+    using is_equal_pixspan_argument = std::conjunction<std::is_same<Px0, Px1>, alignment_is_equal<Align0, Align1>>;
+
+    template<size_t OtherAlign, size_t Align>
+    using is_compatible_alignment = std::disjunction<is_dynamic_alignment<Align>, alignment_is_equal<Align, OtherAlign>>;
+
+    template<class OtherPx, size_t OtherAlign, class Px, size_t Align>
     constexpr bool is_compatible_pixspan_v = std::conjunction_v<
-        std::negation<std::conjunction<std::is_same<TestT, BaseT>, std::bool_constant<TestAlign == BaseAling>>>,
-        std::is_same<copy_const_t<BaseT, TestT>, BaseT>,
-        std::disjunction<is_dynamic_alignment<BaseAling>, std::bool_constant<TestAlign == BaseAling>>
+        std::negation<is_equal_pixspan_argument<OtherPx, OtherAlign, Px, Align>>,
+        is_const_convertible<OtherPx, Px>,
+        is_compatible_alignment<OtherAlign, Align>
     >;
 
-    template<class T>
-    using decl_const_pixspan_t = pixspan<std::add_const_t<decl_pixel_type_t<T>>, decl_alignment_v<T>>;
 
     template<class T>
-    [[nodiscard]] constexpr decl_const_pixspan_t<T> as_const_pixspan(const T& image) noexcept
-    {
-        return image;
-    }
+    using decl_remove_const_std_data_value_t = std::remove_const_t<decl_std_data_value_t<T>>;
 
-    template<class T, size_t OutAlignment, size_t InAlignment>
-    constexpr pxsize2d write(pixspan<T, OutAlignment> in, pxpoint2d position, pixspan<const T, InAlignment> out) noexcept;
+    template <class InputContainer, class OutputPx>
+    using is_std_data_compatible_for_write = is_detected_exact<OutputPx, decl_remove_const_std_data_value_t, InputContainer>;
+
+    template <class InputContainer, class OutputPx>
+    constexpr bool is_compatible_for_write_v = std::conjunction_v<
+        std::negation<std::is_const<OutputPx>>,
+        is_std_data_compatible_for_write<InputContainer, OutputPx>,
+        has_space_alignment<InputContainer>
+    >;
+
+
+    template<class T, size_t OutputAlignment, size_t InputAlignment>
+    constexpr pxsize2d write(pixspan<T, OutputAlignment> output, pxpoint2d position, pixspan<const T, InputAlignment> input) noexcept;
 
 
     template<class T, size_t Alignment = default_alignment>
@@ -94,9 +97,18 @@ namespace px
         using line_type = pixline<pixel_type>;
         using line_span_type = typename line_type::span_type;
         using line_size_type = typename space_type::line_size_type;
-
+        using const_pixel_type = const pixel_type;
         using pointer = pixel_type*;
-        using const_pointer = const pixel_type*;
+        using const_pointer = const_pixel_type*;
+
+        template<class OtherContainer>
+        static constexpr bool is_compatible_container_v = is_compatible_pixcontainer_v<OtherContainer, pixel_type, space_type>;
+
+        template<class OtherPx, size_t OtherAlign>
+        static constexpr bool is_compatible_span_v = is_compatible_pixspan_v<OtherPx, OtherAlign, pixel_type, alignment>;
+
+        template<class OtherContainer>
+        static constexpr bool is_compatible_for_store_v = is_compatible_for_write_v<OtherContainer, pixel_type>;
 
         constexpr pixspan() noexcept = default;
 
@@ -110,7 +122,7 @@ namespace px
             , data_{ data }
         {}
 
-        constexpr pixspan(pointer data, pxsize_t w, pxsize_t h) noexcept
+        constexpr pixspan(pointer data, npx_t w, npx_t h) noexcept
             : space_type{ w, h }
             , data_{ data }
         {}
@@ -120,23 +132,20 @@ namespace px
             , data_{ data }
         {}
 
-        constexpr pixspan(pointer data, pxsize_t w, pxsize_t h, line_size_type line_size) noexcept
+        constexpr pixspan(pointer data, npx_t w, npx_t h, line_size_type line_size) noexcept
             : space_type{ w, h, line_size }
             , data_{ data }
         {}
 
         constexpr pixspan(const pixspan&) noexcept = default;
 
-        template<class TestPxType, size_t TestAlign>
-        static constexpr bool is_compatible_pixspan_v = px::is_compatible_pixspan_v<TestPxType, TestAlign, pixel_type, alignment>;
-
-        template<class OtherPxType, size_t Align, std::enable_if_t<is_compatible_pixspan_v<OtherPxType, Align>, int> = 0>
-        constexpr pixspan(const pixspan<OtherPxType, Align>& span) noexcept
+        template<class OtherPx, size_t OtherAlign, std::enable_if_t<is_compatible_span_v<OtherPx, OtherAlign>, int> = 0>
+        constexpr pixspan(const pixspan<OtherPx, OtherAlign>& span) noexcept
             : space_type{ span }
             , data_{ span.data() }
         {}
 
-        template<class C, std::enable_if_t<is_compatible_pixspacecontainer_v<C, space_type>, int> = 0>
+        template<class C, std::enable_if_t<is_compatible_container_v<C>, int> = 0>
         constexpr pixspan(C& container) noexcept
             : space_type{ space(container) }
             , data_{ std::data(container) }
@@ -144,8 +153,8 @@ namespace px
 
         constexpr pixspan& operator = (const pixspan&) noexcept = default;
 
-        template<class OtherPxType, size_t Align>
-        constexpr std::enable_if_t <is_compatible_pixspan_v<OtherPxType, Align>, pixspan&> operator = (const pixspan<OtherPxType, Align>& span) noexcept
+        template<class OtherPx, size_t OtherAlign>
+        constexpr std::enable_if_t <is_compatible_span_v<OtherPx, OtherAlign>, pixspan&> operator = (const pixspan<OtherPx, OtherAlign>& span) noexcept
         {
             space_type::operator = (span);
             data_ = span.data();
@@ -171,7 +180,7 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr line_type lines(pxsize_t index) const noexcept
+        constexpr line_type lines(npx_t index) const noexcept
         {
             D_ASSERT(index < space_type::height());
             const auto line_size = space_type::line_size();
@@ -185,7 +194,7 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr line_span_type line(pxsize_t index) const noexcept
+        constexpr line_span_type line(npx_t index) const noexcept
         {
             return lines(index).pixels();
         }
@@ -203,53 +212,71 @@ namespace px
         }
 
         template<class C>
-        static constexpr bool is_compatible_for_store_v = is_compatible_for_write_v<C, pixel_type>;
-
-        template<class C>
         constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsize2d> store(pxpoint2d position, const C& image) const noexcept
         {
-            return write(*this, position, as_const_pixspan(image));
+            return _store(position, image);
         }
 
         template<class C>
-        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsize2d> store(pxsize_t x, pxsize_t y, const C& image) const noexcept
+        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsize2d> store(npx_t x, npx_t y, const C& image) const noexcept
         {
-            return store(point2d{ x, y }, image);
+            return _store(pxpoint2d{ x, y }, image);
         }
 
         template<class C>
         constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsize2d> store(const C& image) const noexcept
         {
-            return store(0_npx, 0_npx, image);
+            return _store(pxpoint2d{ 0_npx, 0_npx }, image);
+        }
+
+    private:
+        template<class C>
+        constexpr pxsize2d _store(pxpoint2d position, const C& image) const noexcept
+        {
+            static_assert(is_compatible_for_store_v<C>);
+            const auto image_space = space(image);
+            constexpr auto align = decl_alignment_v<decltype(image_space)>;
+            const pixspan<const pixel_type, align> span_image{ std::data(image), image_space };
+            return px::write(*this, position, span_image);
         }
 
     private:
         pointer data_{ nullptr };
     };
 
-    template<class T, size_t OutAlignment, size_t InAlignment>
-    constexpr pxsize2d write(pixspan<T, OutAlignment> out, pxpoint2d position, pixspan<const T, InAlignment> in) noexcept
+    template <class C>
+    pixspan(C&) -> pixspan<decl_pixel_type_t<C>, decl_alignment_v<C>>;
+
+    template <class C>
+    pixspan(const C&) -> pixspan<std::add_const_t<decl_pixel_type_t<C>>, decl_alignment_v<C>>;
+
+    template<class T, size_t Alignment>
+    pixspan(T*, pixspace<sizeof(T), Alignment>) -> pixspan<T, Alignment>;
+
+
+    template<class T, size_t OutputAlignment, size_t InputAlignment>
+    constexpr pxsize2d write(pixspan<T, OutputAlignment> output, pxpoint2d position, pixspan<const T, InputAlignment> input) noexcept
     {
-        const auto x = std::min(position.x(), out.width());
-        const auto y = std::min(position.y(), out.height());
+        const auto x = std::min(position.x(), output.width());
+        const auto y = std::min(position.y(), output.height());
 
         const pxsize2d crop_sizes
         {
-            std::min(in.width(), out.width() - x),
-            std::min(in.height(), out.height() - y)
+            std::min(input.width(), output.width() - x),
+            std::min(input.height(), output.height() - y)
         };
 
         {
-            const auto in_line_size = in.line_size();
-            auto p_in = in.data();
-            const auto in_end = in.data() + crop_sizes.height() * in_line_size;
+            const auto input_line_size = input.line_size();
+            auto p_input = input.data();
+            const auto input_end = input.data() + crop_sizes.height() * input_line_size;
 
-            const auto out_line_size = out.line_size();
-            auto p_out = out.data() + y * out_line_size + x;
+            const auto output_line_size = output.line_size();
+            auto p_output = output.data() + y * output_line_size + x;
 
-            for (; p_in != in_end; p_in += in_line_size, p_out += out_line_size)
+            for (; p_input != input_end; p_input += input_line_size, p_output += output_line_size)
             {
-                std::copy_n(p_in, crop_sizes.width(), p_out);
+                std::copy_n(p_input, crop_sizes.width(), p_output);
             }
         }
 
@@ -257,21 +284,16 @@ namespace px
     }
 
 
-    template <class C>
-    pixspan(C&) -> pixspan<typename C::pixel_type, C::alignment>;
+    using lumpixspan = pixspan<luminance_t>;
+    using const_lumpixspan = pixspan<const luminance_t>;
+    using rgba_color_pixspan = pixspan<rgba_color>;
+    using const_rgba_color_pixspan = pixspan<const rgba_color>;
 
-    template <class C>
-    pixspan(const C&) -> pixspan<const typename C::pixel_type, C::alignment>;
-
-    template<class T, size_t Alignment>
-    pixspan(T*, pixspace<sizeof(T), Alignment>) -> pixspan<T, Alignment>;
-
-
-    using pix8span = pixspan<pix8_t>;
-    using const_pix8span = pixspan<const pix8_t>;
-    static_assert(std::is_same_v<pix8span::space_type, pix8space>);
+    static_assert(std::is_same_v<lumpixspan::space_type, luminance_pixspace>);
 }
 
 using px::pixspan;
-using px::pix8span;
-using px::const_pix8span;
+using px::lumpixspan;
+using px::const_lumpixspan;
+using px::rgba_color_pixspan;
+using px::const_rgba_color_pixspan;

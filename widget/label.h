@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <utility/font_cache.h>
+
 #include <widget/ex_context.h>
 #include <widget/shader.h>
 #include <widget/text.h>
@@ -14,8 +16,8 @@ namespace widget
         pxpoint2d position{};
         std::u8string text{};
         font_cache::face font{};
-        text::drawing_cache text_cache{};
-    
+        text_cache text_cache{};
+
         void set_text(std::u8string new_text) noexcept
         {
             if (new_text != text)
@@ -25,8 +27,10 @@ namespace widget
             }
         }
 
+        [[nodiscard]] bool operator () (widget::basic_initialization_event<>) noexcept;
+
         using redraw_event_type = basic_redraw_event<
-            shader::luminance8_texture_mix_color,
+            shader::luminance_texture_mix_color,
             buffer_view
         >;
 

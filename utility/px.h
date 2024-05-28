@@ -7,17 +7,17 @@
 
 namespace px
 {
-    pix8span create_pix8span(buffer_view buffer, pix8space space) noexcept;
+    lumpixspan create_lumpixspan(buffer_view buffer, luminance_pixspace space) noexcept;
    
-    inline pix8span create_zeros_pix8span(buffer_view buffer, pix8space space) noexcept
+    inline lumpixspan create_zeros_lumpixspan(buffer_view buffer, luminance_pixspace space) noexcept
     {
-        const auto pixs = create_pix8span(buffer, space);
+        const auto pixs = create_lumpixspan(buffer, space);
         zero_memory(pixs);
         return pixs;
     }
 
-    inline pix8span create_zeros_pix8span(buffer_view buffer, pxsize_t w, pxsize_t h) noexcept
+    inline lumpixspan create_zeros_lumpixspan(buffer_view buffer, npx_t w, npx_t h) noexcept
     {
-        return create_zeros_pix8span(buffer, pix8space{ w, h });
+        return create_zeros_lumpixspan(buffer, luminance_pixspace{ w, h });
     }
 }

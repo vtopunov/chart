@@ -2,6 +2,7 @@
 
 #include <px/pixmap.h>
 
+
 namespace
 {
     template<class T>
@@ -26,42 +27,62 @@ namespace
         pixspan<T> mutable_span{ const_cast<T*>(std::data(span)), px::space(span) };
         test_convert_to_pixspan(as_mutable(map), mutable_span);
     }
+
+    template<class T>
+    using has_space_type = is_detected<px::decl_space_t, T>;
+
+    template<class T>
+    using has_pixel_type = is_detected<px::decl_pixel_type_t, T>;
+
+    template<class T, class TestPx, class TestSpace>
+    constexpr bool test_types_v = std::conjunction_v<
+        has_pixel_type<T>,
+        has_space_type<T>,
+        px::has_space_alignment<T>, 
+        is_std_data_convertible<T, TestPx*>,
+        px::is_pixcontainer_space_convertible<T, TestSpace>,
+        std::is_same<px::decl_pixel_type_t<T>, TestPx>,
+        std::is_same<px::decl_space_t<T>, TestSpace>,
+        px::alignment_is_equal<px::decl_alignment_v<T>, px::default_alignment>,
+        std::disjunction<px::is_pixspan<T>, px::is_compatible_pixcontainer<T, TestPx, TestSpace>>
+    >;
+
+    template<class T>
+    constexpr bool test_rgba_color_types_v = test_types_v<T, rgba_color, rgba_pixspace>;
+
+    template<class T>
+    constexpr bool test_const_rgba_color_types_v = test_types_v<T, const rgba_color, rgba_pixspace>;
 }
 
 void test_pixmap() noexcept
 {
-    using rgba_pixmap = pixmap<rgba_color_t>;
-
-    static_assert(std::is_same_v<rgba_pixmap::pixel_type, rgba_color_t>);
-    static_assert(std::is_same_v<rgba_pixmap::space_type, pix32space>);
-    static_assert(rgba_pixmap::alignment == px::default_alignment);
-
-    static_assert(!px::is_pixspan<rgba_pixmap>::value);
-    static_assert(px::is_space_type<rgba_pixmap>::value);
-    static_assert(is_data_pointer<rgba_pixmap>::value);
-    static_assert(px::is_convertible_space<rgba_pixmap, pix32space>::value);
-    static_assert(px::is_compatible_pixspacecontainer_v<rgba_pixmap, pix32space>);
+    static_assert(test_rgba_color_types_v<rgba_color_pixspan>);
+    static_assert(test_const_rgba_color_types_v<const_rgba_color_pixspan>);
+    static_assert(test_rgba_color_types_v<rgba_color_pixmap>);
 
     {
-        rgba_pixmap rgba_pixmap;
-        test_convert_to_pixspan<rgba_color_t>(rgba_pixmap, rgba_pixmap);
+        rgba_color_pixmap m;
+        test_convert_to_pixspan<rgba_color>(m, m);
     }
 
     {
-        rgba_pixmap rgba_pixmap{ 2_npx, 3_npx };
-        test_convert_to_pixspan<rgba_color_t>(rgba_pixmap, rgba_pixmap);
+        rgba_color_pixmap m{ 2_npx, 3_npx };
+        test_convert_to_pixspan<rgba_color>(m, m);
     }
 
     {
-        rgba_pixmap rgba_pixmap{ 3_npx, 5_npx };
-        pixspan deduction_span{ rgba_pixmap };
-        test_convert_to_pixspan(rgba_pixmap, deduction_span);
+        rgba_color_pixmap m{ 3_npx, 5_npx };
+        pixspan mspan{ m };
+        static_assert(std::is_same_v<decltype(mspan), rgba_color_pixspan>);
+        test_convert_to_pixspan(m, mspan);
     }
 
+
     {
-        const rgba_pixmap rgba_pixmap{ 3_npx, 5_npx };
-        pixspan deduction_span{ rgba_pixmap };
-        test_convert_to_pixspan(rgba_pixmap, deduction_span);
+        const rgba_color_pixmap m{ 3_npx, 5_npx };
+        pixspan mspan{ m };
+        static_assert(std::is_same_v<decltype(mspan), const_rgba_color_pixspan>);
+        test_convert_to_pixspan(m, mspan);
     }
 
     D_ASSERT(!errno);

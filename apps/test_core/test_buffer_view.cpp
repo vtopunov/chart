@@ -10,7 +10,7 @@ namespace
     template<bool immutable>
     bool test_impl_impl(basic_buffer_view<immutable> b, const void* data, size_t size) noexcept
     {
-        using buffer_type = basic_buffer_view<immutable>;
+        using buffer_view_type = basic_buffer_view<immutable>;
         using byte_type = conditional_add_const_t<immutable, std::byte>;
         using void_type = conditional_add_const_t<immutable, void>;
         using word = uint16_t;
@@ -23,22 +23,22 @@ namespace
         using word_ptr = word_type*;
         using word_cptr = const word_type*;
 
-        static_assert(std::is_same_v<typename buffer_type::element_type, byte_type>);
-        static_assert(std::is_same_v<typename buffer_type::value_type, std::byte>);
-        static_assert(std::is_same_v<typename buffer_type::data_pointer, void_ptr>);
-        static_assert(std::is_same_v<typename buffer_type::pointer, byte_ptr>);
-        static_assert(std::is_same_v<typename buffer_type::reference, byte_ref>);
-        static_assert(std::is_same_v<typename buffer_type::const_reference, byte_cref>);
-        static_assert(std::is_same_v<typename buffer_type::iterator, byte_ptr>);
-        static_assert(std::is_same_v<typename buffer_type::const_iterator, byte_cptr>);
+        static_assert(std::is_same_v<typename buffer_view_type::element_type, byte_type>);
+        static_assert(std::is_same_v<typename buffer_view_type::value_type, std::byte>);
+        static_assert(std::is_same_v<typename buffer_view_type::data_pointer, void_ptr>);
+        static_assert(std::is_same_v<typename buffer_view_type::pointer, byte_ptr>);
+        static_assert(std::is_same_v<typename buffer_view_type::reference, byte_ref>);
+        static_assert(std::is_same_v<typename buffer_view_type::const_reference, byte_cref>);
+        static_assert(std::is_same_v<typename buffer_view_type::iterator, byte_ptr>);
+        static_assert(std::is_same_v<typename buffer_view_type::const_iterator, byte_cptr>);
 
         static_assert(std::is_same_v<decltype(b.data()), void_ptr>);
         static_assert(std::is_same_v<decltype(b.as_bytes()), span<byte_type>>);
         static_assert(std::is_same_v<decltype(to_span<word>(b)), span<word_type>>);
 
-        const buffer_type right_b{ const_cast<void_ptr>(data), size };
-        const buffer_type right_data_b{ const_cast<void_ptr>(data), 0 };
-        const buffer_type right_size_b{ nullptr, size };
+        const buffer_view_type right_b{ const_cast<void_ptr>(data), size };
+        const buffer_view_type right_data_b{ const_cast<void_ptr>(data), 0 };
+        const buffer_view_type right_size_b{ nullptr, size };
         const auto bdata = b.data();
         const auto bsize = b.size();
         const auto bytes = b.as_bytes();
@@ -200,11 +200,11 @@ namespace
     constexpr void test_static_asserts() noexcept
     {
         static_assert(!is_buffer_view_v<C>);
-        static_assert(is_size_bytes_v<C>);
-        static_assert(is_convertible_data<remove_const_span_t<C>, void*>::value);
-        static_assert(is_convertible_data<remove_const_span_t<C>, const void*>::value);
-        static_assert(!is_convertible_data<add_const_span_t<C>, void*>::value);
-        static_assert(is_convertible_data<add_const_span_t<C>, const void*>::value);
+        static_assert(has_size_bytes_v<C>);
+        static_assert(is_std_data_convertible<remove_const_span_t<C>, void*>::value);
+        static_assert(is_std_data_convertible<remove_const_span_t<C>, const void*>::value);
+        static_assert(!is_std_data_convertible<add_const_span_t<C>, void*>::value);
+        static_assert(is_std_data_convertible<add_const_span_t<C>, const void*>::value);
     }
 
     template<class C>
@@ -380,13 +380,13 @@ void test_buffer_view() noexcept
         struct sbsdddv : sbv, sv, dv, ddv
         {};
 
-        static_assert(is_size_bytes<sbv>::value);
-        static_assert(!is_size_bytes<sv>::value);
-        static_assert(!is_size_bytes<dv>::value);
-        static_assert(!is_size_bytes<ddv>::value);
-        static_assert(is_size_bytes<sdv>::value);
-        static_assert(is_size_bytes<sddv>::value);
-        static_assert(is_size_bytes<sbsdddv>::value);
+        static_assert(has_size_bytes<sbv>::value);
+        static_assert(!has_size_bytes<sv>::value);
+        static_assert(!has_size_bytes<dv>::value);
+        static_assert(!has_size_bytes<ddv>::value);
+        static_assert(has_size_bytes<sdv>::value);
+        static_assert(has_size_bytes<sddv>::value);
+        static_assert(has_size_bytes<sbsdddv>::value);
     }
 
     {

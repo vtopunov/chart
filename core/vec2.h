@@ -405,6 +405,37 @@ template<class R, class T0, class T1>
 }
 
 
+template<class R, class T>
+[[nodiscard]] constexpr std::enable_if_t<std::negation_v<is_base_of_vec2<T>>, R> md_clamp_cast(const T& v) noexcept
+{
+    return clamp_cast<R>(v);
+}
+
+template<class R, class T>
+[[nodiscard]] constexpr R md_clamp_cast(const vec2<T>& v) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_clamp_cast<value_t>(v._0),
+        md_clamp_cast<value_t>(v._1)
+    };
+}
+
+template<class R, class T0, class T1>
+[[nodiscard]] constexpr R md_clamp_cast(const T0& v0, const T1& v1) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_clamp_cast<value_t>(v0),
+        md_clamp_castt<value_t>(v1)
+    };
+}
+
+
 template<class T, class Near>
 [[nodiscard]] constexpr std::enable_if_t<
     std::conjunction_v<std::is_arithmetic<T>, std::is_arithmetic<Near>>,

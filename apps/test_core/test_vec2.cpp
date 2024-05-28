@@ -214,6 +214,12 @@ void test_vec2() noexcept
         }
 
         {
+            constexpr auto vvvzu = (vvv0u - vvv0u);
+            static_assert(vvv0u == md_clamp_cast<decltype(vvv0u)>(vvv0));
+            static_assert(vvvzu == md_clamp_cast<decltype(vvv0u)>(-vvv0));
+        }
+
+        {
             constexpr auto vvvz_d = fill_vec2(fill_vec2(fill_vec2(0.0)));
             constexpr auto vvve_d = fill_vec2(fill_vec2(fill_vec2(1.0)));
             constexpr auto vvv0_d = 1.0 * vvv0;

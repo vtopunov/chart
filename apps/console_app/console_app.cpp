@@ -1,5 +1,7 @@
 ﻿#include <iostream>
 #include <vector>
+#include <array>
+#include <tuple>
 
 
 namespace
@@ -17,6 +19,13 @@ namespace
         int i;
         [[msvc::no_unique_address]] Empty e;
     };
+
+    struct preY
+    {
+        [[msvc::no_unique_address]] Empty e;
+        int i;
+    };
+
 
     struct Z
     {
@@ -36,6 +45,19 @@ namespace
             std::cout << el << ' ';
         std::cout << '\n';
     }
+
+    int ret_i_f() noexcept
+    {
+        return {};
+    }
+
+    float ret_f_f() noexcept
+    {
+        return {};
+    }
+
+    void ret_v_f() noexcept
+    {}
 }
 
 int main() noexcept
@@ -46,6 +68,10 @@ int main() noexcept
 
     std::cout << "sizeof(Y) == sizeof(int) is " << std::boolalpha
         << (sizeof(Y) == sizeof(int)) << '\n';
+
+    std::cout << "sizeof(preY) == sizeof(int) is " << std::boolalpha
+        << (sizeof(preY) == sizeof(int)) << '\n';
+
 
     static_assert(sizeof(Z) >= 2);
 
@@ -79,4 +105,47 @@ int main() noexcept
         c.resize(6, 4);
         print("After resize up to 6 (initializer = 4): ", c);
     }
+
+    {
+        std::array<int, 0u> arri_0{};
+        std::cout << "array 0" << std::distance(arri_0.cbegin(), arri_0.cend()) << '\n';
+
+        std::array arrai_1{ 0, 1, 3 };
+
+        size_t n = 0;
+        bool has{ true };
+        n += has;
+        std::cout << n << '\n';
+    }
+
+    {
+        std::tuple<bool> zx;
+        std::tuple<> x, y, z;
+        const auto t = std::tuple_cat(x, y, z, zx);
+
+    }
+
+    {
+        int arr[] = { 1, 2, 3, 4, 5 };
+
+        auto sizeof_1 = [arr] {
+            return sizeof(arr);
+        };
+
+        auto sizeof_2 = [arr = arr] {
+            return sizeof(arr);
+        };
+
+        auto sizeof_3 = [=] {
+            return sizeof(arr);
+        };
+
+        std::cout << "sz a 1: " << sizeof_1() << std::endl;
+        std::cout << "sz a 2: " << sizeof_2() << std::endl;
+        std::cout << "sz a 3: " << sizeof_3() << std::endl;
+    }
+
+    using result_t = std::make_unsigned_t<unsigned>;
+    result_t r{};
+    return r;
 }

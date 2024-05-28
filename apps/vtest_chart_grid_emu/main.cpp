@@ -31,12 +31,12 @@ namespace
         }
 
         const glsl_float_t width = 1.0f;
-        const auto eps =  static_cast<glsl_float_t>(chart::shader::frag::grid::eps);
+        const auto eps = static_cast<glsl_float_t>(chart::shader::frag::grid::eps);
 
         [[nodiscard]]
         bool grid_helper(glsl_float_t y, glsl_float_t period) noexcept
         {
-            const auto t = mod(y,  period) - width;
+            const auto t = mod(y, period) - width;
             return t < eps;
         }
 
@@ -51,14 +51,14 @@ namespace
     }
 
     [[nodiscard]]
-    gl::texture2d grid_rendering(glsl_float_t period, pixspan<rgba_color_t> image) noexcept
+    gl::texture2d grid_rendering(glsl_float_t period, pixspan<rgba_color> image) noexcept
     {
         zero_memory(image);
 
         {
-            pxsize_t grid_index{ 0 };
+            npx_t grid_index{ 0 };
 
-            for (pxsize_t index = image.height(); index; )
+            for (npx_t index = image.height(); index; )
             {
                 --index;
 
@@ -90,15 +90,15 @@ namespace
         return value + sign * mul * abs(rot);
     }
 
-    constexpr widget::stretchable_pxrectangle geometry{ /*.position{20_npx, 75_npx}, .sizes{-20_npxz, -20_npxz}*/ };
+    constexpr widget::stretchable_pxrectangle geometry{ /*.position{20_npx, 75_npx}, .sizes{-20_pxoff, -20_pxoff}*/ };
 
 
     struct processor
     {
         shader_library<vert::positioned_texture, frag::default_texture> shaders{};
-        px::pixmap<rgba_color_t> image{};
+        px::pixmap<rgba_color> image{};
         gl::texture2d texture{};
-        glsl_float_t period{ 39.95 /*39.8475494 40.250049755960461f /*60.046324227548830f*/ };
+        glsl_float_t period{ 39.95f /*39.8475494 40.250049755960461f /*60.046324227548830f*/ };
         bool need_redraw{ false };
 
         bool operator () (widget::basic_initialization_event<>) noexcept
@@ -106,7 +106,7 @@ namespace
             if (shaders.build())
             {
                 shaders.use();
-                shaders.vert.u_position.store(geometry.position);
+                shaders.vert().position(geometry.position);
                 return true;
             }
 
@@ -116,7 +116,7 @@ namespace
         void operator () (widget::viewport_event<> e) noexcept
         {
             shaders.use();
-            shaders.vert.u_viewport.store(e.viewport());
+            shaders.vert().viewport(e.viewport());
         }
 
         widget::event_result operator () (const ui::mouse_wheel_event& e) noexcept
@@ -140,11 +140,11 @@ namespace
                 }
 
                 texture = grid_rendering(period, image);
-                shaders.vert.u_size.store(new_sizes);
-                shaders.frag.s_texture.store(texture);
+                shaders.vert().size(texture.sizes());
+                shaders.frag().texture(texture);
             }
 
-            shaders.vert.a_frame.draw();
+            shaders.vert().frame().draw();
         }
 
         constexpr widget::noapply_t apply(no_overload) const noexcept

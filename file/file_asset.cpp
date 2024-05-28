@@ -62,7 +62,7 @@ namespace file
 
         asset_mmap mmap(path_zstring_view path) noexcept
         {
-            if (auto asset = find_asset(path)) [[likely]]
+            if (const auto asset = find_asset(path)) [[likely]]
             {
                 if (const auto data = asset.data()) [[likely]]
                 {

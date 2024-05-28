@@ -7,12 +7,14 @@ namespace px
 {
     namespace alignment_implementation
     {
+        template<size_t L, size_t R>
+        using alignment_is_equal = std::bool_constant<L == R>;
+
         constexpr size_t default_alignment{ 4_uz };
         constexpr size_t dynamic_alignment{ numeric_max_v<> };
 
         template<size_t Alignment>
-        struct is_dynamic_alignment : std::bool_constant<Alignment == dynamic_alignment>
-        {};
+        using is_dynamic_alignment = alignment_is_equal<Alignment, dynamic_alignment>;
 
         template<size_t Alignment>
         constexpr bool is_dynamic_alignment_v = is_dynamic_alignment<Alignment>::value;
@@ -99,12 +101,12 @@ namespace px
         static constexpr auto px_size = PxSize;
         static constexpr auto alignment = Alignment;
         using dynamic_alignment_is_enabled_t = px::is_dynamic_alignment<alignment>;
-        static constexpr auto dynamic_alignment_is_enabled = dynamic_alignment_is_enabled_t::value;
+        static constexpr bool dynamic_alignment_is_enabled = dynamic_alignment_is_enabled_t::value;
         using line_size_type = line_size_opt<dynamic_alignment_is_enabled>;
 
-        template<size_t TestAlign>
-        static constexpr auto is_compatible_pixspace_v = std::conjunction_v<
-            std::negation<px::is_dynamic_alignment<TestAlign>>,
+        template<size_t OtherAlign>
+        static constexpr bool is_compatible_pixspace_v = std::conjunction_v<
+            std::negation<px::is_dynamic_alignment<OtherAlign>>,
             dynamic_alignment_is_enabled_t
         >;
 
@@ -129,12 +131,12 @@ namespace px
             : pixspace{ sizes, line_size_type::template instance_from_width<px_size>(sizes.width()) }
         {}
 
-        constexpr pixspace(pxsize_t w, pxsize_t h) noexcept
+        constexpr pixspace(npx_t w, npx_t h) noexcept
             : pixspace{ size2d{ w, h } }
         {}
 
 
-        constexpr pixspace(pxsize_t w, pxsize_t h, line_size_type line_size) noexcept
+        constexpr pixspace(npx_t w, npx_t h, line_size_type line_size) noexcept
             : pixspace{ size2d{ w, h }, line_size }
         {}
 
@@ -180,13 +182,13 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr pxsize_t width() const noexcept
+        constexpr npx_t width() const noexcept
         {
             return sizes_.width();
         }
 
         [[nodiscard]]
-        constexpr pxsize_t height() const noexcept
+        constexpr npx_t height() const noexcept
         {
             return sizes_.height();
         }
@@ -217,10 +219,10 @@ namespace px
         return c;
     }
 
-    using pix8space = pixspace<1_uz>;
-    using pix32space = pixspace<4_uz>;
+    using luminance_pixspace = pixspace<sizeof(luminance_t)>;
+    using rgba_pixspace = pixspace<sizeof(luminance_t) * rgba_color_extent>;
 }
 
 using px::pixspace;
-using px::pix8space;
-using px::pix32space;
+using px::luminance_pixspace;
+using px::rgba_pixspace;

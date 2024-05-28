@@ -196,6 +196,7 @@ namespace
 
 void test_intrusive() noexcept
 {
+    static_assert(std::is_trivial_v<intrusive_node> && std::is_standard_layout_v<intrusive_node>);
     static_assert(std::is_same_v<decl_view_type_t<intrusive_list<i_node>>, intrusive_list<i_node>::view_type>);
     static_assert(std::is_same_v<decl_view_type_t<intrusive_list_ref<i_node>>, intrusive_list<i_node>::view_type>);
     static_assert(std::is_same_v<decl_view_type_t<intrusive_list_ref<i_node>>, intrusive_list_ref<i_node>::view_type>);

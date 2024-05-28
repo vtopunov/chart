@@ -18,7 +18,8 @@
     <ClInclude Include="space.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="shader.h" />
-    <ClInclude Include="space_diagonal.h" />
+    <ClInclude Include="space_manipulation.h" />
+    <ClInclude Include="space_diagonal_cache.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="space.cpp" />

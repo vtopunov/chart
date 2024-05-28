@@ -6,7 +6,7 @@
 
 namespace px
 {
-    pix8span create_pix8span(buffer_view buffer, pix8space space) noexcept
+    lumpixspan create_lumpixspan(buffer_view buffer, luminance_pixspace space) noexcept
     {
         {
             const auto space_size_bytes = space.size_bytes();
@@ -21,7 +21,7 @@ namespace px
 
         return 
         {
-            buffer.as_span<pix8span::pixel_type>().data(),
+            buffer.as_span<luminance_t>().data(),
             space
         };
     }

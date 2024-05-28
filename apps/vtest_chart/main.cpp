@@ -32,7 +32,7 @@ namespace
         {
             point2d
             {
-                narrow<pxsize_t>(20_npx + n * (5_npx + button_width)),
+                narrow<npx_t>(20_npx + n * (5_npx + button_width)),
                 D_CONDITIONAL_OS_ANDROID(60_npx, 20_npx)
             },
             size2d
@@ -65,7 +65,7 @@ namespace
             static constexpr rectangle chart_boundaries
             {
                 button_boundaries_v<0>.p01() + point2d{0_npx, 15_npx},
-                size2d{ -20_npxz, -20_npxz }
+                size2d{ -20_pxoff, -20_pxoff }
             };
 
             chart::space space
@@ -73,7 +73,7 @@ namespace
                 .geometry{ chart_boundaries },
             };
 
-            static constexpr chart::background background{ .color{ colors::yellow_f.with_blue(0.93f) }};
+            static constexpr chart::background background{ .brush{ colors::yellow_f.with_blue(0.93f) }};
             static constexpr chart::grid grid{};
 
             struct polyline : chart::polyspanline
@@ -86,8 +86,8 @@ namespace
                 }
             };
 
-            polyline polyline0{ {.pen_color{colors::red_f } } };
-            polyline polyline1{ {.pen_color{colors::blue_f} } };
+            polyline polyline0{ {.pen{colors::red_f } } };
+            polyline polyline1{ {.pen{colors::blue_f} } };
 
             bool operator () (widget::basic_initialization_event<>) noexcept
             {
@@ -99,7 +99,6 @@ namespace
                         const auto y = sin(x);
                         polyline0.points.emplace_back(x, y);
                         polyline1.points.emplace_back(x, 0.95 * y);
-
                     }
 
                     plot();

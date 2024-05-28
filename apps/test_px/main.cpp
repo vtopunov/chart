@@ -1,4 +1,3 @@
-
 extern void test_pixspan() noexcept;
 extern void test_pixmap() noexcept;
 

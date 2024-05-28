@@ -26,7 +26,7 @@ template <class T, class Tuple>
 struct tuple_has_type;
 
 template <class T, class... Types>
-struct tuple_has_type<T, std::tuple<Types...>> : std::disjunction<std::is_same<T, Types>...> {};
+struct tuple_has_type<T, std::tuple<Types...>> : has_type<T, Types...> {};
 
 template <class T, class Tuple>
 constexpr auto tuple_has_type_v = tuple_has_type<T, Tuple>::value;
@@ -173,10 +173,7 @@ struct min_tuple_index_element_type<Cmp, Tuple, std::index_sequence<I0> > : std:
 
 template<template <class, class> class Cmp, class Tuple, size_t I0, size_t I1, size_t... Indices>
 struct min_tuple_index_element_type<Cmp, Tuple, std::index_sequence<I0, I1, Indices...> > : std::conditional_t<
-    Cmp<
-    std::tuple_element_t<I0, Tuple>,
-    std::tuple_element_t<I1, Tuple>
-    >::value,
+    Cmp<std::tuple_element_t<I0, Tuple>, std::tuple_element_t<I1, Tuple> >::value,
     min_tuple_index_element_type<Cmp, Tuple, std::index_sequence<I0, Indices...> >,
     min_tuple_index_element_type<Cmp, Tuple, std::index_sequence<I1, Indices...> >
 >

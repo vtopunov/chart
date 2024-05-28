@@ -17,7 +17,7 @@
 #include "shader_utils.h"
 #include "texture_utils.h"
 
-class SimpleTexture2DSample : public SampleApplication
+class SimpleTexture2DSample final : public SampleApplication
 {
   public:
     SimpleTexture2DSample()
@@ -25,7 +25,7 @@ class SimpleTexture2DSample : public SampleApplication
     {
     }
 
-    virtual bool initialize()
+    bool initialize() override
     {
         const std::string vs =
             R"(attribute vec4 a_position;
@@ -67,13 +67,13 @@ class SimpleTexture2DSample : public SampleApplication
         return true;
     }
 
-    virtual void destroy()
+    void destroy() override
     {
         glDeleteProgram(mProgram);
         glDeleteTextures(1, &mTexture);
     }
 
-    virtual void draw()
+    void draw() override
     {
         GLfloat vertices[] =
         {

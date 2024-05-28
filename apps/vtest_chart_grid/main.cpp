@@ -5,7 +5,7 @@
 
 namespace
 {
-    constexpr widget::stretchable_pxrectangle geometry{ /*.position{20_npx, 75_npx}, .sizes{-20_npxz, -20_npxz} */ };
+    constexpr widget::stretchable_pxrectangle geometry{ /*.position{20_npx, 75_npx}, .sizes{-20_pxoff, -20_pxoff} */ };
 
     class simple_widget
     {

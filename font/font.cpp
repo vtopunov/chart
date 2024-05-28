@@ -21,8 +21,8 @@ namespace font
         {
             return
             {
-                trunc_to<pxsize_t>(p.x()),
-                trunc_to<pxsize_t>(p.y())
+                trunc_to<npx_t>(p.x()),
+                trunc_to<npx_t>(p.y())
             };
         }
 
@@ -120,7 +120,7 @@ namespace font
 
                 as_mutable(cached_ref.r()) = dtor_state::enabled;
 
-                library_ref ref{ resource_construct, dtor_state::enabled };
+                library_ref ref{ dtor_state::enabled };
 
                 if (lib)
                 {
@@ -171,11 +171,7 @@ namespace font
                 if (face)
                 {
                     [[maybe_unused]]
-                    const library::library_ref library_deref
-                    {
-                        resource_construct,
-                            library::dtor_state::enabled
-                    };
+                    const library::library_ref library_deref{ library::dtor_state::enabled };
 
                     FT_Done_Face(face);
                 }
@@ -215,11 +211,7 @@ namespace font
                 e_debug_ft("FT_New_Memory_Face", errc);
             }
 
-            result_face = face
-            {
-                resource_construct,
-                static_cast<face_descriptor_t>(ft_face.release())
-            };
+            result_face = face{ static_cast<face_descriptor_t>(ft_face.release()) };
         }
 
         if (result_face) [[likely]]
@@ -255,7 +247,7 @@ namespace font
         return true;
     }
 
-    cursor draw_char(pix8span image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept
+    cursor draw_char(lumpixspan image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept
     {
         if (const auto end_x = cursor::value_type::instance(image.width()); cursor.x() >= end_x) [[unlikely]]
         {
@@ -306,8 +298,8 @@ namespace font
 
             size2d sizes
             {
-                narrow<pxsize_t>(bitmap.width),
-                narrow<pxsize_t>(bitmap.rows)
+                narrow<npx_t>(bitmap.width),
+                narrow<npx_t>(bitmap.rows)
             };
 
             const auto line_size = narrow<size_t>(bitmap.pitch);
@@ -316,7 +308,7 @@ namespace font
 
             if (is_negative(position.x()))
             {
-                const auto buffer_offset = narrow<pxsize_t>(-position.x().discard_fraction());
+                const auto buffer_offset = narrow<npx_t>(-position.x().discard_fraction());
                 if (buffer_offset >= sizes.width())
                 {
                     return invalid_cursor;
@@ -329,7 +321,7 @@ namespace font
 
             if (is_negative(position.y()))
             {
-                const auto line_offset = narrow<pxsize_t>(-position.y().discard_fraction());
+                const auto line_offset = narrow<npx_t>(-position.y().discard_fraction());
                 if (line_offset >= sizes.height())
                 {
                     return invalid_cursor;

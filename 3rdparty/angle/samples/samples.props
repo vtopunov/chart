@@ -8,7 +8,7 @@
   
   <ItemDefinitionGroup>
 	<ClCompile>
-	  <AdditionalIncludeDirectories>$(AngleDir)\include;$(AngleDir)\src;$(AngleDir)\util;$(AngleDir)\samples\sample_util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+	  <AdditionalIncludeDirectories>$(AngleDir)\src;$(AngleDir)\util;$(AngleDir)\samples\sample_util;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4275;26495;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>

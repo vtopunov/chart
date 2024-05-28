@@ -73,20 +73,20 @@ namespace private_detail_size_bytes
 using private_detail_size_bytes::size_bytes;
 
 template<class T>
-using size_bytes_t = decltype(size_bytes(std::declval<T&>()));
+using decl_size_bytes_t = decltype(size_bytes(std::declval<T&>()));
 
 template<class T>
-using is_size_bytes = is_detected<size_bytes_t, T>;
+using has_size_bytes = is_detected<decl_size_bytes_t, T>;
 
 template<class C>
-constexpr bool is_size_bytes_v = is_size_bytes<C>::value;
+constexpr bool has_size_bytes_v = has_size_bytes<C>::value;
 
 template <class C, class Data>
 constexpr bool is_compatible_buffer_v = std::conjunction_v
 <
     std::negation<is_buffer_view<C>>,
-    is_size_bytes<C>,
-    is_convertible_data<C, Data>
+    has_size_bytes<C>,
+    is_std_data_convertible<C, Data>
 >;
 
 template<bool immutable>

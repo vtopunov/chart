@@ -12,7 +12,7 @@
 
 namespace
 {
-    gl::texture2d lines_rendering(const pix8span image, const pxoff2d d) noexcept
+    gl::texture2d lines_rendering(const lumpixspan image, const pxoff2d d) noexcept
     {
         {
             const auto dd = md_narrow<px::real_point2d>(d);
@@ -77,7 +77,7 @@ namespace
                 return false;
             }
 
-            if (!shaders_.initialize(viewport(egl_)))
+            if (!shaders_.initialize(egl_.viewport()))
             {
                 return false;
             }
@@ -144,7 +144,7 @@ namespace
         void draw() const noexcept
         {
             const egl_painting_owner painting_owner{ egl_ };
-            gl::viewport(viewport(egl_));
+            gl::viewport(egl_.viewport());
             gl::clear(gl_background_color_f);
 
             shaders_.draw(texture_);
@@ -171,7 +171,7 @@ namespace
             }
             else
             {
-                image_ = pix8map{ 600_npx, 600_npx };
+                image_ = lumpixmap{ 600_npx, 600_npx };
                 if (!image_)
                 {
                     e_debug("out of memory");
@@ -194,7 +194,7 @@ namespace
         [[nodiscard]]
         bool lines_rendering_by_default() noexcept
         {
-            return lines_rendering({ 0_npxz, 0_npxz });
+            return lines_rendering({ 0_pxoff, 0_pxoff });
         }
 
     private:
@@ -210,17 +210,17 @@ namespace
                 }
 
                 lib.use();
-                lib.vert.u_viewport.store(viewport);
-                lib.vert.u_position.store(100_npx, 150_npx);
+                lib.vert().viewport(viewport);
+                lib.vert().position(100_npx, 150_npx);
                 return true;
             }
 
             void draw(gl::texture2d_resources texture) const noexcept
             {
                 lib.use();
-                lib.frag.s_texture.store(texture);
-                lib.vert.u_size.store(sizes(texture));
-                lib.vert.a_frame.draw();
+                lib.frag().texture(texture);
+                lib.vert().size(sizes(texture));
+                lib.vert().frame().draw();
             }
 
         private:
@@ -232,7 +232,7 @@ namespace
         gl::texture2d texture_{};
         ui::pointer_event::point2d_type mouse_pos_{};
         pxoff2d position_{};
-        pix8map image_{};
+        lumpixmap image_{};
         bool need_redraw_{ true };
     };
 }
@@ -244,8 +244,7 @@ int app_main(os::module_handle_t app) noexcept
 
     if (!processor.initialize(app))
     {
-        e_debug("create window error: ui error: {}, egl error: {}",
-            ui::error_code(), eglGetError());
+        e_debug("create window error: {}", egl_ui::error_code());
         return EXIT_FAILURE;
     }
 

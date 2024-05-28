@@ -6,8 +6,6 @@
 
 #include <px/pixmap.h>
 
-#include <ui/manipulator.h>
-
 #include <gl/texture.h>
 
 #include <utility/shader_library.h>

@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ui_owner.h" />
-    <ClInclude Include="egl_config.h" />
     <ClInclude Include="egl_context.h" />
     <ClInclude Include="egl_ui_owner.h" />
     <ClInclude Include="fwd.h" />

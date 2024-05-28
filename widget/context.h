@@ -17,7 +17,7 @@ namespace widget
         template<>
         struct context_source_element_type<buffer_view>
         {
-            using type = pix8_temp_buffer;
+            using type = temp_buffer;
         };
 
         template<>
@@ -73,34 +73,34 @@ namespace widget
         D_DISABLE_COPYMOVE_CA(common_context);
 
         template<class T>
-        constexpr const T& cget() const noexcept
+        [[nodiscard]] constexpr const T& cget() const noexcept
         {
             return std::get<T>(tuple_);
         }
 
         template<class T>
-        constexpr const T& get() const noexcept
+        [[nodiscard]] constexpr const T& get() const noexcept
         {
             return cget<T>();
         }
 
         template<class T>
-        constexpr T& get() noexcept
+        [[nodiscard]] constexpr T& get() noexcept
         {
             return as_mutable(cget<T>());
         }
 
-        constexpr const widget::window& cref_window() const noexcept
+        [[nodiscard]] constexpr const widget::window& cref_window() const noexcept
         {
             return std::get<windowrefwrap_t>(tuple_);
         }
 
-        constexpr const widget::window& ref_window() const noexcept
+        [[nodiscard]] constexpr const widget::window& ref_window() const noexcept
         {
             return cref_window();
         }
 
-        constexpr widget::window& ref_window() noexcept
+        [[nodiscard]] constexpr widget::window& ref_window() noexcept
         {
             return as_mutable(cref_window());
         }

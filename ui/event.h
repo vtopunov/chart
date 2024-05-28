@@ -49,7 +49,7 @@ namespace ui
             return long_parameter_;
         }
 
-        using _coordinate_value_type = pxsize_t;
+        using _coordinate_value_type = npx_t;
         static_assert(is_safe_numeric_conversion_v<_coordinate_value_type, word_t>);
 
         [[nodiscard]]
@@ -288,6 +288,7 @@ namespace ui
         [[nodiscard]]
         constexpr bool operator != (const mouse_keys&) const noexcept = default;
 
+        [[nodiscard]]
         static constexpr mouse_keys instance(word_parameter_t word_parameter) noexcept
         {
             return { .keys{ underlying_cast<mouse_keys::e_mouse_keys>(lo_cast<word_t>(word_parameter)) } };
@@ -323,8 +324,7 @@ namespace ui
     class mouse_event : public pointer_event
     {
     public:
-        [[nodiscard]]
-        constexpr mouse_keys keys() const noexcept
+        [[nodiscard]] constexpr mouse_keys keys() const noexcept
         {
             return D_CONDITIONAL_OS_WINDOWS(mouse_keys::instance(_word_parameter()), touchpad_dummy_mouse_keys);
         }

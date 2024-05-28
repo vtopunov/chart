@@ -22,7 +22,7 @@ namespace
             return {};
         }
 
-        const auto png = image::png_decode_to_r8g8b8a8(asset);
+        const auto png = image::png_decode_to_rgba(asset);
         if (!png)
         {
             const auto errc = png.error_code();
@@ -34,16 +34,16 @@ namespace
         const auto w_image_space = png.width() + sep;
         const auto h_image_space = png.height() + sep;
 
-        pixmap<rgba_color_t> gallery{ 3u * w_image_space + sep, 3u * h_image_space + sep };
+        pixmap<rgba_color> gallery{ 3u * w_image_space + sep, 3u * h_image_space + sep };
         if (!gallery)
         {
             e_debug("out of memory");
             return {};
         }
 
-        for (pxsize_t y = sep; y < gallery.height(); y += h_image_space)
+        for (npx_t y = sep; y < gallery.height(); y += h_image_space)
         {
-            for (pxsize_t x = sep; x < gallery.width(); x += w_image_space)
+            for (npx_t x = sep; x < gallery.width(); x += w_image_space)
             {
                 gallery.store(x, y, png);
             }
@@ -65,8 +65,7 @@ int app_main(os::module_handle_t app) noexcept
     const auto egl = create_egl_ui(app);
     if (!egl)
     {
-        e_debug("create window error: window error: {}, egl error: {}",
-            ui::error_code(), eglGetError());
+        e_debug("create window error: {}", egl_ui::error_code());
         return EXIT_FAILURE;
     }
 
@@ -85,26 +84,26 @@ int app_main(os::module_handle_t app) noexcept
     }
 
     shaders.use();
-    shaders.vert.u_size.store(sizes(texture));
-    shaders.vert.u_viewport.store(viewport(egl));
-    shaders.frag.s_texture.store(texture);
+    shaders.vert().size(texture.sizes());
+    shaders.vert().viewport(egl.viewport());
+    shaders.frag().texture(texture);
 
     {
         const egl_painting_owner painting_owner{ egl };
-        gl::viewport(viewport(egl));
+        gl::viewport(egl.viewport());
         gl::clear(colors::white_f);
 
-        const auto vb = shaders.vert.a_frame.bind();
+        const auto vb = shaders.vert().frame();
 
-        const auto [w, h] = viewport(egl);
-        const auto dx = width(texture) + 1_npx;
-        const auto dy = height(texture) + 1_npx;
+        const auto [w, h] = egl.viewport();
+        const auto dx = texture.width() + 1_npx;
+        const auto dy = texture.height() + 1_npx;
 
-        for (pxsize_t y = 0; y < h; y += dy)
+        for (npx_t y = 0; y < h; y += dy)
         {
-            for (pxsize_t x = 0; x < w; x += dx)
+            for (npx_t x = 0; x < w; x += dx)
             {
-                shaders.vert.u_position.store(x, y);
+                shaders.vert().position(x, y);
                 vb.draw();
             }
         }

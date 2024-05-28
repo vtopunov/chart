@@ -1,7 +1,5 @@
 #pragma once
 
-#include <core/null.h>
-
 #include <ui/window.h>
 #include <ui/event_loop.h>
 
@@ -31,22 +29,21 @@ namespace egl_ui
         };
     }
 
-    using main_window_t = ui::window;
-    using render_window_t = D_CONDITIONAL_OS_WINDOWS(ui::window, dummy);
+    using viewing_subwindow = D_CONDITIONAL_OS_WINDOWS(ui::window, dummy);
 
     class ui_owner
     {
     public:
         struct event_binder_type
         {
+#ifdef D_OS_WINDOWS
             constexpr explicit event_binder_type(const ui_owner& ui) noexcept
                 : app_event_source_{ ui.window() }
-                , input_event_source_{ ui.render_window() }
+                , input_event_source_{ ui.viewing_window() }
             {}
 
             D_DISABLE_COPYMOVE_CA(event_binder_type);
 
-#ifdef D_OS_WINDOWS
             template<class EventTarget>
             [[nodiscard]] std::array<ui::event_processor, 2u> bind(EventTarget& target) const noexcept
             {
@@ -72,12 +69,13 @@ namespace egl_ui
                     )
                 };
             }
-#endif
 
         private:
             const window_handle_t app_event_source_;
             const window_handle_t input_event_source_;
+#endif
         };
+
 
         constexpr ui_owner() noexcept = default;
 
@@ -85,29 +83,33 @@ namespace egl_ui
         (
             pxsize2d viewport,
             module_handle_t module,
-            main_window_t&& window,
-            render_window_t&& render_window
+            ui::window&& initial_window,
+            viewing_subwindow&& initial_viewing_window
         ) noexcept
             : viewport_{ viewport }
             , module_{ module }
-            , window_{ std::move(window) }
-            , render_window_{ std::move(render_window) }
+            , window_{ std::move(initial_window) }
+            , viewing_window_{ std::move(initial_viewing_window) }
         {}
 
         [[nodiscard]]
-        constexpr window_handle_t render_window() const noexcept
+        constexpr window_handle_t viewing_window() const noexcept
         {
-            return D_CONDITIONAL_OS_WINDOWS(render_window_, window());
+            return D_CONDITIONAL_OS_WINDOWS(viewing_window_, window());
         }
 
         [[nodiscard]]
         bool update_viewport() noexcept
         {
-            const auto new_viewport = ui::sizes(render_window());
-            D_ASSERT(ui::window_sizes_is_valid(new_viewport));
-            const auto ok = new_viewport != viewport_;
-            viewport_ = new_viewport;
-            return ok;
+            if (const auto new_viewport = ui::sizes(viewing_window()); new_viewport.has_positive_mark()) [[likely]]
+            {
+                const auto is_new_viewport = new_viewport != viewport_;
+                viewport_ = new_viewport;
+                return is_new_viewport;
+            }
+
+            D_ASSERT(!"invalid viewport");
+            return false;
         }
 
         [[nodiscard]]
@@ -140,14 +142,14 @@ namespace egl_ui
 
         constexpr explicit operator bool() const noexcept
         {
-            return ui::window_sizes_is_valid(viewport_);
+            return viewport_.has_positive_mark();
         }
 
     private:
-        pxsize2d viewport_{ ui::no_window_sizes };
+        pxsize2d viewport_{ ui::no_sizes };
         module_handle_t module_{ nullptr };
-        main_window_t window_{};
-        D_NO_UNIQUE_ADDRESS render_window_t render_window_{};
+        ui::window window_{};
+        D_NO_UNIQUE_ADDRESS viewing_subwindow viewing_window_{};
     };
 
     static_assert(std::is_same_v<ui::event_binder_type_t<ui_owner>, const ui_owner::event_binder_type>);
@@ -180,27 +182,27 @@ namespace egl_ui
     [[nodiscard]]
     inline ui_owner create_ui(const ui_parameters& params) noexcept
     {
-        pxsize2d viewport_sizes{ ui::no_window_sizes };
+        pxsize2d viewport_sizes{ ui::no_sizes };
         auto temp_main_window = ui::create_window(params);
-        render_window_t temp_render_window{};
+        viewing_subwindow temp_viewing_window{};
 
         if (temp_main_window) [[likely]]
         {
 #ifdef D_OS_WINDOWS
-            if (const auto render_sizes = ui::desktop_sizes(); ui::window_sizes_is_valid(render_sizes)) [[likely]]
+            if (const auto viewing_sizes = ui::desktop_sizes(); viewing_sizes.has_positive_mark()) [[likely]]
             {
                 {
-                    auto render_window_params = params;
-                    render_window_params.parent = temp_main_window;
-                    render_window_params.geometry.position = { 0_npx, 0_npx };
-                    render_window_params.geometry.sizes = render_sizes;
-                    temp_render_window = ui::create_window(render_window_params);
+                    auto viewing_window_params = params;
+                    viewing_window_params.parent = temp_main_window;
+                    viewing_window_params.geometry.position = { 0_npx, 0_npx };
+                    viewing_window_params.geometry.sizes = viewing_sizes;
+                    temp_viewing_window = ui::create_window(viewing_window_params);
                 }
 
-                if (temp_render_window) [[likely]]
+                if (temp_viewing_window) [[likely]]
                 {
-                    viewport_sizes = render_sizes;
-                    D_ASSERT(viewport_sizes == sizes(temp_render_window));
+                    viewport_sizes = viewing_sizes;
+                    D_ASSERT(viewport_sizes == sizes(temp_viewing_window));
                 }
             }
 
@@ -209,13 +211,13 @@ namespace egl_ui
 
 #endif
 
-            if (ui::window_sizes_is_valid(viewport_sizes)) [[likely]]
+            if (viewport_sizes.has_positive_mark()) [[likely]]
             {
                 ui::show(temp_main_window, params.command_show);
             }
             else
             {
-                temp_main_window = null_v<main_window_t>;
+                temp_main_window = {};
             }
         }
 
@@ -224,13 +226,7 @@ namespace egl_ui
             viewport_sizes,
             params.cached_type.r().module,
             std::move(temp_main_window),
-            std::move(temp_render_window),
+            std::move(temp_viewing_window),
         };
     }
-}
-
-template<class T>
-[[nodiscard]] constexpr auto viewport(const T& source) noexcept -> decltype(source.viewport())
-{
-    return source.viewport();
 }

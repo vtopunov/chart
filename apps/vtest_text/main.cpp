@@ -19,7 +19,7 @@ namespace
 {
     gl::texture2d text_rendering() noexcept
     {
-        pix8map image{ 300_npx, 60_npx };
+        lumpixmap image{ 300_npx, 60_npx };
         if (!image)
         {
             e_debug("out of memory");
@@ -103,7 +103,7 @@ namespace
             cursor = draw_text(image, cursor, face, text3);
         }
 
-        auto texture = gl::create_texture2d(view(image));
+        auto texture = gl::create_texture2d(image);
         if (!texture)
         {
             e_debug("create texture error: {}", glGetError());
@@ -119,8 +119,7 @@ int app_main(os::module_handle_t app) noexcept
     const auto egl = create_egl_ui(app);
     if (!egl)
     {
-        e_debug("create window error: window error: {}, egl error: {}",
-            ui::error_code(), eglGetError());
+        e_debug("create window error: {}", egl_ui::error_code());
         return EXIT_FAILURE;
     }
 
@@ -131,7 +130,7 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shader_library<vert::positioned_texture, frag::luminance8_texture_mix_color> shaders{};
+    shader_library<vert::positioned_texture, frag::luminance_texture_mix_color> shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");
@@ -139,31 +138,31 @@ int app_main(os::module_handle_t app) noexcept
     }
 
     shaders.use();
-    shaders.vert.u_size.store(sizes(texture));
-    shaders.vert.u_viewport.store(viewport(egl));
-    shaders.frag.s_texture.store(texture);
+    shaders.vert().size(texture.sizes());
+    shaders.vert().viewport(egl.viewport());
+    shaders.frag().texture(texture);
 
     {
         const egl_painting_owner painting_owner{ egl };
-        gl::viewport(viewport(egl));
+        gl::viewport(egl.viewport());
         gl::clear(colors::white_f);
 
-        const auto vb = shaders.vert.a_frame.bind();
+        const auto vb = shaders.vert().frame();
 
-        const auto [w, h] = viewport(egl);
-        const auto dx = width(texture) + 1_npx;
-        const auto dy = height(texture) + 1_npx;
+        const auto [w, h] = egl.viewport();
+        const auto dx = texture.width() + 1_npx;
+        const auto dy = texture.height() + 1_npx;
 
         const auto y_color_lerp = lerp(0_npx, h, colors::red, colors::blue);
 
-        for (pxsize_t y = 0; y < h; y += dy)
+        for (auto y = 0_npx; y < h; y += dy)
         {
             const auto yx_color_lerp = lerp(0_npx, w, colors::green, to_color(y_color_lerp(y)));
 
-            for (pxsize_t x = 0; x < w; x += dx)
+            for (auto x = 0_npx; x < w; x += dx)
             {
-                shaders.frag.u_color.store(to_colorf(yx_color_lerp(x)));
-                shaders.vert.u_position.store(x, y);
+                shaders.frag().color(to_colorf(yx_color_lerp(x)));
+                shaders.vert().position(x, y);
 
                 vb.draw();
             }

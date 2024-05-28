@@ -43,78 +43,78 @@ namespace ui
                 set_user_data(app, nullptr);
             }
         }
+    }
 
-        void window_type_resource_deleter::operator()(type_window_resource type) const noexcept
+    void window_type_resource_deleter::operator()(type_window_resource type) const noexcept
+    {
+        collect(type.module);
+
         {
-            collect(type.module);
-            
-            {
-                constexpr sensor_event_queue_resource_collector collect{};
-                collect(type.handle);
-            }
-        }
-
-        type_window_builder::type_window_builder() noexcept = default;
-
-        type_window_builder::type_window_builder(const type_window_builder&) noexcept = default;
-
-        type_window_builder::~type_window_builder() noexcept = default;
-
-        type_window_builder& type_window_builder::operator=(const type_window_builder&) noexcept = default;
-
-        type_window_builder& type_window_builder::style(uint_t) noexcept
-        {
-            return *this;
-        }
-
-        type_window_builder& type_window_builder::module(module_handle_t module) noexcept
-        {
-            module_ = module;
-            return *this;
-        }
-
-        type_window_builder& type_window_builder::background(stock_brush) noexcept
-        {
-            return *this;
-        }
-
-        type_window_builder& type_window_builder::background(unique_brush) noexcept
-        {
-            return *this;
-        }
-
-        type_window_builder& type_window_builder::window_procedure(wndproc_t proc) noexcept
-        {
-            return *this;
-        }
-
-        uint_t type_window_builder::style() const noexcept
-        {
-            return {};
-        }
-
-        module_handle_t type_window_builder::module() const noexcept
-        {
-            return module_;
-        }
-
-        const_brush_handle_t type_window_builder::background() const noexcept
-        {
-            return {};
-        }
-
-        unique_type_window type_window_builder::build(wzstring_view) noexcept
-        {
-            return build();
-        }
-
-        unique_type_window type_window_builder::build() noexcept
-        {
-            return
-            {
-                resource_construct,
-                create_sensor_event_queue(module_).release(),
-                module_
-            };
+            constexpr sensor_event_queue_resource_collector collect{};
+            collect(type.handle);
         }
     }
+
+    type_window_builder::type_window_builder() noexcept = default;
+
+    type_window_builder::type_window_builder(const type_window_builder&) noexcept = default;
+
+    type_window_builder::~type_window_builder() noexcept = default;
+
+    type_window_builder& type_window_builder::operator=(const type_window_builder&) noexcept = default;
+
+    type_window_builder& type_window_builder::style(uint_t) noexcept
+    {
+        return *this;
+    }
+
+    type_window_builder& type_window_builder::module(module_handle_t module) noexcept
+    {
+        module_ = module;
+        return *this;
+    }
+
+    type_window_builder& type_window_builder::background(stock_brush) noexcept
+    {
+        return *this;
+    }
+
+    type_window_builder& type_window_builder::background(unique_brush) noexcept
+    {
+        return *this;
+    }
+
+    type_window_builder& type_window_builder::window_procedure(wndproc_t proc) noexcept
+    {
+        return *this;
+    }
+
+    uint_t type_window_builder::style() const noexcept
+    {
+        return {};
+    }
+
+    module_handle_t type_window_builder::module() const noexcept
+    {
+        return module_;
+    }
+
+    const_brush_handle_t type_window_builder::background() const noexcept
+    {
+        return {};
+    }
+
+    unique_type_window type_window_builder::build(wzstring_view) noexcept
+    {
+        return build();
+    }
+
+    unique_type_window type_window_builder::build() noexcept
+    {
+        return unique_type_window
+        {
+            create_sensor_event_queue(module_).release(),
+            module_
+        };
+    }
+}

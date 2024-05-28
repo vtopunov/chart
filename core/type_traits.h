@@ -52,8 +52,10 @@ constexpr auto call_if_exist(Fn&& fn, Args&&... args) noexcept -> decltype(std::
 }
 
 template <class... Args>
-constexpr auto call_if_exist(no_overload, const Args&... args) noexcept -> std::void_t<decltype(no_overload(args))...>
-{}
+constexpr auto call_if_exist(no_overload, const Args&... args) noexcept -> decltype((no_overload(args), ..., no_overload(0)))
+{
+    return 0;
+}
 
 
 struct nonesuch
@@ -71,7 +73,8 @@ namespace private_detail_member_detector
     {
         using value_t = std::false_type;
         using type = Default;
-        using enable_if_type = type;
+        using enable_if_type = Default;
+        using enable_if_and_type = nonesuch;
     };
 
     template <class Default, template<class...> class Op, class... Args>
@@ -80,6 +83,7 @@ namespace private_detail_member_detector
         using value_t = std::true_type;
         using type = Op<Args...>;
         using enable_if_type = std::type_identity<type>;
+        using enable_if_and_type = std::type_identity<Default>;
     };
 }
 
@@ -89,26 +93,41 @@ using is_detected = typename private_detail_member_detector::detector<nonesuch, 
 template <template<class...> class Op, class... Args>
 using detected_t = typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::type;
 
-template <template<class...> class Op, class... Args>
-using enable_if_detected = typename private_detail_member_detector::detector<nonesuch, void, Op, Args...>::enable_if_type;
-
 template <class Default, template<class...> class Op, class... Args>
 using detected_or = private_detail_member_detector::detector<Default, void, Op, Args...>;
 
-template< template<class...> class Op, class... Args >
-constexpr bool is_detected_v = is_detected<Op, Args...>::value;
+template <class Default, template<class...> class Op, class... Args>
+using enable_if_detected_or = typename private_detail_member_detector::detector<Default, void, Op, Args...>::enable_if_type;
+
+template <class Default, template<class...> class Op, class... Args>
+using enable_if_detected_and = typename private_detail_member_detector::detector<Default, void, Op, Args...>::enable_if_and_type;
+
+template <template<class...> class Op, class... Args>
+using enable_if_detected = enable_if_detected_or<nonesuch, Op, Args...>;
 
 template< class Default, template<class...> class Op, class... Args >
 using detected_or_t = typename detected_or<Default, Op, Args...>::type;
 
-template <class Expected, template<class...> class Op, class... Args>
-using is_detected_exact = std::is_same<Expected, detected_t<Op, Args...>>;
+template <template<class...> class Op, class... Args>
+using enable_if_detected_t = typename enable_if_detected<Op, Args...>::type;
+
+template <class Default, template<class...> class Op, class... Args>
+using enable_if_detected_or_t = typename enable_if_detected_or<Default, Op, Args...>::type;
+
+template <class Default, template<class...> class Op, class... Args>
+using enable_if_detected_and_t = typename enable_if_detected_and<Default, Op, Args...>::type;
 
 template <class Expected, template<class...> class Op, class... Args>
-constexpr bool is_detected_exact_v = is_detected_exact<Expected, Op, Args...>::value;
+using is_detected_exact = std::is_same<Expected, detected_or_t<std::type_identity<Expected>, Op, Args...>>;
 
 template <class To, template<class...> class Op, class... Args>
 using is_detected_convertible = std::is_convertible<detected_t<Op, Args...>, To>;
+
+template< template<class...> class Op, class... Args >
+constexpr bool is_detected_v = is_detected<Op, Args...>::value;
+
+template <class Expected, template<class...> class Op, class... Args>
+constexpr bool is_detected_exact_v = is_detected_exact<Expected, Op, Args...>::value;
 
 template <class To, template<class...> class Op, class... Args>
 constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
@@ -220,7 +239,6 @@ struct add_const_pointer<T* const>
 template<class T>
 using add_const_pointer_t = typename add_const_pointer<T>::type;
 
-
 template<class From, class To>
 struct is_const_convertible : std::false_type
 {};
@@ -238,10 +256,51 @@ constexpr bool is_const_convertible_v = is_const_convertible<From, To>::value;
 
 
 template<class L, class R>
-using is_same_uncvref = std::is_same<std::remove_cvref_t<L>, std::remove_cvref_t<R>>;
+using is_same_uncvref_r = std::is_same<L, std::remove_cvref_t<R>>;
+
+template<class L, class R>
+using is_same_uncvref = is_same_uncvref_r<std::remove_cvref_t<L>, R>;
+
+template<class L, class R>
+using is_same_uncv_r = std::is_same<L, std::remove_cv_t<R>>;
+
+template<class L, class R>
+using is_same_uncv = is_same_uncvref_r<std::remove_cv_t<L>, R>;
+
+template<class L, class R>
+using is_same_decay_r = std::is_same<L, std::decay_t<R>>;
+
+template<class L, class R>
+using is_same_decay = is_same_decay_r<std::decay_t<L>, R>;
 
 template<class L, class R>
 constexpr auto is_same_uncvref_v = is_same_uncvref<L, R>::value;
+
+template<class L, class R>
+constexpr auto is_same_uncv_v = is_same_uncv<L, R>::value;
+
+template<class L, class R>
+constexpr auto is_same_decay_v = is_same_decay<L, R>::value;
+
+
+template <class T, class... Types>
+using has_type = std::disjunction<std::is_same<T, Types>...>;
+
+template <class T, class... Types>
+using has_type_uncvref = std::disjunction<is_same_uncvref_r<T, Types>...>;
+
+template <class T, class... Types>
+using has_type_decay = std::disjunction<is_same_decay_r<T, Types>...>;
+
+
+template <class T, class... Types>
+constexpr bool has_type_v = has_type<T, Types...>::value;
+
+template <class T, class... Types>
+constexpr bool has_type_uncvref_v = has_type_uncvref<T, Types...>::value;
+
+template <class T, class... Types>
+constexpr bool has_type_decay_v = has_type_decay<T, Types...>::value;
 
 
 template<class T>
@@ -263,6 +322,7 @@ template<class Derived, class Base>
         using derived_t = std::remove_reference_t<Derived>;
         static_assert(std::is_base_of_v<Base, derived_t>);
         static_assert(sizeof(Base) == sizeof(derived_t));
+        static_assert(alignof(Base) == alignof(derived_t));
     }
     return static_cast<Derived>(base);
 }
@@ -301,6 +361,21 @@ using has_pre_dec_op = is_detected<decl_pre_dec_op_t, T>;
 template<class T>
 using has_post_dec_op = is_detected<decl_post_dec_op_t, T>;
 
+template<class T>
+constexpr bool has_unary_munis_op_v = has_unary_munis_op<T>::value;
+
+template<class T>
+constexpr bool has_pre_inc_op_v = has_pre_inc_op<T>::value;
+
+template<class T>
+constexpr bool has_post_inc_op_v = has_post_inc_op<T>::value;
+
+template<class T>
+constexpr bool has_pre_dec_op_v =  has_pre_dec_op<T>::value;
+
+template<class T>
+constexpr bool has_post_dec_op_v = has_post_dec_op<T>::value;
+
 
 template<class L, class R>
 using decl_assignment_op_t = decltype(std::declval<L&>() = std::declval<R>());
@@ -309,42 +384,16 @@ template<class L, class R>
 using has_assignment_op = is_detected<decl_assignment_op_t, L, R>;
 
 template<class L, class R>
-constexpr auto has_assignment_op_v = has_assignment_op<L, R>::value;
+constexpr bool has_assignment_op_v = has_assignment_op<L, R>::value;
 
+template<class T>
+using decl_eq_op_t = decltype(std::declval<const T&>() == std::declval<const T&>());
 
-namespace type_traits_compare
-{
-    template<class T>
-    [[nodiscard]] constexpr auto eq_op(const T& left, const T& right) noexcept -> decltype(left == right)
-    {
-        return left == right;
-    }
+template<class T>
+using decl_neq_op_t = decltype(std::declval<const T&>() != std::declval<const T&>());
 
-    template<class T>
-    [[nodiscard]] constexpr auto neq_op(const T& left, const T& right) noexcept -> decltype(left != right)
-    {
-        return left != right;
-    }
-
-    template<class T>
-    [[nodiscard]] constexpr auto less_op(const T& left, const T& right) noexcept -> decltype(left < right)
-    {
-        return left < right;
-    }
-
-    template<class T>
-    using decl_eq_op_t = decltype(eq_op(std::declval<const T&>(), std::declval<const T&>()));
-
-    template<class T>
-    using decl_neq_op_t = decltype(neq_op(std::declval<const T&>(), std::declval<const T&>()));
-
-    template<class T>
-    using decl_less_op_t = decltype(less_op(std::declval<const T&>(), std::declval<const T&>()));
-}
-
-using type_traits_compare::decl_eq_op_t;
-using type_traits_compare::decl_neq_op_t;
-using type_traits_compare::decl_less_op_t;
+template<class T>
+using decl_less_op_t = decltype(std::declval<const T&>() < std::declval<const T&>());
 
 template<class T>
 using has_eq_op = is_detected<decl_eq_op_t, T>;
@@ -354,3 +403,16 @@ using has_neq_op = is_detected<decl_neq_op_t, T>;
 
 template<class T>
 using has_less_op = is_detected<decl_less_op_t, T>;
+
+
+template<class T>
+[[nodiscard]] constexpr std::enable_if_t<has_pre_inc_op_v<T>, T> u_next(T value) noexcept
+{
+    return ++value;
+}
+
+template<class T>
+[[nodiscard]] constexpr std::enable_if_t<has_pre_dec_op_v<T>, T> u_prev(T value) noexcept
+{
+    return --value;
+}

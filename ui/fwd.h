@@ -8,6 +8,8 @@
 
 namespace ui
 {
+    using px::no_sizes;
+
     using os::window_handle_t;
     using os::module_handle_t;
     using os::const_module_handle_t;
@@ -122,22 +124,12 @@ namespace ui
         using native_npx_t = int;
 
         constexpr auto cw_usedefault = static_cast<native_npx_t>(0x80000000);
-        constexpr auto px_usedefault = static_cast<pxsize_t>(cw_usedefault);
+        constexpr auto px_usedefault = static_cast<npx_t>(cw_usedefault);
         constexpr pxrectangle rc_usedefault{ px_usedefault, 0_npx, px_usedefault, 0_npx };
     }
 
     using private_detail_window_constants::px_usedefault;
     using private_detail_window_constants::rc_usedefault;
-
-    constexpr pxsize2d no_window_sizes{ 0_npx, 0_npx };
-
-    constexpr bool window_sizes_is_valid(pxsize2d sizes) noexcept
-    {
-        static_assert(std::is_unsigned_v<decltype(sizes.height())>);
-        return !!sizes.height();
-    }
-
-    static_assert(!window_sizes_is_valid(no_window_sizes));
 
     namespace manipulator
     {

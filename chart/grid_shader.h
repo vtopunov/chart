@@ -55,42 +55,42 @@ namespace chart
                         }
                     }
                 )"_glsl;
-                
-                gl::uniform_vec4f u_color{ gl::invaliduniform };
-                uniform_vec2glpx u_width{ gl::invaliduniform };
-                uniform_vec2glpx u_begin{ gl::invaliduniform };
-                uniform_vec2glpx u_repeat{ gl::invaliduniform };
+
+                gl::uniform_vec4f color{ gl::invaliduniform };
+                uniform_vec2glpx width{ gl::invaliduniform };
+                uniform_vec2glpx begin{ gl::invaliduniform };
+                uniform_vec2glpx repeat{ gl::invaliduniform };
 
                 template<class Serializer>
                 constexpr void serialize(Serializer& ser) noexcept
                 {
-                    ser(u_color, "u_color"_zsv);
-                    ser(u_width, "u_width"_zsv);
-                    ser(u_begin, "u_begin"_zsv);
-                    ser(u_repeat, "u_repeat"_zsv);
+                    ser(color, "u_color"_zsv);
+                    ser(width, "u_width"_zsv);
+                    ser(begin, "u_begin"_zsv);
+                    ser(repeat, "u_repeat"_zsv);
                 }
             };
         }
 
         struct grid_user : widget_shader_user<grid_user, vert::grid, frag::grid>
         {
-            using widget_shader_user<grid_user, vert::grid, frag::grid>::library;
+            using widget_shader_user::frag;
 
-            const grid_user& width(pxvec2 new_width) const noexcept
+            const grid_user& width(pxvec2d new_width) const noexcept
             {
-                library.frag.u_width.store(new_width);
+                frag().width(new_width);
                 return *this;
             }
 
             const grid_user& begin(real_vec2 new_width) const noexcept
             {
-                library.frag.u_begin.store(new_width);
+                frag().begin(new_width);
                 return *this;
             }
 
             const grid_user& repeat(real_vec2 new_width) const noexcept
             {
-                library.frag.u_repeat.store(new_width);
+                frag().repeat(new_width);
                 return *this;
             }
         };

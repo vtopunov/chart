@@ -142,8 +142,15 @@ void test_size2d() noexcept
     constexpr size2d sz{ v };
     static_assert(std::is_same_v<decltype(sz), const size2d<int>>);
     static_assert(std::is_trivial_v<size2d<int>> && std::is_standard_layout_v<size2d<int>>);
+    static_assert(sizeof(v) == sizeof(sz));
+    static_assert(alignof(decltype(v)) == alignof(decltype(sz)));
+    static_assert(sz == identical_derived_cast<size2d<int>>(v));
+    static_assert(as_vec2(sz) == v);
+    static_assert(sz == to_size2d(v));
     static_assert(sz.width() == 3);
     static_assert(sz.height() == 4);
+    static_assert(sz.with_width(5) == size2d{ 5, 4 });
+    static_assert(sz.with_height(6) == size2d{ 3, 6 });
 
     constexpr vec2 uv{ 3u, 4u };
     constexpr size2d usz{ uv };
@@ -158,6 +165,19 @@ void test_size2d() noexcept
     static_assert(std::is_same_v<decltype(csz), const size2d<char>>);
     static_assert(csz.width() == '\5');
     static_assert(csz.height() == '\6');
+
+    constexpr auto zsz = zero_v<size2d<int>>();
+    static_assert(zsz == size2d{ 0, 0 });
+    static_assert(zsz == zero_v<>);
+    static_assert(zsz == zero_v<size2d<int>>);
+    static_assert(!zsz.has_positive_mark());
+    static_assert(!zsz.has_positive_square());
+    static_assert(!zsz.with_width(5).has_positive_mark());
+    static_assert(!zsz.with_width(5).has_positive_square());
+    static_assert(zsz.with_height(6).has_positive_mark());
+    static_assert(!zsz.with_height(6).has_positive_square());
+    static_assert(zsz.with_width(5).with_height(6).has_positive_mark());
+    static_assert(zsz.with_width(5).with_height(6).has_positive_square());
 
     test_sizes();
 }

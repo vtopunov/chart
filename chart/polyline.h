@@ -6,7 +6,7 @@
 
 #include <gl/texture.h>
 
-#include <chart/fwd.h>
+#include <chart/space_manipulation.h>
 #include <chart/shader.h>
 
 
@@ -15,7 +15,7 @@ namespace chart
     using real_vpoint2d = small_vector<real_point2d>;
 
     [[nodiscard]]
-    constexpr space_diagonal_t space_diagonal_with(const space_diagonal_t& dia, const real_point2d& pt) noexcept
+    constexpr space_diagonal space_diagonal_with(const space_diagonal& dia, const real_point2d& pt) noexcept
     {
         return
         {
@@ -24,7 +24,7 @@ namespace chart
         };
     }
 
-    constexpr void update_polyline_space_diagonal(space_diagonal_t& diagonal, real_point2d_cspan line) noexcept
+    constexpr void update_polyline_space_diagonal(space_diagonal& diagonal, real_point2d_cspan line) noexcept
     {
         for (const auto& pt : line) [[likely]]
         {
@@ -39,9 +39,11 @@ namespace chart
     struct basic_polyline
     {
         using model_type = Model;
+        using pen_type = rgbaf_color;
+        static constexpr pen_type default_pen{ colors::black_f };
 
         model_type model{};
-        rgbaf_color_t pen_color{ colors::red_f };
+        pen_type pen{ default_pen };
         gl::unique_texture2d_resource texture_cache{};
 
 
@@ -58,21 +60,21 @@ namespace chart
             texture_cache.reset();
         }
 
-        void operator () (space_diagonal_t& diagonal) const noexcept
+        void operator () (space_diagonal& diagonal) const noexcept
         {
             update_polyline_space_diagonal(diagonal, model);
         }
 
-        void operator()(pix8span pixs, transformation_t value2px) noexcept
+        void operator()(const lumpixspan pixs, const space_manipulation& sys) noexcept
         {
             zero_memory(pixs);
-            px::draw_polyline(pixs, model, value2px);
+            px::draw_polyline(pixs, model, make_transformation(sys));
             D_ASSERT_OR_UNUSED(gl::update(texture_cache, pixs));
         }
 
-        void operator()(const shader::pix8_figure_user& shdr) const noexcept
+        void operator()(const shader::luminance_figure_user& shdr) const noexcept
         {
-            shdr.color(pen_color)
+            shdr.color(pen)
                 .texture(texture_cache)
                 .draw();
         }

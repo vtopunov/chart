@@ -14,7 +14,7 @@ namespace private_detail_static_vector
 
         D_DEFAULT_ONLYMOVE_CA(dummy_buffer);
 
-        constexpr dummy_buffer(buffer_construct_t, size_t) noexcept
+        constexpr explicit dummy_buffer(size_t) noexcept
         {}
 
         [[nodiscard]]

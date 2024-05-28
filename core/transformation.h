@@ -81,7 +81,7 @@ struct transformation
 
 
     template<template<class> class Size2d, class T>
-    constexpr auto operator () (const Size2d<T>& v) const noexcept
+    [[nodiscard]] constexpr auto operator () (const Size2d<T>& v) const noexcept
         -> Size2d<decltype(md_apply_fx_scale(as_size2d(v)._0))>
     {
         return
@@ -92,7 +92,7 @@ struct transformation
     }
 
     template<template<class> class Point2d, class T>
-    constexpr auto operator () (const Point2d<T>& v) const noexcept
+    [[nodiscard]] constexpr auto operator () (const Point2d<T>& v) const noexcept
         -> Point2d<decltype(md_apply_fx(as_point2d(v)._0))>
     {
         return
@@ -103,7 +103,7 @@ struct transformation
     }
 
     template<template<class> class Vec, class T>
-    constexpr auto operator () (const Vec<T>& v) const noexcept
+    [[nodiscard]] constexpr auto operator () (const Vec<T>& v) const noexcept
         -> Vec<decltype((*this)(as_vec2(v)._0))>
     {
         return
@@ -114,7 +114,7 @@ struct transformation
     }
 
     template<template<class, class> class Rc, class T, class U>
-    constexpr auto operator () (const Rc<T, U>& v) const noexcept -> Rc<
+    [[nodiscard]] constexpr auto operator () (const Rc<T, U>& v) const noexcept -> Rc<
         decltype(as_point2d((*this)(as_rectangle(v).position))._0),
         decltype(as_size2d((*this)(as_rectangle(v).sizes))._0)
     >
@@ -191,4 +191,16 @@ template<class T0, class T>
         make_transformation_fx(sys0, sys, lerp_scale),
         make_transformation_fy(sys0, sys, lerp_scale)
     };
+}
+
+template<class T>
+[[nodiscard]] constexpr auto make_transformation(const vec2<T>& sys) noexcept -> decltype(make_transformation(sys._0, sys._1))
+{
+    return make_transformation(sys._0, sys._1);
+}
+
+template<class T>
+[[nodiscard]] constexpr auto make_scale_transformation(const vec2<T>& sys) noexcept -> decltype(make_scale_transformation(sys._0, sys._1))
+{
+    return make_scale_transformation(sys._0, sys._1);
 }

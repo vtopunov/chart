@@ -21,10 +21,30 @@ namespace gl
         );
     }
 
-    inline void clear(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) noexcept
+    inline void clear_color(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) noexcept
     {
         glClearColor(red, green, blue, alpha);
+    }
+
+    inline void clear_color(GLfloat red, GLfloat green, GLfloat blue) noexcept
+    {
+        clear_color(red, green, blue, 1.0f);
+    }
+
+    inline void clear_color(rgbaf_color color) noexcept
+    {
+        clear_color(color.r, color.g, color.b, color.a);
+    }
+
+    inline void clear() noexcept
+    {
         glClear(GL_COLOR_BUFFER_BIT);
+    }
+
+    inline void clear(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) noexcept
+    {
+        clear_color(red, green, blue, alpha);
+        clear();
     }
 
     inline void clear(GLfloat red, GLfloat green, GLfloat blue) noexcept
@@ -32,7 +52,7 @@ namespace gl
         clear(red, green, blue, 1.0f);
     }
 
-    inline void clear(rgbaf_color_t color) noexcept
+    inline void clear(rgbaf_color color) noexcept
     {
         clear(color.r, color.g, color.b, color.a);
     }
@@ -206,11 +226,11 @@ namespace gl
         static constexpr auto target = Target;
     };
 
-    using buffer_resource_t = specialized_buffer_resource<buffer_target::array_buffer>;
+    using array_buffer_resource = specialized_buffer_resource<buffer_target::array_buffer>;
 
-    using buffer = unique_resource<buffer_resource_t, buffer_resource_deleter>;
+    using buffer = unique_resource<array_buffer_resource, buffer_resource_deleter>;
 
-    inline void bind(buffer_resource_t resource) noexcept
+    inline void bind(array_buffer_resource resource) noexcept
     {
         gl::bind_buffer(resource.target, resource);
     }
@@ -219,7 +239,7 @@ namespace gl
     buffer create_buffer(const_buffer_view data) noexcept;
 
     template<class Vertex>
-    void set_vertex_buffer(span<const attribute_location> attributes, buffer_resource_t buffer) noexcept
+    void set_vertex_buffer(span<const attribute_location> attributes, array_buffer_resource buffer) noexcept
     {
         bind(buffer);
         gl::set_vertex_pointer<Vertex>(attributes, nullptr);
@@ -229,9 +249,14 @@ namespace gl
     {
         size_t size;
 
-        void draw(draw_mode mode, ptrdiff_t off = {}) const noexcept
+        void draw(draw_mode mode, ptrdiff_t off) const noexcept
         {
             draw_arrays(mode, off, size);
+        }
+
+        void draw(draw_mode mode) const noexcept
+        {
+            draw(mode, 0_z);
         }
     };
 
@@ -250,7 +275,7 @@ namespace gl
 
         constexpr vertex_buffer(vertex_buffer&& vb) noexcept
             : bo_{ std::move(vb.bo_) }
-            , size_{ std::exchange(vb.size_, 0_uz) }
+            , size_{ std::exchange(vb.size_, {}) }
         {}
 
         constexpr vertex_buffer& operator = (vertex_buffer&& vb) noexcept

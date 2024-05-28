@@ -25,8 +25,8 @@ namespace widget
 
         struct button_colors
         {
-            rgbaf_color_t frame;
-            rgbaf_color_t body;
+            rgbaf_color frame;
+            rgbaf_color body;
 
             [[nodiscard]]
             static constexpr button_colors instance(button_state state) noexcept
@@ -83,8 +83,8 @@ namespace widget
         {
             return
             {
-                font::ceil_to<pxsize_t>(v._0),
-                font::ceil_to<pxsize_t>(v._1)
+                font::ceil_to<npx_t>(v._0),
+                font::ceil_to<npx_t>(v._1)
             };
         }
 
@@ -98,6 +98,16 @@ namespace widget
 
             return is_update;
         }
+    }
+
+    bool button::operator()(widget::basic_initialization_event<>) noexcept
+    {
+        if(!font)
+        {
+            font = font_cache::default_font();
+        }
+
+        return !!font;
     }
 
     event_result button::operator () (const ui::mouse_down_event& e) noexcept
@@ -166,11 +176,11 @@ namespace widget
                 .draw();
         }
 
-        if (text::draw_to_cache(*this, e.get<buffer_view>(), client_rc.sizes)) [[likely]]
+        if (text_cache.draw(e.get<buffer_view>(), font, text, client_rc.sizes)) [[likely]]
         {
             const auto ft_position = center(client_rc) - text_cache.center();
 
-            e.get<shader::luminance8_texture_mix_color>()
+            e.get<shader::luminance_texture_mix_color>()
                 .use()
                 .position(ft_to_pxpoint2d(ft_position))
                 .color(colors::black_f)

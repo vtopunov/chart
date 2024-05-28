@@ -5,7 +5,7 @@
 
 void test_span() noexcept
 {
-    static_assert(dynamic_extent == numeric_max_v<size_t>);
+    static_assert(dynamic_extent == numeric_max_v<decltype(dynamic_extent)>);
     static_assert(std::is_same_v<span<const int>, decl_view_type_t<span<int>>>);
     static_assert(std::is_same_v<span<const int>, decl_view_type_t<span<const int>>>);
     static_assert(std::is_same_v<nullmem_t, decl_null_type_t<span<int>>>);

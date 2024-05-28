@@ -1,10 +1,23 @@
 #include "egl_context.h"
 
+#include <ui/app.h>
+
+#include <gl/config.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
 #include <string_view>
 
 
 namespace egl_ui
 {
+    static_assert(std::is_same_v<egl_display_t, EGLDisplay>);
+    static_assert(std::is_same_v<egl_surface_t, EGLSurface>);
+    static_assert(std::is_same_v<egl_context_t, EGLContext>);
+    static_assert(std::is_same_v<egl_boolean_t, EGLBoolean>);
+    static_assert(EGL_FALSE == egl_false_v);
+
     namespace private_detail_egl_descriptor
     {
         namespace
@@ -76,9 +89,9 @@ namespace egl_ui
         [[nodiscard]]
         surface_descriptor_t create_surface
         (
-            display_descriptor_t display, 
-            config_descriptor_t config, 
-            ui::window_handle_t window, 
+            display_descriptor_t display,
+            config_descriptor_t config,
+            ui::window_handle_t window,
             const EGLint* attribs
         ) noexcept
         {
@@ -191,6 +204,19 @@ namespace egl_ui
             glBlendColor(1.0f, 1.0f, 1.0f, 1.0f);
             glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         }
+
+        uint32_t egl_gl_error() noexcept
+        {
+            constexpr auto to_dword = [](auto value) noexcept
+            {
+                static_assert(sizeof(value) <= sizeof(uint32_t));
+                const auto value_d = static_cast<uint32_t>(value);
+                D_ASSERT(value_d <= UINT16_MAX);
+                return value_d;
+            };
+
+            return (to_dword(eglGetError()) << 16) | to_dword(glGetError());
+        }
     }
 
     void egl_context_resource_collector::operator()(egl_context_resource r) const noexcept
@@ -211,6 +237,12 @@ namespace egl_ui
 
             D_ASSERT_OR_UNUSED(egl_terminate(r.display));
         }
+    }
+
+    error_code_t error_code() noexcept
+    {
+        static_assert(std::is_same_v<error_code_t, uint64_t>);
+        return (numeric_cast<uint64_t>(as_unsigned(ui::error_code())) << 32) | egl_gl_error();
     }
 
     egl_context create_egl_context(ui::window_handle_t window) noexcept
@@ -264,39 +296,39 @@ namespace egl_ui
                 config,
                 window,
                 surface_attributes.take()
-             );
+            );
         }
 
-        if (r.surface) [[likely]]
-        {
-            attributes_builder<D_CONDITIONAL_OS_WINDOWS(3u, 2u)> context_attributes;
-
-            if (extensions.has("EGL_KHR_create_context"sv))
+            if (r.surface) [[likely]]
             {
-                context_attributes.add(EGL_CONTEXT_MAJOR_VERSION_KHR, 2);
-                context_attributes.add(EGL_CONTEXT_MINOR_VERSION_KHR, 0);
-            }
+                attributes_builder<D_CONDITIONAL_OS_WINDOWS(3u, 2u)> context_attributes;
+
+                if (extensions.has("EGL_KHR_create_context"sv))
+                {
+                    context_attributes.add(EGL_CONTEXT_MAJOR_VERSION_KHR, 2);
+                    context_attributes.add(EGL_CONTEXT_MINOR_VERSION_KHR, 0);
+                }
 
 #if defined(D_OS_WINDOWS)
-            if (extensions.has("EGL_ANGLE_create_context_client_arrays"sv))
-            {
-                context_attributes.add(EGL_CONTEXT_CLIENT_ARRAYS_ENABLED_ANGLE, EGL_TRUE);
-            }
+                if (extensions.has("EGL_ANGLE_create_context_client_arrays"sv))
+                {
+                    context_attributes.add(EGL_CONTEXT_CLIENT_ARRAYS_ENABLED_ANGLE, EGL_TRUE);
+                }
 
 #endif
 
-            r.context = create_context(r.display, config, context_attributes.take());
-        }
+                r.context = create_context(r.display, config, context_attributes.take());
+            }
 
-        if (r.context && make_current(r.display, r.surface, r.surface, r.context)) [[likely]]
-        {
-            gl_enable_transparent();
-        }
-        else
-        {
-            result.reset();
-        }
+                if (r.context && make_current(r.display, r.surface, r.surface, r.context)) [[likely]]
+                {
+                    gl_enable_transparent();
+                }
+                else
+                {
+                    result.reset();
+                }
 
-        return result;
+            return result;
     }
 }

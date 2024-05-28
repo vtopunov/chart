@@ -97,11 +97,32 @@ namespace private_detail_zero
         constexpr zero_t<T> zero_v{};
     }
 
+    namespace private_detail_compare
+    {
+        template<class T>
+        [[nodiscard]] constexpr enable_if_detected_t<decl_eq_op_t, T> eq_op(const T& left, const T& right) noexcept
+        {
+            return left == right;
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr enable_if_detected_t<decl_neq_op_t, T> neq_op(const T& left, const T& right) noexcept
+        {
+            return left != right;
+        }
+
+        template<class T>
+        [[nodiscard]] constexpr enable_if_detected_t<decl_less_op_t, T> less_op(const T& left, const T& right) noexcept
+        {
+            return left < right;
+        }
+    }
+
     namespace private_detail_cmp_zero
     {
         using private_detail_zero_type::is_zero_constructible;
         using private_detail_zero_type::zero_v;
-        using namespace type_traits_compare;
+        using namespace private_detail_compare;
 
         template<class T, template<class> class Op>
         using op_result_t = typename std::enable_if_t<std::conjunction_v<std::negation<is_zero_type<T>>, is_zero_constructible<T>>, enable_if_detected<Op, T>>::type;
@@ -275,19 +296,52 @@ using private_detail_zero::private_detail_is_neqz::is_neqz;
 template<class T>
 [[nodiscard]] constexpr std::enable_if_t<is_zero_constructible_v<T>, decl_less_op_t<T>> is_positive(const T& value) noexcept
 {
-    return type_traits_compare::less_op<T>(zero_v<T>, value);
+    if constexpr (std::is_unsigned_v<T>)
+    {
+        return !!value;
+    }
+    else
+    {
+        return private_detail_zero::private_detail_compare::less_op<T>(zero_v<T>, value);
+    }
 }
 
 template<class T>
 [[nodiscard]] constexpr std::enable_if_t<is_zero_constructible_v<T>, decl_less_op_t<T>> is_negative(const T& value) noexcept
 {
-    return type_traits_compare::less_op<T>(value, zero_v<T>);
+    if constexpr (std::is_unsigned_v<T>)
+    {
+        return false;
+    }
+    else
+    {
+        return private_detail_zero::private_detail_compare::less_op<T>(value, zero_v<T>);
+    }
 }
+
+template<class T>
+using decl_is_positive_t = decltype(is_positive(std::declval<const T&>()));
+
+template<class T>
+using decl_is_negative_t = decltype(is_negative(std::declval<const T&>()));
+
+template<class T>
+using has_positive_comparison = is_detected<decl_is_positive_t, T>;  
+
+template<class T>
+using has_negative_comparison = is_detected<decl_is_negative_t, T>;  
+
+template<class T>
+constexpr bool has_positive_comparison_v = has_positive_comparison<T>::value;  
+
+template<class T>
+constexpr bool has_negative_comparison_v = has_negative_comparison<T>::value;
+
 
 template<class T>
 [[nodiscard]] constexpr std::enable_if_t
 <
-    std::conjunction_v<is_zero_constructible<T>, has_less_op<T>, has_unary_munis_op<T>>, 
+    std::conjunction_v<has_negative_comparison<T>, has_unary_munis_op<T>>,
     T
 > u_abs(const T& value) noexcept
 {

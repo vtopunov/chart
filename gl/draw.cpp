@@ -6,11 +6,11 @@ namespace gl
     namespace
     {
         [[nodiscard]]
-        buffer_descriptor_t gen_buffer() noexcept
+        buffer gen_buffer() noexcept
         {
             buffer_descriptor_t d{};
             glGenBuffers(1, &d);
-            return d;
+            return buffer{ d };
         }
 
         void set_array(const_buffer_view data) noexcept
@@ -39,7 +39,7 @@ namespace gl
 
         for (size_t i = 0; i < attributes.size(); ++i) [[likely]]
         {
-            if (const auto attribute_location = attributes[i]; 
+            if (const auto attribute_location = attributes[i];
                 attribute_location != invalidattribute) [[likely]]
             {
                 const auto attribute_location_index = to_underlying(attribute_location);
@@ -63,30 +63,20 @@ namespace gl
 
     buffer create_buffer(const_buffer_view data) noexcept
     {
-        buffer gl_buffer
+        if (auto gl_buffer = gen_buffer()) [[likely]]
         {
-            resource_construct,
-            gen_buffer()
-        };
-
-        if (has_error()) [[unlikely]]
-        {
-            return {};
+            gl::bind(gl_buffer);
+            if (is_correct()) [[likely]]
+            {
+                set_array(data);
+                if (is_correct()) [[likely]]
+                {
+                    return gl_buffer;
+                }
+            }
         }
 
-        gl::bind(gl_buffer);
-        if (has_error()) [[unlikely]]
-        {
-            return {};
-        }
-        
-        set_array(data);
-        if (has_error()) [[unlikely]]
-        {
-            return {};
-        }
-        
-        return gl_buffer;
+        return {};
     }
 
     void buffer_resource_deleter::operator()(buffer_resource gl_buffer) const noexcept

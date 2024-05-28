@@ -137,12 +137,6 @@ namespace
             return true;
         }
     };
-
-    template<class T>
-    using decl_is_negative_t = decltype(is_negative(std::declval<const T&>()));
-
-    template<class T>
-    constexpr auto has_negative_comparison_v = is_detected_v<decl_is_negative_t, T>;
 }
 
 void test_zero() noexcept
@@ -155,6 +149,12 @@ void test_zero() noexcept
         static_assert(!has_negative_comparison_v<test_less_op_no_default_construct>);
         static_assert(!has_negative_comparison_v<nothing>);
         static_assert(!has_negative_comparison_v<test_zero_bool_op_neq>);
+
+        static_assert(has_positive_comparison_v<zrational_t>);
+        static_assert(has_positive_comparison_v<test_less_op>);
+        static_assert(!has_positive_comparison_v<test_less_op_no_default_construct>);
+        static_assert(!has_positive_comparison_v<nothing>);
+        static_assert(!has_positive_comparison_v<test_zero_bool_op_neq>);
     }
 
     {
@@ -276,6 +276,20 @@ void test_zero() noexcept
         D_ASSERT(zero_v<> != nzs);
         D_ASSERT(nzv != zero_v<>);
         D_ASSERT(zero_v<> != nzv);
+    }
+
+    {
+        static_assert(!is_positive(0));
+        static_assert(!is_positive(-1));
+        static_assert(is_positive(1));
+        static_assert(!is_positive(0u));
+        static_assert(is_positive(1u));
+
+        static_assert(!is_negative(0));
+        static_assert(is_negative(-1));
+        static_assert(!is_negative(1));
+        static_assert(!is_negative(0u));
+        static_assert(!is_negative(1u));
     }
 
     {

@@ -133,7 +133,7 @@ namespace private_detail_null
         template<class NullT>
         struct null_type_instance_selector<NullT, std::enable_if_t<std::is_default_constructible_v<NullT> > >
         {
-            static constexpr NullT instance() noexcept
+            [[nodiscard]] static constexpr NullT instance() noexcept
             {
                 return {};
             }
@@ -142,7 +142,7 @@ namespace private_detail_null
         template<class NullT>
         struct null_type_instance_selector<NullT, std::enable_if_t<std::is_constructible_v<NullT, nulltype_construct_t> > >
         {
-            static constexpr NullT instance() noexcept
+            [[nodiscard]] static constexpr NullT instance() noexcept
             {
                 return NullT(nulltype_construct);
             }
@@ -157,7 +157,7 @@ namespace private_detail_null
     {
         using private_detail_null_type::null_v;
         using private_detail_null_type::is_null_constructible;
-        using namespace type_traits_compare;
+        using namespace private_detail_zero::private_detail_compare;
 
         template<class T, template<class> class Op>
         using op_result_t = typename std::enable_if_t<std::conjunction_v<std::negation<is_null_type<T>>, is_null_constructible<T>>, enable_if_detected<Op, T>>::type;
@@ -306,3 +306,4 @@ using private_detail_null::private_detail_nullable::is_nullable;
 using private_detail_null::private_detail_nullable::is_nullable_v;
 using private_detail_null::private_detail_decl_null_eq_op::operator==;
 using private_detail_null::private_detail_decl_null_eq_op::operator!=;
+

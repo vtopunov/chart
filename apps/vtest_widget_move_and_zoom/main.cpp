@@ -21,7 +21,7 @@ namespace
     public:
         bool operator () (widget::viewport_event<> e) noexcept
         {
-            texture_ = pix8map_test_texture_generate(e.viewport() / 4u);
+            texture_ = make_test_lumpixmap_texture(e.viewport() / 4u);
             if (!texture_)
             {
                 return false;
@@ -38,13 +38,7 @@ namespace
 
         event_result operator () (const ui::mouse_wheel_event& e) noexcept
         {
-            if (const auto new_area = zoom_increase(area_, e.rot()); new_area != area_)
-            {
-                area_ = new_area;
-                return event_result::redraw;
-            }
-
-            return event_result::idle;
+            return widget::redraw_if(apply_nzoom(area_, e.rot()));
         }
 
         event_result operator () (widget::mouse_double_click_event<> e) noexcept
@@ -53,18 +47,11 @@ namespace
             return event_result::redraw;
         }
 
-        using gesture_event_type = widget::gesture_event<>;
+        using gesture_event_type = widget::basic_gesture_event<>;
 
         event_result operator () (gesture_event_type e) noexcept
         {
-            if(const auto new_area =  e.get<ui::gesture>().transformation_as(area_); 
-                new_area != area_ && is_safe_conversion_glpx(new_area))
-            {
-                area_ = new_area;
-                return event_result::redraw;
-            }
-
-            return event_result::idle;
+            return widget::redraw_if(update_glpx(area_, e.transformation_as(area_)));
         }
 
         void operator () (widget::redraw_event<>) const noexcept
@@ -81,7 +68,7 @@ namespace
     private:
         shaders_lib shaders_{};
         gl::texture2d texture_{};
-        pxzrectangle area_{};
+        figure_area area_{};
     };
 }
 

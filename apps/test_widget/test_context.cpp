@@ -34,7 +34,7 @@ namespace
         using ex_type = redraw_event<
             shader<1>,
             shader<2>,
-            widget::pix8_temp_buffer
+            widget::temp_buffer
         >;
 
         template<class Fn>
@@ -70,6 +70,9 @@ namespace
 
 void test_context() noexcept
 {
+    static_assert(sizeof(widget::basic_initialization_event<>) == sizeof(widget::initialization_event_base));
+    static_assert(sizeof(widget::basic_mouse_move_event<>) == sizeof(ui::mouse_move_event));
+
     {
         using cc_t = widget::common_context_t<main_widget>;
         using tuple_cc_t = typename cc_t::tuple_type;
@@ -77,7 +80,7 @@ void test_context() noexcept
         static_assert(tuple_has_type_v<shader<0>, tuple_cc_t>);
         static_assert(tuple_has_type_v<shader<1>, tuple_cc_t>);
         static_assert(tuple_has_type_v<shader<2>, tuple_cc_t>);
-        static_assert(tuple_has_type_v<widget::pix8_temp_buffer, tuple_cc_t>);
+        static_assert(tuple_has_type_v<widget::temp_buffer, tuple_cc_t>);
         static_assert(tuple_has_type_v<widget::windowrefwrap_t, tuple_cc_t>);
         static_assert(5u == std::tuple_size_v<tuple_cc_t>);
 

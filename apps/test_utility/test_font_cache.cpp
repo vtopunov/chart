@@ -70,6 +70,13 @@ namespace
         return std::adjacent_find(views.cbegin(), views.cend()) == views.cend();
     }
 
+    void test_constexpr_instance() noexcept
+    {
+        constexpr font_cache::face face{};
+        static_assert(!face);
+        D_ASSERT(!errno);
+    }
+
     void test_full_small_cache() noexcept
     {
         D_ASSERT(names_npxs_size == font_cache::global_faces_cache().size());
@@ -153,7 +160,7 @@ namespace
             {
                 auto& font = fonts[i];
                 D_ASSERT(!font);
-                font = font_cache::load_font(new_name, narrow<pxsize_t>(max_npx - i));
+                font = font_cache::load_font(new_name, narrow<npx_t>(max_npx - i));
                 D_ASSERT(font);
                 views[i] = font;
                 test_cached_faces(views);
@@ -191,6 +198,7 @@ namespace
 void test_font_cache() noexcept
 {
     std::array<font_cache::face, names_npxs_size> fonts{};
+    test_constexpr_instance();
     test_fill(fonts);
     test_load_form_cache(fonts);
     test_garbage_collection(fonts);

@@ -30,13 +30,13 @@ struct intrusive_node : basic_intrusive_node<intrusive_node>
 
 
 template<class T>
-[[nodiscard]] constexpr T* as_intrusive_pnode(basic_intrusive_node<T>* const pnode) noexcept
+[[nodiscard]] constexpr T* as_intrusive_value_pnode(basic_intrusive_node<T>* const pnode) noexcept
 {
     return static_cast<T*>(pnode);
 }
 
 template<class T>
-[[nodiscard]] constexpr const T* as_intrusive_pnode(const basic_intrusive_node<T>* const pnode) noexcept
+[[nodiscard]] constexpr const T* as_intrusive_value_pnode(const basic_intrusive_node<T>* const pnode) noexcept
 {
     return static_cast<const T*>(pnode);
 }
@@ -69,7 +69,7 @@ constexpr void intrusive_unlink(const basic_intrusive_node<T> item) noexcept
 template<class T>
 constexpr void intrusive_reset_ref(basic_intrusive_node<T>& node) noexcept
 {
-    node = make_intrusive_cyclic_node(as_intrusive_pnode(std::addressof(node)));
+    node = make_intrusive_cyclic_node(as_intrusive_value_pnode(std::addressof(node)));
 }
 
 template<class T>
@@ -137,7 +137,7 @@ template<class T>
 }
 
 template<class T>
-[[nodiscard]] constexpr bool is_empty(const basic_intrusive_node<T>* const root) noexcept
+[[nodiscard]] constexpr bool intrusive_is_empty(const basic_intrusive_node<T>* const root) noexcept
 {
     return intrusive_next_pnode_is_this(root);
 }
@@ -174,7 +174,7 @@ struct intrusive_node_object : basic_intrusive_node<T>
     using intrusive_node_type = basic_intrusive_node<T>;
 
     constexpr intrusive_node_object() noexcept
-        : intrusive_node_type{ make_intrusive_cyclic_node(as_intrusive_pnode(this)) }
+        : intrusive_node_type{ make_intrusive_cyclic_node(as_intrusive_value_pnode(this)) }
     {}
 
     D_DISABLE_COPYMOVE_CA(intrusive_node_object);
@@ -418,7 +418,7 @@ public:
     [[nodiscard]]
     constexpr bool is_empty() const noexcept
     {
-        return ::is_empty(_p_root());
+        return intrusive_is_empty(_p_root());
     }
 
 private:
@@ -437,13 +437,13 @@ private:
     [[nodiscard]]
     constexpr pointer _p_root() noexcept
     {
-        return as_intrusive_pnode(std::addressof(root_));
+        return as_intrusive_value_pnode(std::addressof(root_));
     }
 
     [[nodiscard]]
     constexpr const_pointer _p_root() const noexcept
     {
-        return as_intrusive_pnode(std::addressof(root_));
+        return as_intrusive_value_pnode(std::addressof(root_));
     }
 
     template<class>
@@ -532,7 +532,7 @@ public:
     [[nodiscard]]
     constexpr bool is_empty() const noexcept
     {
-        return ::is_empty(proot_);
+        return intrusive_is_empty(proot_);
     }
 
     [[nodiscard]]

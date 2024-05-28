@@ -43,6 +43,87 @@ namespace
         D_ASSERT(!errno);
     }
 
+    namespace private_detail_call_if_exist
+    {
+        template<int i>
+        struct S { int i; };
+
+        template<int i>
+        constexpr S<i> S_v{};
+
+        struct
+        {
+            int ncall_0{ 0 };
+            int ncall_1{ 0 };
+
+            S<2> operator () (S<0>) noexcept { return { ++ncall_0 }; };
+            S<3> operator () (S<1>) noexcept { return { ++ncall_1 }; };
+        } f0{};
+
+        int ncall_f1{ 0 };
+        int ncall_f2{ 0 };
+
+        S<4> f1(S<0>) noexcept { return { ++ncall_f1 }; };
+        S<5> f2(S<1>) noexcept { return { ++ncall_f2 }; };
+    }
+
+    void test_call_if_exist() noexcept
+    {
+        using namespace private_detail_call_if_exist;
+        using private_detail_call_if_exist::S;
+
+        {
+            D_ASSERT(0 == f0.ncall_0 && 0 == f0.ncall_1);
+            const auto r_f0_0 = call_if_exist(f0, S_v<0>);
+            static_assert(std::is_same_v<decltype(r_f0_0), const S<2>>);
+            D_ASSERT(1 == f0.ncall_0 && 0 == f0.ncall_1);
+            D_ASSERT(r_f0_0.i == 1);
+
+            const auto r_f0_0_next = call_if_exist(f0, S_v<0>);
+            D_ASSERT(2 == f0.ncall_0 && 0 == f0.ncall_1);
+            D_ASSERT(r_f0_0_next.i == 2);
+
+            const auto r_f0_1 = call_if_exist(f0, S_v<1>);
+            static_assert(std::is_same_v<decltype(r_f0_1), const S<3>>);
+            D_ASSERT(2 == f0.ncall_0 && 1 == f0.ncall_1);
+            D_ASSERT(r_f0_1.i == 1);
+
+            const auto r_f0_2 = call_if_exist(f0, S_v<2>);
+            static_assert(std::is_same_v<decltype(r_f0_2), const no_overload>);
+            D_ASSERT(2 == f0.ncall_0 && 1 == f0.ncall_1);
+
+            const auto r_f0_01 = call_if_exist(f0, S_v<0>, S_v<1>);
+            static_assert(std::is_same_v<decltype(r_f0_01), const no_overload>);
+            D_ASSERT(2 == f0.ncall_0 && 1 == f0.ncall_1);
+        }
+
+        {
+            D_ASSERT(0 == ncall_f1);
+            const auto r_f1_0 = call_if_exist(f1, S_v<0>);
+            static_assert(std::is_same_v<decltype(r_f1_0), const S<4>>);
+            D_ASSERT(1 == ncall_f1);
+            D_ASSERT(r_f1_0.i == 1);
+
+            const auto r_f1_1 = call_if_exist(f1, S_v<1>);
+            static_assert(std::is_same_v<decltype(r_f1_1), const no_overload>);
+            D_ASSERT(1 == ncall_f1);
+        }
+
+        {
+            D_ASSERT(0 == ncall_f2);
+            const auto r_f2_1 = call_if_exist(f2, S_v<1>);
+            static_assert(std::is_same_v<decltype(r_f2_1), const S<5>>);
+            D_ASSERT(1 == ncall_f1);
+            D_ASSERT(1 == ncall_f2);
+            D_ASSERT(r_f2_1.i == 1);
+
+            const auto r_f2_0 = call_if_exist(f2, S_v<0>);
+            static_assert(std::is_same_v<decltype(r_f2_0), const no_overload>);
+            D_ASSERT(1 == ncall_f1);
+            D_ASSERT(1 == ncall_f2);
+        }
+    }
+
     namespace private_detail_test_member_detector
     {
         template<class T>
@@ -76,11 +157,19 @@ namespace
         template<class DT>
         struct with_decl_difference { using difference_type = DT; };
         struct without_decl_difference {};
+
+        template <class Expected, template<class...> class Op, class... Args>
+        using is_detected_exact_deprecated = std::is_same<Expected, detected_t<Op, Args...>>;
+
+        template <class Expected, template<class...> class Op, class... Args>
+        constexpr auto is_detected_exact_deprecated_v = is_detected_exact_deprecated<Expected, Op, Args...>::value;
     }
 
     void test_member_detector() noexcept
     {
         using namespace private_detail_test_member_detector;
+
+        static_assert(!std::is_convertible_v<nonesuch, nonesuch>);
 
         static_assert(is_detected_v<copy_assign_t, with_cp>);
         static_assert(!is_detected_v<copy_assign_t, without_cp>);
@@ -89,6 +178,13 @@ namespace
         static_assert(is_detected_exact_v<void, copy_assign_t, with_void_cp>);
         static_assert(is_detected_exact_v<with_cp, copy_assign_t, with_ex_cp<with_cp> >);
         static_assert(is_detected_exact_v<with_cp*, copy_assign_t, with_ex_cp<with_cp*> >);
+        static_assert(is_detected_exact_v<dummy, std::type_identity_t, dummy>);
+        static_assert(is_detected_exact_v<nonesuch, std::type_identity_t, nonesuch>);
+        static_assert(!is_detected_exact_v<dummy, decl_difference_t, dummy>);
+        static_assert(!is_detected_exact_v<nonesuch, decl_difference_t, nonesuch>);
+        static_assert(!is_detected_exact_v<std::type_identity<nonesuch>, decl_difference_t, nonesuch>);
+        static_assert(!is_detected_exact_v<std::type_identity<nonesuch>, decl_difference_t, std::type_identity<nonesuch> >);
+        static_assert(is_detected_exact_deprecated_v<nonesuch, decl_difference_t, nonesuch>);
 
         static_assert(std::is_same_v<int16_t, difference_t<with_decl_difference<int16_t>>>);
         static_assert(std::is_same_v<int32_t, difference_t<with_decl_difference<int32_t>>>);
@@ -302,11 +398,21 @@ namespace
         static_assert(!call_is_detected_v<functor_for<0, 1>, arg<1>, arg<1>>);
         D_ASSERT(!errno);
     }
+
+    void test_u_prev_next() noexcept
+    {
+        static_assert(1.0 == u_next(0.0));
+        static_assert(-1.0 == u_prev(0.0));
+        static_assert(1 == u_next(0));
+        static_assert(-1 == u_prev(0));
+        D_ASSERT(!errno);
+    }
 }
 
 void test_type_traits() noexcept
 {
     test_ordered_overload();
+    test_call_if_exist();
     test_member_detector();
     test_conditional_op();
     test_conditional_add_const_all();
@@ -321,4 +427,5 @@ void test_type_traits() noexcept
     test_is_sameuncvref();
     test_has_assignment_op();
     test_call_is_detected();
+    test_u_prev_next();
 }

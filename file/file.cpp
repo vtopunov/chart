@@ -112,23 +112,13 @@ namespace file
 
     ro_file ro_open(path_zstring_view path) noexcept
     {
-        return
-        {
-            resource_construct,
-            create_file(path, access_flags::read, creation_mode::open_existing)
-        };
+        return ro_file{ create_file(path, access_flags::read, creation_mode::open_existing) };
     }
 
     wo_file wo_open(path_zstring_view path, w_open_mode mode) noexcept
     {
-        wo_file result
-        {
-            resource_construct,
-            create_file(path, access_flags::write, select_creation_mode(mode))
-        };
-
+        wo_file result{ create_file(path, access_flags::write, select_creation_mode(mode)) };
         seekend_if_need(result, mode);
-
         return result;
     }
 
@@ -136,14 +126,8 @@ namespace file
     {
         constexpr auto access = access_flags::read | access_flags::write;
 
-        rw_file result
-        {
-            resource_construct,
-            create_file(path, access, select_creation_mode(mode))
-        };
-
+        rw_file result{ create_file(path, access, select_creation_mode(mode)) };
         seekend_if_need(result, mode);
-
         return result;
     }
 

@@ -1,9 +1,6 @@
 #include "texture.h"
 
 
-template class unique_resource<gl::texture2d_resource, gl::texture_resource_deleter>;
-template class unique_resource<gl::texture2d_resources, gl::texture_resource_deleter>;
-
 namespace gl
 {
     namespace
@@ -19,7 +16,7 @@ namespace gl
         {
             texture_descriptor_t d{};
             glGenTextures(1, &d);
-            return { resource_construct, d, size2d{ 0_npx, 0_npx } };
+            return texture2d{ d, size2d{ 0_npx, 0_npx } };
         }
 
         void set_image2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept
@@ -79,7 +76,8 @@ namespace gl
             set_image2d(sizes, format, pixels);
             if (is_correct()) [[likely]]
             {
-                return gl::sizes(std::move(tex), sizes);
+                as_mutable(tex.r().sizes) = sizes;
+                return tex;
             }
         }
 
@@ -96,7 +94,7 @@ namespace gl
                 return sizes;
             }
         }
-        
+
         return {};
     }
 

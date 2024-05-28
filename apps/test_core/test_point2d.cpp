@@ -6,6 +6,11 @@ void test_point2d() noexcept
     constexpr point2d pt{ v };
     static_assert(std::is_same_v<decltype(pt), const point2d<int>>);
     static_assert(std::is_trivial_v<point2d<int>> && std::is_standard_layout_v<point2d<int>>);
+    static_assert(sizeof(v) == sizeof(pt));
+    static_assert(alignof(decltype(v)) == alignof(decltype(pt)));
+    static_assert(pt == identical_derived_cast<point2d<int>>(v));
+    static_assert(as_vec2(pt) == v);
+    static_assert(pt == to_point2d(v));
     static_assert(pt.x() == 3);
     static_assert(pt.y() == 4);
 

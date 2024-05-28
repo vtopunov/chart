@@ -38,16 +38,12 @@ namespace image
         spng_ctx_free(png);
     }
 
-    png_t png_instance(png_context_flags flags) noexcept
+    unique_png png_instance(png_context_flags flags) noexcept
     {
         static_assert(to_underlying(png_context_flags::IGNORE_ADLER32) == SPNG_CTX_IGNORE_ADLER32);
         static_assert(to_underlying(png_context_flags::ENCODER) == SPNG_CTX_ENCODER);
 
-        return
-        {
-            resource_construct,
-            spng_ctx_new(to_underlying(flags))
-        };
+        return unique_png{ spng_ctx_new(to_underlying(flags)) };
     }
 
     png_errno png_set_buffer(png_resource png, const_buffer_view buffer) noexcept
@@ -66,14 +62,14 @@ namespace image
         errno_ = underlying_cast<png_errno>(spng_get_ihdr(png, as_spng_ihdr(storage_)));
     }
 
-    pxsize_t png_header::width() const noexcept
+    npx_t png_header::width() const noexcept
     {
-        return narrow<pxsize_t>(as_spng_ihdr(storage_)->width);
+        return narrow<npx_t>(as_spng_ihdr(storage_)->width);
     }
 
-    pxsize_t png_header::height() const noexcept
+    npx_t png_header::height() const noexcept
     {
-        return narrow<pxsize_t>(as_spng_ihdr(storage_)->height);
+        return narrow<npx_t>(as_spng_ihdr(storage_)->height);
     }
 
     uint8_t png_header::bit_depth() const noexcept
@@ -112,11 +108,11 @@ namespace image
         return underlying_cast<png_errno>(spng_decode_image(png, out.data(), out.size(), to_underlying(format), 0));
     }
 
-    r8g8b8a8_result png_decode_to_r8g8b8a8(const_buffer_view image, buffer_t& temp) noexcept
+    rgba_pixview_result png_decode_to_rgba(const_buffer_view image, byte_buffer& temp) noexcept
     {
         constexpr auto png_format = png_format::RGBA8;
 
-        if (!image || !image.size()) [[unlikely]]
+        if (!image) [[unlikely]]
         {
             return png_errno::PNG_SIZE;
         }
@@ -149,7 +145,7 @@ namespace image
             return png_errno::PNG_SIZE;
         }
 
-        const pix32space space{ png_header.sizes() };
+        const rgba_pixspace space{ png_header.sizes() };
         if (space.size_bytes() != size) [[unlikely]]
         {
             return png_errno::PNG_SIZE;
@@ -167,7 +163,7 @@ namespace image
 
         return 
         { 
-            std::as_const(temp).as_span<r8g8b8a8_result::pixel_type>().data(),
+            std::as_const(temp).as_span<rgba_pixview_result::pixel_type>().data(),
             space
         };
     }

@@ -20,35 +20,46 @@ constexpr Target underlying_cast(Source source) noexcept
 }
 
 template<class E> [[nodiscard]]
-constexpr E e_bit_or(E left, E right) noexcept
+constexpr E e_bit_or(const E left, const E right) noexcept
 {
     using underlying_t = std::underlying_type_t<E>;
     return static_cast<E>(static_cast<underlying_t>(left) | static_cast<underlying_t>(right));
 }
 
 template<class E> [[nodiscard]]
-constexpr E e_bit_and(E left, E right) noexcept
+constexpr E e_bit_and(const E left, const E right) noexcept
 {
     using underlying_t = std::underlying_type_t<E>;
     return static_cast<E>(static_cast<underlying_t>(left) & static_cast<underlying_t>(right));
 }
 
 template<class E> [[nodiscard]]
-constexpr E e_bit_not(E e) noexcept
+constexpr E e_bit_not(const E e) noexcept
 {
     using underlying_t = std::underlying_type_t<E>;
     return static_cast<E>(~static_cast<underlying_t>(e));
 }
 
+template<class E> 
+[[nodiscard]] constexpr E e_bit_if(const bool conditional, const E e) noexcept
+{ 
+    using underlying_t = std::underlying_type_t<E>;
+    using signed_t = std::make_signed_t<underlying_t>;
+    using unsigned_t = std::make_unsigned_t<underlying_t>;
+    static_assert(!(~(static_cast<unsigned_t>(-static_cast<signed_t>(true)))));
+
+    return static_cast<E>(static_cast<unsigned_t>(e) & static_cast<unsigned_t>(-static_cast<signed_t>(conditional)));
+}
+
 template<class E>
-constexpr E& e_bit_and_eq(E& left, E right) noexcept
+constexpr E& e_bit_and_eq(E& left, const E right) noexcept
 {
     left = e_bit_and(left, right);
     return left;
 }
 
 template<class E>
-constexpr E& e_bit_or_eq(E& left, E right) noexcept
+constexpr E& e_bit_or_eq(E& left, const E right) noexcept
 {
     left = e_bit_or(left, right);
     return left;

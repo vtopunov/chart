@@ -3,39 +3,36 @@
 
 namespace vtest_move_and_zoom
 {
-    [[nodiscard]]
-    constexpr pxzrectangle zoom(pxzrectangle rc, lpxoff2d zoom) noexcept
+    using figure_area = rectangle<pxoff_t>;
+
+    template<class T>
+    [[nodiscard]] constexpr bool apply_zoom(figure_area& rc, T&& zoom) noexcept
     {
-        const auto position = md_trunc_cast<pxoff2d>(rc.position - zoom / 2);
-        const auto sizes = md_trunc_cast<pxsize2d>(rc.sizes + zoom);
+        using vec2i_t = vec2<intmax_t>;  
 
-        const auto ok
-            = md_is_safe_narrowing_conversion<gl::vec2f>(position)
-            && md_is_safe_narrowing_conversion<gl::vec2f>(sizes);
+        const auto vzoom = md_trunc_cast<vec2i_t>(std::forward<T>(zoom));
+        const auto [vposition, vsizes] = md_numeric_cast<vec2<vec2i_t>>(rc.position, rc.sizes);
 
-        if (ok)
-        {
-            return
-            {
-                .position{ position },
-                .sizes{ sizes }
-            };
-        }
+        const figure_area new_rc
+        { 
+            .position{ md_clamp_cast<pxoff2d>(vposition - vzoom / 2) },
+            .sizes{ md_clamp_cast<pxsize2d>(vsizes + vzoom) }
+        };
 
-        return rc;
+        return update_glpx(rc, new_rc);
     }
 
     [[nodiscard]]
-    inline pxzrectangle zoom_increase(pxzrectangle rc, double rot) noexcept
+    inline bool apply_nzoom(figure_area& rc, double rot) noexcept
     {
-        constexpr double mul{ 0.05 };
+        constexpr auto mul = 0.05;
         const auto sign = 1 - 2 * std::signbit(rot);
         const auto step_mul = sign * pow(mul, abs(rot));
-        return zoom(rc, md_trunc_cast<lpxoff2d>(rc.sizes * step_mul));
+        return apply_zoom(rc, rc.sizes * step_mul);
     }
 
     [[nodiscard]]
-    constexpr pxzrectangle default_area(pxsize2d viewport) noexcept
+    constexpr figure_area default_area(pxsize2d viewport) noexcept
     {
         return
         {
@@ -50,37 +47,37 @@ namespace vtest_move_and_zoom
         [[nodiscard]]
         bool initialize(pxsize2d viewport, gl::texture2d_resource texture) noexcept
         {
-            const auto was_successful
-                = lib || lib.build();
+            D_UNUSED(lib.build());
 
-            if (was_successful)
+            if (lib) [[likely]]
             {
                 lib.use();
-                lib.frag.s_texture.store(texture);
-                lib.frag.u_color.store(1.0f, 0.5f, 0.5f, 1.0f);
-                lib.vert.u_viewport.store(viewport);
+                lib.frag().texture(texture);
+                lib.frag().color(1.0f, 0.5f, 0.5f, 1.0f);
+                lib.vert().viewport(viewport);
+                return true;
             }
 
-            return was_successful;
+            return false;
         }
 
         template<class T>
         void draw(const rectangle<T>& rc) const noexcept
         {
             lib.use();
-            lib.vert.u_position.store(rc.position);
-            lib.vert.u_size.store(rc.sizes);
-            lib.vert.a_frame.draw();
+            lib.vert().position(rc.position);
+            lib.vert().size(rc.sizes);
+            lib.vert().frame().draw();
         }
 
     private:
-        shader_library<vert::positioned_texture, frag::luminance8_texture_mix_color> lib{};
+        shader_library<vert::positioned_texture, frag::luminance_texture_mix_color> lib{};
     };
 
     [[nodiscard]]
-    inline gl::texture2d pix8map_test_texture_generate(pxsize2d sizes) noexcept
+    inline gl::texture2d make_test_lumpixmap_texture(pxsize2d sizes) noexcept
     {
-        using pixmap_t = pix8map;
+        using pixmap_t = lumpixmap;
 
         pixmap_t tex_mem{ sizes };
         if (!tex_mem)
@@ -104,7 +101,7 @@ namespace vtest_move_and_zoom
             }
         }
 
-        auto texture = gl::create_texture2d(view(tex_mem));
+        auto texture = gl::create_texture2d(tex_mem);
         if (!texture)
         {
             e_debug("create texture error: {}", glGetError());

@@ -15,16 +15,16 @@ namespace
     constexpr auto anima_start_color = colors::yellow;
     constexpr auto anima_end_color = colors::black;
 
-    using duration_t = ui::milliseconds;
-    using duration_rep_t = duration_t::rep;
+    using ui_duration = ui::milliseconds;
+    using ui_duration_rep = ui_duration::rep;
 
-    constexpr duration_t anima_lerp_period{ 2s };
-    constexpr duration_t anima_working_period{ 6 * anima_lerp_period };
-    constexpr duration_t anima_paused_period{ anima_working_period };
+    constexpr ui_duration anima_lerp_period{ 2s };
+    constexpr ui_duration anima_working_period{ 6 * anima_lerp_period };
+    constexpr ui_duration anima_paused_period{ anima_working_period };
     constexpr auto anima_period = anima_working_period + anima_paused_period;
 
     [[nodiscard]]
-    constexpr duration_rep_t oscillating_time(duration_rep_t time, duration_rep_t period) noexcept
+    constexpr ui_duration_rep oscillating_time(ui_duration_rep time, ui_duration_rep period) noexcept
     {
         const auto count = time / period;
         const auto oscillating_bit = count & 1;
@@ -34,20 +34,20 @@ namespace
     }
 
     [[nodiscard]]
-    constexpr rgbaf_color_t anima_color(duration_t now) noexcept
+    constexpr rgbaf_color anima_color(ui_duration now) noexcept
     {
         constexpr auto period = anima_lerp_period.count();
 
         constexpr auto anima_lerp = lerp
         (
-            duration_t::zero().count(), period,
+            ui_duration::zero().count(), period,
             anima_start_color, anima_end_color
         );
 
         return to_colorf(anima_lerp(oscillating_time(now.count(), period)));
     }
 
-    void draw_figure(pxsize2d viewport, rgbaf_color_t color) noexcept
+    void draw_figure(pxsize2d viewport, rgbaf_color color) noexcept
     {
         static const auto shaders = gl::create_program
         (
@@ -68,7 +68,7 @@ namespace
                     gl_FragColor = u_color;
                 }
            )"_glsl
-        );
+        ); 
 
         static const auto a_position = gl::get_attribute_location(shaders, "a_position"_zsv);
         static const auto u_color = gl::uniform_vec4f::instance(shaders, "u_color"_zsv);
@@ -99,10 +99,10 @@ namespace
     class anima_timer
     {
     public:
-        using clock_t = steady_clock;
-        using time_point_t = clock_t::time_point;
+        using clock_type = steady_clock;
+        using time_point_type = clock_type::time_point;
 
-        duration_t operator () () noexcept
+        ui_duration operator () () noexcept
         {
             const auto now = steady_clock::now();
             if (invalid_time == start_time_)
@@ -110,27 +110,27 @@ namespace
                 start_time_ = now;
             }
 
-            return duration_cast<duration_t>(now - start_time_) % anima_period;
+            return duration_cast<ui_duration>(now - start_time_) % anima_period;
         }
 
     private:
-        static constexpr auto invalid_time = time_point_t::min();
+        static constexpr auto invalid_time = time_point_type::min();
 
     private:
-        time_point_t start_time_{ invalid_time };
+        time_point_type start_time_{ invalid_time };
     };
 
     struct main_processor
     {
         egl_ui_owner egl;
         anima_timer timer;
-        rgbaf_color_t color{ to_colorf(anima_start_color) };
+        rgbaf_color color{ to_colorf(anima_start_color) };
         bool force_redraw{ true };
 
         void draw() const noexcept
         {
             const egl_painting_owner painting_owner{ egl };
-            draw_figure(viewport(egl), color);
+            draw_figure(egl.viewport(), color);
         }
 
         void operator () (ui::content_rect_changed_event) noexcept
@@ -174,8 +174,7 @@ int app_main(os::module_handle_t app) noexcept
 
     if (!processor.egl)
     {
-        e_debug("create window error: ui error: {}, egl error: {}",
-            ui::error_code(), eglGetError());
+        e_debug("create window error: {}", egl_ui::error_code());
         return EXIT_FAILURE;
     }
 

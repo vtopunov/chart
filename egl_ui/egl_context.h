@@ -2,19 +2,13 @@
 
 #include <core/resource.h>
 
-#include <ui/fwd.h>
-
-#include <egl_ui/egl_config.h>
+#include <egl_ui/fwd.h>
 
 
 namespace egl_ui
 {
     [[nodiscard]]
-    constexpr bool egl_to_bool(EGLBoolean value) noexcept
-    {
-        constexpr EGLBoolean egl_false{ EGL_FALSE };
-        return egl_false != value;
-    }
+    error_code_t error_code() noexcept;
 
     namespace private_detail_egl_descriptor
     {
@@ -40,11 +34,9 @@ namespace egl_ui
         template<descriptor_type_id TypeId, class NativeDescriptor>
         using egl_descriptor_t = copy_pointer_t<NativeDescriptor, descriptor_source<TypeId, NativeDescriptor>>;
 
-        using display_descriptor_t = egl_descriptor_t<descriptor_type_id::display, EGLDisplay>;
-
-        using surface_descriptor_t = egl_descriptor_t<descriptor_type_id::surface, EGLSurface>;
-
-        using context_descriptor_t = egl_descriptor_t<descriptor_type_id::context, EGLContext>;
+        using display_descriptor_t = egl_descriptor_t<descriptor_type_id::display, egl_display_t>;
+        using surface_descriptor_t = egl_descriptor_t<descriptor_type_id::surface, egl_surface_t>;
+        using context_descriptor_t = egl_descriptor_t<descriptor_type_id::context, egl_context_t>;
     }
 
     using private_detail_egl_descriptor::display_descriptor_t;
@@ -116,7 +108,7 @@ namespace egl_ui
     {
     public:
         constexpr explicit egl_painting_owner(display_surface ds) noexcept
-            : lock_{ resource_construct, ds }
+            : lock_{ ds }
         {}
 
     private:

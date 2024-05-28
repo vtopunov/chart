@@ -9,10 +9,9 @@
 
 namespace
 {
-    gl::texture2d png_texture_from_bytes(const_buffer_view image, buffer_t& temp) noexcept
+    gl::texture2d png_texture_from_bytes(const_buffer_view image, byte_buffer& temp) noexcept
     {
-        const auto result = image::png_decode_to_r8g8b8a8(image, temp);
-
+        const auto result = image::png_decode_to_rgba(image, temp);
         if (!result) [[unlikely]]
         {
             const auto errc = result.error_code();
@@ -24,7 +23,7 @@ namespace
     }
 }
 
-gl::texture2d png_texture_from_asset(file::path_zstring_view path, buffer_t& temp) noexcept
+gl::texture2d png_texture_from_asset(file::path_zstring_view path, byte_buffer& temp) noexcept
 {
     const auto map_file = file::asset::mmap(path);
     if (!map_file) [[unlikely]]
@@ -38,7 +37,7 @@ gl::texture2d png_texture_from_asset(file::path_zstring_view path, buffer_t& tem
 
 gl::texture2d png_texture_from_asset(file::path_zstring_view path) noexcept
 {
-    buffer_t temp{};
+    byte_buffer temp{};
     return png_texture_from_asset(path, temp);
 }
 

@@ -57,8 +57,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspng", "3rdparty\libspng
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "image", "image\image.vcxproj", "{730D00F2-56BF-4F42-8055-A1517B0214C4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "egl_ui", "egl_ui\egl_ui.vcxproj", "{C68C0DC6-5BBB-4620-9132-D734195ECAA5}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gl", "gl\gl.vcxproj", "{24516AC3-B08D-4A84-A63C-735A50200B28}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ui", "ui\ui.vcxproj", "{F2D39E92-1869-4CE0-85B7-88A93D85EEC4}"
@@ -132,6 +130,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_blank", "apps\vtest_blank\vtest_blank.vcxproj", "{E98D9E11-183D-49D6-B35A-1CE40D7E90CA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_chart_grid_emu", "apps\vtest_chart_grid_emu\vtest_chart_grid_emu.vcxproj", "{3925A46B-86CA-4560-ACF9-BCFB9F35D056}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "egl_ui", "egl_ui\egl_ui.vcxproj", "{C68C0DC6-5BBB-4620-9132-D734195ECAA5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -309,14 +309,6 @@ Global
 		{730D00F2-56BF-4F42-8055-A1517B0214C4}.Release|x64.Build.0 = Release|x64
 		{730D00F2-56BF-4F42-8055-A1517B0214C4}.Release|x86.ActiveCfg = Release|x64
 		{730D00F2-56BF-4F42-8055-A1517B0214C4}.Release|x86.Build.0 = Release|x64
-		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Debug|x64.ActiveCfg = Debug|x64
-		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Debug|x64.Build.0 = Debug|x64
-		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Debug|x86.ActiveCfg = Debug|x64
-		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Debug|x86.Build.0 = Debug|x64
-		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x64.ActiveCfg = Release|x64
-		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x64.Build.0 = Release|x64
-		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x86.ActiveCfg = Release|x64
-		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x86.Build.0 = Release|x64
 		{24516AC3-B08D-4A84-A63C-735A50200B28}.Debug|x64.ActiveCfg = Debug|x64
 		{24516AC3-B08D-4A84-A63C-735A50200B28}.Debug|x64.Build.0 = Debug|x64
 		{24516AC3-B08D-4A84-A63C-735A50200B28}.Debug|x86.ActiveCfg = Debug|x64
@@ -611,6 +603,14 @@ Global
 		{3925A46B-86CA-4560-ACF9-BCFB9F35D056}.Release|x64.Build.0 = Release|x64
 		{3925A46B-86CA-4560-ACF9-BCFB9F35D056}.Release|x86.ActiveCfg = Release|x64
 		{3925A46B-86CA-4560-ACF9-BCFB9F35D056}.Release|x86.Build.0 = Release|x64
+		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Debug|x64.ActiveCfg = Debug|x64
+		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Debug|x64.Build.0 = Debug|x64
+		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Debug|x86.ActiveCfg = Debug|x64
+		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Debug|x86.Build.0 = Debug|x64
+		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x64.ActiveCfg = Release|x64
+		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x64.Build.0 = Release|x64
+		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x86.ActiveCfg = Release|x64
+		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

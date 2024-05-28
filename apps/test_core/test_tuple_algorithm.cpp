@@ -27,6 +27,7 @@ void test_tuple_algorithm() noexcept
     using test_tuple_0_6 = test_tuple<0, 1, 2, 3, 4, 5>;
     using test_tuple_0_7 = test_tuple<0, 1, 2, 3, 4, 5, 6>;
     using test_tuple_0_8 = test_tuple<0, 1, 2, 3, 4, 5, 6, 7>;
+    using test_tuple_0_9 = test_tuple<0, 1, 2, 3, 4, 5, 6, 7, 8>;
 
     using arithmetic_tuple1 = std::tuple<char>;
     using arithmetic_tuple2 = std::tuple<char, double>;
@@ -98,6 +99,8 @@ void test_tuple_algorithm() noexcept
     static_assert(std::is_same_v<tuple_cat_t<test_tuple<0, 1>, test_tuple<2, 3, 4, 5>, test_tuple<>>, test_tuple_0_6>);
     static_assert(std::is_same_v<tuple_cat_t<test_tuple<0, 1>, test_tuple<>, test_tuple<2, 3, 4, 5>>, test_tuple_0_6>);
     static_assert(std::is_same_v<tuple_cat_t<test_tuple<>, test_tuple<0, 1>, test_tuple<2, 3, 4, 5>>, test_tuple_0_6>);
+    static_assert(std::is_same_v<tuple_cat_t<test_tuple<>, test_tuple<0, 1, 2>, test_tuple<3, 4, 5, 6>>, test_tuple_0_7>);
+    static_assert(std::is_same_v<tuple_cat_t<test_tuple<0, 1>, test_tuple<2, 3, 4>, test_tuple<5, 6, 7, 8>>, test_tuple_0_9>);
 
     using index_sequence3 = std::make_index_sequence<3>;
     static_assert(std::is_same_v<index_sequence3, std::index_sequence<0, 1, 2>>);

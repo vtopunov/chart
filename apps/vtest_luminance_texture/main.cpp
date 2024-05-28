@@ -9,11 +9,11 @@
 
 namespace
 {
-    gl::texture2d pix8map_rendering() noexcept
+    gl::texture2d lumpixmap_rendering() noexcept
     {
-        static constexpr pix8space image_space{ 9_npx, 9_npx };
+        static constexpr luminance_pixspace image_space{ 9_npx, 9_npx };
 
-        static constexpr pix8_t image_data[image_space.size_bytes()]
+        static constexpr luminance_t image_data[image_space.size_bytes()]
         {
             0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0xff, 0xff, 0xff,  0x00, 0x00, 0x00,
             0xff, 0xcc, 0xcc,  0xcc, 0xcc, 0xcc,  0xcc, 0xcc, 0xff,  0x00, 0x00, 0x00,
@@ -39,19 +39,18 @@ int app_main(os::module_handle_t app) noexcept
     const auto egl = create_egl_ui(app);
     if (!egl)
     {
-        e_debug("create window error: window error: {}, egl error: {}",
-            ui::error_code(), eglGetError());
+        e_debug("create window error: {}", egl_ui::error_code());
         return EXIT_FAILURE;
     }
 
-    const auto texture = pix8map_rendering();
+    const auto texture = lumpixmap_rendering();
     if (!texture)
     {
         e_debug("pixmap rendering fail: {}", glGetError());
         return EXIT_FAILURE;
     }
 
-    shader_library<vert::positioned_texture, frag::luminance8_texture_mix_color> shaders{};
+    shader_library<vert::positioned_texture, frag::luminance_texture_mix_color> shaders{};
     if (!shaders.build())
     {
         e_debug("build shaders program error");
@@ -59,31 +58,31 @@ int app_main(os::module_handle_t app) noexcept
     }
 
     shaders.use();
-    shaders.vert.u_size.store(sizes(texture));
-    shaders.vert.u_viewport.store(viewport(egl));
-    shaders.frag.s_texture.store(texture);
+    shaders.vert().size(texture.sizes());
+    shaders.vert().viewport(egl.viewport());
+    shaders.frag().texture(texture);
 
     {
         const egl_painting_owner painting_owner{ egl };
-        gl::viewport(viewport(egl));
+        gl::viewport(egl.viewport());
         gl::clear(colors::white_f);
 
-        const auto vb = shaders.vert.a_frame.bind();
+        const auto vb = shaders.vert().frame();
 
-        const auto [w, h] = viewport(egl);
-        const auto dx = width(texture) + 1_npx;
-        const auto dy = height(texture) + 1_npx;
+        const auto [w, h] = egl.viewport();
+        const auto dx = texture.width() + 1_npx;
+        const auto dy = texture.height() + 1_npx;
 
         const auto x_color_lerp = lerp(0_npx, w, colors::blue, colors::red);
 
-        for (pxsize_t x = 0_npx; x < w; x += dx)
+        for (auto x = 0_npx; x < w; x += dx)
         {
             const auto xy_color_lerp = lerp(0_npx, h, to_color(x_color_lerp(x)), colors::green);
 
-            for (pxsize_t y = 0_npx; y < h; y += dy)
+            for (auto y = 0_npx; y < h; y += dy)
             {
-                shaders.frag.u_color.store(to_colorf(xy_color_lerp(y)));
-                shaders.vert.u_position.store(x, y);
+                shaders.frag().color(to_colorf(xy_color_lerp(y)));
+                shaders.vert().position(x, y);
                 vb.draw();
             }
         }

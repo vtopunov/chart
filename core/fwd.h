@@ -119,6 +119,12 @@ template<class T>
 class intrusive_list;
 
 
+using doublemax_t = long double;
+
+template<class T>
+struct rational;
+
+
 template<class T>
 struct vec2;
 
@@ -129,29 +135,9 @@ template<class T>
 struct size2d;
 
 
-using argb_t = uint32_t;
-static_assert(sizeof(argb_t) == 4u);
+constexpr auto small_size_v = 4_uz * sizeof(size_t);
 
-using byte_tint_t = uint8_t;
-static_assert(sizeof(byte_tint_t) == 1u);
-
-using float_tint_t = float;
-static_assert(sizeof(float_tint_t) == 4u);
-
-template<class T>
-struct rgba_color;
-
-using rgba_color_t = rgba_color<byte_tint_t>;
-using rgbaf_color_t = rgba_color<float_tint_t>;
-
-using doublemax_t = long double;
-
-template<class T>
-struct rational;
-
-constexpr auto small_size_v = 4u * sizeof(size_t);
-
-constexpr auto dynamic_extent = static_cast<size_t>(-1);
+constexpr size_t dynamic_extent{ ~0_uz };
 
 template <class T, size_t = dynamic_extent>
 class span;
@@ -159,8 +145,8 @@ class span;
 template<class T>
 class buffer;
 
-static_assert(1u == sizeof(std::byte));
-using buffer_t = buffer<std::byte>;
+static_assert(1_uz == sizeof(std::byte));
+using byte_buffer = buffer<std::byte>;
 
 template<bool immutable>
 class basic_buffer_view;
@@ -170,6 +156,29 @@ using const_buffer_view = basic_buffer_view<true>;
 
 template<class T>
 class optional_reference_wrapper;
+
+
+using argb_t = uint32_t;
+static_assert(sizeof(argb_t) == 4_uz);
+
+using luminance_t = uint8_t;
+static_assert(sizeof(luminance_t) == 1_uz);
+
+using luminancef_t = float;
+static_assert(sizeof(luminancef_t) == 4_uz);
+
+constexpr auto rgba_color_extent = 4_uz;
+
+template<class T>
+using basic_rgba_color_view = span<const T, rgba_color_extent>;
+
+template<class T>
+struct basic_rgba_color;
+
+using rgba_color_view = basic_rgba_color_view<luminance_t>;
+using rgbaf_color_view = basic_rgba_color_view<luminancef_t>;
+using rgba_color = basic_rgba_color<luminance_t>;
+using rgbaf_color = basic_rgba_color<luminancef_t>;
 
 
 template<class C>

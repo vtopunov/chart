@@ -81,29 +81,17 @@ namespace file
 
     ro_file ro_open(path_zstring_view path) noexcept
     {
-        return
-        {
-            resource_construct,
-            _open(path, open_flags::ro)
-        };
+        return ro_file{ _open(path, open_flags::ro) };
     }
 
     wo_file wo_open(path_zstring_view path, w_open_mode mode) noexcept
     {
-        return
-        {
-            resource_construct,
-            _w_open(path, open_flags::wo | mode_to_flags(mode))
-        };
+        return wo_file{ _w_open(path, open_flags::wo | mode_to_flags(mode)) };
     }
 
     rw_file rw_open(path_zstring_view path, w_open_mode mode) noexcept
     {
-        return
-        {
-            resource_construct,
-            _w_open(path, open_flags::rw | mode_to_flags(mode))
-        };
+        return rw_file{ _w_open(path, open_flags::rw | mode_to_flags(mode)) };
     }
 
     uint64_t size(file_resource file) noexcept

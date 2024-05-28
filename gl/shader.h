@@ -69,6 +69,8 @@ namespace gl
         glUseProgram(to_underlying(program));
     }
 
+    program_resource current_program() noexcept;
+
     struct program_resource_deleter
     {
         void operator () (program_resource program) const noexcept;
@@ -260,6 +262,17 @@ namespace gl
         {
             D_ONLY_DEBUG(__debug_store());
             return store_uniform_method_v<type_id>(location_as_int(location), values...);
+        }
+
+        void operator () (value_view_type view) const noexcept
+        {
+            store(view);
+        }
+
+        template<class... Types>
+        auto operator () (const Types&... values) const -> decltype(store(values...))
+        {
+            return store(values...);
         }
 
         [[nodiscard]]

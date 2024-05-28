@@ -18,17 +18,17 @@
 #include <string>
 #include <vector>
 
-ANGLE_EXPORT GLuint CompileShader(GLenum type, const std::string &source);
+ANGLE_EXPORT GLuint CompileShader(GLenum type, std::string_view source);
 ANGLE_EXPORT GLuint CompileShaderFromFile(GLenum type, const std::string &sourcePath);
 
 ANGLE_EXPORT GLuint
-CompileProgramWithTransformFeedback(const std::string &vsSource,
-                                    const std::string &fsSource,
+CompileProgramWithTransformFeedback(std::string_view vsSource,
+                                    std::string_view fsSource,
                                     const std::vector<std::string> &transformFeedbackVaryings,
                                     GLenum bufferMode);
-ANGLE_EXPORT GLuint CompileProgram(const std::string &vsSource, const std::string &fsSource);
+ANGLE_EXPORT GLuint CompileProgram(std::string_view vsSource, std::string_view fsSource);
 ANGLE_EXPORT GLuint CompileProgramFromFiles(const std::string &vsPath, const std::string &fsPath);
-ANGLE_EXPORT GLuint CompileComputeProgram(const std::string &csSource,
+ANGLE_EXPORT GLuint CompileComputeProgram(std::string_view csSource,
                                           bool outputErrorMessages = true);
 ANGLE_EXPORT bool LinkAttachedProgram(GLuint program);
 

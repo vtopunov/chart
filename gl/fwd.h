@@ -7,7 +7,7 @@
 
 namespace gl
 {
-    static_assert(std::is_same_v<float_tint_t, GLfloat>);
+    static_assert(std::is_same_v<luminancef_t, GLfloat>);
 
     using vec2i = vec2<GLint>;
     using vec2f = vec2<GLfloat>;

@@ -88,23 +88,51 @@ namespace gl
         {
             constexpr operator texture2d_resources () const noexcept
             {
-                return { static_cast<base_resource_type>(*this), {} };
+                return { static_cast<base_resource_type>(*this), px::no_sizes };
             }
         };
 
         pxsize2d sizes;
     };
 
-    static_assert(std::is_same_v<null_t<texture2d_resources>, texture2d_resources::null_type>);
-    static_assert(std::is_same_v<view_t<texture2d_resources>, const texture2d_resources::view_type>);
+    static_assert(std::is_same_v<decl_null_type_t<texture2d_resources>, texture2d_resources::null_type>);
+    static_assert(std::is_same_v<decl_view_type_t<texture2d_resources>, texture2d_resources::view_type>);
 
     template<class T>
-    using unique_texture = unique_resource<T, texture_resource_deleter>;
+    struct unique_texture : unique_resource<T, texture_resource_deleter>
+    {
+        using unique_resource<T, texture_resource_deleter>::unique_resource;
+    };
 
     using unique_texture2d_resource = unique_resource<texture2d_resource, texture_resource_deleter>;
 
+    template<>
+    struct unique_texture<texture2d_resources> : unique_resource<texture2d_resources, texture_resource_deleter>
+    {
+        using unique_resource::unique_resource;
+
+        constexpr void hide() noexcept
+        {
+            as_mutable(r().sizes) = px::no_sizes;
+        }
+
+        constexpr pxsize2d sizes() const noexcept
+        {
+            return r().sizes;
+        }
+
+        constexpr npx_t width() const noexcept
+        {
+            return r().sizes.width();
+        }
+
+        constexpr npx_t height() const noexcept
+        {
+            return r().sizes.height();
+        }
+    };
+
     using texture2d = unique_texture<texture2d_resources>;
-    static_assert(std::is_same_v<view_t<texture2d>, const texture2d::view_type>);
 
     [[nodiscard]]
     texture2d create_texture2d() noexcept;
@@ -115,27 +143,10 @@ namespace gl
     pxsize2d write(texture2d_resource texture, pxsize2d sizes, texture_format format, const void* pixels) noexcept;
 
     [[nodiscard]]
-    inline texture2d sizes(texture2d tex, pxsize2d sizes) noexcept
-    {
-        return
-        {
-            resource_construct,
-            tex.release(),
-            sizes
-        };
-    }
-
-    [[nodiscard]]
-    inline texture2d sizes(texture2d tex, pxsize_t w, pxsize_t h) noexcept
-    {
-        return sizes(std::move(tex), pxsize2d{ w, h });
-    }
-
-    [[nodiscard]]
     inline texture2d image(texture2d texture, pxsize2d pxsizes, texture_format format, const void* pixels) noexcept
     {
-        const auto wpxsizes = write(texture, pxsizes, format, pixels);
-        return sizes(std::move(texture), wpxsizes);
+        as_mutable(texture.r().sizes) = write(texture, pxsizes, format, pixels);
+        return texture;
     }
 
     template<size_t PxSize>
@@ -158,32 +169,32 @@ namespace gl
         static constexpr texture_format format{ R8G8B8A8 };
     };
 
-    template<class T>
-    constexpr bool texpix_enabled_v = texpix_traits<sizeof(T)>::enabled;
+    template<class Image>
+    constexpr bool texpix_enabled_v = texpix_traits<sizeof(decl_std_data_value_t<Image>)>::enabled;
 
-    template<class T>
-    constexpr auto texpix_format_v = texpix_traits<sizeof(T)>::format;
+    template<class Image>
+    constexpr auto texpix_format_v = texpix_traits<sizeof(decl_std_data_value_t<Image>)>::format;
 
-    template<class T>
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> create_texture2d(pixspan<T> img) noexcept
+    template<class Image>
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<Image>, texture2d> create_texture2d(const Image& img) noexcept
     {
-        return create_texture2d(img.sizes(), texpix_format_v<T>, img.cdata());
+        return create_texture2d(::sizes(img), texpix_format_v<Image>, as_const_pointer(std::data(img)));
     }
 
-    template<class T>
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, texture2d> image(texture2d texture, pixspan<T> img) noexcept
+    template<class Image>
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<Image>, texture2d> image(texture2d texture, const Image& img) noexcept
     {
-        return image(std::move(texture), img.sizes(), texpix_format_v<T>, img.cdata());
+        return image(std::move(texture), ::sizes(img), texpix_format_v<Image>, as_const_pointer(std::data(img)));
     }
 
-    template<class T>
-    std::enable_if_t<texpix_enabled_v<T>, pxsize2d> write(texture2d_resource texture, pixspan<T> img) noexcept
+    template<class Image>
+    std::enable_if_t<texpix_enabled_v<Image>, pxsize2d> write(texture2d_resource texture, const Image& img) noexcept
     {
-        return write(texture, img.sizes(), texpix_format_v<T>, img.cdata());
+        return write(texture, ::sizes(img), texpix_format_v<Image>, as_const_pointer(std::data(img)));
     }
 
-    template<class T>
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, bool> update(texture2d& texture_ref, pixspan<T> img) noexcept
+    template<class Image>
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<Image>, bool> update(texture2d& texture_ref, const Image& img) noexcept
     {
         if (texture_ref)
         {
@@ -197,8 +208,8 @@ namespace gl
         return sizes(texture_ref) == img.sizes();
     }
 
-    template<class T>
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<T>, bool> update(unique_texture2d_resource& texture_ref, pixspan<T> img) noexcept
+    template<class Image>
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<Image>, bool> update(unique_texture2d_resource& texture_ref, const Image& img) noexcept
     {
         constexpr auto set_new_texture = [] (unique_texture2d_resource& texture_ref, texture2d&& new_texture) noexcept
         {
@@ -218,7 +229,7 @@ namespace gl
             wsizes = set_new_texture(texture_ref, gl::create_texture2d(img));
         }
 
-        return img.sizes() == wsizes;
+        return ::sizes(img) == wsizes;
     }
 
     template<texture_target target>
@@ -255,6 +266,11 @@ namespace gl
             glActiveTexture(narrow<GLenum>(GL_TEXTURE0 + value));
             bind_texture(target, texture);
             sampler.store(value);
+        }
+
+        void operator () (specialized_texture_resource<target> texture) const noexcept
+        {
+            store(texture);
         }
 
         [[nodiscard]]

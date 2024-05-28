@@ -30,14 +30,14 @@ namespace font
     face create_face(const_buffer_view font_storage, pxsize2d sizes) noexcept;
 
     [[nodiscard]]
-    inline face create_face(const_buffer_view font_storage, pxsize_t size) noexcept
+    inline face create_face(const_buffer_view font_storage, npx_t size) noexcept
     {
         return create_face(font_storage, size2d{ 0_npx, size });
     }
 
     bool sizes(face_descriptor_t face, pxsize2d sizes) noexcept;
 
-    inline bool size(face_descriptor_t face, pxsize_t px) noexcept
+    inline bool size(face_descriptor_t face, npx_t px) noexcept
     {
         return sizes(face, size2d{ 0_npx, px });
     }
@@ -63,13 +63,13 @@ namespace font
         }
     };
 
-    constexpr auto invalid_position = fill_to<point2d>(numeric_max_v<pxsize_t>);
+    constexpr auto invalid_position = fill_to<point2d>(numeric_max_v<npx_t>);
     constexpr auto invalid_cursor = cursor::instance(invalid_position);
 
-    cursor draw_char(pix8span image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept;
+    cursor draw_char(lumpixspan image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept;
 
     template<class String>
-    cursor draw_text(pix8span image, cursor cursor, face_descriptor_t face, const String& text) noexcept
+    cursor draw_text(lumpixspan image, cursor cursor, face_descriptor_t face, const String& text) noexcept
     {
         const auto char_processor = [&cursor, image, face](charmax_t char_code) noexcept
         {
@@ -82,13 +82,13 @@ namespace font
     }
 
     template<class Px, class String>
-    cursor draw_text(pix8span image, vec2<Px> position, face_descriptor_t face, const String& text) noexcept
+    cursor draw_text(lumpixspan image, vec2<Px> position, face_descriptor_t face, const String& text) noexcept
     {
         return draw_text(image, cursor::instance(std::move(position)), face, text);
     }
 
     template<class X, class Y, class String>
-    cursor draw_text(pix8span image, X x, Y y, face_descriptor_t face, const String& text) noexcept
+    cursor draw_text(lumpixspan image, X x, Y y, face_descriptor_t face, const String& text) noexcept
     {
         return draw_text(image, cursor::instance(std::move(x), std::move(y)), face, text);
     }

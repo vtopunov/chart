@@ -73,6 +73,16 @@ struct size2d : vec2<T>
         return { _0, std::move(value) };
     }
 
+    [[nodiscard]] constexpr bool has_positive_square() const noexcept
+    {
+        return is_positive(_0) && is_positive(_1);
+    }
+
+    [[nodiscard]] constexpr bool has_positive_mark() const noexcept
+    {
+        return is_positive(_1);
+    }
+
     [[nodiscard]]
     constexpr bool operator == (const size2d&) const noexcept = default;
 
@@ -129,7 +139,7 @@ namespace private_detail_sizes
     {
         return value.sizes;
     }
-    
+
     template<class T>
     [[nodiscard]] constexpr auto sizes1(const T& value) noexcept -> decltype(sizes1(value, _start))
     {
@@ -159,21 +169,48 @@ namespace private_detail_sizes
     {
         return sizes0(value, _start);
     }
+
+    template<class T>
+    [[nodiscard]] constexpr auto width0(const T& value, _order<_1>) noexcept -> decltype(sizes(value).width())
+    {
+        return sizes(value).width();
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto height0(const T& value, _order<_1>) noexcept -> decltype(sizes(value).height())
+    {
+        return sizes(value).height();
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto width0(const T& value, _order<_0>) noexcept -> decltype(value.width())
+    {
+        return value.width();
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto height0(const T& value, _order<_0>) noexcept -> decltype(value.height())
+    {
+        return value.height();
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto width(const T& value) noexcept -> decltype(width0(value, _start))
+    {
+        return width0(value, _start);
+    }
+
+    template<class T>
+    [[nodiscard]] constexpr auto height(const T& value) noexcept -> decltype(height0(value, _start))
+    {
+        return height0(value, _start);
+    }
 }
 
 using private_detail_sizes::sizes;
+using private_detail_sizes::width;
+using private_detail_sizes::height;
 
-template<class T>
-[[nodiscard]] constexpr auto width(const T& value) noexcept -> decltype(sizes(value).width())
-{
-    return sizes(value).width();
-}
-
-template<class T>
-[[nodiscard]] constexpr auto height(const T& value) noexcept -> decltype(sizes(value).height())
-{
-    return sizes(value).height();
-}
 
 template<template<class> class Vec, class L, class R>
 [[nodiscard]] constexpr auto operator * (const Vec<L>& left, const Vec<R>& right) noexcept -> Vec<decltype(as_size2d(left)._0* as_size2d(right)._0)>

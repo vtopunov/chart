@@ -15,8 +15,8 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#include "OSWindow.h"
-#include "Timer.h"
+#include <OSWindow.h>
+#include <Timer.h>
 
 class EGLWindow;
 

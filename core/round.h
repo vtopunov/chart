@@ -110,34 +110,3 @@ template<class T>
 {
     return is_neqz(value);
 }
-
-
-template<class T>
-[[nodiscard]] constexpr std::enable_if_t<
-    std::conjunction_v<std::negation<std::is_floating_point<T>>, has_pre_inc_op<T>>,
-    T
-> u_next(T value) noexcept
-{
-    return ++value;
-}
-
-template<class T>
-[[nodiscard]] std::enable_if_t<std::is_floating_point_v<T>, T> u_next(T value) noexcept
-{
-    return std::nextafter(value, std::numeric_limits<T>::infinity());
-}
-
-template<class T>
-[[nodiscard]] constexpr std::enable_if_t<
-    std::conjunction_v<std::negation<std::is_floating_point<T>>, has_pre_dec_op<T>>,
-    T
-> u_prev(T value) noexcept
-{
-    return --value;
-}
-
-template<class T>
-[[nodiscard]] std::enable_if_t<std::is_floating_point_v<T>, T> u_prev(T value) noexcept
-{
-    return std::nextafter(value, -std::numeric_limits<T>::infinity());
-}

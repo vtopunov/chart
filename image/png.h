@@ -11,9 +11,6 @@ struct spng_ctx;
 
 namespace image
 {
-    using r8g8b8a8_color_pixmap = pixmap<rgba_color_t>;
-    using const_r8g8b8a8_color_pixspan = pixspan<const rgba_color_t>;
-
     enum class png_errno
     {
         PNG_IO_ERROR = -2,
@@ -117,7 +114,7 @@ namespace image
         void operator () (png_resource png) const noexcept;
     };
 
-    using png_t = unique_resource<png_resource, png_resource_deleter>;
+    using unique_png = unique_resource<png_resource, png_resource_deleter>;
 
     enum class png_context_flags
     {
@@ -127,7 +124,7 @@ namespace image
     };
 
     [[nodiscard]]
-    png_t png_instance(png_context_flags flags = png_context_flags::DEFAULT) noexcept;
+    unique_png png_instance(png_context_flags flags = png_context_flags::DEFAULT) noexcept;
 
     png_errno png_set_buffer(png_resource png, const_buffer_view buffer) noexcept;
 
@@ -152,10 +149,10 @@ namespace image
         }
 
         [[nodiscard]]
-        pxsize_t width() const noexcept;
+        npx_t width() const noexcept;
 
         [[nodiscard]]
-        pxsize_t height() const noexcept;
+        npx_t height() const noexcept;
 
         [[nodiscard]]
         uint8_t bit_depth() const noexcept;
@@ -196,20 +193,19 @@ namespace image
 
     png_errno png_decode_image(png_resource png, png_format format, buffer_view out) noexcept;
 
-
-    class r8g8b8a8_result : public const_r8g8b8a8_color_pixspan
+    class rgba_pixview_result : public px::const_rgba_color_pixspan
     {
-        using base_type = const_r8g8b8a8_color_pixspan;
+        using base_type = px::const_rgba_color_pixspan;
 
     public:
         using base_type::space_type;
         using base_type::const_pointer;
 
-        constexpr r8g8b8a8_result(const_pointer p, space_type space) noexcept
+        constexpr rgba_pixview_result(const_pointer p, space_type space) noexcept
             : base_type{ p , space }
         {}
 
-        constexpr r8g8b8a8_result(png_errno error_code) noexcept
+        constexpr rgba_pixview_result(png_errno error_code) noexcept
             : errno_{ error_code }
         {}
 
@@ -229,20 +225,20 @@ namespace image
         png_errno errno_{ png_errno::PNG_OK };
     };
 
-    r8g8b8a8_result png_decode_to_r8g8b8a8(const_buffer_view image, buffer_t& temp) noexcept;
+    rgba_pixview_result png_decode_to_rgba(const_buffer_view image, byte_buffer& temp) noexcept;
 
-    class r8g8b8a8pixmap_result : public r8g8b8a8_color_pixmap
+    class rgba_pixmap_result : public px::rgba_color_pixmap
     {
-        using base_type = r8g8b8a8_color_pixmap;
+        using base_type = px::rgba_color_pixmap;
 
     public:
         using base_type::space_type;
 
-        constexpr r8g8b8a8pixmap_result(buffer_t&& mem, const space_type& space) noexcept
+        constexpr rgba_pixmap_result(byte_buffer&& mem, const space_type& space) noexcept
             : base_type{ px::pixmap_construct, std::move(mem), space }
         {}
 
-        constexpr r8g8b8a8pixmap_result(png_errno error_code) noexcept
+        constexpr rgba_pixmap_result(png_errno error_code) noexcept
             : errno_{ error_code }
         {}
 
@@ -262,11 +258,11 @@ namespace image
         png_errno errno_{ png_errno::PNG_OK };
     };
 
-    inline r8g8b8a8pixmap_result png_decode_to_r8g8b8a8(const_buffer_view image) noexcept
+    inline rgba_pixmap_result png_decode_to_rgba(const_buffer_view image) noexcept
     {
-        buffer_t temp{};
+        byte_buffer temp{};
 
-        const auto space = png_decode_to_r8g8b8a8(image, temp);
+        const auto space = png_decode_to_rgba(image, temp);
         if (!space)
         {
             return space.error_code();

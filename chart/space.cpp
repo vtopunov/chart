@@ -3,12 +3,17 @@
 
 namespace chart
 {
+    event_result space::process(basic_mouse_double_click_event<>) noexcept
+    {
+        clear_cache();
+        return event_result::redraw;
+    }
+
     event_result space::process(mouse_wheel_event<> e) noexcept
     {
         if (items_space_cache)
         {
-            if (const auto chart_sizes = stretchable_sizes(geometry, e);
-                chart_sizes.width() && chart_sizes.height() && (chart_sizes == space_cache))
+            if (const auto chart_sizes = stretchable_sizes(geometry, e); pixspace_is_updated(chart_sizes))
             {
                 const auto n_wheel = e.rot();
                 constexpr double zoom_factor = 1.1;
@@ -17,7 +22,7 @@ namespace chart
                 const auto diagonal = items_space_cache.value();
                 const auto half_d_d_diagonal = (diagonal._1 - diagonal._0) * (0.5 * zoom - 0.5);
 
-                const space_diagonal_t new_diagonal
+                const space_diagonal new_diagonal
                 {
                     ._0{ diagonal._0 - half_d_d_diagonal },
                     ._1{ diagonal._1 + half_d_d_diagonal }
@@ -25,7 +30,7 @@ namespace chart
 
                 if (items_space_cache.try_update(new_diagonal, chart_sizes))
                 {
-                    space_cache = {};
+                    clear_pixspace_cache();
                     return event_result::redraw;
                 }
             }
@@ -38,12 +43,10 @@ namespace chart
     {
         if (e.keys().is_left() && items_space_cache)
         {
-            if (const auto chart_sizes = stretchable_sizes(geometry, e);
-               chart_sizes.width() && chart_sizes.height() && (chart_sizes == space_cache))
+            if (const auto chart_sizes = stretchable_sizes(geometry, e); pixspace_is_updated(chart_sizes))
             {
-                const auto gesture = e.get<ui::gesture>();
-                const auto has_shift = (zero_v<> != md_trunc_cast<pxoff2d>(gesture.shift()));
-                const auto has_scale = (chart_sizes != gesture.transformation_as(chart_sizes));
+                const auto has_shift = (zero_v<> != md_trunc_cast<pxoff2d>(e.shift()));
+                const auto has_scale = (chart_sizes != e.transformation_as(chart_sizes));
 
                 if (has_shift || has_scale)
                 {
@@ -54,11 +57,11 @@ namespace chart
                     {
                         const auto scale_to_chart = make_scale_transformation
                         (
-                            make_pix_space_diagonal(chart_sizes),
+                            make_pxspace_diagonal(chart_sizes),
                             diagonal0
                         );
 
-                        const auto chart_shift = -scale_to_chart(gesture.shift());
+                        const auto chart_shift = -scale_to_chart(e.shift());
                         new_diagonal._0 += chart_shift;
                         new_diagonal._1 += chart_shift;
                     }
@@ -71,7 +74,7 @@ namespace chart
                             diagonal0._0.y() - diagonal0._1.y()
                         };
 
-                        const auto d = d0 / gesture.scale();
+                        const auto d = d0 / e.scale();
 
                         new_diagonal._0.ref_y() = new_diagonal._1.y() + d.y();
                         new_diagonal._1.ref_x() = new_diagonal._0.x() + d.x();
@@ -79,7 +82,7 @@ namespace chart
 
                     if (items_space_cache.try_update(new_diagonal, chart_sizes))
                     {
-                        space_cache = {};
+                        clear_pixspace_cache();
                         return event_result::redraw;
                     }
                 }

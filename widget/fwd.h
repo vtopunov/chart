@@ -7,7 +7,7 @@ namespace widget
 {
     using egl_ui::const_module_handle_t;
 
-    using stretchable_pxrectangle = ::rectangle<pxsize_t, pxoff_t>;
+    using stretchable_pxrectangle = ::rectangle<npx_t, pxoff_t>;
 
     class window;
     using windowrefwrap_t = optional_reference_wrapper<const window>;
@@ -108,7 +108,7 @@ namespace widget
     [[nodiscard]]
     constexpr event_result operator | (event_result left, bool right) noexcept
     {
-        return (right) ? left : e_bit_or(left, event_result::invalid);
+        return left | e_bit_if(!right, event_result::invalid);
     }
 
     [[nodiscard]]
@@ -118,8 +118,8 @@ namespace widget
     }
 
     [[nodiscard]]
-    constexpr bool event_result_is_invalid(event_result result) noexcept
+    constexpr event_result redraw_if(bool value) noexcept
     {
-        return e_bit_check(result, event_result::invalid);
+        return e_bit_if(value, event_result::redraw);
     }
 }

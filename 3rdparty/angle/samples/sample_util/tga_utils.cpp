@@ -6,16 +6,12 @@
 
 #include "tga_utils.h"
 
-#include <fstream>
-#include <iostream>
 #include <limits.h>
 #include <stdint.h>
+#include <fstream>
+#include <iostream>
 #include <string>
 
-TGAImage::TGAImage()
-    : width(0), height(0), data(0)
-{
-}
 
 struct TGAHeader
 {
@@ -70,7 +66,7 @@ bool LoadTGAImageFromFile(const std::string &path, TGAImage *image)
     readBinary(stream, header.colorDepth);
     readBinary(stream, header.descriptor);
 
-    image->width = header.width;
+    image->width  = header.width;
     image->height = header.height;
 
     size_t pixelComponentCount = header.colorDepth / CHAR_BIT;
@@ -101,19 +97,25 @@ bool LoadTGAImageFromFile(const std::string &path, TGAImage *image)
     return true;
 }
 
+void LoadTextureFromTGAImage(GLuint texture, const TGAImage &image)
+{
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(image.width),
+                 static_cast<GLsizei>(image.height), 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 image.data.data());
+    glGenerateMipmap(GL_TEXTURE_2D);
+}
+
 GLuint LoadTextureFromTGAImage(const TGAImage &image)
 {
     if (image.width > 0 && image.height > 0)
     {
-        GLuint texture;
+        GLuint texture{};
         glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(image.width), static_cast<GLsizei>(image.height), 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, image.data.data());
-        glGenerateMipmap(GL_TEXTURE_2D);
+        LoadTextureFromTGAImage(texture, image);
         return texture;
     }
     else

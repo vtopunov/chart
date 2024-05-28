@@ -3,11 +3,21 @@
 
 namespace widget
 {
+    bool label::operator()(widget::basic_initialization_event<>) noexcept
+    {
+        if(!font)
+        {
+            font = font_cache::default_font();
+        }
+
+        return !!font;
+    }
+
     void label::operator()(redraw_event_type e) noexcept
     {
-        if (text::draw_to_cache(*this, e.get<buffer_view>())) [[likely]]
+        if (text_cache.draw(e.get<buffer_view>(), font, text)) [[likely]]
         {
-            e.get<shader::luminance8_texture_mix_color>()
+            e.get<shader::luminance_texture_mix_color>()
                 .use()
                 .position(position)
                 .color(colors::black_f)

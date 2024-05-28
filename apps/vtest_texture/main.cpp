@@ -78,7 +78,7 @@ namespace
     template<class... Paths>
     [[nodiscard]] std::array<gl::texture2d, sizeof...(Paths)>  png_textures_from_asset(Paths... paths) noexcept
     {
-        buffer_t temp;
+        byte_buffer temp;
 
         return { png_texture_from_asset(paths, temp)... };
     };
@@ -90,8 +90,7 @@ int app_main(os::module_handle_t app) noexcept
     const auto egl = create_egl_ui(app);
     if (!egl)
     {
-        e_debug("create window error: window error: {}, egl error: {}\n",
-            ui::error_code(), eglGetError());
+        e_debug("create window error: {}", egl_ui::error_code());
         return EXIT_FAILURE;
     }
 
@@ -99,7 +98,7 @@ int app_main(os::module_handle_t app) noexcept
 
     {
         const egl_painting_owner painting_owner{ egl };
-        gl::viewport(viewport(egl));
+        gl::viewport(egl.viewport());
         gl::clear(colors::white_f);
 
         draw_texture_mix(base_texture, mix_texture);

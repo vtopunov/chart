@@ -14,11 +14,7 @@ namespace
     void deref_library() noexcept
     {
         [[maybe_unused]]
-        const font::library::library_ref library_deref
-        {
-            resource_construct,
-            font::library::dtor_state::enabled
-        };
+        const font::library::library_ref library_deref{ font::library::dtor_state::enabled };
     }
 
     void test_deref_and_destroy_library_cache() noexcept

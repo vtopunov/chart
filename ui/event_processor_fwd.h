@@ -1,7 +1,7 @@
 #pragma once
 
-#include <core/null.h>
 #include <core/functional.h>
+#include <core/null.h>
 
 #include <ui/fwd.h>
 

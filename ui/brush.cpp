@@ -13,13 +13,9 @@ namespace ui
         }
     }
 
-    unique_brush create_brush(rgba_color_t color) noexcept
+    unique_brush create_brush(rgba_color color) noexcept
     {
-        return
-        {
-            resource_construct,
-            CreateSolidBrush(RGB(color.r, color.g, color.b))
-        };
+        return unique_brush{ CreateSolidBrush(RGB(color.r, color.g, color.b)) };
     }
 
     brush_handle_t stock(stock_brush brush) noexcept

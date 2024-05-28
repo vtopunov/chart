@@ -180,7 +180,7 @@ namespace
         static_assert(std::is_same_v<decl_view_type_t<small_vector_type>, typename small_vector_type::view_type>);
         static_assert(std::is_same_v<decl_null_type_t<small_vector_type>, typename small_vector_type::null_type>);
         static_assert(std::is_same_v<decl_null_type_t<small_vector_type>, nullmem_t>);
-        
+
         using test_vector_type = std::vector<TestT>;
 
         small_vector_type small_v_;
@@ -410,7 +410,6 @@ namespace
 
         void test_move(vector_test& v, void (*move_op) (small_vector_type&, small_vector_type&)) noexcept
         {
-            const auto size = small_v_.size();
             const auto data = small_v_.data();
             const auto is_static = small_v_.is_static();
 
@@ -418,33 +417,54 @@ namespace
             const auto v_data = v.small_v_.data();
             const auto v_is_static = v.small_v_.is_static();
 
+            D_ASSERT(data != v_data);
+
+            constexpr auto test_move_elements = [] (test_vector_type& left, test_vector_type& right) noexcept
+            {
+                left.clear();
+                left.reserve(right.size());
+                for (auto&& value : right)
+                {
+                    left.emplace_back(std::move(value));
+                }
+            };
+
+            constexpr auto test_move = [] (test_vector_type& left, test_vector_type& right) noexcept
+            {
+                left.clear();
+                left = std::move(right);
+                right.clear();
+            };
+
             move_op(small_v_, v.small_v_);
 
             if (is_static)
             {
                 if (v_is_static)
                 {
-                    test_ = std::move(v.test_);
-                    v.test_.clear();
+                    test_move_elements(test_, v.test_);
 
-                    D_ASSERT(v.small_v_.size() == 0_uz);
+                    D_ASSERT(v.small_v_.size() == v_size);
+                    D_ASSERT(v.small_v_.data() != data);
                     D_ASSERT(v.small_v_.data() == v_data);
                     D_ASSERT(v.small_v_.is_static());
 
                     D_ASSERT(small_v_.size() == v_size);
                     D_ASSERT(small_v_.data() == data);
+                    D_ASSERT(small_v_.data() != v_data);
                     D_ASSERT(small_v_.is_static());
                 }
                 else
                 {
-                    test_ = std::move(v.test_);
-                    v.test_.clear();
+                    test_move(test_, v.test_);
 
                     D_ASSERT(v.small_v_.size() == 0_uz);
+                    D_ASSERT(v.small_v_.data() != data);
                     D_ASSERT(v.small_v_.data() != v_data);
                     D_ASSERT(v.small_v_.is_static());
 
                     D_ASSERT(small_v_.size() == v_size);
+                    D_ASSERT(small_v_.data() != data);
                     D_ASSERT(small_v_.data() == v_data);
                     D_ASSERT(small_v_.is_dynamic());
                 }
@@ -453,26 +473,28 @@ namespace
             {
                 if (v_is_static)
                 {
-                    test_ = std::move(v.test_);
-                    v.test_.clear();
+                    test_move_elements(test_, v.test_);
 
-                    D_ASSERT(v.small_v_.size() == 0_uz);
+                    D_ASSERT(v.small_v_.size() == v_size);
+                    D_ASSERT(v.small_v_.data() != data);
                     D_ASSERT(v.small_v_.data() == v_data);
                     D_ASSERT(v.small_v_.is_static());
 
                     D_ASSERT(small_v_.size() == v_size);
-                    D_ASSERT(small_v_.data() != data);
-                    D_ASSERT(small_v_.is_static());
+                    D_ASSERT(small_v_.is_static() || (small_v_.data() == data));
+                    D_ASSERT(small_v_.data() != v_data);
                 }
                 else
                 {
-                    test_.swap(v.test_);
+                    test_move(test_, v.test_);
 
-                    D_ASSERT(v.small_v_.size() == size);
+                    D_ASSERT(v.small_v_.size() == 0_uz);
                     D_ASSERT(v.small_v_.data() == data);
+                    D_ASSERT(v.small_v_.data() != v_data);
                     D_ASSERT(v.small_v_.is_dynamic());
 
                     D_ASSERT(small_v_.size() == v_size);
+                    D_ASSERT(small_v_.data() != data);
                     D_ASSERT(small_v_.data() == v_data);
                     D_ASSERT(small_v_.is_dynamic());
                 }
@@ -603,21 +625,28 @@ namespace
         void test_release_buffer() noexcept
         {
             const auto data = small_v_.data();
+            const auto size = small_v_.size();
             const auto capacity = small_v_.capacity();
             const auto is_static = small_v_.is_static();
-          
+
             auto res_buffer = small_v_.release_buffer();
-            
-            test_.clear();
-            test_.shrink_to_fit();
 
             if (is_static)
             {
+                D_ASSERT(data == small_v_.data());
+                D_ASSERT(size == small_v_.size());
+                D_ASSERT(capacity == small_v_.capacity());
                 D_ASSERT(!res_buffer.data());
                 D_ASSERT(!res_buffer.size());
             }
             else
             {
+                test_.clear();
+                test_.shrink_to_fit();
+
+                D_ASSERT(data != small_v_.data());
+                D_ASSERT(0u == small_v_.size());
+                D_ASSERT(capacity != small_v_.capacity());
                 D_ASSERT(data == res_buffer.data());
                 D_ASSERT(capacity == res_buffer.size());
             }
@@ -628,7 +657,7 @@ namespace
 
         void test_attach_buffer() noexcept
         {
-            buffer<T> buf{ buffer_construct, 3u * small_v_.capacity() };
+            buffer<T> buf{ 3u * small_v_.capacity() };
             D_ASSERT(buf);
 
             const auto new_data = buf.data();
@@ -945,6 +974,11 @@ namespace
 
 void test_small_vector() noexcept
 {
+    static_assert(1_uz < optimal_memory_growth(1_uz));
+    static_assert(optimal_memory_growth(1_uz) < optimal_capacity_limit(1_uz));
+    static_assert(optimal_memory_growth(1_uz) < optimal_memory_growth(2_uz));
+    static_assert(optimal_memory_growth(2_uz) < optimal_capacity_limit(2_uz));
+
     tests<ptrdiff_t, ptrdiff_t>::test_all();
     tests<test_int<0>, test_int<1>>::test_all();
 }

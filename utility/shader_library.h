@@ -65,6 +65,19 @@ template<class Value, class Size>
         && is_safe_conversion_glpx(v.sizes);
 }
 
+
+template<class T, class U>
+[[nodiscard]] constexpr bool update_glpx(T& value, U&& new_value) noexcept
+{
+    const auto ok = (new_value != value) && is_safe_conversion_glpx(new_value);
+    if (ok) [[likely]]
+    {
+        value = std::forward<U>(new_value);
+    }
+
+    return ok;
+}
+
 template<class T>
 [[nodiscard]] constexpr std::enable_if_t<std::is_arithmetic_v<T>, GLfloat> to_glpx(const T& value) noexcept
 {
@@ -92,13 +105,13 @@ struct uniform_vec2glpx
     glsl_uniform_type uniform;
 
     template<class T>
-    void store(const vec2<T>& p) const noexcept
+    void operator () (const vec2<T>& p) const noexcept
     {
         uniform.store(to_glpx(p));
     }
 
     template<class T>
-    void store(T p0, T p1) const noexcept
+    void operator () (T p0, T p1) const noexcept
     {
         uniform.store
         (
@@ -147,6 +160,11 @@ struct attribute_frame
         return {};
     }
 
+    vertex_buffer_user operator () () const noexcept
+    {
+        return bind();
+    }
+
     void draw() const noexcept
     {
         bind().draw();
@@ -157,18 +175,18 @@ namespace vert
 {
     struct positioned_frame
     {
-        uniform_vec2glpx u_position{ gl::invaliduniform };
-        uniform_vec2glpx u_size{ gl::invaliduniform };
-        uniform_vec2glpx u_viewport{ gl::invaliduniform };
-        attribute_frame  a_frame{ gl::invalidattribute };
+        uniform_vec2glpx position{ gl::invaliduniform };
+        uniform_vec2glpx size{ gl::invaliduniform };
+        uniform_vec2glpx viewport{ gl::invaliduniform };
+        attribute_frame  frame{ gl::invalidattribute };
 
         template<class Serializer>
         constexpr void serialize(Serializer& ser) noexcept
         {
-            ser(u_position, "u_position"_zsv);
-            ser(u_size, "u_size"_zsv);
-            ser(u_viewport, "u_viewport"_zsv);
-            ser(a_frame, "a_frame"_zsv);
+            ser(position, "u_position"_zsv);
+            ser(size, "u_size"_zsv);
+            ser(viewport, "u_viewport"_zsv);
+            ser(frame, "a_frame"_zsv);
         }
     };
 
@@ -229,12 +247,12 @@ namespace frag
             }
         )"_glsl;
 
-        gl::uniform_vec4f u_color = gl::invaliduniform;
+        gl::uniform_vec4f color = gl::invaliduniform;
 
         template<class Serializer>
         constexpr void serialize(Serializer& ser) noexcept
         {
-            ser(u_color, "u_color"_zsv);
+            ser(color, "u_color"_zsv);
         }
     };
 
@@ -252,12 +270,12 @@ namespace frag
             }
         )"_glsl;
 
-        gl::texture_sampler2D s_texture = gl::invalidtexsampler;
+        gl::texture_sampler2D texture = gl::invalidtexsampler;
 
         template<class Serializer>
         constexpr void serialize(Serializer& ser) noexcept
         {
-            ser(s_texture, "s_texture"_zsv);
+            ser(texture, "s_texture"_zsv);
         }
     };
 
@@ -276,16 +294,16 @@ namespace frag
             }
         )"_glsl;
 
-        gl::texture_sampler2D s_texture = gl::invalidtexsampler;
+        gl::texture_sampler2D texture = gl::invalidtexsampler;
 
         template<class Serializer>
         constexpr void serialize(Serializer& ser) noexcept
         {
-            ser(s_texture, "s_texture"_zsv);
+            ser(texture, "s_texture"_zsv);
         }
     };
 
-    struct luminance8_texture_mix_color
+    struct luminance_texture_mix_color
     {
         static constexpr auto shader_text = R"(
             precision mediump float;
@@ -302,44 +320,55 @@ namespace frag
             }
         )"_glsl;
 
-        gl::uniform_vec4f u_color = gl::invaliduniform;
-        gl::texture_sampler2D s_texture = gl::invalidtexsampler;
+        gl::uniform_vec4f color = gl::invaliduniform;
+        gl::texture_sampler2D texture = gl::invalidtexsampler;
 
         template<class Serializer>
         constexpr void serialize(Serializer& ser) noexcept
         {
-            ser(u_color, "u_color"_zsv);
-            ser(s_texture, "s_texture"_zsv);
+            ser(color, "u_color"_zsv);
+            ser(texture, "s_texture"_zsv);
         }
     };
+
+    template<class T>
+    using decl_color_t = decltype(std::declval<const T&>().color);
+
+    template<class T>
+    using decl_texture_t = decltype(std::declval<const T&>().texture);
+
+    template<class T>
+    constexpr bool has_color_v = is_detected_v<decl_color_t, T>;
+
+    template<class T>
+    using has_texture = is_detected<decl_texture_t, T>;
+
+    template<class T>
+    constexpr bool has_texture_v = has_texture<T>::value;
 }
 
 
 template<class VS, class FS>
-struct shader_library
+class shader_library
 {
+public:
     using vertex_shader_type = VS;
     using fragment_shader_type = FS;
 
-    vertex_shader_type vert{};
-    fragment_shader_type frag{};
-
-    gl::program program{};
-
     constexpr explicit operator bool() const noexcept
     {
-        return !!program;
+        return !!program_;
     }
 
     [[nodiscard]]
     bool build() noexcept
     {
-        D_ASSERT(!program);
+        D_ASSERT(!program_);
 
-        program = gl::create_program(vert.shader_text, frag.shader_text);
-        if (program) [[likely]]
+        program_ = gl::create_program(vertex_shader_type::shader_text, fragment_shader_type::shader_text);
+        if (program_) [[likely]]
         {
-            const auto unfiorm_factory = [p = view(program)]<class T>(T & target, zstring_view name) noexcept
+            const auto unfiorm_factory = [p = view(program_)]<class T>(T & target, zstring_view name) noexcept
             {
                 target = T::instance(p, name);
             };
@@ -354,13 +383,30 @@ struct shader_library
 
     void use() const noexcept
     {
-        gl::use(program);
+        gl::use(program_);
+    }
+
+    constexpr const vertex_shader_type& vert() const noexcept
+    {
+        D_ASSERT(program_ == gl::current_program());
+        return vert_;
+    }
+
+    constexpr const fragment_shader_type& frag() const noexcept
+    {
+        D_ASSERT(program_ == gl::current_program());
+        return frag_;
     }
 
     template<class Serializer>
     constexpr void serialize(Serializer& ser) noexcept
     {
-        vert.serialize(ser);
-        frag.serialize(ser);
+        vert_.serialize(ser);
+        frag_.serialize(ser);
     }
+
+private:
+    vertex_shader_type vert_{};
+    fragment_shader_type frag_{};
+    gl::program program_{};
 };

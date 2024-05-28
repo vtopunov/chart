@@ -22,9 +22,6 @@ namespace px
         constexpr auto _256_plus = _256_0 + eps;
         constexpr auto _256_0_0_bound = -255.0 - eps;
 
-        using image_pointer_t = pix8span::pointer;
-        using shade_t = std::remove_cv_t<std::remove_pointer_t<image_pointer_t>>;
-
         template<class T>
         constexpr T sign_if_not(bool cond, T value) noexcept
         {
@@ -83,7 +80,7 @@ namespace px
             return z_round_unsafe(value);
         };
 
-        constexpr vec2<ptrdiff_t> round_range(bool direction_is_inc, pxsize_t size, real_t v0, real_t v1) noexcept
+        constexpr vec2<ptrdiff_t> round_range(bool direction_is_inc, npx_t size, real_t v0, real_t v1) noexcept
         {
             const auto bound0 = 0_z - !direction_is_inc;
             const auto bound1 = bound0 + narrow<ptrdiff_t>(size);
@@ -103,14 +100,14 @@ namespace px
 
             constexpr size_t index() const noexcept
             {
-                constexpr auto shade_bits = 8u * sizeof(shade_t);
+                constexpr auto shade_bits = 8u * sizeof(luminance_t);
                 return static_cast<size_t>(index_shade >> shade_bits);
             }
 
-            constexpr shade_t shade() const noexcept
+            constexpr luminance_t shade() const noexcept
             {
-                constexpr auto shade_mask = numeric_max_v<shade_t>;
-                return static_cast<shade_t>(index_shade & shade_mask);
+                constexpr auto shade_mask = numeric_max_v<luminance_t>;
+                return static_cast<luminance_t>(index_shade & shade_mask);
             }
 
             static constexpr position_shade instance_from_real(real_t code) noexcept
@@ -138,11 +135,11 @@ namespace px
         {
             using types = antialiasing_line_result_types;
 
-            image_pointer_t p;
-            shade_t shade;
+            luminance_t* p;
+            luminance_t shade;
             types type;
 
-            constexpr void join_along_y(ptrdiff_t line_size_z, image_pointer_t new_p, shade_t new_shade) const noexcept
+            constexpr void join_along_y(ptrdiff_t line_size_z, luminance_t* new_p, luminance_t new_shade) const noexcept
             {
                 if (types::along_x == type)
                 {
@@ -151,21 +148,21 @@ namespace px
                     if (dp == (2_z * line_size_z + 1_z))
                     {
                         const auto inv_shade = inv(shade);
-                        const auto mean_shade = narrow<shade_t>((inv_shade + new_shade) / 2u);
+                        const auto mean_shade = narrow<luminance_t>((inv_shade + new_shade) / 2u);
                         new_p[-line_size_z] = mean_shade;
                         return;
                     }
 
                     if (dp == (1_z - line_size_z))
                     {
-                        const auto mean_shade = narrow<shade_t>((shade + new_shade) / 2u);
+                        const auto mean_shade = narrow<luminance_t>((shade + new_shade) / 2u);
                         p[1_z] = mean_shade;
                         return;
                     }
                 }
             }
 
-            constexpr void join_along_x(ptrdiff_t line_size_z, image_pointer_t new_p, shade_t new_shade) const noexcept
+            constexpr void join_along_x(ptrdiff_t line_size_z, luminance_t* new_p, luminance_t new_shade) const noexcept
             {
                 if (types::along_y == type)
                 {
@@ -174,7 +171,7 @@ namespace px
                     if (dp == (line_size_z + 2_z))
                     {
                         const auto inv_shade = inv(shade);
-                        const auto mean_shade = narrow<shade_t>((inv_shade + new_shade) / 2u);
+                        const auto mean_shade = narrow<luminance_t>((inv_shade + new_shade) / 2u);
                         new_p[-1_z] = mean_shade;
                         return;
                     }
@@ -183,7 +180,7 @@ namespace px
                     {
                         const auto inv_shade = inv(shade);
                         const auto inv_new_shade = inv(new_shade);
-                        const auto mean_shade = narrow<shade_t>((inv_shade + inv_new_shade) / 2u);
+                        const auto mean_shade = narrow<luminance_t>((inv_shade + inv_new_shade) / 2u);
                         new_p[line_size_z - 1_z] = mean_shade;
                         return;
                     }
@@ -205,7 +202,7 @@ namespace px
     template<class Joiner>
     constexpr antialiasing_line_result draw_antialiasing_line
     (
-        const pix8span image,
+        const lumpixspan image,
         const real_point2d p0,
         const real_point2d p1,
         const Joiner joiner
@@ -394,20 +391,17 @@ namespace px
 
     constexpr antialiasing_line_result draw_antialiasing_line
     (
-        const pix8span image,
+        const lumpixspan image,
         const real_point2d p0,
         const real_point2d p1
     ) noexcept
     {
-        using private_detail_antialiasing_line::image_pointer_t;
-        using private_detail_antialiasing_line::shade_t;
-
         constexpr struct
         {
-            constexpr void join_along_y(ptrdiff_t, image_pointer_t, shade_t) const noexcept
+            constexpr void join_along_y(no_overload, no_overload, no_overload) const noexcept
             {}
 
-            constexpr void join_along_x(ptrdiff_t, image_pointer_t, shade_t) const noexcept
+            constexpr void join_along_x(no_overload, no_overload, no_overload) const noexcept
             {}
         } non;
 
@@ -416,7 +410,7 @@ namespace px
 
     constexpr antialiasing_line_result draw_antialiasing_line
     (
-        const pix8span image,
+        const lumpixspan image,
         const real_t x0,
         const real_t y0,
         const real_t x1,
@@ -429,7 +423,7 @@ namespace px
     template<class Transformation>
     constexpr void draw_polyline
     (
-        const pix8span image,
+        const lumpixspan image,
         const real_point2d_cspan values,
         const Transformation value2px
     ) noexcept
@@ -441,8 +435,10 @@ namespace px
             for (const auto& p : values.subspan(1u))
             {
                 const auto p1 = value2px(p);
-                const auto result = draw_antialiasing_line(image, p0, p1, cached_result);
-                cached_result = result;
+                {
+                    const auto result = draw_antialiasing_line(image, p0, p1, cached_result);
+                    cached_result = result;
+                }
                 p0 = p1;
             }
         }

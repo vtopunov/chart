@@ -3,6 +3,8 @@
 #include <functional>
 #include <string>
 
+#include <utility/font_cache.h>
+
 #include <widget/ex_context.h>
 #include <widget/shader.h>
 #include <widget/text.h>
@@ -23,7 +25,7 @@ namespace widget
         std::u8string text{};
         std::function<void()> clicked{};
         font_cache::face font{};
-        text::drawing_cache text_cache{};
+        text_cache text_cache{};
         button_state state{ button_state::free };
 
         void set_text(std::u8string new_text) noexcept
@@ -35,6 +37,8 @@ namespace widget
             }
         }
 
+        [[nodiscard]] bool operator () (widget::basic_initialization_event<>) noexcept;
+
         [[nodiscard]] event_result operator () (const ui::mouse_down_event& e) noexcept;
         [[nodiscard]] event_result operator () (const ui::mouse_up_event& e) noexcept;
 
@@ -44,7 +48,7 @@ namespace widget
 #endif       
 
         using redraw_event_type = basic_redraw_event<
-            shader::luminance8_texture_mix_color,
+            shader::luminance_texture_mix_color,
             shader::colored_rectangle,
             buffer_view
         >;

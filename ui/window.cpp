@@ -71,12 +71,12 @@ namespace ui
         [[nodiscard]]
         constexpr pxsize2d gdi_to_pxsizes(const gdi_rect_t& rect) noexcept
         {
-            static_assert(std::is_unsigned_v<pxsize_t>);
+            static_assert(std::is_unsigned_v<npx_t>);
 
             constexpr auto side_length = [] (auto p0, auto p1) noexcept
             {
                 D_ASSERT(p1 >= p0);
-                return narrow<pxsize_t>(p1 - p0);
+                return narrow<npx_t>(p1 - p0);
             };
 
             pxsize2d result{ side_length(rect.left, rect.right), 0_npx };
@@ -251,7 +251,7 @@ namespace ui
 
     window create_window(const window_parameters& params) noexcept
     {
-        constexpr auto px_to_native = [] (pxsize_t px) noexcept
+        constexpr auto px_to_native = [] (npx_t px) noexcept
         {
             using namespace private_detail_window_constants;
             static_assert(std::is_same_v<decltype(CW_USEDEFAULT), native_npx_t>);
@@ -267,9 +267,8 @@ namespace ui
             {
                 const auto style = (params.parent) ? child_window_style : parent_window_style;
 
-                result =
+                result = window
                 {
-                    resource_construct,
                     CreateWindowExW
                     (
                         0u,

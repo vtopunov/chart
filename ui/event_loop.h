@@ -5,11 +5,7 @@
 #include <os/os_detection.h>
 
 #include <ui/app.h>
-
-#ifdef D_OS_WINDOWS
 #include <ui/event_processor.h>
-#endif
-
 #include <ui/event_matching.h>
 
 

@@ -1,4 +1,6 @@
-﻿#include "vtest_move_and_zoom_fwd.h"
+﻿#include <ui/manipulator.h>
+
+#include "vtest_move_and_zoom_fwd.h"
 
 namespace
 {
@@ -28,36 +30,31 @@ namespace
         [[nodiscard]]
         bool reinitialize() noexcept
         {
-            texture_ = pix8map_test_texture_generate(viewport(egl_) / 4u);
+            texture_ = make_test_lumpixmap_texture(egl_.viewport() / 4u);
             if (!texture_)
             {
                 return false;
             }
 
-            if (!shaders_.initialize(viewport(egl_), texture_))
+            if (!shaders_.initialize(egl_.viewport(), texture_))
             {
                 return false;
             }
 
-            area_ = default_area(viewport(egl_));
+            area_ = default_area(egl_.viewport());
 
             return true;
         }
 
         std::nullopt_t operator () (const ui::mouse_wheel_event& e) noexcept
         {
-            if (const auto new_area = zoom_increase(area_, e.rot()); new_area != area_)
-            {
-                area_ = new_area;
-                need_redraw_ = true;
-            }
-
+            need_redraw_ = apply_nzoom(area_, e.rot());
             return std::nullopt;
         }
 
         std::nullopt_t operator () (const ui::mouse_double_click_event&) noexcept
         {
-            area_ = default_area(viewport(egl_));
+            area_ = default_area(egl_.viewport());
             need_redraw_ = true;
             return std::nullopt;
         }
@@ -70,12 +67,11 @@ namespace
                 return std::nullopt;
             }
 
-            if(const auto new_area = new_manipulation(user_vpoint_cache_, e).transformation_as(area_); 
-                new_area != area_ && is_safe_conversion_glpx(new_area))
-            {
-                area_ = new_area;
-                need_redraw_ = true;
-            }
+            need_redraw_ = update_glpx
+            (
+                area_, 
+                new_manipulation(user_vpoint_cache_, e).transformation_as(area_)
+            );
 
             return std::nullopt;
         }
@@ -117,7 +113,7 @@ namespace
         void draw() const noexcept
         {
             const egl_painting_owner painting_owner{ egl_ };
-            gl::viewport(viewport(egl_));
+            gl::viewport(egl_.viewport());
             gl::clear(colors::white_f);
             shaders_.draw(area_);
         }
@@ -127,7 +123,7 @@ namespace
         shaders_lib shaders_{};
         gl::texture2d texture_{};
         ui::user_vpoint_cache user_vpoint_cache_{ ui::no_cached_user_vpoint };
-        pxzrectangle area_{};
+        figure_area area_{};
         bool need_redraw_{ true };
     };
 }
@@ -138,8 +134,7 @@ int app_main(os::module_handle_t app) noexcept
 
     if (!processor.initialize(app))
     {
-        e_debug("create window error: ui error: {}, egl error: {}",
-            ui::error_code(), eglGetError());
+        e_debug("create window error: {}", egl_ui::error_code());
         return EXIT_FAILURE;
     }
 

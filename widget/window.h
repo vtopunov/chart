@@ -29,7 +29,7 @@ namespace widget
         friend class window;
 
     private:
-        pxsize2d sizes_{ ui::no_window_sizes };
+        pxsize2d sizes_{ ui::no_sizes };
     };
 
     using widget_window_parameters = egl_ui_parameters;
@@ -86,8 +86,7 @@ namespace widget
         }
 #endif
 
-        [[nodiscard]]
-        window build() const noexcept
+        [[nodiscard]] window build() const noexcept
         {
             return window{ _c_params() };
         }

@@ -7,19 +7,6 @@
 #include <core/narrow.h>
 
 
-template <class, class = void>
-struct is_container : std::false_type
-{};
-
-template <class C>
-struct is_container<C, std::void_t<decl_data_pointer_t<C>, decltype(std::size(std::declval<C&>()))>>
-    : std::true_type
-{};
-
-template<class C>
-inline constexpr bool is_container_v = is_container<C>::value;
-
-
 template <class T>
 struct is_span : std::false_type
 {};
@@ -36,45 +23,40 @@ template <class T>
 constexpr bool is_span_v = is_span<T>::value;
 
 
-template<class C, class DataPointer>
-struct is_convertible_data : std::is_convertible<decl_data_pointer_t<C>, DataPointer>
-{};
-
-
 namespace private_detail_extent_constant
 {
     template<size_t Extent>
-    using extent_t = std::integral_constant<size_t, Extent>;
+    using extent_integral_constant = std::integral_constant<size_t, Extent>;
 
     template<class C>
-    using decl_extent_t = extent_t<C::extent>;
+    using decl_extent_constant_t = extent_integral_constant<C::extent>;
 
     template<class C>
-    struct extent_constant_impl : detected_or_t<extent_t<dynamic_extent>, decl_extent_t, C>
+    struct extent_constant_for_impl : detected_or_t<extent_integral_constant<dynamic_extent>, decl_extent_constant_t, C>
     {};
 
     template<class T, size_t Extent>
-    struct extent_constant_impl<std::array<T, Extent>> : extent_t<Extent>
+    struct extent_constant_for_impl<std::array<T, Extent>> : extent_integral_constant<Extent>
     {};
 
     template<class T, size_t Extent>
-    struct extent_constant_impl<span<T, Extent>> : extent_t<Extent>
+    struct extent_constant_for_impl<span<T, Extent>> : extent_integral_constant<Extent>
     {};
 
     template<class T, size_t Extent>
-    struct extent_constant_impl<T[Extent]> : extent_t<Extent>
+    struct extent_constant_for_impl<T[Extent]> : extent_integral_constant<Extent>
     {};
 
     template<class C>
-    struct extent_constant : extent_constant_impl<std::remove_cvref_t<C>>
-    {};
+    using extent_constant_for = extent_constant_for_impl<std::remove_cvref_t<C>>;
 
     template<class C>
-    constexpr auto extent_v = extent_constant<C>::value;
+    constexpr auto extent_v = extent_constant_for<C>::value;
 }
 
-using private_detail_extent_constant::extent_constant;
+using private_detail_extent_constant::extent_constant_for;
 using private_detail_extent_constant::extent_v;
+
 
 namespace private_detail_compatible2span
 {
@@ -98,9 +80,16 @@ template <class T, size_t Extent, class C>
 constexpr bool is_compatible2span_v = std::conjunction_v
 <
     std::negation<is_span<C>>,
-    is_container<C>,
-    is_convertible_data<C, T*>,
+    has_std_size<C>,
+    is_std_data_convertible<C, T*>,
     private_detail_compatible2span::extent_compatible<C, Extent>
+>;
+
+template <class T0, size_t E0, class T1, size_t E1>
+constexpr bool is_compatible_span2span_v = std::conjunction_v
+<
+    std::is_convertible<T1*, T0*>,
+    std::bool_constant<E0 == dynamic_extent || E0 == E1>
 >;
 
 
@@ -120,7 +109,6 @@ struct span_data_impl
     }
 };
 
-
 template <class T>
 struct span_data_impl<T, dynamic_extent>
 {
@@ -135,14 +123,6 @@ struct span_data_impl<T, dynamic_extent>
         , size_{ size }
     {}
 };
-
-template <class T0, size_t E0, class T1, size_t E1>
-constexpr bool is_compatible_span2span_v = std::conjunction_v
-<
-    std::is_convertible<T1*, T0*>,
-    std::bool_constant<E0 == dynamic_extent || E0 == E1>
->;
-
 
 template <class T, size_t Extent>
 class span : private span_data_impl<T, Extent>

@@ -16,11 +16,11 @@
 
 namespace
 {
-    constexpr void draw_dda_line(const pix8span image, double x0, double y0, double x1, double y1) noexcept
+    constexpr void draw_dda_line(const lumpixspan image, double x0, double y0, double x1, double y1) noexcept
     {
         const auto setpix = [data = image.data(), line_size = image.line_size()](size_t x, size_t y) noexcept
         {
-            *(data + line_size * y + x) = numeric_max_v<pix8_t>;
+            *(data + line_size * y + x) = luminance_max;
         };
 
         constexpr auto uz_round = [] (double v) noexcept
@@ -48,12 +48,12 @@ namespace
         }
     }
 
-    constexpr void draw_dda_line(const pix8span image, const vtest_line_figure::line& line) noexcept
+    constexpr void draw_dda_line(const lumpixspan image, const vtest_line_figure::line& line) noexcept
     {
         draw_dda_line(image, line.x0, line.y0, line.x1, line.y1);
     }
 
-    constexpr void draw_antialiasing_line(const pix8span image, const vtest_line_figure::line& line) noexcept
+    constexpr void draw_antialiasing_line(const lumpixspan image, const vtest_line_figure::line& line) noexcept
     {
         draw_antialiasing_line(image, line.x0, line.y0, line.x1, line.y1);
     }
@@ -62,7 +62,7 @@ namespace
     {
         using vtest_line_figure::figure;
 
-        pix8map image{ 600_npx, 600_npx };
+        lumpixmap image{ 600_npx, 600_npx };
         if (!image)
         {
             e_debug("out of memory");
@@ -87,7 +87,7 @@ namespace
         }
 #endif
 
-        auto result_texture = gl::create_texture2d(view(image));
+        auto result_texture = gl::create_texture2d(image);
         if (!result_texture)
         {
             e_debug("create texture error: {}\n", glGetError());
@@ -104,8 +104,7 @@ int app_main(os::module_handle_t app) noexcept
     const auto egl = create_egl_ui(app);
     if (!egl)
     {
-        e_debug("create window error: window error: {}, egl error: {}",
-            ui::error_code(), eglGetError());
+        e_debug("create window error: {}", egl_ui::error_code());
         return EXIT_FAILURE;
     }
 
@@ -125,15 +124,15 @@ int app_main(os::module_handle_t app) noexcept
     
     {
         const egl_painting_owner painting_owner{ egl };
-        gl::viewport(viewport(egl));
+        gl::viewport(egl.viewport());
         gl::clear(colors::white_f);
 
         shaders.use();
-        shaders.frag.s_texture.store(texture);
-        shaders.vert.u_viewport.store(viewport(egl));
-        shaders.vert.u_position.store(30_npx, 50_npx);
-        shaders.vert.u_size.store(sizes(texture));
-        shaders.vert.a_frame.draw();
+        shaders.frag().texture(texture);
+        shaders.vert().viewport(egl.viewport());
+        shaders.vert().position(30_npx, 50_npx);
+        shaders.vert().size(texture.sizes());
+        shaders.vert().frame().draw();
     }
 
     return ui::run_event_loop(egl);

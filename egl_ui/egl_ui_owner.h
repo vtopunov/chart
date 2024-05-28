@@ -41,7 +41,7 @@ namespace egl_ui
 
         if (ui) [[likely]]
         {
-            egl = create_egl_context(ui.render_window());
+            egl = create_egl_context(ui.viewing_window());
         }
 
         return 

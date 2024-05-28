@@ -40,7 +40,7 @@ namespace
             static const auto a_position = gl::get_attribute_location(program, "a_position"_zsv);
 
             const egl_painting_owner painting_owner{ egl };
-            gl::viewport(viewport(egl));
+            gl::viewport(egl.viewport());
             gl::clear(colors::white_f);
             gl::use(program);
 

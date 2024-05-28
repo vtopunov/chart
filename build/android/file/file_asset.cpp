@@ -30,15 +30,11 @@ namespace file
                 }
             };
 
-            using asset_t = unique_resource<os::asset_handle_t, asset_deleter>;
+            using unique_asset = unique_resource<os::asset_handle_t, asset_deleter>;
 
-            asset_t asset_open(path_zstring_view path) noexcept
+            unique_asset asset_open(path_zstring_view path) noexcept
             {
-                return
-                {
-                    resource_construct,
-                    asset_open(common::asset_manager(), path)
-                };
+                return unique_asset{ asset_open(common::asset_manager(), path) };
             }
 
             const void* data(os::asset_handle_t asset) noexcept
@@ -66,9 +62,8 @@ namespace file
                 {
                     if (const auto a_size = size(asset)) [[likely]]
                     {
-                        return
+                        return asset_mmap
                         {
-                            resource_construct,
                             asset.release(),
                             a_data,
                             a_size

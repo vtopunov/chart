@@ -141,35 +141,10 @@ namespace
             static_assert(0u == round_to_near(-1, 2u));
         }
     }
-
-    void test_u_prev_next() noexcept
-    {
-        const struct errno_restorer
-        {
-            int errvalue;
-
-            errno_restorer() noexcept
-                : errvalue{ errno }
-            {}
-
-            ~errno_restorer() noexcept
-            {
-                errno = errvalue;
-            }
-        } hold_errno;
-
-        const auto nfz = u_next(0.0);
-        const auto pfz = u_prev(0.0);
-        D_ASSERT(nfz > 0.0 && nfz <= DBL_EPSILON && !std::isnormal(nfz));
-        D_ASSERT(pfz < 0.0 && pfz >= -DBL_EPSILON && !std::isnormal(pfz));
-        static_assert(1 == u_next(0));
-        static_assert(-1 == u_prev(0));
-    }
 }
 
 void test_round() noexcept
 {
     test_round_cast();
     test_round_to_near();
-    test_u_prev_next();
 }

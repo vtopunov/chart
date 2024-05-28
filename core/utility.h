@@ -43,49 +43,38 @@ template <class T>
 }
 
 
-namespace private_detail_value_type
+namespace container_detection
 {
     template<class C>
-    using decl_data_pointer_t = decltype(as_pointer(std::data(std::declval<C&>())));
+    using decl_std_data_pointer_t= decltype(as_pointer(std::data(std::declval<C&>())));
 
-    template <class C, class = void>
-    struct value_type_by_data_pointer
-    {
-        using is_data_pointer = std::false_type;
-    };
+    template<class C>
+    using decl_std_data_value_t = std::remove_pointer_t<decl_std_data_pointer_t<C>>;
 
-    template <class C>
-    struct value_type_by_data_pointer<C, std::void_t<decl_data_pointer_t<C>>>
-    {
-        using type = std::remove_pointer_t<decl_data_pointer_t<C>>;
-        using is_data_pointer = std::true_type;
-    };
+    template<class C>
+    using decl_std_size_t = decltype(std::size(std::declval<C&>()));
 
-    template<class C, class = void>
-    struct value_type_selector : value_type_by_data_pointer<C>
-    {};
+    template<class T>
+    using std_data_value_type_type = enable_if_detected<decl_std_data_value_t, T>;
 
-    template <class C>
-    struct value_type_selector<C, std::void_t<decl_value_type_t<C>>>
-    {
-        using type = decl_value_type_t<C>;
-    };
-
-    template <class C>
-    struct value_type_type : value_type_selector<C>
-    {};
+    template<class T>
+    using value_type_type = enable_if_detected_or<std_data_value_type_type<T>, decl_value_type_t, T>;
 
     template<class C>
     using value_type_t = typename value_type_type<C>::type;
 
-    template<class T>
-    using is_data_pointer = typename value_type_by_data_pointer<T>::is_data_pointer;
+    template<class C>
+    using has_std_size = is_detected<decl_std_size_t, C>;
+
+    template<class C>
+    using has_std_data_pointer = is_detected<decl_std_data_pointer_t, C>;
+
+    template<class C, class ToPointer>
+    using is_std_data_convertible = is_detected_convertible<ToPointer, decl_std_data_pointer_t, C>;
 }
 
-using private_detail_value_type::decl_data_pointer_t;
-using private_detail_value_type::value_type_type;
-using private_detail_value_type::value_type_t;
-using private_detail_value_type::is_data_pointer;
+using namespace container_detection;
+
 
 namespace private_detail_string_char
 {
@@ -193,7 +182,7 @@ template<size_t mul>
 [[nodiscard]] constexpr bool has_size_mul(const size_t size) noexcept
 {
     static_assert(mul > 0_uz);
-    constexpr size_t overflow = numeric_max_v<size_t> / mul;
+    constexpr auto overflow = numeric_max_v<size_t> / mul;
     return size <= overflow;
 }
 
@@ -203,6 +192,21 @@ template<size_t mul>
     static_assert(mul > 0_uz);
     D_ASSERT(has_size_mul<mul>(size));
     return size * mul;
+}
+
+template<size_t mul>
+[[nodiscard]] constexpr size_t size_mul_or_max(const size_t size) noexcept
+{
+    static_assert(mul > 0_uz);
+    constexpr auto size_max = numeric_max_v<size_t>;
+    constexpr auto overflow = size_max / mul;
+
+    if(size <= overflow) [[likely]]
+    {
+        return size * mul;
+    }
+
+    return size_max;
 }
 
 template<size_t align>

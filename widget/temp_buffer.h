@@ -8,7 +8,7 @@
 
 namespace widget
 {
-    struct pix8_temp_buffer : buffer_t
+    struct temp_buffer : byte_buffer
     {
         bool operator () (viewport_event<> e) noexcept;
 

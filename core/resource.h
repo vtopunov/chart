@@ -5,15 +5,11 @@
 #include <core/null.h>
 
 
-struct resource_construct_t
-{};
-
-constexpr resource_construct_t resource_construct{};
-
-
 template <class T, class D>
 class unique_resource
 {
+    using self_type = unique_resource<T, D>;
+
 public:
     using resource_type = T;
     using view_type = view_t<resource_type>;
@@ -29,8 +25,8 @@ public:
         : unique_resource{}
     {}
 
-    template<class... Args>
-    constexpr unique_resource(resource_construct_t, Args&&... args) noexcept
+    template<class... Args, std::enable_if_t<std::negation_v<has_type_uncvref<self_type, Args...>>, int> = 0>
+    constexpr explicit unique_resource(Args&&... args) noexcept
         : resource_{ std::forward<Args>(args)... }
     {}
 
@@ -40,7 +36,7 @@ public:
 
     constexpr unique_resource(const unique_resource&) noexcept = delete;
 
-    ~unique_resource() noexcept
+    constexpr ~unique_resource() noexcept
     {
         constexpr deleter_type close{};
         close(std::move(resource_));
@@ -54,7 +50,7 @@ public:
 
     constexpr unique_resource& operator=(const unique_resource&) noexcept = delete;
 
-    unique_resource& operator=(null_type) noexcept
+    constexpr unique_resource& operator=(null_type) noexcept
     {
         reset();
         return *this;
@@ -103,7 +99,7 @@ public:
         return resource;
     }
 
-    void reset() noexcept
+    constexpr void reset() noexcept
     {
         [[maybe_unused]]
         const unique_resource temp{ std::move(*this) };
@@ -117,6 +113,8 @@ private:
 template<class T, class D>
 class shared_resource
 {
+    using self_type = shared_resource<T, D>;
+
 public:
     using resource_type = T;
     using view_type = view_t<resource_type>;
@@ -135,13 +133,13 @@ public:
     {}
 
     constexpr shared_resource(unique_resource_type&& right) noexcept
-        : shared_resource{ resource_construct, right.release() }
+        : shared_resource{ right.release() }
     {}
 
     shared_resource(shared_resource&& right) noexcept = delete;
 
-    template<class... Args>
-    constexpr shared_resource(resource_construct_t, Args&&... args) noexcept
+    template<class... Args, std::enable_if_t<std::negation_v<has_type_uncvref<self_type, Args...>>, int> = 0>
+    constexpr explicit shared_resource(Args&&... args) noexcept
         : resource_{ std::forward<Args>(args)... }
         , copies_{ make_intrusive_cyclic_node(std::addressof(copies_)) }
     {}
@@ -158,14 +156,14 @@ public:
         }
     {}
 
-    ~shared_resource() noexcept
+    constexpr ~shared_resource() noexcept
     {
         [[maybe_unused]]
         const intrusive_owner temp{ copies_ };
         close_if_unique();
     }
 
-    shared_resource& operator = (const shared_resource& right) noexcept
+    constexpr shared_resource& operator = (const shared_resource& right) noexcept
     {
         if (this != std::addressof(right))
         {
@@ -178,7 +176,7 @@ public:
 
     shared_resource& operator = (shared_resource&& right) noexcept = delete;
 
-    shared_resource& operator = (unique_resource_type&& right) noexcept
+    constexpr shared_resource& operator = (unique_resource_type&& right) noexcept
     {
         deattach_and_reset(right.release());
         return *this;
@@ -215,7 +213,7 @@ public:
     }
 
     template<class U>
-    void deattach_and_reset(U&& new_resource) noexcept
+    constexpr void deattach_and_reset(U&& new_resource) noexcept
     {
         [[maybe_unused]]
         const intrusive_owner temp{ copies_ };
@@ -223,7 +221,7 @@ public:
         resource_ = std::forward<U>(new_resource);
     }
 
-    void deattach_and_reset() noexcept
+    constexpr void deattach_and_reset() noexcept
     {
         deattach_and_reset(null);
     }
@@ -238,10 +236,10 @@ private:
     [[nodiscard]]
     constexpr bool is_unique() const noexcept
     {
-        return ::is_empty(std::addressof(copies_));
+        return intrusive_is_empty(std::addressof(copies_));
     }
 
-    void close_if_unique() noexcept
+    constexpr void close_if_unique() noexcept
     {
         if (is_unique())
         {

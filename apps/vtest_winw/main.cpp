@@ -19,11 +19,11 @@ namespace
 
     struct main_processor
     {
-        using clock_t = std::chrono::steady_clock;
-        using time_point_t = clock_t::time_point;
+        using clock_type = std::chrono::steady_clock;
+        using time_point_type = clock_type::time_point;
 
         static constexpr auto standby_time{ 15s };
-        time_point_t last_time{ time_point_t::min() };
+        time_point_type last_time{ time_point_type::min() };
 
         ui::event_result_t operator () (const ui::size_event& e) const noexcept
         {
@@ -39,7 +39,7 @@ namespace
 
         ui::milliseconds operator () (ui::idle_event) noexcept
         {
-            const auto now = clock_t::now();
+            const auto now = clock_type::now();
 
             if ( (last_time > last_time.min()) && (now - last_time) > standby_time)
             {

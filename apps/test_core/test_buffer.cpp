@@ -6,21 +6,21 @@
 
 void test_buffer() noexcept
 {
-    static_assert(1_uz == buffer_t::element_size);
-    static_assert(1_uz == sizeof(decl_value_type_t<buffer_t>));
-    static_assert(std::is_same_v<decl_value_type_t<buffer_t>, buffer_t::value_type>);
-    static_assert(std::is_same_v<decl_view_type_t<buffer_t>, buffer_t::view_type>);
-    static_assert(std::is_same_v<decl_null_type_t<buffer_t>, buffer_t::null_type>);
-    static_assert(std::is_same_v<decl_null_type_t<buffer_t>, nullmem_t>);
-    static_assert(!std::is_copy_constructible_v<buffer_t>);
-    static_assert(!std::is_copy_assignable_v<buffer_t>);
-    static_assert(std::is_move_constructible_v<buffer_t>);
-    static_assert(std::is_move_assignable_v<buffer_t>);
+    static_assert(1_uz == byte_buffer::element_size);
+    static_assert(1_uz == sizeof(decl_value_type_t<byte_buffer>));
+    static_assert(std::is_same_v<decl_value_type_t<byte_buffer>, byte_buffer::value_type>);
+    static_assert(std::is_same_v<decl_view_type_t<byte_buffer>, byte_buffer::view_type>);
+    static_assert(std::is_same_v<decl_null_type_t<byte_buffer>, byte_buffer::null_type>);
+    static_assert(std::is_same_v<decl_null_type_t<byte_buffer>, nullmem_t>);
+    static_assert(!std::is_copy_constructible_v<byte_buffer>);
+    static_assert(!std::is_copy_assignable_v<byte_buffer>);
+    static_assert(std::is_move_constructible_v<byte_buffer>);
+    static_assert(std::is_move_assignable_v<byte_buffer>);
 
 
     using type_t = int32_t;
     constexpr auto size = 10_uz;
-    buffer<type_t> b{ buffer_construct, size };
+    buffer<type_t> b{ size };
 
     {
         type_t value_gen{ 0 };
