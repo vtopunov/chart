@@ -60,7 +60,7 @@ namespace
     template<class ExContext, class ExType>
     constexpr bool test_ex_context0_v = std::conjunction_v<
         std::is_same<ExContext, widget::ex_context<ExType> >,
-        std::is_same<widget::ex_context_tuple_t<ExContext>, transform_tuple_t<widget::context_source_element_t, typename ExType::context_tuple_type> >
+        std::is_same<widget::ex_context_tuple_t<ExContext>, transform_types_t<widget::context_source_element_t, typename ExType::context_tuple_type> >
     >;
 
     template<class ExContext, class TestWidget>
@@ -77,11 +77,11 @@ void test_context() noexcept
         using cc_t = widget::common_context_t<main_widget>;
         using tuple_cc_t = typename cc_t::tuple_type;
 
-        static_assert(tuple_has_type_v<shader<0>, tuple_cc_t>);
-        static_assert(tuple_has_type_v<shader<1>, tuple_cc_t>);
-        static_assert(tuple_has_type_v<shader<2>, tuple_cc_t>);
-        static_assert(tuple_has_type_v<widget::temp_buffer, tuple_cc_t>);
-        static_assert(tuple_has_type_v<widget::windowrefwrap_t, tuple_cc_t>);
+        static_assert(types_has_type_v<shader<0>, tuple_cc_t>);
+        static_assert(types_has_type_v<shader<1>, tuple_cc_t>);
+        static_assert(types_has_type_v<shader<2>, tuple_cc_t>);
+        static_assert(types_has_type_v<widget::temp_buffer, tuple_cc_t>);
+        static_assert(types_has_type_v<widget::windowrefwrap_t, tuple_cc_t>);
         static_assert(5u == std::tuple_size_v<tuple_cc_t>);
 
         widget::window w{};

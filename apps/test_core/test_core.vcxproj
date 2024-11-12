@@ -32,7 +32,7 @@
     <ClCompile Include="test_span.cpp" />
     <ClCompile Include="test_static_vector.cpp" />
     <ClCompile Include="test_transformation.cpp" />
-    <ClCompile Include="test_tuple_algorithm.cpp" />
+    <ClCompile Include="test_types_algorithm.cpp" />
     <ClCompile Include="test_type_traits.cpp" />
     <ClCompile Include="test_utf.cpp" />
     <ClCompile Include="test_utility.cpp" />

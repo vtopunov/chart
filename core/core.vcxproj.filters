@@ -29,7 +29,7 @@
     <ClInclude Include="fmt.h" />
     <ClInclude Include="round.h" />
     <ClInclude Include="static_vector.h" />
-    <ClInclude Include="tuple_algorithm.h" />
+    <ClInclude Include="types_algorithm.h" />
     <ClInclude Include="functional.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="transformation.h" />

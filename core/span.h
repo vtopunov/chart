@@ -25,26 +25,23 @@ constexpr bool is_span_v = is_span<T>::value;
 
 namespace private_detail_extent_constant
 {
-    template<size_t Extent>
-    using extent_integral_constant = std::integral_constant<size_t, Extent>;
+    template<class C>
+    using decl_extent_constant_t = index_constant<C::extent>;
 
     template<class C>
-    using decl_extent_constant_t = extent_integral_constant<C::extent>;
-
-    template<class C>
-    struct extent_constant_for_impl : detected_or_t<extent_integral_constant<dynamic_extent>, decl_extent_constant_t, C>
+    struct extent_constant_for_impl : detected_or_t<index_constant<dynamic_extent>, decl_extent_constant_t, C>
     {};
 
     template<class T, size_t Extent>
-    struct extent_constant_for_impl<std::array<T, Extent>> : extent_integral_constant<Extent>
+    struct extent_constant_for_impl<std::array<T, Extent>> : index_constant<Extent>
     {};
 
     template<class T, size_t Extent>
-    struct extent_constant_for_impl<span<T, Extent>> : extent_integral_constant<Extent>
+    struct extent_constant_for_impl<span<T, Extent>> : index_constant<Extent>
     {};
 
     template<class T, size_t Extent>
-    struct extent_constant_for_impl<T[Extent]> : extent_integral_constant<Extent>
+    struct extent_constant_for_impl<T[Extent]> : index_constant<Extent>
     {};
 
     template<class C>

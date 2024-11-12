@@ -33,7 +33,7 @@ namespace widget
         using context_tuple0_t = detected_or_t<std::tuple<T>, decl_context_tuple_t, T>;
 
         template<class T>
-        using context_tuple_t = transform_tuple_t<context_source_element_t, context_tuple0_t<T> >;
+        using context_tuple_t = transform_types_t<context_source_element_t, context_tuple0_t<T> >;
 
         template<class... Types>
         struct ex_context_tuple_type
@@ -108,7 +108,7 @@ namespace widget
         template<class Fn>
         decltype(auto) apply(Fn fn) noexcept
         {
-            return apply_impl(fn, tuple_, make_tuple_index_sequence<tuple_type>{});
+            return apply_impl(fn, tuple_, make_types_index_sequence<tuple_type>{});
         }
 
     private:
@@ -161,7 +161,7 @@ namespace widget
 
     template<class Tuple>
     using make_common_context_t = typename make_common_context_type<Tuple>::type;
-
+    
 
     namespace private_detail_widget_tuple
     {
@@ -180,7 +180,7 @@ namespace widget
         using siblings_widget_ref_tuple_t = std::remove_cvref_t<decltype(std::declval<W>().apply(forward_ref_types_function_v))>;
 
         template<class W>
-        using siblings_widget_tuple_t = transform_tuple_t<std::remove_cvref_t, siblings_widget_ref_tuple_t<W>>;
+        using siblings_widget_tuple_t = transform_types_t<std::remove_cvref_t, siblings_widget_ref_tuple_t<W>>;
 
 
         template<class P, class S>
@@ -195,7 +195,7 @@ namespace widget
         template<class P, class... S>
         struct siblings_loop_type<P, std::tuple<S...>>
         {
-            using type = tuple_push_front_t<P, tuple_cat_t<typename siblings_loop_type<S, siblings_widget_tuple_t<S>>::type...>>;
+            using type = types_push_front_t<P, tuple_cat_t<typename siblings_loop_type<S, siblings_widget_tuple_t<S>>::type...>>;
         };
 
 

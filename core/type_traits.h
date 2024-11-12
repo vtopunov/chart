@@ -133,6 +133,13 @@ template <class To, template<class...> class Op, class... Args>
 constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
 
 
+template<size_t Value>
+using index_constant = std::integral_constant<size_t, Value>;
+
+template<size_t Value>
+constexpr index_constant<Value> index_constant_v{};
+
+
 template<class Fn, class... Args>
 using decl_call_t = decltype(std::declval<Fn>()(std::declval<Args>()...));
 

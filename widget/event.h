@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/tuple_algorithm.h>
+#include <core/types_algorithm.h>
 #include <core/functional.h>
 
 #include <ui/event.h>

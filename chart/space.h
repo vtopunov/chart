@@ -123,24 +123,24 @@ namespace chart
     template<class Tuple>
     struct subitems
     {
-        using items_has_space_type = tuple_has_call<Tuple, space_diagonal&>;
+        using items_has_space_type = types_has_call<Tuple, space_diagonal&>;
 
-        static constexpr auto items_has_background = tuple_has_call_v<Tuple, const shader::background_user&>;
+        static constexpr auto items_has_background = types_has_call_v<Tuple, const shader::background_user&>;
         static constexpr auto items_has_grid = std::conjunction_v<
             items_has_space_type,
-            tuple_has_call<Tuple, const shader::grid_user&, periodic_value_position>
+            types_has_call<Tuple, const shader::grid_user&, periodic_value_position>
         >;
         static constexpr auto items_has_lumpix_values = std::conjunction_v<
             items_has_space_type,
-            tuple_has_call<Tuple, lumpixspan, space_manipulation>
+            types_has_call<Tuple, lumpixspan, space_manipulation>
         >;
-        static constexpr auto items_has_luminance_figure = tuple_has_call_v<Tuple, const shader::luminance_figure_user&>;
+        static constexpr auto items_has_luminance_figure = types_has_call_v<Tuple, const shader::luminance_figure_user&>;
 
         using redraw_event_type = redraw_event_for_tuple_t<
-            tuple_push_back_if_t<
-            tuple_push_back_if_t<
-            tuple_push_back_if_t<
-            tuple_push_back_if_t<std::tuple<>,
+            types_push_back_if_t<
+            types_push_back_if_t<
+            types_push_back_if_t<
+            types_push_back_if_t<std::tuple<>,
             items_has_background, shader::background>,
             items_has_grid, shader::grid>,
             items_has_luminance_figure, shader::luminance_figure>,
