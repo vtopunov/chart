@@ -12,17 +12,65 @@
 
 namespace chart
 {
-    template<class Tuple>
-    struct subitems;
-
-    template<class Tuple, class... Args>
-    [[nodiscard]] constexpr auto caluculate_items(const Tuple& tuple_items, const Args&... args) noexcept
+    namespace private_detail_call_items
     {
-        return std::apply([&args...] (const auto&... items) noexcept
+        template<size_t... Indices, class Tuple, class... Args>
+        constexpr void void_ccall_items_impl(std::index_sequence<Indices...>, const Tuple& tuple_items, [[maybe_unused]] const Args&... args) noexcept
         {
-            return std::make_tuple(call_if_exist(items, args...)...);
-        }, tuple_items);
+            (std::invoke(std::get<Indices>(tuple_items), args...), ...);
+        }
+
+        template<size_t... Indices, class Tuple, class... Args>
+        [[nodiscard]] constexpr auto ccall_items_impl(std::index_sequence<Indices...>, const Tuple& tuple_items, [[maybe_unused]] const Args&... args) noexcept
+        {
+            if constexpr (sizeof...(Indices))
+            {
+                return std::make_tuple(std::invoke(std::get<Indices>(tuple_items), args...)...);
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        template<class... Args>
+        struct ccall_items_without_result_pred
+        {
+            template<class Fn>
+            struct type : call_without_result_is_detected<const Fn&, const Args&...>
+            {};
+        };
+
+        template<class... Args>
+        struct ccall_items_with_result_pred
+        {
+            template<class Fn>
+            struct type : call_with_result_is_detected<const Fn&, const Args&...>
+            {};
+        };
+
+        template<class Tuple, class... Args>
+        [[nodiscard]] constexpr auto ccall_items(const Tuple& tuple_items, const Args&... args) noexcept
+        {
+            using seq_t = std::make_index_sequence<std::tuple_size_v<Tuple>>;
+
+            using void_seq_t = types_sequence_if_t<
+                typename ccall_items_without_result_pred<Args...>::type,
+                Tuple, seq_t
+            >;
+
+            using result_seq_t = types_sequence_if_t<
+                typename ccall_items_with_result_pred<Args...>::type,
+                Tuple, seq_t
+            >;
+
+            void_ccall_items_impl(void_seq_t{}, tuple_items, args...);
+            return ccall_items_impl(result_seq_t{}, tuple_items, args...);
+        }
     }
+
+    using private_detail_call_items::ccall_items;
+
 
     template<class Tuple>
     [[nodiscard]] constexpr space_diagonal calculate_items_space(const Tuple& items) noexcept
@@ -50,29 +98,12 @@ namespace chart
         std::apply([&args...] (auto&... items) noexcept { (call_if_exist(items, args...), ...); }, items);
     }
 
-    template<class Tuple, class Shader, class... Args>
-    constexpr void draw_items(const Tuple& tuple_items, const Shader& shdr, const Args&... args) noexcept
-    {
-        std::apply([&shdr, &args...] (const auto&... items) noexcept
-        {
-            (call_if_exist(items, shdr, args...), ...);
-        }, tuple_items);
-    }
-
-    template<class Tuple, class Shader, class Layout>
-    constexpr void draw_items_for_layout(const Tuple& items, const Shader& shdr, const Layout& layout) noexcept
-    {
-        if constexpr (std::negation_v<std::is_same<no_overload, Layout>>)
-        {
-            draw_items(items, shdr, layout);
-        }
-    }
-
     template<class Tuple, class Shader, class Layouts>
     constexpr void draw_items_for_layouts(const Tuple& items, const Shader& shdr, const Layouts& tuple_layouts) noexcept
     {
-        std::apply([&items, &shdr] (const auto&... layouts)  noexcept {
-            (draw_items_for_layout(items, shdr, layouts), ...);
+        std::apply([&items, &shdr] (const auto&... layouts)  noexcept
+        {
+            (ccall_items(items, shdr, layouts), ...);
         }, tuple_layouts);
     }
 
@@ -91,7 +122,7 @@ namespace chart
 
         constexpr void clear_pixspace_cache() noexcept
         {
-             pixspace_sizes_cache = px::no_sizes;
+            pixspace_sizes_cache = px::no_sizes;
         }
 
         constexpr void clear_cache() noexcept
@@ -179,7 +210,7 @@ namespace chart
                         .use()
                         .geometry(geometry);
 
-                    draw_items(items, shdr);
+                    ccall_items(items, shdr);
                 }
 
                 {
@@ -192,7 +223,7 @@ namespace chart
                         };
 
                         [[maybe_unused]]
-                        const auto layouts = caluculate_items(items, sys);
+                        const auto layouts = ccall_items(items, sys);
 
                         if (space_sizes != space_ref.pixspace_sizes_cache)
                         {
@@ -224,7 +255,7 @@ namespace chart
                         .use()
                         .geometry(geometry);
 
-                    draw_items(items, shdr);
+                    ccall_items(items, shdr);
                 }
             }
         }

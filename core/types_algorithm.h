@@ -200,6 +200,48 @@ template<class Tuple, bool test, class T>
 using types_push_back_if_t = conditional_op_or_t<test, Tuple, types_push_back_t, Tuple, T>;
 
 
+template <template <class> class Pred, class Tuple, class Is, class ResultIs = std::index_sequence<> >
+struct types_sequence_if;
+
+template <template <class> class Pred, class Tuple, size_t... ResultIndices>
+struct types_sequence_if<
+    Pred, Tuple, std::index_sequence<>, std::index_sequence<ResultIndices...>
+>
+{
+    using type = std::index_sequence<ResultIndices...>;
+};
+
+template<
+    template <class> class Pred, 
+    template <class...> class Tuple, 
+    class... Types, 
+    size_t I0, size_t... Indices, 
+    size_t... ResultIndices
+>
+struct types_sequence_if<
+    Pred, Tuple<Types...>, 
+    std::index_sequence<I0, Indices...>, 
+    std::index_sequence<ResultIndices...>
+>
+{
+    using result_seq_type = std::conditional_t<
+        Pred<types_element_t<I0, Types...>>::value, 
+        std::index_sequence<ResultIndices..., I0>, 
+        std::index_sequence<ResultIndices...>
+    >;
+
+    using type = typename types_sequence_if<Pred, Tuple<Types...>, std::index_sequence<Indices...>, result_seq_type>::type;
+};
+
+template<template <class> class Pred, class Tuple, class Is>
+using types_sequence_if_t = typename types_sequence_if<Pred, Tuple, Is>::type;
+
+template<template <class> class Pred, class Tuple>
+using types_if_t = reorder_types_t<Tuple, 
+    types_sequence_if_t<Pred, Tuple, make_types_index_sequence<Tuple>>
+>;
+
+
 namespace private_detail_tuple_cat
 {
     template <template <class...> class Tuple, class... Tuples>

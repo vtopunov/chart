@@ -143,8 +143,17 @@ constexpr index_constant<Value> index_constant_v{};
 template<class Fn, class... Args>
 using decl_call_t = decltype(std::declval<Fn>()(std::declval<Args>()...));
 
+template<class Default, class Fn, class... Args>
+using call_result_or_t = detected_or_t<Default, decl_call_t, Fn, Args...>;
+
 template<class Fn, class... Args>
 using call_is_detected = is_detected<decl_call_t, Fn, Args...>;
+
+template<class Fn, class... Args>
+using call_without_result_is_detected = std::is_void<call_result_or_t<dummy, Fn, Args...>>;
+
+template<class Fn, class... Args>
+using call_with_result_is_detected = std::negation<std::is_void<call_result_or_t<void, Fn, Args...>>>;
 
 template<class Fn, class... Args>
 constexpr bool call_is_detected_v = call_is_detected<Fn, Args...>::value;
