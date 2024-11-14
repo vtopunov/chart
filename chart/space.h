@@ -17,29 +17,23 @@ namespace chart
         template<size_t... Indices, class Tuple, class... Args>
         constexpr void void_ccall_items_impl(std::index_sequence<Indices...>, const Tuple& tuple_items, [[maybe_unused]] const Args&... args) noexcept
         {
-            (std::invoke(std::get<Indices>(tuple_items), args...), ...);
+            (call_if_exist(std::get<Indices>(tuple_items), args...), ...);
         }
 
-        template<size_t... Indices, class Tuple, class... Args>
-        [[nodiscard]] constexpr auto ccall_items_impl(std::index_sequence<Indices...>, const Tuple& tuple_items, [[maybe_unused]] const Args&... args) noexcept
+        template<class Seq, class Tuple, class... Args>
+        [[nodiscard]] constexpr auto ccall_item_impl(Seq, const Tuple& tuple_items, const Args&... args) noexcept
         {
-            if constexpr (sizeof...(Indices))
+            if constexpr (0u < types_sequence_size_v<Seq>)
             {
-                return std::make_tuple(std::invoke(std::get<Indices>(tuple_items), args...)...);
+                static constexpr auto void_seq_and_index = types_pop_back<Seq>::value;
+                void_ccall_items_impl(void_seq_and_index.first, tuple_items, args...);
+                return call_if_exist(std::get<void_seq_and_index.second>(tuple_items), args...);
             }
             else
             {
                 return;
             }
         }
-
-        template<class... Args>
-        struct ccall_items_without_result_pred
-        {
-            template<class Fn>
-            struct type : call_without_result_is_detected<const Fn&, const Args&...>
-            {};
-        };
 
         template<class... Args>
         struct ccall_items_with_result_pred
@@ -49,23 +43,47 @@ namespace chart
             {};
         };
 
+        template<template <class> class Pred, class Seq, class Tuple, class Call, class... Results>
+        [[nodiscard]] constexpr auto ccall_items_impl(const Tuple& items, const Call& call, Results&&... results) noexcept
+        {
+            using split_seq_t = types_sequence_split_if_t<Pred, Tuple, Seq>;
+
+            using split_left_seq_t = typename split_seq_t::first_type;
+            using split_right_seq_t = typename split_seq_t::second_type;
+
+            if constexpr (0u < types_sequence_size_v<split_left_seq_t>)
+            {
+                return ccall_items_impl<
+                    Pred, split_right_seq_t
+                >(items, call, std::move(results)..., call(split_left_seq_t{}, items));
+            }
+            else
+            {
+                call(Seq{}, items);
+
+                if constexpr (sizeof...(results))
+                {
+                    return std::make_tuple(std::move(results)...);
+                }
+                else
+                {
+                    return;
+                }
+            }
+        }
+
         template<class Tuple, class... Args>
         [[nodiscard]] constexpr auto ccall_items(const Tuple& tuple_items, const Args&... args) noexcept
         {
-            using seq_t = std::make_index_sequence<std::tuple_size_v<Tuple>>;
+            const auto call = [&args...] (auto seq, const auto& tuple_items) noexcept
+            {
+                return ccall_item_impl(seq, tuple_items, args...);
+            };
 
-            using void_seq_t = types_sequence_if_t<
-                typename ccall_items_without_result_pred<Args...>::type,
-                Tuple, seq_t
-            >;
-
-            using result_seq_t = types_sequence_if_t<
+            return ccall_items_impl<
                 typename ccall_items_with_result_pred<Args...>::type,
-                Tuple, seq_t
-            >;
-
-            void_ccall_items_impl(void_seq_t{}, tuple_items, args...);
-            return ccall_items_impl(result_seq_t{}, tuple_items, args...);
+                std::make_index_sequence<std::tuple_size_v<Tuple>>
+            >(tuple_items, call);
         }
     }
 

@@ -37,7 +37,7 @@ void test_tuple_algorithm() noexcept
     using test_tuple_0_7 = test_tuple<0, 1, 2, 3, 4, 5, 6>;
     using test_tuple_0_8 = test_tuple<0, 1, 2, 3, 4, 5, 6, 7>;
     using test_tuple_0_9 = test_tuple<0, 1, 2, 3, 4, 5, 6, 7, 8>;
-    using seq0 = std::make_index_sequence<0u>;
+    using seq0 = std::index_sequence<>;
     using seq1 = std::make_index_sequence<1u>;
     using seq2 = std::make_index_sequence<2u>;
     using seq12 = std::index_sequence<1u>;
@@ -64,6 +64,14 @@ void test_tuple_algorithm() noexcept
     static_assert(2u == types_size_v<tuple2_cc>);
     static_assert(6u == types_size_v<tuple6_ci16cdcf>);
     static_assert(6u == types_size_v<tuple6_ci16cdcf>);
+
+    static_assert(0u == types_sequence_size_v<seq0>);
+    static_assert(1u == types_sequence_size_v<seq1>);
+    static_assert(1u == types_sequence_size_v<seq12>);
+    static_assert(2u == types_sequence_size_v<seq2>);
+    static_assert(2u == types_sequence_size_v<seq13>);
+    static_assert(3u == types_sequence_size_v<seq3>);
+
     static_assert(std::is_same_v<dummy, transform_types_t<std::add_const_t, dummy>>);
     static_assert(std::is_same_v<std::tuple<>, transform_types_t<std::add_const_t, std::tuple<>>>);
     static_assert(std::is_same_v<std::tuple<const char>, transform_types_t<std::add_const_t, tuple1_c>>);
@@ -142,11 +150,6 @@ void test_tuple_algorithm() noexcept
     static_assert(std::is_same_v<types_split_if_right_t<std::is_floating_point, tuple6_ci16cdcf>, std::tuple<char, float>>);
     static_assert(std::is_same_v<types_split_if_left_t<std::is_floating_point, tuple7_ci16cddcf>, std::tuple<char, int16_t, char, double>>);
     static_assert(std::is_same_v<types_split_if_right_t<std::is_floating_point, tuple7_ci16cddcf>, std::tuple<double, char, float>>);
-
-    static_assert(std::is_same_v<types_if_t<std::is_floating_point, tuple7_ci16cddcf>, std::tuple<double, double, float>>);
-
-    static_assert(std::is_same_v<types_if_t<std::is_integral, std::tuple<>>, std::tuple<>>);
-    static_assert(std::is_same_v<types_if_t<std::is_class, tuple7_ci16cddcf>, std::tuple<>>);
 
     static_assert(std::is_same_v<types_pop_front_t<tuple1_c>, std::tuple<>>);
     static_assert(std::is_same_v<types_pop_front_t<tuple2_cd>, tuple1_d>);

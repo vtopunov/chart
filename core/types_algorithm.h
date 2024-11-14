@@ -12,6 +12,17 @@ struct types_size<Tuple<Types...>> : index_constant<sizeof...(Types)> {};
 template<class T>
 constexpr size_t types_size_v = types_size<T>::value;
 
+
+template<class T>
+struct types_sequence_size : index_constant<0u> {};
+
+template<class SeqT, template <class, SeqT...> class Tuple, SeqT... Values>
+struct types_sequence_size<Tuple<SeqT, Values...>> : index_constant<sizeof...(Values)> {};
+
+template<class T>
+constexpr size_t types_sequence_size_v = types_sequence_size<T>::value;
+
+
 template<template <class> class Fn, class Tuple>
 struct transform_types
 {
