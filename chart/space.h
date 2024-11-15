@@ -12,58 +12,60 @@
 
 namespace chart
 {
-    namespace private_detail_call_items
+    namespace private_detail_chart_space_calls
     {
-        template<size_t... Indices, class Tuple, class... Args>
-        constexpr void void_ccall_items_impl(std::index_sequence<Indices...>, const Tuple& tuple_items, [[maybe_unused]] const Args&... args) noexcept
+        template<size_t... Indices, class... Types, class Value>
+        constexpr auto tupleref_push_back(std::index_sequence<Indices...>, std::tuple<Types&&...>&& tuple, Value&& value) noexcept
         {
-            (call_if_exist(std::get<Indices>(tuple_items), args...), ...);
+            return std::forward_as_tuple(std::forward<Types>(std::get<Indices>(std::move(tuple)))..., std::forward<Value>(value));
         }
 
-        template<class Seq, class Tuple, class... Args>
-        [[nodiscard]] constexpr auto ccall_item_impl(Seq, const Tuple& tuple_items, const Args&... args) noexcept
+        template<size_t Index, class... Results, class TupleItems, class... Args>
+        [[nodiscard]] constexpr auto call_items_impl(
+            [[maybe_unused]] std::tuple<Results&&...>&& results,
+            [[maybe_unused]] TupleItems&& items,
+            [[maybe_unused]] Args&&... args
+        ) noexcept
         {
-            if constexpr (0u < types_sequence_size_v<Seq>)
+            if constexpr (Index < types_size_v<std::remove_cvref_t<TupleItems>>)
             {
-                static constexpr auto void_seq_and_index = types_pop_back<Seq>::value;
-                void_ccall_items_impl(void_seq_and_index.first, tuple_items, args...);
-                return call_if_exist(std::get<void_seq_and_index.second>(tuple_items), args...);
-            }
-            else
-            {
-                return;
-            }
-        }
+                using result_t = std::remove_cvref_t<decltype(call_if_exist(std::get<Index>(std::forward<TupleItems>(items)), std::forward<Args>(args)...))>;
 
-        template<class... Args>
-        struct ccall_items_with_result_pred
-        {
-            template<class Fn>
-            struct type : call_with_result_is_detected<const Fn&, const Args&...>
-            {};
-        };
+                constexpr auto call_is_void = std::is_void_v<result_t>;
+                constexpr auto call_is_not_exist = std::is_same_v<result_t, no_overload>;
 
-        template<template <class> class Pred, class Seq, class Tuple, class Call, class... Results>
-        [[nodiscard]] constexpr auto ccall_items_impl(const Tuple& items, const Call& call, Results&&... results) noexcept
-        {
-            using split_seq_t = types_sequence_split_if_t<Pred, Tuple, Seq>;
-
-            using split_left_seq_t = typename split_seq_t::first_type;
-            using split_right_seq_t = typename split_seq_t::second_type;
-
-            if constexpr (0u < types_sequence_size_v<split_left_seq_t>)
-            {
-                return ccall_items_impl<
-                    Pred, split_right_seq_t
-                >(items, call, std::move(results)..., call(split_left_seq_t{}, items));
-            }
-            else
-            {
-                call(Seq{}, items);
-
-                if constexpr (sizeof...(results))
+                if constexpr (call_is_void || call_is_not_exist)
                 {
-                    return std::make_tuple(std::move(results)...);
+                    if constexpr (call_is_void)
+                    {
+                        call_if_exist(
+                            std::get<Index>(std::forward<TupleItems>(items)),
+                            std::forward<Args>(args)...
+                        );
+                    }
+
+                    return call_items_impl<Index + 1u>(
+                        std::move(results),
+                        std::forward<TupleItems>(items),
+                        std::forward<Args>(args)...
+                    );
+                }
+                else
+                {
+                    auto&& result = call_if_exist(std::get<Index>(std::forward<TupleItems>(items)), std::forward<Args>(args)...);
+
+                    return call_items_impl<Index + 1u>(
+                        tupleref_push_back(std::make_index_sequence<sizeof...(Results)>{}, std::move(results), std::move(result)),
+                        std::forward<TupleItems>(items),
+                        std::forward<Args>(args)...
+                    );
+                }
+            }
+            else
+            {
+                if constexpr (0u < sizeof...(Results))
+                {
+                    return std::make_from_tuple<std::tuple<std::remove_cvref_t<Results>...>>(std::move(results));
                 }
                 else
                 {
@@ -73,28 +75,47 @@ namespace chart
         }
 
         template<class Tuple, class... Args>
-        [[nodiscard]] constexpr auto ccall_items(const Tuple& tuple_items, const Args&... args) noexcept
+        [[nodiscard]] constexpr auto call_items(Tuple&& items, Args&&... args) noexcept
         {
-            const auto call = [&args...] (auto seq, const auto& tuple_items) noexcept
-            {
-                return ccall_item_impl(seq, tuple_items, args...);
-            };
+            std::tuple<> results{};
 
-            return ccall_items_impl<
-                typename ccall_items_with_result_pred<Args...>::type,
-                std::make_index_sequence<std::tuple_size_v<Tuple>>
-            >(tuple_items, call);
+            return call_items_impl<0u>(
+                std::move(results),
+                std::forward<Tuple>(items),
+                std::forward<Args>(args)...
+            );
+        }
+
+        template<size_t... Indices, class Layouts, class Tuple, class... Args>
+        constexpr void call_layouts_impl(
+            std::index_sequence<Indices...>, 
+            [[maybe_unused]] Layouts&& layouts, 
+            [[maybe_unused]] Tuple&& items, 
+            [[maybe_unused]] Args&&... args) noexcept
+        {
+            (call_items(std::forward<Tuple>(items), std::forward<Args>(args)..., std::get<Indices>(std::forward<Layouts>(layouts))), ...);
+        }
+
+        template<class Layouts, class Tuple, class... Args>
+        constexpr void call_layouts(Layouts&& layouts, Tuple&& items, Args&&... args) noexcept
+        {
+            call_layouts_impl(
+                std::make_index_sequence<types_size_v<std::remove_cvref_t<Layouts>>>{},
+                std::forward<Layouts>(layouts),
+                std::forward<Tuple>(items),
+                std::forward<Args>(args)...
+            );
         }
     }
 
-    using private_detail_call_items::ccall_items;
-
+    using private_detail_chart_space_calls::call_items;
+    using private_detail_chart_space_calls::call_layouts;
 
     template<class Tuple>
     [[nodiscard]] constexpr space_diagonal calculate_items_space(const Tuple& items) noexcept
     {
         space_diagonal diagonal{ space_diagonal_initializer };
-        std::apply([&diagonal] (const auto&... items) noexcept { (call_if_exist(items, diagonal), ...); }, items);
+        call_items(items, diagonal);
         return diagonal;
     }
 
@@ -110,20 +131,6 @@ namespace chart
         return space.has_value() || try_first_update_items_space(space, items, sizes);
     }
 
-    template<class Tuple, class... Args>
-    constexpr void draw_items_to_cache(Tuple& items, const Args&... args) noexcept
-    {
-        std::apply([&args...] (auto&... items) noexcept { (call_if_exist(items, args...), ...); }, items);
-    }
-
-    template<class Tuple, class Shader, class Layouts>
-    constexpr void draw_items_for_layouts(const Tuple& items, const Shader& shdr, const Layouts& tuple_layouts) noexcept
-    {
-        std::apply([&items, &shdr] (const auto&... layouts)  noexcept
-        {
-            (ccall_items(items, shdr, layouts), ...);
-        }, tuple_layouts);
-    }
 
     struct space
     {
@@ -228,7 +235,7 @@ namespace chart
                         .use()
                         .geometry(geometry);
 
-                    ccall_items(items, shdr);
+                    call_items(items, shdr);
                 }
 
                 {
@@ -241,7 +248,7 @@ namespace chart
                         };
 
                         [[maybe_unused]]
-                        const auto layouts = ccall_items(items, sys);
+                        const auto layouts = call_items(items, sys);
 
                         if (space_sizes != space_ref.pixspace_sizes_cache)
                         {
@@ -250,7 +257,7 @@ namespace chart
                             if constexpr (items_has_lumpix_values)
                             {
                                 const auto image = px::create_lumpixspan(e.template get<buffer_view>(), space_sizes);
-                                draw_items_to_cache(items, image, sys);
+                                call_items(items, image, sys);
                             }
                         }
 
@@ -261,7 +268,7 @@ namespace chart
                                 .use()
                                 .geometry(geometry);
 
-                            draw_items_for_layouts(items, shdr, layouts);
+                            call_layouts(layouts, items, shdr);
                         }
                     }
                 }
@@ -273,7 +280,7 @@ namespace chart
                         .use()
                         .geometry(geometry);
 
-                    ccall_items(items, shdr);
+                    call_items(items, shdr);
                 }
             }
         }

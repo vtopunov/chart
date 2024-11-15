@@ -38,9 +38,6 @@ struct transform_types<Fn, Tuple<Types...>>
 template<template <class> class Fn, class Tuple>
 using transform_types_t = typename transform_types<Fn, Tuple>::type;
 
-template<class Tuple>
-using make_types_index_sequence = std::make_index_sequence<types_size_v<Tuple>>;
-
 
 template <class T, class Tuple>
 struct types_has_type : std::false_type
@@ -156,7 +153,7 @@ using reorder_types_t = typename reorder_types<Tuple, Is>::type;
 template <size_t I, size_t J, class Tuple>
 using types_swap_type = reorder_types<
     Tuple,
-    swap_index_sequence_t<I, J, make_types_index_sequence<Tuple>>
+    swap_index_sequence_t<I, J, std::make_index_sequence<types_size_v<Tuple>>>
 >;
 
 template<size_t I, size_t J, class Tuple>
@@ -239,104 +236,6 @@ template<class Tuple, bool test, class T>
 using types_push_back_if_t = conditional_op_or_t<test, Tuple, types_push_back_t, Tuple, T>;
 
 
-template <template <class> class Pred, class Tuple, class Is, class ResultIs = std::index_sequence<> >
-struct types_sequence_if;
-
-template <template <class> class Pred, class Tuple, size_t... ResultIndices>
-struct types_sequence_if<
-    Pred, Tuple, std::index_sequence<>, std::index_sequence<ResultIndices...>
->
-{
-    using type = std::index_sequence<ResultIndices...>;
-};
-
-template<
-    template <class> class Pred,
-    template <class...> class Tuple,
-    class... Types,
-    size_t I0, size_t... Indices,
-    size_t... ResultIndices
->
-struct types_sequence_if<
-    Pred, Tuple<Types...>,
-    std::index_sequence<I0, Indices...>,
-    std::index_sequence<ResultIndices...>
->
-{
-    using result_seq_type = std::conditional_t<
-        Pred<types_element_t<I0, Types...>>::value,
-        std::index_sequence<ResultIndices..., I0>,
-        std::index_sequence<ResultIndices...>
-    >;
-
-    using type = typename types_sequence_if<Pred, Tuple<Types...>, std::index_sequence<Indices...>, result_seq_type>::type;
-};
-
-template<template <class> class Pred, class Tuple, class Is>
-using types_sequence_if_t = typename types_sequence_if<Pred, Tuple, Is>::type;
-
-template<template <class> class Pred, class Tuple>
-using types_if_t = reorder_types_t<Tuple,
-    types_sequence_if_t<Pred, Tuple, make_types_index_sequence<Tuple>>
->;
-
-
-template <template <class> class Pred, class Tuple, class SourceSeq, class TreatSeq = std::index_sequence<> >
-struct types_sequence_split_if;
-
-template <template <class> class Pred, class Tuple, size_t... TreatIndices>
-struct types_sequence_split_if<
-    Pred, Tuple, std::index_sequence<>, std::index_sequence<TreatIndices...>
->
-{
-    using type = std::pair<std::index_sequence<>, std::index_sequence<>>;
-};
-
-template<
-    template <class> class Pred,
-    template <class...> class Tuple,
-    class... Types,
-    size_t I0, size_t... SourceIndices,
-    size_t... TreatIndices
->
-struct types_sequence_split_if<
-    Pred, Tuple<Types...>,
-    std::index_sequence<I0, SourceIndices...>,
-    std::index_sequence<TreatIndices...>
->
-{
-    using source_seq = std::index_sequence<SourceIndices...>;
-    using treat_seq = std::index_sequence<TreatIndices..., I0>;
-    static constexpr bool has_split{ Pred<types_element_t<I0, Types...>>::value };
-
-    using type = typename std::conditional_t<has_split,
-        std::type_identity<std::pair<treat_seq, source_seq>>,
-        types_sequence_split_if<Pred, Tuple<Types...>, source_seq, treat_seq>
-    >::type;
-};
-
-template<template <class> class Pred, class Tuple, class Is>
-using types_sequence_split_if_t = typename types_sequence_split_if<Pred, Tuple, Is>::type;
-
-template<template <class> class Pred, class Tuple>
-struct types_split_if
-{
-    using sequence_type = types_sequence_split_if_t<Pred, Tuple, make_types_index_sequence<Tuple>>;
-    using left_type = reorder_types_t<Tuple, typename sequence_type::first_type>;
-    using right_type = reorder_types_t<Tuple, typename sequence_type::second_type>;
-    using type = std::pair<left_type, right_type>;
-};
-
-template<template <class> class Pred, class Tuple>
-using types_split_if_t = typename types_split_if<Pred, Tuple>::type;
-
-template<template <class> class Pred, class Tuple>
-using types_split_if_left_t = typename types_split_if<Pred, Tuple>::left_type;
-
-template<template <class> class Pred, class Tuple>
-using types_split_if_right_t = typename types_split_if<Pred, Tuple>::right_type;
-
-
 namespace private_detail_tuple_cat
 {
     template <template <class...> class Tuple, class... Tuples>
@@ -387,7 +286,7 @@ struct min_types_index_element_type<Cmp, Tuple<Types...>, std::index_sequence<I0
 >
 {};
 
-template<template <class, class> class Cmp, class Tuple, class IS = make_types_index_sequence<Tuple> >
+template<template <class, class> class Cmp, class Tuple, class IS = std::make_index_sequence<types_size_v<Tuple>> >
 constexpr auto min_types_index_element_v = min_types_index_element_type<Cmp, Tuple, IS>::value;
 
 
@@ -415,7 +314,7 @@ struct sort_types_indices<Cmp, Tuple, std::index_sequence<I0, Indices...> >
     >;
 };
 
-template<template <class, class> class Cmp, class Tuple, class IS = make_types_index_sequence<Tuple>>
+template<template <class, class> class Cmp, class Tuple, class IS = std::make_index_sequence<types_size_v<Tuple>>>
 using sort_types_indices_t = typename sort_types_indices<Cmp, Tuple, IS>::type;
 
 template <template <class, class> class Cmp, class Tuple>

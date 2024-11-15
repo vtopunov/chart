@@ -108,7 +108,7 @@ namespace widget
         template<class Fn>
         decltype(auto) apply(Fn fn) noexcept
         {
-            return apply_impl(fn, tuple_, make_types_index_sequence<tuple_type>{});
+            return apply_impl(fn, tuple_, std::index_sequence_for<Types...>{});
         }
 
     private:

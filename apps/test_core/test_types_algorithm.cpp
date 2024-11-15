@@ -75,9 +75,7 @@ void test_tuple_algorithm() noexcept
     static_assert(std::is_same_v<dummy, transform_types_t<std::add_const_t, dummy>>);
     static_assert(std::is_same_v<std::tuple<>, transform_types_t<std::add_const_t, std::tuple<>>>);
     static_assert(std::is_same_v<std::tuple<const char>, transform_types_t<std::add_const_t, tuple1_c>>);
-
     static_assert(std::is_same_v<std::tuple<const double, const char>, transform_types_t<std::add_const_t, std::tuple<double, char>>>);
-    static_assert(std::is_same_v<std::make_index_sequence<6u>, make_types_index_sequence<tuple6_ci16cdcf>>);
 
     static_assert(types_has_type_v<test_type<0>, test_tuple_0_5>);
     static_assert(types_has_type_v<test_type<4>, test_tuple_0_5>);
@@ -123,33 +121,6 @@ void test_tuple_algorithm() noexcept
     static_assert(std::is_same_v<reorder_types_t<seq4, seq14>, seq14>);
     static_assert(std::is_same_v<reorder_types_t<seq4, seq13>, seq13>);
     static_assert(std::is_same_v<reorder_types_t<seq4, seq31>, seq31>);
-
-    static_assert(std::is_same_v<types_if_t<std::is_integral, std::tuple<>>, std::tuple<>>);
-    static_assert(std::is_same_v<types_if_t<std::is_integral, tuple2_cd>, tuple1_c>);
-    static_assert(std::is_same_v<types_if_t<std::is_floating_point, tuple2_cd>, tuple1_d>);
-    static_assert(std::is_same_v<types_if_t<std::is_arithmetic, tuple2_cd>, tuple2_cd>);
-    static_assert(std::is_same_v<types_if_t<std::is_class, tuple2_cd>, std::tuple<>>);
-    static_assert(std::is_same_v<types_if_t<std::is_integral, tuple2_cd>, tuple1_c>);
-    static_assert(std::is_same_v<types_if_t<std::is_floating_point, tuple6_ci16cdcf>, std::tuple<double, float>>);
-    static_assert(std::is_same_v<types_if_t<std::is_floating_point, tuple7_ci16cddcf>, std::tuple<double, double, float>>);
-    static_assert(std::is_same_v<types_if_t<std::is_class, tuple7_ci16cddcf>, std::tuple<>>);
-
-    static_assert(std::is_same_v<types_split_if_left_t<std::is_integral, std::tuple<>>, std::tuple<>>);
-    static_assert(std::is_same_v<types_split_if_right_t<std::is_integral, std::tuple<>>, std::tuple<>>);
-    static_assert(std::is_same_v<types_split_if_left_t<std::is_integral, tuple1_c>, tuple1_c>);
-    static_assert(std::is_same_v<types_split_if_right_t<std::is_integral, tuple1_c>, std::tuple<>>);
-    static_assert(std::is_same_v<types_split_if_left_t<std::is_integral, tuple2_cd>, tuple1_c>);
-    static_assert(std::is_same_v<types_split_if_right_t<std::is_integral, tuple2_cd>, tuple1_d>);
-    static_assert(std::is_same_v<types_split_if_left_t<std::is_floating_point, tuple2_cd>, tuple2_cd>);
-    static_assert(std::is_same_v<types_split_if_right_t<std::is_floating_point, tuple2_cd>, std::tuple<>>);
-    static_assert(std::is_same_v<types_split_if_left_t<std::is_arithmetic, tuple2_cd>, tuple1_c>);
-    static_assert(std::is_same_v<types_split_if_right_t<std::is_arithmetic, tuple2_cd>, tuple1_d>);
-    static_assert(std::is_same_v<types_split_if_left_t<std::is_class, tuple2_cd>, std::tuple<>>);
-    static_assert(std::is_same_v<types_split_if_right_t<std::is_class, tuple2_cd>, std::tuple<>>);
-    static_assert(std::is_same_v<types_split_if_left_t<std::is_floating_point, tuple6_ci16cdcf>, std::tuple<char, int16_t, char, double>>);
-    static_assert(std::is_same_v<types_split_if_right_t<std::is_floating_point, tuple6_ci16cdcf>, std::tuple<char, float>>);
-    static_assert(std::is_same_v<types_split_if_left_t<std::is_floating_point, tuple7_ci16cddcf>, std::tuple<char, int16_t, char, double>>);
-    static_assert(std::is_same_v<types_split_if_right_t<std::is_floating_point, tuple7_ci16cddcf>, std::tuple<double, char, float>>);
 
     static_assert(std::is_same_v<types_pop_front_t<tuple1_c>, std::tuple<>>);
     static_assert(std::is_same_v<types_pop_front_t<tuple2_cd>, tuple1_d>);
