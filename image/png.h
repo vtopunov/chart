@@ -161,7 +161,7 @@ namespace image
         png_color_type color_type() const noexcept;
 
         [[nodiscard]]
-        pxsize2d sizes() const noexcept
+        pxsizes sizes() const noexcept
         {
             return { width(), height() };
         }

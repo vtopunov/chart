@@ -3,7 +3,7 @@
   <Import Project="base_egl_ui_app.props" />
   
   <ItemGroup>
-    <ProjectReference Include="$(RepoDir)\gl\gl.vcxproj">
+    <ProjectReference Include="$(RepoDir)\gl_core\gl_core.vcxproj">
       <Project>{24516ac3-b08d-4a84-a63c-735a50200b28}</Project>
     </ProjectReference>
   </ItemGroup>

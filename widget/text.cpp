@@ -19,7 +19,7 @@ namespace widget
         };
     }
 
-    bool text_cache::draw(buffer_view buffer, font::face_descriptor_t face, std::u8string_view text, pxsize2d sizes) noexcept
+    bool text_cache::draw(buffer_view buffer, font::face_descriptor_t face, std::u8string_view text, pxsizes sizes) noexcept
     {
         if (is_empty() && !text.empty())
         {

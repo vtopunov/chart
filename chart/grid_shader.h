@@ -10,7 +10,7 @@ namespace chart
     {
         namespace vert
         {
-            using grid = ::vert::positioned_rectangle;
+            using grid = shader_embed::vert::positioned_rectangle;
         }
 
         namespace frag
@@ -19,7 +19,7 @@ namespace chart
             {
                 static constexpr auto eps = 0.1;
 
-                static constexpr auto shader_text = R"(
+                static constexpr auto source = R"(
                     precision mediump float;
 
                     uniform vec2 u_position;
@@ -54,47 +54,49 @@ namespace chart
                             gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
                         }
                     }
-                )"_glsl;
+                )"_frag_glsl;
 
-                gl::uniform_vec4f color{ gl::invaliduniform };
-                uniform_vec2glpx width{ gl::invaliduniform };
-                uniform_vec2glpx begin{ gl::invaliduniform };
-                uniform_vec2glpx repeat{ gl::invaliduniform };
-
-                template<class Serializer>
-                constexpr void serialize(Serializer& ser) noexcept
+                struct ex_exports
                 {
-                    ser(color, "u_color"_zsv);
-                    ser(width, "u_width"_zsv);
-                    ser(begin, "u_begin"_zsv);
-                    ser(repeat, "u_repeat"_zsv);
-                }
+                    static constexpr shader_export::pxfvec width{ "u_width"_zsv };
+                    static constexpr shader_export::pxfvec begin{ "u_begin"_zsv };
+                    static constexpr shader_export::pxfvec repeat{ "u_repeat"_zsv };
+
+                    template<class Fn>
+                    static constexpr decltype(auto) apply(Fn&& fn) noexcept
+                    {
+                        return std::forward<Fn>(fn)(width, begin, repeat);
+                    }
+
+                    template<class Lib>
+                    struct interface
+                    {
+                        static constexpr shader_common::import_engine<Lib> import{};
+
+                        void width(pxvec new_width) const noexcept
+                        {
+                            constexpr auto store = import(ex_exports::width);
+                            store(*this, new_width);
+                        }
+
+                        void begin(px::real_vec2 new_begin) const noexcept
+                        {
+                            constexpr auto store = import(ex_exports::begin);
+                            store(*this, new_begin);
+                        }
+
+                        void repeat(px::real_vec2 new_repeat) const noexcept
+                        {
+                            constexpr auto store = import(ex_exports::repeat);
+                            store(*this, new_repeat);
+                        }
+                    };
+                };
+
+                using exports = types_cat_t<shader_embed::frag::default_color::exports, ex_exports>;
             };
         }
 
-        struct grid_user : widget_shader_user<grid_user, vert::grid, frag::grid>
-        {
-            using widget_shader_user::frag;
-
-            const grid_user& width(pxvec2d new_width) const noexcept
-            {
-                frag().width(new_width);
-                return *this;
-            }
-
-            const grid_user& begin(real_vec2 new_width) const noexcept
-            {
-                frag().begin(new_width);
-                return *this;
-            }
-
-            const grid_user& repeat(real_vec2 new_width) const noexcept
-            {
-                frag().repeat(new_width);
-                return *this;
-            }
-        };
-
-        using grid = widget_shader_library<vert::grid, frag::grid, grid_user>;
+        using grid = shader_library<vert::grid, frag::grid>;
     }
 }

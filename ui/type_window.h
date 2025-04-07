@@ -11,7 +11,7 @@ namespace ui
 {
     struct type_window_parameters;
 
-    using type_window_handle_t = D_CONDITIONAL_OS_ANDROID(sensor_event_queue_resource, const wchar_t*);
+    using type_window_handle_t = D_OS_ANDROID_OR(sensor_event_queue_resource, const wchar_t*);
 
     struct type_window_resource
     {

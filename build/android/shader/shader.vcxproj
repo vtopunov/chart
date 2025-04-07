@@ -10,13 +10,19 @@
       <Platform>ARM</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <IntDir>$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <Keyword>Android</Keyword>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
-    <ProjectGuid>{40EAF3CF-7215-4353-9A89-883B91118195}</ProjectGuid>
+    <ProjectGuid>{A16B93DF-2DD5-4C5E-8E07-53A7161202E1}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
@@ -34,23 +40,10 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\static_library.props" />
   <ItemGroup>
-    <ClCompile Include="$(RepoDir)\gl\shader.cpp" />
-    <ClCompile Include="$(RepoDir)\gl\draw.cpp" />
-    <ClCompile Include="$(RepoDir)\gl\texture.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="$(RepoDir)\gl\config.h" />
-    <ClInclude Include="$(RepoDir)\gl\glsl_typeid.h" />
-    <ClInclude Include="$(RepoDir)\gl\shader.h" />
-    <ClInclude Include="$(RepoDir)\gl\color.h" />
-    <ClInclude Include="$(RepoDir)\gl\draw.h" />
-    <ClInclude Include="$(RepoDir)\gl\texture.h" />
-    <ClInclude Include="$(RepoDir)\gl\vertex.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(AndroidThirdPartyDir)\fmt\libfmt.vcxproj">
-      <Project>{9c883076-1fce-4950-b4e8-d40a0fff03b5}</Project>
-    </ProjectReference>
+    <ClInclude Include="..\..\..\shader\common.h" />
+    <ClInclude Include="..\..\..\shader\export.h" />
+    <ClInclude Include="..\..\..\shader\library.h" />
+    <ClInclude Include="..\..\..\shader\minembed.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

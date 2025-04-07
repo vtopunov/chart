@@ -10,14 +10,15 @@ namespace
     class simple_widget
     {
     public:
-        bool operator () (widget::basic_initialization_event<> e) noexcept
+        bool operator () (widget::basic_initialization_event<>) noexcept
         {
-            return lib_(e);
+            return lib_.load();
         }
 
         void operator () (widget::viewport_event<> e) noexcept
         {
-            return lib_(e);
+            lib_.use();
+            lib_.viewport(e.viewport());
         }
 
         constexpr widget::event_result operator () (const ui::size_event&) const noexcept
@@ -31,19 +32,19 @@ namespace
             constexpr vec2 begin{ 0.0, 0.0/*31.758812359218691*/ };
             constexpr vec2 repeat{ 84.03424182445018, 40.250049755960461 /*60.046324227548830*/ };
 
-            lib_.use()
-                .position(geometry.position)
-                .sizes(widget::stretchable_sizes(geometry, e))
-                .color(colors::green_f)
-                .width(width)
-                .begin(begin)
-                .repeat(repeat)
-                .draw();
+            lib_.use();
+            lib_.position(geometry.position);
+            lib_.sizes(widget::stretchable_sizes(geometry, e));
+            lib_.color(colors::green_f);
+            lib_.width(width);
+            lib_.begin(begin);
+            lib_.repeat(repeat);
+            lib_.draw();
         }
 
-        constexpr widget::noapply_t apply(no_overload) const noexcept
+        constexpr noapply_t apply(no_overload) const noexcept
         {
-            return widget::noapply;
+            return noapply;
         }
 
     private:

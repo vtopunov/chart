@@ -1,6 +1,6 @@
 #include <core/buffer.h>
 
-#include <gl/draw.h>
+#include <gl_core/draw.h>
 
 #include <debug/debug.h>
 
@@ -26,7 +26,7 @@ namespace
                     gl_Position = vec4(a_position, 0.0, 1.0);
                     v_texture = a_texture;
                 }
-            )"_glsl,
+            )"_vert_glsl,
             R"(
                 precision mediump float;
 
@@ -43,7 +43,7 @@ namespace
                     mix_color = texture2D(s_mix_texture, v_texture);
                     gl_FragColor = base_color * (mix_color + 0.25);
                 }
-           )"_glsl
+           )"_frag_glsl
         );
 
         static const auto attributes = gl::get_attribute_locations(shaders, "a_position"_zsv, "a_texture"_zsv);

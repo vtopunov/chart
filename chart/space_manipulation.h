@@ -19,7 +19,7 @@ namespace chart
     };
 
     [[nodiscard]]
-    constexpr space_diagonal make_pxspace_diagonal(pxsize2d sizes) noexcept
+    constexpr space_diagonal make_pxspace_diagonal(pxsizes sizes) noexcept
     {
         constexpr real_t real_zero{ zero_v<> };
         D_ASSERT(sizes.has_positive_square());

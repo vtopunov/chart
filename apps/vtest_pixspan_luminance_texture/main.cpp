@@ -4,11 +4,9 @@
 
 #include <debug/debug.h>
 
-#include <px/pixspan.h>
-
 #include <egl_ui/egl_ui_owner.h>
 
-#include <utility/shader_library.h>
+#include <shader/library.h>
 
 
 namespace
@@ -79,24 +77,21 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shader_library<vert::positioned_texture, frag::luminance_texture_mix_color>  shaders{};
-    if (!shaders.build())
+    shader_embed::luminance_texture shaders{};
+    if (!shaders.load())
     {
         e_debug("build shaders program error");
         return EXIT_FAILURE;
     }
 
     shaders.use();
-    shaders.vert().size(texture.sizes());
-    shaders.vert().viewport(egl.viewport());
-    shaders.frag().texture(texture);
+    shaders.viewport(egl.viewport());
+    shaders.texture(texture);
 
     {
         const egl_painting_owner painting_owner{ egl };
         gl::viewport(egl.viewport());
         gl::clear(colors::white_f);
-
-        const auto vb = shaders.vert().frame();
 
         const auto [w, h] = egl.viewport();
         const auto dx = texture.width() + 1_npx;
@@ -110,9 +105,9 @@ int app_main(os::module_handle_t app) noexcept
 
             for (npx_t y = 0_npx; y < h; y += dy)
             {
-                shaders.frag().color(to_colorf(xy_color_lerp(y)));
-                shaders.vert().position(x, y);
-                vb.draw();
+                shaders.color(to_colorf(xy_color_lerp(y)));
+                shaders.position(x, y);
+                shaders.draw();
             }
         }
     }

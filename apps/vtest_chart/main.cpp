@@ -3,8 +3,9 @@
 
 #include <chart/space.h>
 #include <chart/background.h>
-#include <chart/grid.h>
 #include <chart/polyline.h>
+#include <chart/grid.h>
+#include <chart/value_labels.h>
 
 
 namespace
@@ -33,12 +34,12 @@ namespace
             point2d
             {
                 narrow<npx_t>(20_npx + n * (5_npx + button_width)),
-                D_CONDITIONAL_OS_ANDROID(60_npx, 20_npx)
+                D_OS_ANDROID_OR(60_npx, 20_npx)
             },
             size2d
             {
                 button_width,
-                D_CONDITIONAL_OS_ANDROID(60_npx, 40_npx)
+                D_OS_ANDROID_OR(60_npx, 40_npx)
             }
         };
 
@@ -75,6 +76,8 @@ namespace
 
             static constexpr chart::background background{ .brush{ colors::yellow_f.with_blue(0.93f) }};
             static constexpr chart::grid grid{};
+
+            chart::value_labels labels{};
 
             struct polyline : chart::polyspanline
             {
@@ -127,7 +130,7 @@ namespace
             template<class Fn>
             decltype(auto) apply(Fn fn) noexcept
             {
-                return fn(space(background, grid, polyline0, polyline1));
+                return fn(space(background, grid, labels, polyline0, polyline1));
             }
         };
 

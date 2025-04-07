@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view>
+#include <string>
 #include <filesystem>
 
 #include <core/zstring_view.h>

@@ -39,7 +39,6 @@
     <ClInclude Include="..\..\..\chart\grid.h" />
     <ClInclude Include="..\..\..\chart\grid_shader.h" />
     <ClInclude Include="..\..\..\chart\polyline.h" />
-    <ClInclude Include="..\..\..\chart\shader.h" />
     <ClInclude Include="..\..\..\chart\space.h" />
     <ClInclude Include="..\..\..\chart\space_diagonal.h" />
   </ItemGroup>

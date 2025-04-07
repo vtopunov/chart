@@ -406,6 +406,99 @@ template<class R, class T0, class T1>
 
 
 template<class R, class T>
+[[nodiscard]] constexpr std::enable_if_t<std::negation_v<is_base_of_vec2<T>>, R> md_round_cast(const T& v) noexcept
+{
+    return round_cast<R>(v);
+}
+
+template<class R, class T>
+[[nodiscard]] constexpr R md_round_cast(const vec2<T>& v) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_round_cast<value_t>(v._0),
+        md_round_cast<value_t>(v._1)
+    };
+}
+
+template<class R, class T0, class T1>
+[[nodiscard]] constexpr R md_round_cast(const T0& v0, const T1& v1) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_round_cast<value_t>(v0),
+        md_round_cast<value_t>(v1)
+    };
+}
+
+
+template<class R, class T>
+[[nodiscard]] constexpr std::enable_if_t<std::negation_v<is_base_of_vec2<T>>, R> md_floor_cast(const T& v) noexcept
+{
+    return floor_cast<R>(v);
+}
+
+template<class R, class T>
+[[nodiscard]] constexpr R md_floor_cast(const vec2<T>& v) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_floor_cast<value_t>(v._0),
+        md_floor_cast<value_t>(v._1)
+    };
+}
+
+template<class R, class T0, class T1>
+[[nodiscard]] constexpr R md_floor_cast(const T0& v0, const T1& v1) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_floor_cast<value_t>(v0),
+        md_floor_cast<value_t>(v1)
+    };
+}
+
+
+template<class R, class T>
+[[nodiscard]] constexpr std::enable_if_t<std::negation_v<is_base_of_vec2<T>>, R> md_ceil_cast(const T& v) noexcept
+{
+    return ceil_cast<R>(v);
+}
+
+template<class R, class T>
+[[nodiscard]] constexpr R md_ceil_cast(const vec2<T>& v) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_ceil_cast<value_t>(v._0),
+        md_ceil_cast<value_t>(v._1)
+    };
+}
+
+template<class R, class T0, class T1>
+[[nodiscard]] constexpr R md_ceil_cast(const T0& v0, const T1& v1) noexcept
+{
+    using value_t = value_type_t<R>;
+
+    return
+    {
+        md_ceil_cast<value_t>(v0),
+        md_ceil_cast<value_t>(v1)
+    };
+}
+
+
+template<class R, class T>
 [[nodiscard]] constexpr std::enable_if_t<std::negation_v<is_base_of_vec2<T>>, R> md_clamp_cast(const T& v) noexcept
 {
     return clamp_cast<R>(v);

@@ -137,7 +137,7 @@ namespace
 
         for (size_t i = 0; i < faces_d.size(); ++i)
         {
-            D_ASSERT(faces_d[i] == cache.at(i).face);
+            D_ASSERT(faces_d[i] == cache.value(i).face);
         }
     }
 

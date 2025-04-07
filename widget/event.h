@@ -39,7 +39,7 @@ namespace widget
         using cref_wrap_tuple_type = std::tuple<helpers::cref_wrap_if_need_t<Args>...>;
 
     public:
-        using context_tuple_type = std::tuple<Args...>;
+        using contexts_t = types_pack<Args...>;
 
         constexpr explicit widget_event_base(const EventBase& e, const Args&... args) noexcept
             : EventBase{ e }
@@ -62,18 +62,22 @@ namespace widget
     private:
         cref_wrap_tuple_type tuple_{};
     };
+    
+    static_assert(std::is_same_v<types_pack<dummy>, decl_contexts_t<widget_event_base<dummy, dummy>>>);
 
     template<class EventBase>
     class widget_event_base<EventBase> : public EventBase
     {
     public:
-        using context_tuple_type = std::tuple<>;
+        using contexts_t = types_pack<>;
 
         constexpr explicit widget_event_base(const EventBase& e) noexcept
             : EventBase{ e }
-
         {}
     };
+
+    static_assert(std::is_same_v<types_pack<>, decl_contexts_t<widget_event_base<dummy>>>);
+
 
     template<class EventBase, class... Args>
     class basic_widget_event : public widget_event_base<EventBase, Args...>
@@ -106,7 +110,7 @@ namespace widget
         }
 
         [[nodiscard]]
-        constexpr pxsize2d viewport() const noexcept
+        constexpr pxsizes viewport() const noexcept
         {
             return window().viewport();
         }

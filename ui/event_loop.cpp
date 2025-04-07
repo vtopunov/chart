@@ -45,7 +45,7 @@ namespace ui
         
         void sizes_initialization() noexcept
         {
-            constexpr auto make_size_event = [] (window_handle_t w, pxsize2d sizes) noexcept
+            constexpr auto make_size_event = [] (window_handle_t w, pxsizes sizes) noexcept
             {
                 return size_event{ w, event_style::size, 0u, MAKELPARAM(sizes.width(), sizes.height()) };
             };

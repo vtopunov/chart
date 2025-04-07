@@ -53,6 +53,7 @@
 #ifdef NDEBUG
 #define D_IS_DEBUG 0
 #define D_ONLY_DEBUG(A)
+#define D_DEBUG_OR(D, R) R 
 #define D_ASSERT(expression) D_UNUSED(0)
 #define D_ASSERT_OR_UNUSED(expression) D_UNUSED(expression)
 
@@ -60,9 +61,10 @@
 #else
 #define D_IS_DEBUG 1
 #define D_ONLY_DEBUG(A) A
+#define D_DEBUG_OR(D, R) D 
 
 #ifdef _MSC_VER
-#define D_ASSERT(expression) D_UNUSED((!!(expression)) || ((__debugbreak()), 0))
+#define D_ASSERT(expression) D_UNUSED((!!(expression)) || ((__debugbreak()), false))
 #else
 #define D_ASSERT(expression) assert(expression)
 #endif
@@ -81,6 +83,9 @@
 #endif
 
 
+using doublemax_t = long double;
+
+
 constexpr size_t operator "" _uz(unsigned long long value) noexcept
 {
     return value;
@@ -92,12 +97,19 @@ constexpr ptrdiff_t operator "" _z(unsigned long long value) noexcept
 }
 
 
+constexpr size_t size_maxi{ SIZE_MAX };
+
+constexpr size_t small_size_mini{ 4_uz * sizeof(size_t) };
+
+constexpr size_t dynamic_extent{ size_maxi };
+
+
 struct nulltype_construct_t
 {};
 
 constexpr nulltype_construct_t nulltype_construct{};
 
-struct nullmem_t 
+struct nullmem_t
 {
     constexpr explicit nullmem_t(nulltype_construct_t) noexcept
     {}
@@ -119,8 +131,6 @@ template<class T>
 class intrusive_list;
 
 
-using doublemax_t = long double;
-
 template<class T>
 struct rational;
 
@@ -133,11 +143,6 @@ struct point2d;
 
 template<class T>
 struct size2d;
-
-
-constexpr auto small_size_v = 4_uz * sizeof(size_t);
-
-constexpr size_t dynamic_extent{ ~0_uz };
 
 template <class T, size_t = dynamic_extent>
 class span;
@@ -158,16 +163,16 @@ template<class T>
 class optional_reference_wrapper;
 
 
+constexpr auto rgba_color_extent = 4_uz;
+
 using argb_t = uint32_t;
-static_assert(sizeof(argb_t) == 4_uz);
+static_assert(sizeof(argb_t) == rgba_color_extent);
 
 using luminance_t = uint8_t;
 static_assert(sizeof(luminance_t) == 1_uz);
 
 using luminancef_t = float;
 static_assert(sizeof(luminancef_t) == 4_uz);
-
-constexpr auto rgba_color_extent = 4_uz;
 
 template<class T>
 using basic_rgba_color_view = span<const T, rgba_color_extent>;
@@ -201,8 +206,27 @@ class shared_resource;
 struct nothing
 {
     template<class... Args>
-    constexpr void operator () (Args&&...) const noexcept
+    constexpr void operator () (const Args&...) const noexcept
     {}
 };
 
 struct dummy {};
+
+template<class...>
+struct types_pack
+{};
+
+template<class... Types>
+constexpr types_pack<Types...> types_pack_v{};
+
+template<template <class...> class...>
+struct tuples_pack
+{};
+
+template<template <class...> class Tuple>
+struct tuple_pack
+{};
+
+using noapply_t = types_pack<>;
+
+constexpr noapply_t noapply{};

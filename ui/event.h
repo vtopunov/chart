@@ -326,7 +326,7 @@ namespace ui
     public:
         [[nodiscard]] constexpr mouse_keys keys() const noexcept
         {
-            return D_CONDITIONAL_OS_WINDOWS(mouse_keys::instance(_word_parameter()), touchpad_dummy_mouse_keys);
+            return D_OS_WINDOWS_OR(mouse_keys::instance(_word_parameter()), touchpad_dummy_mouse_keys);
         }
     };
 
@@ -371,7 +371,7 @@ namespace ui
         [[nodiscard]]
         constexpr mouse_wheel_delta_t delta() const noexcept
         {
-            return D_CONDITIONAL_OS_WINDOWS(mouse_wheel_delta(_word_parameter()), 0);
+            return D_OS_WINDOWS_OR(mouse_wheel_delta(_word_parameter()), 0);
         }
 
         [[nodiscard]]
@@ -424,7 +424,7 @@ namespace ui
     [[nodiscard]] constexpr const specialized_event<style>& event_for(const event& e) noexcept
     {
         D_ASSERT(style == e.style());
-        return identical_derived_cast<const specialized_event<style>&>(e);
+        return to_identical_derived<specialized_event<style>>(e);
     }
 
 

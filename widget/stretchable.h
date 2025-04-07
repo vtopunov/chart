@@ -8,7 +8,7 @@ namespace widget
     using stretchable_pxrectangle = ::rectangle<npx_t, pxoff_t>;
 
     template<class Pos, class Sz>
-    [[nodiscard]] constexpr pxsize2d stretchable_sizes(const rectangle<Pos, Sz>& r, pxsize2d bound) noexcept
+    [[nodiscard]] constexpr pxsizes stretchable_sizes(const rectangle<Pos, Sz>& r, pxsizes bound) noexcept
     {
         using overpxoff_t = int64_t;
         static_assert(std::is_signed_v<Sz>);

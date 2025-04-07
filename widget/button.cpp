@@ -64,7 +64,7 @@ namespace widget
         [[nodiscard]]
         constexpr pxrectangle rectangle_without_frame(const pxrectangle& r)noexcept
         {
-            constexpr pxsize2d frame_sizes{ 1_npx, 1_npx };
+            constexpr pxsizes frame_sizes{ 1_npx, 1_npx };
             return
             {
                 .position{ r.position + frame_sizes },
@@ -79,7 +79,7 @@ namespace widget
         }
 
         [[nodiscard]]
-        constexpr pxpoint2d ft_to_pxpoint2d(const vec2<font::fixed_t>& v) noexcept
+        constexpr pxpoint ft_to_pxpoint(const vec2<font::fixed_t>& v) noexcept
         {
             return
             {
@@ -102,7 +102,7 @@ namespace widget
 
     bool button::operator()(widget::basic_initialization_event<>) noexcept
     {
-        if(!font)
+        if (!font)
         {
             font = font_cache::default_font();
         }
@@ -129,7 +129,7 @@ namespace widget
         {
             const auto is_clicked = contains(geometry, e);
 
-            state = D_CONDITIONAL_OS_WINDOWS(((is_clicked) ? button_state::hovered : button_state::free), button_state::free);
+            state = D_OS_WINDOWS_OR(((is_clicked) ? button_state::hovered : button_state::free), button_state::free);
 
             if (is_clicked && clicked)
             {
@@ -165,27 +165,29 @@ namespace widget
         const auto client_rc = rectangle_without_frame(geometry);
 
         {
-            const auto& shdr = e.get<shader::colored_rectangle>().use();
-            
-            shdr.geometry(geometry)
-                .color(colors.frame)
-                .draw();
+            const auto& s = e.get<shader_embed::colored_rectangle>();
 
-            shdr.geometry(client_rc)
-                .color(colors.body)
-                .draw();
+            s.use();
+            s.geometry(geometry);
+            s.color(colors.frame);
+            s.draw();
+
+            s.geometry(client_rc);
+            s.color(colors.body);
+            s.draw();
         }
 
         if (text_cache.draw(e.get<buffer_view>(), font, text, client_rc.sizes)) [[likely]]
         {
             const auto ft_position = center(client_rc) - text_cache.center();
 
-            e.get<shader::luminance_texture_mix_color>()
-                .use()
-                .position(ft_to_pxpoint2d(ft_position))
-                .color(colors::black_f)
-                .texture(text_cache.texture())
-                .draw();
+            const auto& s = e.get<shader_embed::luminance_texture>();
+
+            s.use();
+            s.position(ft_to_pxpoint(ft_position));
+            s.color(colors::black_f);
+            s.texture(text_cache.texture());
+            s.draw();
         }
     }
 }

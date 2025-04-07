@@ -3,7 +3,7 @@
 
 void test_pixspan() noexcept
 {
-    constexpr pxsize2d image_sizes{ 9_npx, 9_npx };
+    constexpr pxsizes image_sizes{ 9_npx, 9_npx };
 
     static_assert(px::dynamic_alignment == numeric_max_v<decltype(px::dynamic_alignment)>);
     static_assert(4_uz == px::default_alignment);

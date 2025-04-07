@@ -4,10 +4,9 @@
 
 #include <px/algorithm.h>
 
-#include <gl/texture.h>
+#include <shader/library.h>
 
 #include <chart/space_manipulation.h>
-#include <chart/shader.h>
 
 
 namespace chart
@@ -72,11 +71,11 @@ namespace chart
             D_ASSERT_OR_UNUSED(gl::update(texture_cache, pixs));
         }
 
-        void operator()(const shader::luminance_figure_user& shdr) const noexcept
+        void operator()(const shader_embed::luminance_texture& shdr) const noexcept
         {
-            shdr.color(pen)
-                .texture(texture_cache)
-                .draw();
+            shdr.color(pen);
+            shdr.texture(texture_cache);
+            shdr.draw();
         }
     };
 

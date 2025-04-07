@@ -45,7 +45,7 @@ namespace chart
         {
             if (const auto chart_sizes = stretchable_sizes(geometry, e); pixspace_is_updated(chart_sizes))
             {
-                const auto has_shift = (zero_v<> != md_trunc_cast<pxoff2d>(e.shift()));
+                const auto has_shift = (zero_v<> != md_trunc_cast<pxoffs>(e.shift()));
                 const auto has_scale = (chart_sizes != e.transformation_as(chart_sizes));
 
                 if (has_shift || has_scale)

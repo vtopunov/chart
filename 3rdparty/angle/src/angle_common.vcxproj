@@ -121,7 +121,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="common\Color.inl" />
-    <None Include="angle.gyp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\Color.h" />

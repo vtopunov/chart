@@ -12,26 +12,30 @@ namespace widget
     class window;
     using windowrefwrap_t = optional_reference_wrapper<const window>;
 
-    struct ex_context_type_enumerator {};
-
-    using noapply_t = std::tuple<>;
-
-    constexpr noapply_t noapply{};
+    struct ex_context_enumerator
+    {
+        template<class... Args>
+        constexpr noapply_t operator () (const Args&...) const noexcept
+        {
+            return noapply;
+        }
+    };
 
     template<class... Types>
     struct ex_context;
 
-    template<class T>
-    using decl_context_tuple_t = typename T::context_tuple_type;
-
     template<class... Types>
-    class common_context;
+    class context;
 
     template<class EventBase, class... Args>
     class basic_widget_event;
 
     template<class EventBase, class... Args>
     using widget_event = basic_widget_event<EventBase, windowrefwrap_t, Args...>;
+
+    template<class T>
+    using decl_contexts_t = typename T::contexts_t;
+
 
     namespace event_declaration
     {

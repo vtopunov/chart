@@ -84,7 +84,7 @@ namespace px
 
 
     template<class T, size_t OutputAlignment, size_t InputAlignment>
-    constexpr pxsize2d write(pixspan<T, OutputAlignment> output, pxpoint2d position, pixspan<const T, InputAlignment> input) noexcept;
+    constexpr pxsizes write(pixspan<T, OutputAlignment> output, pxpoint position, pixspan<const T, InputAlignment> input) noexcept;
 
 
     template<class T, size_t Alignment = default_alignment>
@@ -117,7 +117,7 @@ namespace px
             , data_{ data }
         {}
 
-        constexpr pixspan(pointer data, pxsize2d sizes) noexcept
+        constexpr pixspan(pointer data, pxsizes sizes) noexcept
             : space_type{ sizes }
             , data_{ data }
         {}
@@ -127,7 +127,7 @@ namespace px
             , data_{ data }
         {}
 
-        constexpr pixspan(pointer data, pxsize2d sizes, line_size_type line_size) noexcept
+        constexpr pixspan(pointer data, pxsizes sizes, line_size_type line_size) noexcept
             : space_type{ sizes, line_size }
             , data_{ data }
         {}
@@ -212,26 +212,26 @@ namespace px
         }
 
         template<class C>
-        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsize2d> store(pxpoint2d position, const C& image) const noexcept
+        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsizes> store(pxpoint position, const C& image) const noexcept
         {
             return _store(position, image);
         }
 
         template<class C>
-        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsize2d> store(npx_t x, npx_t y, const C& image) const noexcept
+        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsizes> store(npx_t x, npx_t y, const C& image) const noexcept
         {
-            return _store(pxpoint2d{ x, y }, image);
+            return _store(pxpoint{ x, y }, image);
         }
 
         template<class C>
-        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsize2d> store(const C& image) const noexcept
+        constexpr std::enable_if_t<is_compatible_for_store_v<C>, pxsizes> store(const C& image) const noexcept
         {
-            return _store(pxpoint2d{ 0_npx, 0_npx }, image);
+            return _store(pxpoint{ 0_npx, 0_npx }, image);
         }
 
     private:
         template<class C>
-        constexpr pxsize2d _store(pxpoint2d position, const C& image) const noexcept
+        constexpr pxsizes _store(pxpoint position, const C& image) const noexcept
         {
             static_assert(is_compatible_for_store_v<C>);
             const auto image_space = space(image);
@@ -255,12 +255,12 @@ namespace px
 
 
     template<class T, size_t OutputAlignment, size_t InputAlignment>
-    constexpr pxsize2d write(pixspan<T, OutputAlignment> output, pxpoint2d position, pixspan<const T, InputAlignment> input) noexcept
+    constexpr pxsizes write(pixspan<T, OutputAlignment> output, pxpoint position, pixspan<const T, InputAlignment> input) noexcept
     {
         const auto x = std::min(position.x(), output.width());
         const auto y = std::min(position.y(), output.height());
 
-        const pxsize2d crop_sizes
+        const pxsizes crop_sizes
         {
             std::min(input.width(), output.width() - x),
             std::min(input.height(), output.height() - y)

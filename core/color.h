@@ -400,12 +400,12 @@ namespace private_detail_argb_color
     template<class L, class R, class Op2>
     [[nodiscard]] constexpr decltype(auto) upgrade_op2(const L& left, const R& right, Op2 op2) noexcept
     {
-        using decuctor = common_rational_deductor<L, R>;
+        using deductor = common_rational_deductor<L, R>;
 
         return op2
         (
-            luminance_cast<typename decuctor::L_type>(left),
-            luminance_cast<typename decuctor::R_type>(right)
+            luminance_cast<typename deductor::L_type>(left),
+            luminance_cast<typename deductor::R_type>(right)
         );
     }
 

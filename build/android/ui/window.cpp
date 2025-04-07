@@ -51,11 +51,11 @@ namespace ui
         }
     }
 
-    pxsize2d sizes(window_handle_t window) noexcept
+    pxsizes sizes(window_handle_t window) noexcept
     {
         static_assert(std::is_unsigned_v<npx_t>);
 
-        pxsize2d result{ to_npx(ANativeWindow_getWidth(window)), 0_npx };
+        pxsizes result{ to_npx(ANativeWindow_getWidth(window)), 0_npx };
 
         if (result.width()) [[likely]]
         {

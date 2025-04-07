@@ -5,6 +5,9 @@
 
 #include <core/resource.h>
 
+D_WARNING_PUSH
+D_WARNING_DISABLE_CLANG("-Wself-assign-overloaded");
+
 
 namespace
 {
@@ -410,3 +413,5 @@ void test_resource() noexcept
 
     as_mutable(h1.r()).check_close = std::ref(h1_check_dtor);
 }
+
+D_WARNING_POP

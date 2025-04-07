@@ -19,7 +19,7 @@ namespace gl
             return texture2d{ d, size2d{ 0_npx, 0_npx } };
         }
 
-        void set_image2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept
+        void set_image2d(pxsizes sizes, texture_format format, const void* pixels) noexcept
         {
             glTexImage2D
             (
@@ -69,7 +69,7 @@ namespace gl
         return {};
     }
 
-    texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept
+    texture2d create_texture2d(pxsizes sizes, texture_format format, const void* pixels) noexcept
     {
         if (auto tex = create_texture2d()) [[likely]]
         {
@@ -84,7 +84,7 @@ namespace gl
         return {};
     }
 
-    pxsize2d write(texture2d_resource tex, pxsize2d sizes, texture_format format, const void* pixels) noexcept
+    pxsizes write(texture2d_resource tex, pxsizes sizes, texture_format format, const void* pixels) noexcept
     {
         if (bind(tex)) [[likely]]
         {

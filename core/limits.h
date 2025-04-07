@@ -10,6 +10,7 @@ namespace private_detail_numeric_limits
     template<class T>
     struct numeric_max_factory
     {
+        [[nodiscard]]
         static constexpr T create() noexcept
         {
             return std::numeric_limits<T>::max();
@@ -19,6 +20,7 @@ namespace private_detail_numeric_limits
     template<class T>
     struct numeric_min_factory
     {
+        [[nodiscard]]
         static constexpr T create() noexcept
         {
             return std::numeric_limits<T>::min();
@@ -28,6 +30,7 @@ namespace private_detail_numeric_limits
     template<class T>
     struct numeric_eps_factory
     {
+        [[nodiscard]]
         static constexpr T create() noexcept
         {
             return std::numeric_limits<T>::epsilon();
@@ -37,6 +40,7 @@ namespace private_detail_numeric_limits
     template<class T>
     struct numeric_lowest_factory
     {
+        [[nodiscard]]
         static constexpr T create() noexcept
         {
             return std::numeric_limits<T>::lowest();
@@ -46,6 +50,7 @@ namespace private_detail_numeric_limits
     template<class T>
     struct numeric_nan_factory
     {
+        [[nodiscard]]
         static constexpr T create() noexcept
         {
             return std::numeric_limits<T>::quiet_NaN();
@@ -55,6 +60,7 @@ namespace private_detail_numeric_limits
     template<class T>
     struct numeric_inf_factory
     {
+        [[nodiscard]]
         static constexpr T create() noexcept
         {
             return std::numeric_limits<T>::infinity();
@@ -78,6 +84,7 @@ struct numeric_deduction_factory<C, void>
         }
     };
 
+    [[nodiscard]]
     static constexpr value_type create() noexcept
     {
         return {};

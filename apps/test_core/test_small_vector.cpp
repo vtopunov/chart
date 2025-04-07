@@ -3,6 +3,7 @@
 #include <core/small_vector.h>
 #include <core/utility.h>
 
+
 namespace
 {
     struct collector
@@ -325,7 +326,7 @@ namespace
 
             test_.reserve(size0 + count);
 
-            for (size_t i = 0; i < count; ++i)
+            for (size_t i = 0u; i < count; ++i)
             {
                 const auto value = generate_unique();
 
@@ -410,6 +411,7 @@ namespace
 
         void test_move(vector_test& v, void (*move_op) (small_vector_type&, small_vector_type&)) noexcept
         {
+            const auto size = small_v_.size();
             const auto data = small_v_.data();
             const auto is_static = small_v_.is_static();
 
@@ -427,13 +429,6 @@ namespace
                 {
                     left.emplace_back(std::move(value));
                 }
-            };
-
-            constexpr auto test_move = [] (test_vector_type& left, test_vector_type& right) noexcept
-            {
-                left.clear();
-                left = std::move(right);
-                right.clear();
             };
 
             move_op(small_v_, v.small_v_);
@@ -456,7 +451,8 @@ namespace
                 }
                 else
                 {
-                    test_move(test_, v.test_);
+                    test_.clear();
+                    test_ = std::move(v.test_);
 
                     D_ASSERT(v.small_v_.size() == 0_uz);
                     D_ASSERT(v.small_v_.data() != data);
@@ -486,9 +482,9 @@ namespace
                 }
                 else
                 {
-                    test_move(test_, v.test_);
+                    test_.swap(v.test_);
 
-                    D_ASSERT(v.small_v_.size() == 0_uz);
+                    D_ASSERT(v.small_v_.size() == size);
                     D_ASSERT(v.small_v_.data() == data);
                     D_ASSERT(v.small_v_.data() != v_data);
                     D_ASSERT(v.small_v_.is_dynamic());

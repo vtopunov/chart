@@ -159,8 +159,8 @@ namespace private_detail_null
         using private_detail_null_type::is_null_constructible;
         using namespace private_detail_zero::private_detail_compare;
 
-        template<class T, template<class> class Op>
-        using op_result_t = typename std::enable_if_t<std::conjunction_v<std::negation<is_null_type<T>>, is_null_constructible<T>>, enable_if_detected<Op, T>>::type;
+        template<class T, template<class, class> class Op>
+        using op_result_t = typename std::enable_if_t<std::conjunction_v<std::negation<is_null_type<T>>, is_null_constructible<T>>, enable_if_detected<Op, T, T>>::type;
 
         template<class T>
         using eq_op_result_t = op_result_t<T, decl_eq_op_t>;

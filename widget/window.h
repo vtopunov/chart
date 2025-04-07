@@ -1,5 +1,7 @@
 #pragma once
 
+#include <gl_core/draw.h>
+
 #include <egl_ui/egl_ui_owner.h>
 
 #include <widget/fwd.h>
@@ -20,7 +22,7 @@ namespace widget
     {
     public:
         [[nodiscard]]
-        constexpr pxsize2d sizes() const noexcept
+        constexpr pxsizes sizes() const noexcept
         {
             return sizes_;
         }
@@ -29,19 +31,24 @@ namespace widget
         friend class window;
 
     private:
-        pxsize2d sizes_{ ui::no_sizes };
+        pxsizes sizes_{ ui::no_sizes };
     };
-
-    using widget_window_parameters = egl_ui_parameters;
+    
+    using window_parameters = egl_ui_parameters;
 
     class window : public egl_ui_owner
     {
     public:
         constexpr window() noexcept = default;
 
-        explicit window(const widget_window_parameters& params) noexcept
+        explicit window(const window_parameters& params) noexcept
             : egl_ui_owner{ create_egl_ui(params) }
-        {}
+        {
+            if (std::as_const<egl_ui_owner>(*this)) [[likely]]
+            {
+                gl::clear_color(colors::dialog_color_f);
+            }
+        }
 
         D_DISABLE_COPYMOVE_CA(window);
 
@@ -60,23 +67,24 @@ namespace widget
             temp.sizes_ = egl_ui_owner::viewport();
             return temp;
 #endif
-        }
+    }
 
     public:
-        constexpr void content_sizes(pxsize2d sizes) noexcept
+        constexpr void content_sizes(pxsizes sizes) noexcept
         {
 #ifdef D_OS_WINDOWS
             content_cache_.sizes_ = sizes;
 #else
             D_UNUSED(sizes);
 #endif
-        }
+}
 
     private:
         D_ONLY_OS_WINDOWS(window_content content_cache_{});
     };
 
-    struct window_builder : egl_ui::egl_ui_gatherer<window_builder, widget_window_parameters>
+
+    struct window_builder : egl_ui::egl_ui_gatherer<window_builder, window_parameters>
     {
 #ifdef D_OS_WINDOWS
         window_builder() noexcept

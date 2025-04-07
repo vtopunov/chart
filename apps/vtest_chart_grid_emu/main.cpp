@@ -2,12 +2,11 @@
 
 #include <px/pixmap.h>
 
-#include <utility/shader_library.h>
-
 #include <widget/stretchable.h>
 #include <widget/run.h>
 
 #include <chart/grid_shader.h>
+
 
 namespace
 {
@@ -95,7 +94,7 @@ namespace
 
     struct processor
     {
-        shader_library<vert::positioned_texture, frag::default_texture> shaders{};
+        shader_embed::default_texture shaders{};
         px::pixmap<rgba_color> image{};
         gl::texture2d texture{};
         glsl_float_t period{ 39.95f /*39.8475494 40.250049755960461f /*60.046324227548830f*/ };
@@ -103,10 +102,9 @@ namespace
 
         bool operator () (widget::basic_initialization_event<>) noexcept
         {
-            if (shaders.build())
+            if (shaders.load())
             {
-                shaders.use();
-                shaders.vert().position(geometry.position);
+                shaders.position(geometry.position);
                 return true;
             }
 
@@ -116,7 +114,7 @@ namespace
         void operator () (widget::viewport_event<> e) noexcept
         {
             shaders.use();
-            shaders.vert().viewport(e.viewport());
+            shaders.viewport(e.viewport());
         }
 
         widget::event_result operator () (const ui::mouse_wheel_event& e) noexcept
@@ -140,16 +138,15 @@ namespace
                 }
 
                 texture = grid_rendering(period, image);
-                shaders.vert().size(texture.sizes());
-                shaders.frag().texture(texture);
+                shaders.texture(texture);
             }
 
-            shaders.vert().frame().draw();
+            shaders.draw();
         }
 
-        constexpr widget::noapply_t apply(no_overload) const noexcept
+        constexpr noapply_t apply(no_overload) const noexcept
         {
-            return widget::noapply;
+            return noapply;
         }
     };
 

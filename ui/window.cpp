@@ -59,7 +59,7 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr gdi_rect_t pxsizes_to_gdi(pxsize2d sizes) noexcept
+        constexpr gdi_rect_t pxsizes_to_gdi(pxsizes sizes) noexcept
         {
             return
             {
@@ -69,7 +69,7 @@ namespace ui
         }
 
         [[nodiscard]]
-        constexpr pxsize2d gdi_to_pxsizes(const gdi_rect_t& rect) noexcept
+        constexpr pxsizes gdi_to_pxsizes(const gdi_rect_t& rect) noexcept
         {
             static_assert(std::is_unsigned_v<npx_t>);
 
@@ -79,7 +79,7 @@ namespace ui
                 return narrow<npx_t>(p1 - p0);
             };
 
-            pxsize2d result{ side_length(rect.left, rect.right), 0_npx };
+            pxsizes result{ side_length(rect.left, rect.right), 0_npx };
 
             if (result.width()) [[likely]]
             {
@@ -94,7 +94,7 @@ namespace ui
         {
             return
             {
-                .position{ md_narrow<pxpoint2d>(rect.left, rect.top) },
+                .position{ md_narrow<pxpoint>(rect.left, rect.top) },
                 .sizes{ gdi_to_pxsizes(rect) }
             };
         }
@@ -162,15 +162,15 @@ namespace ui
 
 #if D_IS_DEBUG
         [[nodiscard]]
-        pxsize2d display_resolution() noexcept
+        pxsizes display_resolution() noexcept
         {
             DEVMODEW dev{};
             EnumDisplaySettingsW(nullptr, ENUM_CURRENT_SETTINGS, &dev);
-            return md_narrow<pxsize2d>(dev.dmPelsWidth, dev.dmPelsHeight);
+            return md_narrow<pxsizes>(dev.dmPelsWidth, dev.dmPelsHeight);
         }
 
         [[nodiscard]]
-        inline bool is_maximum_resolution(pxsize2d sizes) noexcept
+        inline bool is_maximum_resolution(pxsizes sizes) noexcept
         {
             const auto resolution = ui::display_resolution();
             return sizes.width() >= resolution.width()
@@ -185,12 +185,12 @@ namespace ui
         return gdi_to_pxrectangle(gdi_geometry(window));
     }
 
-    pxsize2d sizes(window_handle_t window) noexcept
+    pxsizes sizes(window_handle_t window) noexcept
     {
         return gdi_to_pxsizes(gdi_geometry(window));
     }
 
-    pxsize2d adjust_sizes(pxsize2d sizes) noexcept
+    pxsizes adjust_sizes(pxsizes sizes) noexcept
     {
         auto rect = pxsizes_to_gdi(sizes);
         D_ASSERT_OR_UNUSED(AdjustWindowRect(std::addressof(rect), parent_window_style, FALSE));
@@ -208,7 +208,7 @@ namespace ui
         );
     }
 
-    pxsize2d desktop_sizes() noexcept
+    pxsizes desktop_sizes() noexcept
     {
         const auto sizes = ::sizes(ui::geometry(::GetDesktopWindow()));
         D_ASSERT(is_maximum_resolution(sizes) || !"Resolution is not high dpi. Add <dpiAware>true</dpiAware> in manifest.");

@@ -12,8 +12,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="test_space_diagonal.cpp" />
     <ClCompile Include="test_space_diagonal_cache.cpp" />
+    <ClCompile Include="test_space_manipulation.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

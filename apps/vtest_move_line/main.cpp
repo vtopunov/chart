@@ -5,14 +5,14 @@
 
 #include <egl_ui/egl_ui_owner.h>
 
-#include <utility/shader_library.h>
+#include <shader/library.h>
 
 #include "../vtest_line/test_figure.h"
 
 
 namespace
 {
-    gl::texture2d lines_rendering(const lumpixspan image, const pxoff2d d) noexcept
+    gl::texture2d lines_rendering(const lumpixspan image, const pxoffs d) noexcept
     {
         {
             const auto dd = md_narrow<px::real_point2d>(d);
@@ -25,7 +25,7 @@ namespace
                     line.y0 + dd.y(),
                     line.x1 + dd.x(),
                     line.y1 + dd.y()
-                 );
+                );
             }
         }
 
@@ -60,8 +60,8 @@ namespace
                     .module(app)
                     .background(std::move(brush))
                     .build();
-            } 
-            
+            }
+
 #else
             egl_ = create_egl_ui(app);
 
@@ -109,7 +109,7 @@ namespace
 
                     if (invalid_mouse_pos != old_pos)
                     {
-                        D_ASSERT_OR_UNUSED(lines_rendering(position_ + md_trunc_cast<pxoff2d>(as_signed(new_pos - old_pos))));
+                        D_ASSERT_OR_UNUSED(lines_rendering(position_ + md_trunc_cast<pxoffs>(as_signed(new_pos - old_pos))));
                     }
                 }
             }
@@ -158,7 +158,7 @@ namespace
         }
 
         [[nodiscard]]
-        bool lines_rendering(const pxoff2d position) noexcept
+        bool lines_rendering(const pxoffs position) noexcept
         {
             if (texture_ && position == position_)
             {
@@ -183,8 +183,8 @@ namespace
             if (!new_texture)
             {
                 return false;
-            } 
-             
+            }
+
             texture_ = std::move(new_texture);
             position_ = position;
             need_redraw_ = true;
@@ -202,36 +202,38 @@ namespace
         {
         public:
             [[nodiscard]]
-            bool initialize(pxsize2d viewport) noexcept
+            bool initialize(pxsizes viewport) noexcept
             {
-                if (!lib.build())
+                if (lib.load()) [[likely]]
                 {
-                    return false;
+                    lib.viewport(viewport);
+                    lib.position(100_npx, 150_npx);
+                    return true;
                 }
 
-                lib.use();
-                lib.vert().viewport(viewport);
-                lib.vert().position(100_npx, 150_npx);
-                return true;
+                return false;
             }
 
             void draw(gl::texture2d_resources texture) const noexcept
             {
                 lib.use();
-                lib.frag().texture(texture);
-                lib.vert().size(sizes(texture));
-                lib.vert().frame().draw();
+                lib.texture(texture);
+                lib.sizes(sizes(texture));
+                lib.draw();
             }
 
         private:
-            shader_library<vert::positioned_texture, frag::inverted_texture> lib{};
+            shader_library<
+                shader_embed::vert::positioned_texture, 
+                shader_embed::frag::inverted_texture
+            > lib{};
         };
 
         egl_ui_owner egl_{};
         shaders_lib shaders_{};
         gl::texture2d texture_{};
         ui::pointer_event::point2d_type mouse_pos_{};
-        pxoff2d position_{};
+        pxoffs position_{};
         lumpixmap image_{};
         bool need_redraw_{ true };
     };

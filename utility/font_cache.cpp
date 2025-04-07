@@ -145,8 +145,8 @@ namespace font_cache
         auto& faces = global_faces_cache();
         auto& mmaps = global_mmaps_cache();
 
-        auto& item = faces.at(notnull_face.cache_index);
-        auto& mmap_item = mmaps.at(item.mmap_id);
+        auto& item = faces.value(notnull_face.cache_index);
+        auto& mmap_item = mmaps.value(item.mmap_id);
 
         item.deref(faces);
         mmap_item.deref(mmaps);
@@ -159,8 +159,8 @@ namespace font_cache
             auto& mmaps = global_mmaps_cache();
             auto& faces = global_faces_cache();
 
-            auto& item = faces.at(face_r.cache_index);
-            auto& mmap_item = mmaps.at(item.mmap_id);
+            auto& item = faces.value(face_r.cache_index);
+            auto& mmap_item = mmaps.value(item.mmap_id);
 
             mmap_item.ref();
             item.ref();

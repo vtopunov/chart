@@ -77,6 +77,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test_pixmap.cpp" />
     <ClCompile Include="test_pixspan.cpp" />
+    <ClCompile Include="test_pxf.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

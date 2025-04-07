@@ -20,7 +20,4 @@ namespace chart
     using widget::stretchable_pxrectangle;
     using widget::event_result;
     using namespace widget::event_declaration;
-
-    template<class Tuple>
-    struct subitems;
 }

@@ -80,11 +80,11 @@ namespace px
             : pixmap{ std::move(buffer), space_type{} }
         {}
 
-        constexpr explicit pixmap(pxsize2d sizes) noexcept
+        constexpr explicit pixmap(pxsizes sizes) noexcept
             : pixmap{ space_type{ sizes } }
         {}
 
-        constexpr pixmap(byte_buffer&& buffer, pxsize2d sizes) noexcept
+        constexpr pixmap(byte_buffer&& buffer, pxsizes sizes) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes } }
         {}
 
@@ -96,11 +96,11 @@ namespace px
             : pixmap{ std::move(buffer), space_type{ x, y } }
         {}
 
-        constexpr pixmap(pxsize2d sizes, line_size_type line_size) noexcept
+        constexpr pixmap(pxsizes sizes, line_size_type line_size) noexcept
             : pixmap{ space_type{ sizes, line_size } }
         {}
 
-        constexpr pixmap(byte_buffer&& buffer, pxsize2d sizes, line_size_type line_size) noexcept
+        constexpr pixmap(byte_buffer&& buffer, pxsizes sizes, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes, line_size } }
         {}
 
@@ -271,7 +271,7 @@ namespace px
         }
 
         template<class C>
-        constexpr auto store(pxpoint2d position, const C& image) noexcept -> decltype(std::declval<span_type>().store(position, image))
+        constexpr auto store(pxpoint position, const C& image) noexcept -> decltype(std::declval<span_type>().store(position, image))
         {
             return _span().store(position, image);
         }

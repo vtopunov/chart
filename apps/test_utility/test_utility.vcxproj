@@ -37,7 +37,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <Import Project="..\..\build\windows\console_app.props" />
-  <Import Project="$(ThirdPartyDir)\angle\out.props"/>
+  <Import Project="$(ThirdPartyDir)\angle\out.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>
@@ -79,7 +79,6 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test_font_cache.cpp" />
-    <ClCompile Include="test_shader_library.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\file\file.vcxproj">

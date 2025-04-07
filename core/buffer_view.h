@@ -307,19 +307,19 @@ private:
 };
 
 template<class T>
-[[nodiscard]] constexpr span<const T> to_span(const const_buffer_view buffer) noexcept
+[[nodiscard]] constexpr span<const T> as_span(const const_buffer_view buffer) noexcept
 {
     return buffer.template as_span<T>();
 }
 
 template<class T>
-[[nodiscard]] constexpr span<T> to_span(const buffer_view buffer) noexcept
+[[nodiscard]] constexpr span<T> as_span(const buffer_view buffer) noexcept
 {
     return buffer.template as_span<T>();
 }
 
 template<class T>
-[[nodiscard]] constexpr std::basic_string_view<T> to_string_view(const const_buffer_view buffer) noexcept
+[[nodiscard]] constexpr std::basic_string_view<T> as_string_view(const const_buffer_view buffer) noexcept
 {
     return buffer.template as_str<T>();
 }

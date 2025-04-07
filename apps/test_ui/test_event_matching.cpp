@@ -116,7 +116,7 @@ namespace
 
 void test_event_matching() noexcept
 {    
-    constexpr auto make_size_event = [] (ui::window_handle_t w, pxsize2d sizes) noexcept
+    constexpr auto make_size_event = [] (ui::window_handle_t w, pxsizes sizes) noexcept
     {
         return ui::size_event{ w, ui::event_style::size, 0u, MAKELPARAM(sizes.width(), sizes.height()) };
     };

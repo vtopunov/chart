@@ -70,7 +70,7 @@ namespace ui
 
 #endif
 
-    using error_code_t = D_CONDITIONAL_OS_WINDOWS(dword_t, int);
+    using error_code_t = D_OS_WINDOWS_OR(dword_t, int);
 
     [[nodiscard]]
     error_code_t error_code() noexcept;

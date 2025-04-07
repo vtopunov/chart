@@ -17,6 +17,7 @@
     <ClInclude Include="pixspace.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="pixspan.h" />
+    <ClInclude Include="pxf.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

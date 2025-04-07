@@ -2,7 +2,7 @@
 
 #include <debug/debug.h>
 
-#include <gl/draw.h>
+#include <gl_core/draw.h>
 
 #include <widget/context.h>
 #include <widget/event_matching.h>
@@ -44,7 +44,7 @@ namespace widget
             template<class... Args>
             explicit processor(widget::window& window, Args&&... args) noexcept
                 : widget_{ std::forward<Args>(args)... }
-                , common_context_{ window }
+                , context_{ window }
             {}
 
 #ifdef D_OS_WINDOWS
@@ -120,13 +120,13 @@ namespace widget
             [[nodiscard]]
             constexpr const window& cref_window() const noexcept
             {
-                return common_context_.cref_window();
+                return context_.cref_window();
             }
 
             [[nodiscard]]
             constexpr window& ref_window() noexcept
             {
-                return common_context_.ref_window();
+                return context_.ref_window();
             }
 
             [[nodiscard]]
@@ -157,16 +157,16 @@ namespace widget
             template<class Event>
             bool _apply_initialization_event(const Event& e) noexcept
             {
-                const event_common_context e_cc{ e, common_context_ };
-                return initialization::apply_event(common_context_, e_cc)
+                const widget_event_factory e_cc{ e, context_ };
+                return initialization::apply_event(context_, e_cc)
                     && initialization::apply_event(widget_, e_cc);
             }
 
             template<class Event>
             void _apply_event(const Event& e) noexcept
             {
-                const event_common_context e_cc{ e, common_context_ };
-                combine_event_result(combined_event_result_, apply_event(common_context_, e_cc));
+                const widget_event_factory e_cc{ e, context_ };
+                combine_event_result(combined_event_result_, apply_event(context_, e_cc));
                 combine_event_result(combined_event_result_, apply_event(widget_, e_cc));
             }
 
@@ -175,13 +175,13 @@ namespace widget
                 [[maybe_unused]] egl_painting_owner painting_owner{ cref_window() };
                 gl::clear();
 
-                const event_common_context e_cc{ redraw_event_base_v, common_context_ };
+                const widget_event_factory e_cc{ redraw_event_base_v, context_ };
                 D_UNUSED(apply_event(widget_, e_cc));
             }
 
         private:
             D_NO_UNIQUE_ADDRESS Widget widget_;
-            common_context_t<Widget> common_context_{};
+            context_t<Widget> context_{};
             D_ONLY_OS_WINDOWS(std::chrono::steady_clock::time_point redraw_time_cache{});
             event_result combined_event_result_{ event_result::redraw };
         };
@@ -211,8 +211,6 @@ namespace widget
             );
             return EXIT_FAILURE;
         }
-
-        gl::clear_color(colors::dialog_color_f);
 
         return ui::run_event_loop(processor.cref_window(), processor);
     }

@@ -11,25 +11,26 @@ namespace private_detail_remove_reference_wrapper
     struct remove_reference_wrapper_helper
     {
         using mut_t = std::remove_const_t<T>;
-        using unwrap_ref_t = typename std::unwrap_reference<mut_t>::type;
+        using mut_unwrap_ref_t = typename std::unwrap_reference<mut_t>::type;
 
-        using type = std::remove_reference_t<std::conditional_t<std::is_same_v<mut_t, unwrap_ref_t>, T, unwrap_ref_t>>;
+        using type = std::conditional_t<std::is_same_v<mut_t, mut_unwrap_ref_t>, T, mut_unwrap_ref_t>;
     };
 
     template<class T>
     struct remove_reference_wrapper_helper<optional_reference_wrapper<T>>
     {
-        using type = std::remove_reference_t<T>;
+        using type = T;
     };
 
     template<class T>
     struct remove_reference_wrapper_helper<const optional_reference_wrapper<T>>
     {
-        using type = std::remove_reference_t<T>;
+        using type = T;
     };
 
+
     template <class T>
-    using remove_reference_wrapper_t = typename remove_reference_wrapper_helper<std::remove_reference_t<T>>::type;
+    using remove_reference_wrapper_t = std::remove_reference_t<typename remove_reference_wrapper_helper<std::remove_reference_t<T>>::type>;
 }
 
 using private_detail_remove_reference_wrapper::remove_reference_wrapper_t;
@@ -55,6 +56,7 @@ public:
         : data_{ std::addressof(value) }
     {}
 
+    [[nodiscard]]
     constexpr operator T& () const noexcept
     {
         return get();
@@ -68,10 +70,10 @@ public:
     }
 
     template <class... Args>
-    constexpr auto operator()(Args&&... args) const noexcept
-        -> decltype(std::invoke(std::declval<T&>(), static_cast<Args&&>(args)...))
+    [[nodiscard]] constexpr auto operator()(Args&&... args) const noexcept
+        -> decltype(std::declval<T&>()(static_cast<Args&&>(args)...))
     {
-        return std::invoke(get(), static_cast<Args&&>(args)...);
+        return get()(static_cast<Args&&>(args)...);
     }
 
     constexpr explicit operator bool() const noexcept

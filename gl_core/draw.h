@@ -3,15 +3,13 @@
 #include <core/color.h>
 #include <core/buffer_view.h>
 
-#include <px/fwd.h>
-
-#include <gl/shader.h>
-#include <gl/vertex.h>
+#include <gl_core/shader.h>
+#include <gl_core/vertex.h>
 
 
 namespace gl
 {
-    inline void viewport(pxsize2d sizes) noexcept
+    inline void viewport(pxsizes sizes) noexcept
     {
         glViewport
         (

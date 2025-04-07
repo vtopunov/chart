@@ -2,7 +2,7 @@
 
 #include <core/buffer_view.h>
 
-#include <gl/texture.h>
+#include <gl_core/texture.h>
 
 #include <font/font.h>
 
@@ -14,7 +14,7 @@ namespace widget
         static constexpr auto invalid_y = font::invalid_cursor.y();
 
     public:
-        bool draw(buffer_view buffer, font::face_descriptor_t face, std::u8string_view text, pxsize2d sizes) noexcept;
+        bool draw(buffer_view buffer, font::face_descriptor_t face, std::u8string_view text, pxsizes sizes) noexcept;
 
         inline bool draw(buffer_view buffer, font::face_descriptor_t face, std::u8string_view text) noexcept
         {

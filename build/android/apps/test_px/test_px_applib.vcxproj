@@ -56,6 +56,7 @@
     <ClCompile Include="$(RepoAppsDir)\test_px\main.cpp" />
     <ClCompile Include="$(RepoAppsDir)\test_px\test_pixspan.cpp" />
     <ClCompile Include="$(RepoAppsDir)\test_px\test_pixmap.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_px\test_pxf.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

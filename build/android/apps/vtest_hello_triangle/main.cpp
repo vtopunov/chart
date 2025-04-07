@@ -1,6 +1,6 @@
 #include <debug/debug.h>
 
-#include <gl/draw.h>
+#include <gl_core/draw.h>
 
 #include <egl_ui/egl_ui_owner.h>
 
@@ -27,14 +27,14 @@ namespace
                         {
                             gl_Position = vec4(a_position, 0.0, 1.0);
                         }
-                    )"_glsl,
+                    )"_vert_glsl,
                 R"(
                         precision mediump float;
                         void main()
                         {
                             gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
                         }
-                    )"_glsl
+                    )"_frag_glsl
             );
 
             static const auto a_position = gl::get_attribute_location(program, "a_position"_zsv);

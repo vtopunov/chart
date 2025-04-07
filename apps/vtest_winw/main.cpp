@@ -8,7 +8,7 @@ using namespace std::chrono_literals;
 
 namespace
 {
-    constexpr pxrectangle subwindow_geometry(pxsize2d mainwindow_sizes) noexcept
+    constexpr pxrectangle subwindow_geometry(pxsizes mainwindow_sizes) noexcept
     {
         return
         {

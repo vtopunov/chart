@@ -3112,10 +3112,10 @@ template <typename Char, typename... Args> class basic_format_string {
              std::is_reference<Args>::value)...>() == 0,
         "passing views as lvalues is disallowed");
 #ifdef FMT_HAS_CONSTEVAL
-    if constexpr (detail::count_named_args<Args...>() ==
-                  detail::count_statically_named_args<Args...>()) {
+    if constexpr (detail::count_named_args<Types...>() ==
+                  detail::count_statically_named_args<Types...>()) {
       using checker = detail::format_string_checker<Char, detail::error_handler,
-                                                    remove_cvref_t<Args>...>;
+                                                    remove_cvref_t<Types>...>;
       detail::parse_format_string<true>(str_, checker(s, {}));
     }
 #else

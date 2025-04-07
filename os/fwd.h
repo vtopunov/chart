@@ -14,9 +14,9 @@
 #endif
 
 #if defined(D_OS_WINDOWS)
-#define D_CONDITIONAL_OS_WINDOWS(A, B) A
+#define D_OS_WINDOWS_OR(A, B) A
 #else
-#define D_CONDITIONAL_OS_WINDOWS(A, B) B
+#define D_OS_WINDOWS_OR(A, B) B
 #endif
 
 #if defined(D_OS_ANDROID)
@@ -26,9 +26,9 @@
 #endif
 
 #if defined(D_OS_ANDROID)
-#define D_CONDITIONAL_OS_ANDROID(A, B) A
+#define D_OS_ANDROID_OR(A, B) A
 #else
-#define D_CONDITIONAL_OS_ANDROID(A, B) B
+#define D_OS_ANDROID_OR(A, B) B
 #endif
 
 
@@ -113,7 +113,7 @@ namespace os
 
     D_ONLY_OS_WINDOWS(using const_brush_handle_t = add_const_pointer_t<brush_handle_t>);
     using const_module_handle_t = add_const_pointer_t<module_handle_t>;
-    using file_descriptor_t = D_CONDITIONAL_OS_WINDOWS(handle_t, int);
+    using file_descriptor_t = D_OS_WINDOWS_OR(handle_t, int);
 
     namespace private_detail_osfwd_test
     {

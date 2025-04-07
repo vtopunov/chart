@@ -97,7 +97,6 @@
     <ClInclude Include="font_cache.h" />
     <ClInclude Include="png.h" />
     <ClInclude Include="px.h" />
-    <ClInclude Include="shader_library.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

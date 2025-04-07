@@ -17,12 +17,13 @@ namespace widget
     {
         if (text_cache.draw(e.get<buffer_view>(), font, text)) [[likely]]
         {
-            e.get<shader::luminance_texture_mix_color>()
-                .use()
-                .position(position)
-                .color(colors::black_f)
-                .texture(text_cache.texture())
-                .draw();
+            const auto& s = e.get<shader_embed::luminance_texture>();
+            
+            s.use();
+            s.position(position);
+            s.color(colors::black_f);
+            s.texture(text_cache.texture());
+            s.draw();
         }
     }
 }

@@ -47,28 +47,28 @@ namespace chart
             return md_inrange_neq(value, range._0, range._1);
         }
 
-        [[nodiscard]] constexpr real_point2d calculate_dline_min(pxsize2d pxsizes) noexcept
+        [[nodiscard]] constexpr real_point2d calculate_dline_min(pxsizes sizes) noexcept
         {
-            return { pxsizes * numeric_eps_v<real_t> };
+            return { sizes * numeric_eps_v<real_t> };
         }
 
-        [[nodiscard]] constexpr vec2<real_point2d> calculate_dline_range(real_point2d dline0, pxsize2d pxsizes) noexcept
+        [[nodiscard]] constexpr vec2<real_point2d> calculate_dline_range(real_point2d dline0, pxsizes sizes) noexcept
         {
             return
             {
-                calculate_dline_min(pxsizes),
-                dline0 * (0.5 * pxsizes)
+                calculate_dline_min(sizes),
+                dline0 * (0.5 * sizes)
             };
         }
 
-        [[nodiscard]] constexpr vec2<real_point2d> calculate_dline0_range(pxsize2d pxsizes) noexcept
+        [[nodiscard]] constexpr vec2<real_point2d> calculate_dline0_range(pxsizes sizes) noexcept
         {
             constexpr auto real_sz_max = fill_to<size2d>(numeric_max_v<real_t>);
-            D_ASSERT(pxsizes.has_positive_square());
+            D_ASSERT(sizes.has_positive_square());
             return
             {
-                calculate_dline_min(pxsizes),
-                real_sz_max / pxsizes
+                calculate_dline_min(sizes),
+                real_sz_max / sizes
             };
         }
     }
@@ -76,13 +76,14 @@ namespace chart
     class space_diagonal_cache
     {
     public:
+        [[nodiscard]]
         constexpr explicit operator bool() const noexcept
         {
             return has_value();
         }
 
         [[nodiscard]]
-        constexpr bool try_update(const space_diagonal& line, pxsize2d pxsizes) noexcept
+        constexpr bool try_update(const space_diagonal& line, pxsizes pxsizes) noexcept
         {
             using private_detail_space_diagonal_cache::md_inrange_neq;
             using private_detail_space_diagonal_cache::calculate_dline_range;
@@ -101,7 +102,7 @@ namespace chart
         }
 
         [[nodiscard]]
-        constexpr bool try_first_update(const space_diagonal& line, pxsize2d pxsizes) noexcept
+        constexpr bool try_first_update(const space_diagonal& line, pxsizes pxsizes) noexcept
         {
             using private_detail_space_diagonal_cache::md_inrange_neq;
             using private_detail_space_diagonal_cache::calculate_dline0_range;

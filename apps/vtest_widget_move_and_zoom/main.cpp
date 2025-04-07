@@ -41,7 +41,7 @@ namespace
             return widget::redraw_if(apply_nzoom(area_, e.rot()));
         }
 
-        event_result operator () (widget::mouse_double_click_event<> e) noexcept
+        constexpr event_result operator () (widget::mouse_double_click_event<> e) noexcept
         {
             area_ = default_area(e.viewport());
             return event_result::redraw;
@@ -49,9 +49,9 @@ namespace
 
         using gesture_event_type = widget::basic_gesture_event<>;
 
-        event_result operator () (gesture_event_type e) noexcept
+        constexpr event_result operator () (gesture_event_type e) noexcept
         {
-            return widget::redraw_if(update_glpx(area_, e.transformation_as(area_)));
+            return widget::redraw_if(px::update_pxf(area_, e.transformation_as(area_)));
         }
 
         void operator () (widget::redraw_event<>) const noexcept

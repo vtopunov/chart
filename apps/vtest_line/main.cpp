@@ -9,7 +9,7 @@
 #include <file/file_mmap.h>
 #endif
 
-#include <utility/shader_library.h>
+#include <shader/library.h>
 
 #include "test_figure.h"
 
@@ -58,7 +58,7 @@ namespace
         draw_antialiasing_line(image, line.x0, line.y0, line.x1, line.y1);
     }
 
-    gl::texture2d lines_rendering() noexcept
+    [[nodiscard]] gl::texture2d lines_rendering() noexcept
     {
         using vtest_line_figure::figure;
 
@@ -115,8 +115,8 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shader_library<vert::positioned_texture, frag::inverted_texture>  shaders{};
-    if (!shaders.build())
+    shader_library<shader_embed::vert::positioned_texture, shader_embed::frag::inverted_texture> shaders{};
+    if (!shaders.load())
     {
         e_debug("build shaders program error");
         return EXIT_FAILURE;
@@ -128,11 +128,10 @@ int app_main(os::module_handle_t app) noexcept
         gl::clear(colors::white_f);
 
         shaders.use();
-        shaders.frag().texture(texture);
-        shaders.vert().viewport(egl.viewport());
-        shaders.vert().position(30_npx, 50_npx);
-        shaders.vert().size(texture.sizes());
-        shaders.vert().frame().draw();
+        shaders.texture(texture);
+        shaders.viewport(egl.viewport());
+        shaders.position(30_npx, 50_npx);
+        shaders.draw();
     }
 
     return ui::run_event_loop(egl);

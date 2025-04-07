@@ -6,13 +6,15 @@
 namespace px
 {
     using npx_t = uint32_t;
+    using npxf_t = float;
     using pxoff_t = int32_t;
     static_assert(sizeof(pxoff_t) >= sizeof(npx_t));
 
-    using pxvec2d = vec2<npx_t>;
-    using pxpoint2d = point2d<npx_t>;
-    using pxoff2d = point2d<pxoff_t>;
-    using pxsize2d = size2d<npx_t>;
+    using pxvec = vec2<npx_t>;
+    using pxfvec = vec2<npxf_t>;
+    using pxpoint = point2d<npx_t>;
+    using pxoffs = point2d<pxoff_t>;
+    using pxsizes = size2d<npx_t>;
 
     using pxrectangle = rectangle<npx_t>;
 
@@ -39,7 +41,7 @@ namespace px
 
     using namespace literals;
 
-    constexpr pxsize2d no_sizes{ 0_npx, 0_npx };
+    constexpr pxsizes no_sizes{ 0_npx, 0_npx };
     static_assert(!no_sizes.has_positive_mark());
     static_assert(!no_sizes.has_positive_square());
 }
@@ -50,11 +52,13 @@ namespace px_literals
 }
 
 using px::npx_t;
+using px::npxf_t;
 using px::pxoff_t;
-using px::pxvec2d;
-using px::pxpoint2d;
-using px::pxoff2d;
-using px::pxsize2d;
+using px::pxvec;
+using px::pxfvec;
+using px::pxpoint;
+using px::pxoffs;
+using px::pxsizes;
 using px::pxrectangle;
 
 using namespace px_literals;

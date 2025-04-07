@@ -34,7 +34,7 @@ namespace
 
         static_assert(std::is_same_v<decltype(b.data()), void_ptr>);
         static_assert(std::is_same_v<decltype(b.as_bytes()), span<byte_type>>);
-        static_assert(std::is_same_v<decltype(to_span<word>(b)), span<word_type>>);
+        static_assert(std::is_same_v<decltype(as_span<word>(b)), span<word_type>>);
 
         const buffer_view_type right_b{ const_cast<void_ptr>(data), size };
         const buffer_view_type right_data_b{ const_cast<void_ptr>(data), 0 };
@@ -42,7 +42,7 @@ namespace
         const auto bdata = b.data();
         const auto bsize = b.size();
         const auto bytes = b.as_bytes();
-        const auto words = to_span<word>(b);
+        const auto words = as_span<word>(b);
         const auto test_pbytes = static_cast<byte_cptr>(data);
         const auto test_pwords = static_cast<word_cptr>(data);
 

@@ -9,7 +9,7 @@ namespace file
 
     constexpr off_t invalid_offset{ -1LL };
     
-    enum class seek_mode : D_CONDITIONAL_OS_WINDOWS(os::dword_t, int)
+    enum class seek_mode : D_OS_WINDOWS_OR(os::dword_t, int)
     {
         begin = 0,
         current = 1,

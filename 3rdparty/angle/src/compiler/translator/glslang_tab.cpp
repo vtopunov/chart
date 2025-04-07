@@ -1817,10 +1817,10 @@ while (0)
 #  define YYFPRINTF fprintf
 # endif
 
-# define YYDPRINTF(Args)                        \
+# define YYDPRINTF(Types)                        \
 do {                                            \
   if (yydebug)                                  \
-    YYFPRINTF Args;                             \
+    YYFPRINTF Types;                             \
 } while (0)
 
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ui/manipulator.h>
+
 #include <widget/event.h>
 
 
@@ -17,17 +18,17 @@ namespace widget
 
         D_DISABLE_COPYMOVE_CA(gesture);
 
-        void operator () (basic_viewport_event<>) noexcept
+        constexpr void operator () (basic_viewport_event<>) noexcept
         {
             clear();
         }
 
-        void operator () (const ui::mouse_down_event&) noexcept
+        constexpr void operator () (const ui::mouse_down_event&) noexcept
         {
             clear();
         }
 
-        void operator () (const ui::mouse_up_event&) noexcept
+        constexpr void operator () (const ui::mouse_up_event&) noexcept
         {
             clear();
         }
@@ -43,12 +44,12 @@ namespace widget
             base_ref() = new_manipulation(vpoint_cache_, e);
         }
 
-        void operator () (const ui::mouse_wheel_event&) noexcept
+        constexpr void operator () (const ui::mouse_wheel_event&) noexcept
         {
             clear();
         }
 
-        void operator () (const ui::mouse_double_click_event&) noexcept
+        constexpr void operator () (const ui::mouse_double_click_event&) noexcept
         {
             clear();
         }
@@ -59,7 +60,7 @@ namespace widget
         }
 
     private:
-        void clear() noexcept
+        constexpr void clear() noexcept
         {
             vpoint_cache_ = ui::no_cached_user_vpoint;
             base_ref() = ui::no_gesture;

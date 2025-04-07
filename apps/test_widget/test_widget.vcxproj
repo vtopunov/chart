@@ -84,6 +84,9 @@
     <ProjectReference Include="..\..\egl_ui\egl_ui.vcxproj">
       <Project>{c68c0dc6-5bbb-4620-9132-d734195ecaa5}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\gl_core\gl_core.vcxproj">
+      <Project>{24516ac3-b08d-4a84-a63c-735a50200b28}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

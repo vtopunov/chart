@@ -1,12 +1,11 @@
 #pragma once
 
-#include <functional>
-#include <string>
+#include <shader/library.h>
 
 #include <utility/font_cache.h>
 
 #include <widget/ex_context.h>
-#include <widget/shader.h>
+#include <widget/event.h>
 #include <widget/text.h>
 
 
@@ -30,11 +29,8 @@ namespace widget
 
         void set_text(std::u8string new_text) noexcept
         {
-            if (new_text != text)
-            {
-                text = std::move(new_text);
-                text_cache.clear();
-            }
+            text = std::move(new_text);
+            text_cache.clear();
         }
 
         [[nodiscard]] bool operator () (widget::basic_initialization_event<>) noexcept;
@@ -48,8 +44,8 @@ namespace widget
 #endif       
 
         using redraw_event_type = basic_redraw_event<
-            shader::luminance_texture_mix_color,
-            shader::colored_rectangle,
+            shader_embed::luminance_texture,
+            shader_embed::colored_rectangle,
             buffer_view
         >;
 

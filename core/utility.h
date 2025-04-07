@@ -182,7 +182,7 @@ template<size_t mul>
 [[nodiscard]] constexpr bool has_size_mul(const size_t size) noexcept
 {
     static_assert(mul > 0_uz);
-    constexpr auto overflow = numeric_max_v<size_t> / mul;
+    constexpr auto overflow = size_maxi / mul;
     return size <= overflow;
 }
 
@@ -198,15 +198,14 @@ template<size_t mul>
 [[nodiscard]] constexpr size_t size_mul_or_max(const size_t size) noexcept
 {
     static_assert(mul > 0_uz);
-    constexpr auto size_max = numeric_max_v<size_t>;
-    constexpr auto overflow = size_max / mul;
+    constexpr auto overflow = size_maxi / mul;
 
     if(size <= overflow) [[likely]]
     {
         return size * mul;
     }
 
-    return size_max;
+    return size_maxi;
 }
 
 template<size_t align>
@@ -222,23 +221,29 @@ template<size_t align>
 }
 
 template<class L, class R>
-[[nodiscard]] constexpr auto u_min
+[[nodiscard]] constexpr enable_if_detected_and_t<std::common_type_t<L, R>, decl_less_op_t, R, L> u_min
 (
     const L& a,
     const R& b
-) noexcept -> std::remove_reference_t<decltype((b < a), std::declval<std::common_type_t<L, R>>())>
+) noexcept
 {
+    D_WARNING_PUSH;
+    D_WARNING_DISABLE_MSVC(W_signed_unsigned_mismatch);
     return (b < a) ? b : a;
+    D_WARNING_POP;
 }
 
 template<class L, class R>
-[[nodiscard]] constexpr auto u_max
+[[nodiscard]] constexpr enable_if_detected_and_t<std::common_type_t<L, R>, decl_less_op_t, L, R> u_max
 (
     const L& a,
     const R& b
-) noexcept -> std::remove_reference_t<decltype((a < b), std::declval<std::common_type_t<L, R>>())>
+) noexcept
 {
+    D_WARNING_PUSH;
+    D_WARNING_DISABLE_MSVC(W_signed_unsigned_mismatch);
     return (a < b) ? b : a;
+    D_WARNING_POP;
 }
 
 

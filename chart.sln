@@ -57,7 +57,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspng", "3rdparty\libspng
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "image", "image\image.vcxproj", "{730D00F2-56BF-4F42-8055-A1517B0214C4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gl", "gl\gl.vcxproj", "{24516AC3-B08D-4A84-A63C-735A50200B28}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gl_core", "gl_core\gl_core.vcxproj", "{24516AC3-B08D-4A84-A63C-735A50200B28}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ui", "ui\ui.vcxproj", "{F2D39E92-1869-4CE0-85B7-88A93D85EEC4}"
 EndProject
@@ -132,6 +132,12 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_chart_grid_emu", "apps\vtest_chart_grid_emu\vtest_chart_grid_emu.vcxproj", "{3925A46B-86CA-4560-ACF9-BCFB9F35D056}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "egl_ui", "egl_ui\egl_ui.vcxproj", "{C68C0DC6-5BBB-4620-9132-D734195ECAA5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shader", "shader\shader.vcxproj", "{4257FA10-7AEF-4E6C-A91C-D701EC21F2C9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_shader", "apps\test_shader\test_shader.vcxproj", "{68B88186-530C-4FEB-9092-A89F31AB17DF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_shader_texture", "apps\vtest_shader_texture\vtest_shader_texture.vcxproj", "{F98FCFED-DAD8-420F-94D4-98033AAA3A73}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -611,6 +617,30 @@ Global
 		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x64.Build.0 = Release|x64
 		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x86.ActiveCfg = Release|x64
 		{C68C0DC6-5BBB-4620-9132-D734195ECAA5}.Release|x86.Build.0 = Release|x64
+		{4257FA10-7AEF-4E6C-A91C-D701EC21F2C9}.Debug|x64.ActiveCfg = Debug|x64
+		{4257FA10-7AEF-4E6C-A91C-D701EC21F2C9}.Debug|x64.Build.0 = Debug|x64
+		{4257FA10-7AEF-4E6C-A91C-D701EC21F2C9}.Debug|x86.ActiveCfg = Debug|x64
+		{4257FA10-7AEF-4E6C-A91C-D701EC21F2C9}.Debug|x86.Build.0 = Debug|x64
+		{4257FA10-7AEF-4E6C-A91C-D701EC21F2C9}.Release|x64.ActiveCfg = Release|x64
+		{4257FA10-7AEF-4E6C-A91C-D701EC21F2C9}.Release|x64.Build.0 = Release|x64
+		{4257FA10-7AEF-4E6C-A91C-D701EC21F2C9}.Release|x86.ActiveCfg = Release|x64
+		{4257FA10-7AEF-4E6C-A91C-D701EC21F2C9}.Release|x86.Build.0 = Release|x64
+		{68B88186-530C-4FEB-9092-A89F31AB17DF}.Debug|x64.ActiveCfg = Debug|x64
+		{68B88186-530C-4FEB-9092-A89F31AB17DF}.Debug|x64.Build.0 = Debug|x64
+		{68B88186-530C-4FEB-9092-A89F31AB17DF}.Debug|x86.ActiveCfg = Debug|x64
+		{68B88186-530C-4FEB-9092-A89F31AB17DF}.Debug|x86.Build.0 = Debug|x64
+		{68B88186-530C-4FEB-9092-A89F31AB17DF}.Release|x64.ActiveCfg = Release|x64
+		{68B88186-530C-4FEB-9092-A89F31AB17DF}.Release|x64.Build.0 = Release|x64
+		{68B88186-530C-4FEB-9092-A89F31AB17DF}.Release|x86.ActiveCfg = Release|x64
+		{68B88186-530C-4FEB-9092-A89F31AB17DF}.Release|x86.Build.0 = Release|x64
+		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Debug|x64.ActiveCfg = Debug|x64
+		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Debug|x64.Build.0 = Debug|x64
+		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Debug|x86.ActiveCfg = Debug|x64
+		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Debug|x86.Build.0 = Debug|x64
+		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Release|x64.ActiveCfg = Release|x64
+		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Release|x64.Build.0 = Release|x64
+		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Release|x86.ActiveCfg = Release|x64
+		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -665,6 +695,8 @@ Global
 		{B6A9543D-45C9-410D-B780-C6E7747220A4} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{E98D9E11-183D-49D6-B35A-1CE40D7E90CA} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{3925A46B-86CA-4560-ACF9-BCFB9F35D056} = {522D351D-0C5D-40A1-A856-3C94167BA347}
+		{68B88186-530C-4FEB-9092-A89F31AB17DF} = {522D351D-0C5D-40A1-A856-3C94167BA347}
+		{F98FCFED-DAD8-420F-94D4-98033AAA3A73} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA32F6CD-3CF1-41D1-9B1C-B19E96B2EE6A}

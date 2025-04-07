@@ -37,10 +37,20 @@ namespace
             widget::temp_buffer
         >;
 
+        struct subwidget
+        {
+            constexpr noapply_t apply(no_overload) const noexcept
+            {
+                return noapply;
+            }
+        };
+
+        subwidget w;
+
         template<class Fn>
         constexpr decltype(auto) apply(Fn fn) const noexcept
         {
-            return ex_context_v<ex_type>(fn);
+            return ex_context_v<ex_type>(fn, w);
         }
     };
 
@@ -57,14 +67,11 @@ namespace
         }
     };
 
-    template<class ExContext, class ExType>
-    constexpr bool test_ex_context0_v = std::conjunction_v<
-        std::is_same<ExContext, widget::ex_context<ExType> >,
-        std::is_same<widget::ex_context_tuple_t<ExContext>, transform_types_t<widget::context_source_element_t, typename ExType::context_tuple_type> >
+    template<class W>
+    using context_sample_t = repack_types_t<
+        transform_types_t<widget::context_unview_t, widget::decl_contexts_t<typename W::ex_type> >, 
+        widget::context
     >;
-
-    template<class ExContext, class TestWidget>
-    constexpr bool test_ex_context_v = test_ex_context0_v<ExContext, typename TestWidget::ex_type>;
 }
 
 
@@ -74,29 +81,60 @@ void test_context() noexcept
     static_assert(sizeof(widget::basic_mouse_move_event<>) == sizeof(ui::mouse_move_event));
 
     {
-        using cc_t = widget::common_context_t<main_widget>;
-        using tuple_cc_t = typename cc_t::tuple_type;
+        using widget::private_detail_context::private_detail_context::private_detail_widgets::widgets_t;
 
-        static_assert(types_has_type_v<shader<0>, tuple_cc_t>);
-        static_assert(types_has_type_v<shader<1>, tuple_cc_t>);
-        static_assert(types_has_type_v<shader<2>, tuple_cc_t>);
-        static_assert(types_has_type_v<widget::temp_buffer, tuple_cc_t>);
-        static_assert(types_has_type_v<widget::windowrefwrap_t, tuple_cc_t>);
-        static_assert(5u == std::tuple_size_v<tuple_cc_t>);
+        {
+            using main_widgets_t = widgets_t<main_widget>;
+            static_assert(4u == types_size_v<main_widgets_t>);
+            static_assert(types_has_type_v<main_widget, main_widgets_t>);
+            static_assert(types_has_type_v<widget0, main_widgets_t>);
+            static_assert(types_has_type_v<widget1, main_widgets_t>);
+            static_assert(types_has_type_v<widget1::subwidget, main_widgets_t>);
+            static_assert(types_template_is_v<main_widgets_t, types_pack>);
+        }
 
-        widget::window w{};
-        cc_t cc{ w };
-        D_ASSERT(std::addressof(cc.cref_window()) == std::addressof(w));
-        D_ASSERT(std::addressof(cc.ref_window()) == std::addressof(w));
+        {
+            using context0_t = widget::context_t<widget0>;
+            static_assert(4u == types_size_v<context0_t>);
+            
+            static_assert(types_has_type_v<widget::windowrefwrap_t, context0_t>);
+            static_assert(types_has_type_v<shader<0>, context0_t>);
+            static_assert(types_has_type_v<shader<1>, context0_t>);
+            static_assert(types_has_type_v<widget::temp_buffer, context0_t>);
+            static_assert(types_template_is_v<context0_t, widget::context>);
+
+            static_assert(std::is_same_v<context0_t, context_sample_t<widget0> > );
+        }
+
+        {
+            using context1_t = widget::context_t<widget1>;
+            static_assert(4u == types_size_v<context1_t>);
+            static_assert(types_has_type_v<widget::windowrefwrap_t, context1_t>);
+            static_assert(types_has_type_v<shader<1>, context1_t>);
+            static_assert(types_has_type_v<shader<2>, context1_t>);
+            static_assert(types_has_type_v<widget::temp_buffer, context1_t>);
+            static_assert(types_template_is_v<context1_t, widget::context>);
+
+            static_assert(std::is_same_v<context1_t, context_sample_t<widget1> > );
+        }
+
+
+        {
+            using context_t = widget::context_t<main_widget>;
+            static_assert(5u == types_size_v<context_t>);
+            static_assert(types_has_type_v<widget::windowrefwrap_t, context_t>);
+            static_assert(types_has_type_v<shader<0>, context_t>);
+            static_assert(types_has_type_v<shader<1>, context_t>);
+            static_assert(types_has_type_v<shader<2>, context_t>);
+            static_assert(types_has_type_v<widget::temp_buffer, context_t>);
+            static_assert(types_template_is_v<context_t, widget::context>);
+
+            widget::window w{};
+            context_t cc{ w };
+            D_ASSERT(std::addressof(cc.cref_window()) == std::addressof(w));
+            D_ASSERT(std::addressof(cc.ref_window()) == std::addressof(w));
+        }
     }
-
-    using ex_context0_t = std::tuple_element_t<1u, widget::widget_tuple_t<widget0>>;
-    using ex_context1_t = std::tuple_element_t<1u, widget::widget_tuple_t<widget1>>;
-
-    static_assert(test_ex_context_v<ex_context0_t, widget0>);
-    static_assert(test_ex_context_v<ex_context1_t, widget1>);
-
-    static_assert(std::is_same_v<unique_tuple_t<widget::widget_tuple_t<main_widget>>, std::tuple<main_widget, widget0, ex_context0_t, widget1, ex_context1_t> >);
 
     D_ASSERT(!errno);
 }

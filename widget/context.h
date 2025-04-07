@@ -2,75 +2,60 @@
 
 #include <widget/temp_buffer.h>
 #include <widget/gesture.h>
+#include <widget/shader.h>
 
 
 namespace widget
 {
-    namespace private_detail_context_tuple
+    namespace private_detail_context
     {
-        template<class Target>
-        struct context_source_element_type
+        namespace private_detail_context_unview
         {
-            using type = Target;
-        };
+            template<class Target>
+            struct context_unview_type
+            {
+                using type = Target;
+            };
 
-        template<>
-        struct context_source_element_type<buffer_view>
-        {
-            using type = temp_buffer;
-        };
+            template<>
+            struct context_unview_type<buffer_view>
+            {
+                using type = temp_buffer;
+            };
 
-        template<>
-        struct context_source_element_type<ui::gesture>
-        {
-            using type = widget::gesture;
-        };
+            template<>
+            struct context_unview_type<ui::gesture>
+            {
+                using type = widget::gesture;
+            };
 
-        template<class T>
-        using context_source_element_t = typename context_source_element_type<T>::type;
+            template<class VS, class FS>
+            struct context_unview_type<shader_library<VS, FS> >
+            {
+                using type = widget::widget_shader_library<VS, FS>;
+            };
 
-        template<class T>
-        using context_tuple0_t = detected_or_t<std::tuple<T>, decl_context_tuple_t, T>;
-
-        template<class T>
-        using context_tuple_t = transform_types_t<context_source_element_t, context_tuple0_t<T> >;
-
-        template<class... Types>
-        struct ex_context_tuple_type
-        {
-            using type = std::tuple<>;
-        };
-
-        template<class... Types>
-        struct ex_context_tuple_type<ex_context<Types...>>
-        {
-            using type = tuple_unique_insert_back_tuple_t<std::tuple<>, context_tuple_t<Types>...>;
-        };
-
-        template<class Ex>
-        using ex_context_tuple_t = typename ex_context_tuple_type<Ex>::type;
+            template<class T>
+            using context_unview_t = typename context_unview_type<T>::type;
+        }
     }
 
-    using private_detail_context_tuple::context_source_element_t;
-    using private_detail_context_tuple::ex_context_tuple_t;
+    using private_detail_context::private_detail_context_unview::context_unview_t;
 
-
-    template<class... ETypes, class EventBase, class... Types>
-    constexpr basic_widget_event<EventBase, ETypes...> make_widget_event(const EventBase& base, const common_context<Types...>& cc) noexcept;
 
     template<class... Types>
-    class common_context
+    class context
     {
     public:
-        using tuple_type = D_CONDITIONAL_OS_WINDOWS(tuple_sizeof_optimization_t<std::tuple<Types...>>, std::tuple<Types...>);
+        using tuple_type = D_OS_WINDOWS_OR(types_sizeof_optimization_t<std::tuple<Types...>>, std::tuple<Types...>);
 
-        constexpr explicit common_context(const widget::window& window) noexcept
+        constexpr explicit context(const widget::window& window) noexcept
             : tuple_{}
         {
             std::get<windowrefwrap_t>(tuple_) = windowrefwrap_t{ window };
         }
 
-        D_DISABLE_COPYMOVE_CA(common_context);
+        D_DISABLE_COPYMOVE_CA(context);
 
         template<class T>
         [[nodiscard]] constexpr const T& cget() const noexcept
@@ -106,16 +91,16 @@ namespace widget
         }
 
         template<class Fn>
-        decltype(auto) apply(Fn fn) noexcept
+        constexpr decltype(auto) apply(Fn&& fn) noexcept
         {
-            return apply_impl(fn, tuple_, std::index_sequence_for<Types...>{});
+            return apply_impl(fn, std::index_sequence_for<Types...>{});
         }
 
     private:
-        template <class Fn, class Tuple, size_t... Indices>
-        static constexpr decltype(auto) apply_impl(Fn fn, Tuple& tuple, std::index_sequence<Indices...>) noexcept
+        template <class Fn, size_t... Indices>
+        constexpr decltype(auto) apply_impl(Fn& fn, std::index_sequence<Indices...>) noexcept
         {
-            return fn(unrefwrap(std::get<Indices>(tuple))...);
+            return fn(unrefwrap(std::get<Indices>(tuple_))...);
         }
 
     private:
@@ -123,13 +108,13 @@ namespace widget
     };
 
     template<class... ETypes, class EventBase, class... Types>
-    constexpr basic_widget_event<EventBase, ETypes...> make_widget_event(const EventBase& base, const common_context<Types...>& cc) noexcept
+    constexpr basic_widget_event<EventBase, ETypes...> make_widget_event(const EventBase& base, const context<Types...>& cc) noexcept
     {
-        return basic_widget_event<EventBase, ETypes...>{ base, unrefwrap(cc.template cget<context_source_element_t<ETypes>>())... };
+        return basic_widget_event<EventBase, ETypes...>{ base, unrefwrap(cc.template cget<context_unview_t<ETypes>>())... };
     }
 
     template<class Event, class CommonContext>
-    struct event_common_context
+    struct widget_event_factory
     {
         const Event& ui_event;
         const CommonContext& widget_common_context;
@@ -147,87 +132,77 @@ namespace widget
     };
 
     template<class E, class CC>
-    event_common_context(const E&, const CC&) -> event_common_context<E, CC>;
+    widget_event_factory(const E&, const CC&) -> widget_event_factory<E, CC>;
 
 
-    template<class Tuple>
-    struct make_common_context_type;
-
-    template<class... Types>
-    struct make_common_context_type<std::tuple<Types...>>
+    namespace private_detail_context
     {
-        using type = common_context<Types...>;
-    };
-
-    template<class Tuple>
-    using make_common_context_t = typename make_common_context_type<Tuple>::type;
-    
-
-    namespace private_detail_widget_tuple
-    {
-        struct forward_ref_types_function : ex_context_type_enumerator
+        namespace private_detail_context
         {
-            template<class... Args>
-            constexpr std::tuple<Args&&...> operator () (Args&&... types) const noexcept
+            namespace private_detail_widgets
             {
-                return { std::forward<Args>(types)... };
+                template<class P, class S>
+                struct siblings_loop_type;
+
+                template<class P>
+                struct siblings_loop_type<P, types_pack<>>
+                {
+                    using type = add_template_t<types_pack, P>;
+                };
+
+                template<class P, class... S>
+                struct siblings_loop_type<P, types_pack<S...>>
+                {
+                    using type = types_cat_t<P, typename siblings_loop_type<S, subtypes_t<S>>::type...>;
+                };
+
+                template<class Widget>
+                struct widgets
+                {
+                    using widget_type = std::remove_cvref_t<Widget>;
+                    using type = types_unique_t<typename siblings_loop_type<
+                        widget_type,
+                        subtypes_t<widget_type>
+                    >::type>;
+                };
+
+                template<class Widget>
+                using widgets_t = typename widgets<Widget>::type;
             }
-        };
 
-        constexpr forward_ref_types_function forward_ref_types_function_v{};
+            using private_detail_widgets::widgets_t;
 
-        template<class W>
-        using siblings_widget_ref_tuple_t = std::remove_cvref_t<decltype(std::declval<W>().apply(forward_ref_types_function_v))>;
+            template<class SubtypesOrContext>
+            using contexts_t = detected_or_t<add_template_t<types_pack, SubtypesOrContext>, decl_contexts_t, SubtypesOrContext>;
 
-        template<class W>
-        using siblings_widget_tuple_t = transform_types_t<std::remove_cvref_t, siblings_widget_ref_tuple_t<W>>;
+            template<class Widget>
+            using ex_subtypes_t = subapply_result_t<Widget, ex_context_enumerator>;
 
+            template<class Widgets>
+            using ex_subtypes_sol_t = types_sol_t<transform_types_t<ex_subtypes_t, Widgets> >;
 
-        template<class P, class S>
-        struct siblings_loop_type;
+            template<class Contexts>
+            using contexts_sol_t = types_sol_t<transform_types_t<contexts_t, Contexts> >;
 
-        template<class P>
-        struct siblings_loop_type<P, std::tuple<>>
-        {
-            using type = std::tuple<P>;
-        };
+            template<class Contexts>
+            using contexts_unview_t = transform_types_t<context_unview_t, Contexts>;
 
-        template<class P, class... S>
-        struct siblings_loop_type<P, std::tuple<S...>>
-        {
-            using type = types_push_front_t<P, tuple_cat_t<typename siblings_loop_type<S, siblings_widget_tuple_t<S>>::type...>>;
-        };
+            template<class Contexts>
+            using contexts_unique_t = types_unique_push_back_pack_t<types_pack, types_pack<windowrefwrap_t>, Contexts>;
 
+            template<class Widgets>
+            using ex_contexts_sol_t = contexts_sol_t<ex_subtypes_sol_t<Widgets>>;
 
-        template<class Widget>
-        struct widget_tuple_type
-        {
-            using widget_type = std::remove_cvref_t<Widget>;
-            using type = typename siblings_loop_type<
-                widget_type,
-                siblings_widget_tuple_t<widget_type>
-            >::type;
-        };
+            template<class Widgets>
+            using ex_contexts_unique_unview_sol_t = contexts_unique_t<contexts_unview_t<ex_contexts_sol_t<Widgets> > >;
 
-        template<class Widget>
-        using widget_tuple_t = typename widget_tuple_type<Widget>::type;
+            template<class Widget>
+            using ex_contexts_t = ex_contexts_unique_unview_sol_t<widgets_t<Widget> >;
+
+            template<class Widget>
+            using context_t = repack_types_t<ex_contexts_t<Widget>, context>;
+        }
     }
 
-    using private_detail_widget_tuple::widget_tuple_t;
-
-
-    template<class TupleWidgets>
-    struct tuple_common_context_type;
-
-    template<class... Types>
-    struct tuple_common_context_type<std::tuple<Types...>>
-    {
-        using type = tuple_unique_insert_back_tuple_t<std::tuple<windowrefwrap_t>, ex_context_tuple_t<Types>...>;
-    };
-
-    template<class TupleWidgets>
-    using tuple_common_context_t = typename tuple_common_context_type<TupleWidgets>::type;
-
-    template<class Widget>
-    using common_context_t = make_common_context_t<tuple_common_context_t<widget_tuple_t<Widget>>>;
+    using private_detail_context::private_detail_context::context_t;
 }

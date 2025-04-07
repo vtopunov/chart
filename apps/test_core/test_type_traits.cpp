@@ -45,7 +45,7 @@ namespace
 
     namespace private_detail_call_if_exist
     {
-        template<int i>
+        template<int>
         struct S { int i; };
 
         template<int i>
@@ -339,6 +339,52 @@ namespace
         D_ASSERT(!errno);
     }
 
+    void test_has_qualifier() noexcept
+    {
+        enum class test_enum
+        {};
+
+        struct test_struct {};
+
+        static_assert(!has_qualifier_v<int>);
+        static_assert(!has_qualifier_v<test_enum>);
+        static_assert(!has_qualifier_v<test_struct>);
+        static_assert(has_qualifier_v<const int>);
+        static_assert(has_qualifier_v<int&>);
+        static_assert(has_qualifier_v<int&&>);
+        static_assert(has_qualifier_v<int*>);
+        static_assert(has_qualifier_v<int[]>);
+        static_assert(has_qualifier_v<int[3]>);
+        static_assert(has_qualifier_v<std::nullptr_t>);
+        static_assert(has_qualifier_v<const int&>);
+        static_assert(has_qualifier_v<const int&&>);
+        static_assert(has_qualifier_v<const int*>);
+        static_assert(has_qualifier_v<int*&>);
+        static_assert(has_qualifier_v<int**>);
+        D_ASSERT(!errno);
+    }
+
+    void test_is_unqualified_class() noexcept
+    {
+        enum class test_enum
+        {};
+
+        struct test_struct {};
+
+        static_assert(!is_unqualified_class_v<int>);
+        static_assert(!is_unqualified_class_v<nullptr_t>); static_assert(!std::is_class_v<nullptr_t>);
+        static_assert(!is_unqualified_class_v<test_enum>); static_assert(!std::is_class_v<test_enum>);
+
+        static_assert(!is_unqualified_class_v<const test_struct>); static_assert(std::is_class_v<const test_struct>);
+        static_assert(!is_unqualified_class_v<test_struct&>); static_assert(!std::is_class_v<test_struct&>);
+        static_assert(!is_unqualified_class_v<test_struct&&>); static_assert(!std::is_class_v<test_struct&&>);
+        static_assert(!is_unqualified_class_v<test_struct*>); static_assert(!std::is_class_v<test_struct*>);
+        static_assert(!is_unqualified_class_v<test_struct[]>); static_assert(!std::is_class_v<test_struct[]>);
+        static_assert(!is_unqualified_class_v<test_struct[3]>); static_assert(!std::is_class_v<test_struct[3]>);
+
+        D_ASSERT(!errno);
+    }
+
     void test_is_const_convertible() noexcept
     {
         static_assert(is_const_convertible_v<void, void>);
@@ -423,6 +469,8 @@ void test_type_traits() noexcept
     test_remove_enum();
     test_unsigned_or();
     test_add_const_pointer();
+    test_has_qualifier();
+    test_is_unqualified_class();
     test_is_const_convertible();
     test_is_sameuncvref();
     test_has_assignment_op();

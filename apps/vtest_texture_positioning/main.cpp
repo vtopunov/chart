@@ -3,7 +3,7 @@
 #include <egl_ui/egl_ui_owner.h>
 
 #include <utility/png.h>
-#include <utility/shader_library.h>
+#include <shader/library.h>
 
 
 int app_main(os::module_handle_t app) noexcept
@@ -22,24 +22,20 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shader_library<vert::positioned_texture, frag::default_texture> shaders{};
-    if (!shaders.build())
+    shader_embed::default_texture shaders{};
+    if (!shaders.load())
     {
-        e_debug("build shaders program error");
+        e_debug("error loading shaders");
         return EXIT_FAILURE;
     }
 
-    shaders.use();
-    shaders.vert().size(texture.sizes());
-    shaders.vert().viewport(egl.viewport());
-    shaders.frag().texture(texture);
+    shaders.viewport(egl.viewport());
+    shaders.texture(texture);
 
     {
         const egl_painting_owner painting_owner{ egl };
         gl::viewport(egl.viewport());
         gl::clear(colors::white_f);
-
-        const auto vb = shaders.vert().frame();
 
         const auto [w, h] = egl.viewport();
         const auto dx = texture.width() + 1_npx;
@@ -49,8 +45,8 @@ int app_main(os::module_handle_t app) noexcept
         {
             for (npx_t x = 0_npx; x < w; x += dx)
             {
-                shaders.vert().position(x, y);
-                vb.draw();
+                shaders.position(x, y);
+                shaders.draw();
             }
         }
     }

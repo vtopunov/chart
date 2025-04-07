@@ -21,4 +21,6 @@ void test_space_manipulation() noexcept
     static_assert(real_point2d_max == md_max(space_diagonal_initializer._1, real_point2d_max));
     static_assert(real_point2d_max == md_max(md_max(space_diagonal_initializer._1, real_point2d_lowest), real_point2d_max));
     static_assert(real_point2d_max == md_max(md_max(space_diagonal_initializer._1, real_point2d_max), real_point2d_lowest));
+
+    D_ASSERT(!errno);
 }

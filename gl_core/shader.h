@@ -5,21 +5,22 @@
 #include <core/resource.h>
 #include <core/zstring_view.h>
 
-#include <gl/glsl_typeid.h>
+#include <px/pxf.h>
+
+#include <gl_core/glsl_typeid.h>
 
 
 namespace gl
 {
-    using zstring_view = basic_zstring_view<GLchar>;
-    using string_view = std::basic_string_view<GLchar>;
-    using source_view = string_view;
+    using source_view = std::string_view;
 
-
+    [[nodiscard]]
     inline bool is_correct() noexcept
     {
         return GL_NO_ERROR == glGetError();
     }
 
+    [[nodiscard]]
     inline bool has_error() noexcept
     {
         return !is_correct();
@@ -48,7 +49,17 @@ namespace gl
         vertex = GL_VERTEX_SHADER
     };
 
-    [[nodiscard]] 
+    template<shader_type TypeId>
+    struct typed_source_view
+    {
+        static constexpr auto type_id = TypeId;
+        source_view source;
+    };
+
+    using fragment_source_view = typed_source_view<shader_type::fragment>;
+    using vertex_source_view = typed_source_view<shader_type::vertex>;
+
+    [[nodiscard]]
     shader create_shader(shader_type type) noexcept;
 
     enum class program_resource : GLuint
@@ -60,6 +71,12 @@ namespace gl
 
     [[nodiscard]]
     bool compile(program_resource program, source_view source, shader_type type) noexcept;
+
+    template<shader_type type>
+    [[nodiscard]] bool compile(program_resource program, typed_source_view<type> source) noexcept
+    {
+        return compile(program, source.source, type);
+    }
 
     [[nodiscard]]
     bool link(program_resource program) noexcept;
@@ -82,7 +99,7 @@ namespace gl
     program create_program() noexcept;
 
     [[nodiscard]]
-    program create_program(source_view vertex, source_view fragment) noexcept;
+    program create_program(vertex_source_view vertex, fragment_source_view fragment) noexcept;
 
     using location_index_t = GLuint;
     static_assert(std::is_unsigned_v<location_index_t>);
@@ -103,7 +120,7 @@ namespace gl
     template<class... Names>
     [[nodiscard]] std::array<attribute_location, sizeof...(Names)> get_attribute_locations
     (
-        program_resource program, 
+        program_resource program,
         const Names&... names
     ) noexcept
     {
@@ -127,42 +144,42 @@ namespace gl
     [[nodiscard]]
     uniform_location get_uniform_location(program_resource program, zstring_view name) noexcept;
 
-    inline void store_uniform_value(uniform_location u, GLint value) noexcept
+    inline void store_uniform_view(uniform_location u, GLint value) noexcept
     {
         glUniform1i(location_as_int(u), value);
     }
 
-    inline void store_uniform_value(uniform_location u, GLfloat value) noexcept
+    inline void store_uniform_view(uniform_location u, GLfloat value) noexcept
     {
         glUniform1f(location_as_int(u), value);
     }
 
-    inline void store_uniform_value(uniform_location u, const_span2i value) noexcept
+    inline void store_uniform_view(uniform_location u, const_span2i value) noexcept
     {
         glUniform2iv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, const_span2f value) noexcept
+    inline void store_uniform_view(uniform_location u, const_span2f value) noexcept
     {
         glUniform2fv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, const_span3i value) noexcept
+    inline void store_uniform_view(uniform_location u, const_span3i value) noexcept
     {
         glUniform3iv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, const_span3f value) noexcept
+    inline void store_uniform_view(uniform_location u, const_span3f value) noexcept
     {
         glUniform3fv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, const_span4i value) noexcept
+    inline void store_uniform_view(uniform_location u, const_span4i value) noexcept
     {
         glUniform4iv(location_as_int(u), 1, std::data(value));
     }
 
-    inline void store_uniform_value(uniform_location u, const_span4f value) noexcept
+    inline void store_uniform_view(uniform_location u, const_span4f value) noexcept
     {
         glUniform4fv(location_as_int(u), 1, std::data(value));
     }
@@ -201,7 +218,7 @@ namespace gl
         program_resource program,
         uniform_location location,
         glsl_typeid test_typeid,
-        string_view test_name
+        std::string_view test_name
     ) noexcept;
 
     struct uniform_base
@@ -230,49 +247,30 @@ namespace gl
     {
         static constexpr glsl_typeid type_id{ TypeId };
         using value_view_type = glsl_view_t<type_id>;
-
-#if D_IS_DEBUG
-        bool debug_is_stored__{ false };
-
-        constexpr void __debug_store() const noexcept
-        {
-            as_mutable(debug_is_stored__) = true;
-        }
-
-        constexpr bool __debug_is_stored() const noexcept
-        {
-            return debug_is_stored__;
-        }
-#endif
+        using element_type = glsl_tuple_element_type_t<type_id>;
 
         [[nodiscard]]
-        bool test(program_resource program, string_view name) const noexcept
+        bool test(program_resource program, std::string_view name) const noexcept
         {
             return test_uniform(program, location, type_id, name);
         }
 
         void store(value_view_type view) const noexcept
         {
-            D_ONLY_DEBUG(__debug_store());
-            store_uniform_value(location, view);
+            store_uniform_view(location, view);
         }
 
         template<class... Types>
-        auto store(const Types&... values) const -> decltype(store_uniform_method_v<type_id>(location_as_int(location), values...))
+        auto store(const Types&... values) const 
+            -> decltype(store_uniform_method_v<type_id>(location_as_int(location), px::narrow_px<element_type>(values)...))
         {
-            D_ONLY_DEBUG(__debug_store());
-            return store_uniform_method_v<type_id>(location_as_int(location), values...);
+            return store_uniform_method_v<type_id>(location_as_int(location), px::narrow_px<element_type>(values)...);
         }
 
-        void operator () (value_view_type view) const noexcept
+        template<class Vec>
+        auto store(const Vec& v) const -> decltype(store(as_vec2(v)._0, as_vec2(v)._1))
         {
-            store(view);
-        }
-
-        template<class... Types>
-        auto operator () (const Types&... values) const -> decltype(store(values...))
-        {
-            return store(values...);
+            return store(v._0, v._1);
         }
 
         [[nodiscard]]
@@ -287,12 +285,25 @@ namespace gl
     using uniform_vec2f = uniform<glsl_typeid::vec2f>;
     using uniform_vec4f = uniform<glsl_typeid::vec4f>;
 
+
     namespace shader_literals
     {
         [[nodiscard]]
-        constexpr source_view operator"" _glsl(const GLchar * source, size_t length) noexcept
+        constexpr source_view operator"" _glsl(const char* source, size_t length) noexcept
         {
             return { source, length };
+        }
+
+        [[nodiscard]]
+        constexpr vertex_source_view operator"" _vert_glsl(const char* source, size_t length) noexcept
+        {
+            return { .source{ source, length } };
+        }
+
+        [[nodiscard]]
+        constexpr fragment_source_view operator"" _frag_glsl(const char* source, size_t length) noexcept
+        {
+            return { .source{ source, length } };
         }
     }
 }

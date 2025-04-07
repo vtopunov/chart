@@ -11,8 +11,6 @@ namespace gl
 {
     namespace
     {
-        using string = std::basic_string<GLchar>;
-
         namespace resource
         {
             [[nodiscard]]
@@ -30,14 +28,14 @@ namespace gl
             }
 
             [[nodiscard]]
-            GLsizei log(shader_resource r, GLsizei size, GLchar* s) noexcept
+            GLsizei log(shader_resource r, GLsizei size, char* s) noexcept
             {
                 glGetShaderInfoLog(to_underlying(r), size, &size, s);
                 return size;
             }
 
             [[nodiscard]]
-            GLsizei log(program_resource r, GLsizei size, GLchar* s) noexcept
+            GLsizei log(program_resource r, GLsizei size, char* s) noexcept
             {
                 glGetProgramInfoLog(to_underlying(r), size, &size, s);
                 return size;
@@ -51,16 +49,15 @@ namespace gl
         }
 
         template<class R>
-        size_t log(const R r, span<GLchar> chars) noexcept
+        size_t log(const R r, span<char> chars) noexcept
         {
             return narrow<size_t>(resource::log(r, narrow<GLsizei>(chars.size()), chars.data()));
         }
 
         template<class R>
-        [[nodiscard]] string log(const R r) noexcept
+        [[nodiscard]] std::string log(const R r) noexcept
         {
-            constexpr auto zero_ch = zero_v<string::value_type>();
-            string log_string(size_log(r), zero_ch);
+            std::string log_string(size_log(r), '\0');
             log_string.erase(log(r, log_string));
             return log_string;
         }
@@ -87,12 +84,12 @@ namespace gl
             program_resource program,
             location_index_t location,
             glsl_typeid test_typeid,
-            string_view test_name
+            std::string_view test_name
         ) noexcept
         {
             constexpr size_t name_buffer_static_size{ 4 * sizeof(size_t) };
 
-            small_vector<GLchar, name_buffer_static_size> name_buffer{};
+            small_vector<char, name_buffer_static_size> name_buffer{};
             name_buffer.reserve(test_name.size() + 2_uz);
 
             GLsizei name_size{ 0 };
@@ -110,7 +107,7 @@ namespace gl
                 name_buffer.data()
             );
 
-            const string_view name
+            const std::string_view name
             {
                 std::as_const(name_buffer).data(),
                 narrow<size_t>(name_size)
@@ -153,7 +150,7 @@ namespace gl
             program_resource program,
             LocationType location,
             glsl_typeid test_typeid,
-            string_view test_name
+            std::string_view test_name
         )
         {
             return test_location
@@ -232,7 +229,7 @@ namespace gl
     program_resource current_program() noexcept
     {
         using programi_t = std::make_signed_t<std::underlying_type_t<program_resource>>;
-        constexpr auto null_programi =  static_cast<programi_t>(program_resource::null);
+        constexpr auto null_programi = static_cast<programi_t>(program_resource::null);
         programi_t programi{ null_programi };
         glGetIntegerv(GL_CURRENT_PROGRAM, std::addressof(programi));
         return static_cast<program_resource>(programi);
@@ -248,17 +245,18 @@ namespace gl
         return program{ underlying_cast<program_resource>(glCreateProgram()) };
     }
 
-    program create_program(source_view vertex, source_view fragment) noexcept
+    program create_program(vertex_source_view vertex, fragment_source_view fragment) noexcept
     {
         auto program = create_program();
 
         if (program) [[likely]]
         {
-            const auto vertext_ok = compile(program, vertex, shader_type::vertex);
-            const auto fragment_ok = vertext_ok && compile(program, fragment, shader_type::fragment);
-            const auto link_ok = fragment_ok && link(program);
+            const auto ok
+                = compile(program, vertex)
+                && compile(program, fragment)
+                && link(program);
 
-            if (!link_ok) [[unlikely]]
+            if (!ok) [[unlikely]]
             {
                 e_debug("GL program: {}", log(view(program)));
                 program.reset();
@@ -278,7 +276,7 @@ namespace gl
         return get_location<uniform_location>(program, name);
     }
 
-    bool test_uniform(program_resource program, uniform_location location, glsl_typeid test_typeid, string_view test_name) noexcept
+    bool test_uniform(program_resource program, uniform_location location, glsl_typeid test_typeid, std::string_view test_name) noexcept
     {
         return test_location(program, location, test_typeid, test_name);
     }

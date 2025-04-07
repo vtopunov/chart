@@ -309,13 +309,13 @@ public:
     [[nodiscard]]
     constexpr const_pointer data() const noexcept
     {
-        return static_cast<const_pointer>(buffer_void::cvoid_data());
+        return _mutable_data();
     }
 
     [[nodiscard]]
     constexpr pointer data() noexcept
     {
-        return static_cast<pointer>(buffer_void::void_data());
+        return _mutable_data();
     }
 
     [[nodiscard]]
@@ -357,12 +357,14 @@ public:
     [[nodiscard]]
     constexpr const_reference cfront() const noexcept
     {
+        D_ASSERT(0_uz < size());
         return *data();
     }
 
     [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
+        D_ASSERT(0_uz < size());
         return *(cend() - 1_uz);
     }
 
@@ -393,19 +395,20 @@ public:
     [[nodiscard]]
     constexpr const_reference operator[](size_type index) const noexcept
     {
-        return value(index);
+        return _unsafe_value_mutable_ref(index);
     }
 
     [[nodiscard]]
     constexpr reference operator[](size_type index) noexcept
     {
-        return value(index);
+        return _unsafe_value_mutable_ref(index);
     }
 
     [[nodiscard]]
     constexpr const_reference cvalue(size_type index) const noexcept
     {
-        return data()[index];
+        D_ASSERT(index < size());
+        return _unsafe_value_mutable_ref(index);
     }
 
     [[nodiscard]]
@@ -428,6 +431,17 @@ public:
     [[nodiscard]] constexpr span<value_type> as_span() noexcept
     {
         return base_type::template as_span<value_type>();
+    }
+
+private:
+    constexpr pointer _mutable_data() const noexcept
+    {
+        return static_cast<pointer>(buffer_void::_void_data());
+    }
+
+    constexpr reference _unsafe_value_mutable_ref(size_t index) const noexcept
+    {
+        return _mutable_data()[index];
     }
 };
 

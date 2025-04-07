@@ -29,7 +29,7 @@ namespace egl_ui
         };
     }
 
-    using viewing_subwindow = D_CONDITIONAL_OS_WINDOWS(ui::window, dummy);
+    using viewing_subwindow = D_OS_WINDOWS_OR(ui::window, dummy);
 
     class ui_owner
     {
@@ -81,7 +81,7 @@ namespace egl_ui
 
         constexpr ui_owner
         (
-            pxsize2d viewport,
+            pxsizes viewport,
             module_handle_t module,
             ui::window&& initial_window,
             viewing_subwindow&& initial_viewing_window
@@ -95,7 +95,7 @@ namespace egl_ui
         [[nodiscard]]
         constexpr window_handle_t viewing_window() const noexcept
         {
-            return D_CONDITIONAL_OS_WINDOWS(viewing_window_, window());
+            return D_OS_WINDOWS_OR(viewing_window_, window());
         }
 
         [[nodiscard]]
@@ -125,7 +125,7 @@ namespace egl_ui
         }
 
         [[nodiscard]]
-        constexpr pxsize2d viewport() const noexcept
+        constexpr pxsizes viewport() const noexcept
         {
             return viewport_;
         }
@@ -146,7 +146,7 @@ namespace egl_ui
         }
 
     private:
-        pxsize2d viewport_{ ui::no_sizes };
+        pxsizes viewport_{ ui::no_sizes };
         module_handle_t module_{ nullptr };
         ui::window window_{};
         D_NO_UNIQUE_ADDRESS viewing_subwindow viewing_window_{};
@@ -182,7 +182,7 @@ namespace egl_ui
     [[nodiscard]]
     inline ui_owner create_ui(const ui_parameters& params) noexcept
     {
-        pxsize2d viewport_sizes{ ui::no_sizes };
+        pxsizes viewport_sizes{ ui::no_sizes };
         auto temp_main_window = ui::create_window(params);
         viewing_subwindow temp_viewing_window{};
 

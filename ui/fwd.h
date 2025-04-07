@@ -42,15 +42,15 @@ namespace ui
     class mouse_event;
 
     using event_result_t = ptrdiff_t;
-    using event_result_opt_t = D_CONDITIONAL_OS_WINDOWS(std::optional<event_result_t>, std::nullopt_t);
+    using event_result_opt_t = D_OS_WINDOWS_OR(std::optional<event_result_t>, std::nullopt_t);
 
     static_assert(std::is_same_v<event_result_t, os::long_result_t>);
 
-    using event_style_underlying_t = D_CONDITIONAL_OS_WINDOWS(uint_t, int32_t);
+    using event_style_underlying_t = D_OS_WINDOWS_OR(uint_t, int32_t);
 
     enum class event_style : event_style_underlying_t
     {
-        null = D_CONDITIONAL_OS_WINDOWS(0x0000, 0xff),
+        null = D_OS_WINDOWS_OR(0x0000, 0xff),
 
 #ifdef D_OS_WINDOWS
         size = 0x0005,
@@ -59,9 +59,9 @@ namespace ui
         mouse_wheel = 0x020A,
 #endif
 
-        mouse_move = D_CONDITIONAL_OS_WINDOWS(0x0200, 0x02),
-        mouse_down = D_CONDITIONAL_OS_WINDOWS(0x0201, 0x00),
-        mouse_up = D_CONDITIONAL_OS_WINDOWS(0x0202, 0x01),
+        mouse_move = D_OS_WINDOWS_OR(0x0200, 0x02),
+        mouse_down = D_OS_WINDOWS_OR(0x0201, 0x00),
+        mouse_up = D_OS_WINDOWS_OR(0x0202, 0x01),
     };
 
     template<event_style>

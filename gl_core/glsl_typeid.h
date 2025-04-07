@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gl/fwd.h>
+#include <gl_core/fwd.h>
 
 
 namespace gl

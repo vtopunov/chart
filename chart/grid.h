@@ -1,30 +1,19 @@
 #pragma once
 
+#include <chart/periodic_position.h>
 #include <chart/grid_shader.h>
 #include <chart/space_manipulation.h>
 
 
 namespace chart
 {
-    struct periodic_position
-    {
-        px::real_point2d begin;
-        px::real_point2d repeat;
-    };
-
-    struct periodic_value_position
-    {
-        periodic_position value;
-        periodic_position px;
-    };
-
     template<class T>
     [[nodiscard]] constexpr T grid_increment(const T min_distance) noexcept
     {
         const auto max_increment = pow(10, ceil_cast<int64_t>(log10(min_distance)));
         const auto half_increment = 0.5 * max_increment;
         const auto result_increment = (min_distance <= half_increment) ? half_increment : max_increment;
-        D_ASSERT(min_distance <= result_increment); // c++26+ contracts
+        D_ASSERT(min_distance <= result_increment);
         return result_increment;
     }
 
@@ -32,7 +21,7 @@ namespace chart
     [[nodiscard]] constexpr T grid_begin(T begin, T increment) noexcept
     {
         const auto result = increment * std::ceil(begin / increment);
-        D_ASSERT(begin <= result); // c++26+ contracts
+        D_ASSERT(begin <= result);
         D_ASSERT(result <= (begin + increment));
         return result;
     }
@@ -64,9 +53,10 @@ namespace chart
         static constexpr point2d default_min_distances{ 50_npx, 30_npx };
 
         rgbaf_color color{ default_color };
-        pxpoint2d widths{ default_widths };
-        pxpoint2d min_distances{ default_min_distances };
+        pxpoint widths{ default_widths };
+        pxpoint min_distances{ default_min_distances };
 
+        [[nodiscard]]
         constexpr periodic_value_position operator () (const space_manipulation& sys) const noexcept
         {
             const auto abs_scale_to_px = md_abs(make_scale_transformation(sys).scale());
@@ -82,13 +72,13 @@ namespace chart
             };
         }
 
-        void operator () (const shader::grid_user& shdr, const periodic_value_position& position) const noexcept
+        void operator () (const periodic_value_position& position, const shader::grid& shdr) const noexcept
         {
-            shdr.color(color)
-                .width(widths)
-                .begin(position.px.begin)
-                .repeat(position.px.repeat)
-                .draw();
+            shdr.color(color);
+            shdr.width(widths);
+            shdr.begin(position.px.begin);
+            shdr.repeat(position.px.repeat);
+            shdr.draw();
         }
     };
 

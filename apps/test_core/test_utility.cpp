@@ -69,12 +69,10 @@ namespace
             struct my_vector3
             {
                 struct value_type
-                {
-                };
+                {};
 
                 struct data_value_type
-                {
-                };
+                {};
 
                 constexpr const data_value_type* data() const noexcept
                 {
@@ -226,6 +224,25 @@ namespace
             D_ASSERT(swap_S1_S1 == ctx);
         }
     }
+
+    void test_u_minmax() noexcept
+    {
+        constexpr auto min_d = u_min(0, 0.1);
+        constexpr auto max_d = u_max(0, 0.1);
+        constexpr auto min_u = u_min(-1, 5u);
+        constexpr auto max_u = u_max(-1, 5u);
+
+        static_assert(0.0 == min_d);
+        static_assert(0.1 == max_d);
+        static_assert(5u == min_u);
+        static_assert((0u - 1u) == max_u);
+        static_assert(std::is_same_v<const double, decltype(min_d)>);
+        static_assert(std::is_same_v<const double, decltype(max_d)>);
+        static_assert(std::is_same_v<const unsigned, decltype(min_u)>);
+        static_assert(std::is_same_v<const unsigned, decltype(max_u)>);
+
+        D_ASSERT(!errno);
+    }
 }
 
 void test_utility() noexcept
@@ -233,4 +250,5 @@ void test_utility() noexcept
     test_value_type();
     test_size_type();
     test_u_swap();
+    test_u_minmax();
 }

@@ -17,7 +17,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\apps\test_chart\main.cpp" />
-    <ClCompile Include="..\..\..\..\apps\test_chart\test_space_diagonal.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_chart\test_space_manipulation.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_chart\test_space_diagonal_cache.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C5A2A5E7-5108-4B92-AABB-E633C6AE0373}</ProjectGuid>

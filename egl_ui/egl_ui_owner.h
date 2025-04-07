@@ -28,7 +28,6 @@ namespace egl_ui
 
     private:
         egl_context egl_;
-
     };
 
     using egl_ui_parameters = ui_parameters;

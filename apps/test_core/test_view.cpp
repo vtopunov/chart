@@ -138,37 +138,37 @@ void test_view() noexcept
     {
         using namespace private_detail_view;
 
-        static_assert(is_small_size<bytes_array<small_size_v - 1u>>::value);
-        static_assert(is_small_size<bytes_array<small_size_v>>::value);
-        static_assert(std::negation_v<is_small_size<bytes_array<small_size_v + 1u>>>);
+        static_assert(is_small_size<bytes_array<small_size_mini - 1u>>::value);
+        static_assert(is_small_size<bytes_array<small_size_mini>>::value);
+        static_assert(std::negation_v<is_small_size<bytes_array<small_size_mini + 1u>>>);
 
-        static_assert(is_small_size<bytes_array_with_copy_op<small_size_v - 1u>>::value);
-        static_assert(is_small_size<bytes_array_with_copy_op<small_size_v>>::value);
-        static_assert(std::negation_v<is_small_size<bytes_array_with_copy_op<small_size_v + 1u>>>);
+        static_assert(is_small_size<bytes_array_with_copy_op<small_size_mini - 1u>>::value);
+        static_assert(is_small_size<bytes_array_with_copy_op<small_size_mini>>::value);
+        static_assert(std::negation_v<is_small_size<bytes_array_with_copy_op<small_size_mini + 1u>>>);
 
-        static_assert(is_small_size<std::array<std::byte, small_size_v - 1u>>::value);
-        static_assert(is_small_size<std::array<std::byte, small_size_v>>::value);
-        static_assert(std::negation_v<is_small_size<std::array<std::byte, small_size_v + 1u>>>);
+        static_assert(is_small_size<std::array<std::byte, small_size_mini - 1u>>::value);
+        static_assert(is_small_size<std::array<std::byte, small_size_mini>>::value);
+        static_assert(std::negation_v<is_small_size<std::array<std::byte, small_size_mini + 1u>>>);
 
         static_assert(is_view_by_copy_v<long double>);
         static_assert(is_view_by_copy_v<intmax_t>);
         static_assert(is_view_by_copy_v<uintmax_t>);
 
-        static_assert(is_view_by_copy_v<bytes_array<small_size_v - 1u>>);
-        static_assert(is_view_by_copy_v<bytes_array<small_size_v>>);
-        static_assert(std::negation_v<is_view_by_copy<bytes_array<small_size_v + 1u>>>);
+        static_assert(is_view_by_copy_v<bytes_array<small_size_mini - 1u>>);
+        static_assert(is_view_by_copy_v<bytes_array<small_size_mini>>);
+        static_assert(std::negation_v<is_view_by_copy<bytes_array<small_size_mini + 1u>>>);
 
-        static_assert(is_view_by_copy_v<bytes_array<small_size_v - 1u>>);
-        static_assert(is_view_by_copy_v<bytes_array<small_size_v>>);
-        static_assert(std::negation_v<is_view_by_copy<bytes_array<small_size_v + 1u>>>);
+        static_assert(is_view_by_copy_v<bytes_array<small_size_mini - 1u>>);
+        static_assert(is_view_by_copy_v<bytes_array<small_size_mini>>);
+        static_assert(std::negation_v<is_view_by_copy<bytes_array<small_size_mini + 1u>>>);
 
-        static_assert(std::negation_v<is_view_by_copy<bytes_array_with_copy_op<small_size_v - 1u>>>);
-        static_assert(std::negation_v<is_view_by_copy<bytes_array_with_copy_op<small_size_v>>>);
-        static_assert(std::negation_v<is_view_by_copy<bytes_array_with_copy_op<small_size_v + 1u>>>);
+        static_assert(std::negation_v<is_view_by_copy<bytes_array_with_copy_op<small_size_mini - 1u>>>);
+        static_assert(std::negation_v<is_view_by_copy<bytes_array_with_copy_op<small_size_mini>>>);
+        static_assert(std::negation_v<is_view_by_copy<bytes_array_with_copy_op<small_size_mini + 1u>>>);
 
-        static_assert(is_view_by_copy_v<std::array<std::byte, small_size_v - 1u>>);
-        static_assert(is_view_by_copy_v<std::array<std::byte, small_size_v>>);
-        static_assert(std::negation_v<is_view_by_copy<std::array<std::byte, small_size_v + 1u>>>);
+        static_assert(is_view_by_copy_v<std::array<std::byte, small_size_mini - 1u>>);
+        static_assert(is_view_by_copy_v<std::array<std::byte, small_size_mini>>);
+        static_assert(std::negation_v<is_view_by_copy<std::array<std::byte, small_size_mini + 1u>>>);
     }
 
     {
@@ -176,25 +176,25 @@ void test_view() noexcept
         static_assert(test_view_by_copy_v<intmax_t>);
         static_assert(test_view_by_copy_v<uintmax_t>);
 
-        static_assert(test_view_by_copy_v<bytes_array<small_size_v - 1u>>);
-        static_assert(test_view_by_copy_v<bytes_array<small_size_v>>);
-        static_assert(test_view_by_cref_v<bytes_array<small_size_v + 1u>>);
+        static_assert(test_view_by_copy_v<bytes_array<small_size_mini - 1u>>);
+        static_assert(test_view_by_copy_v<bytes_array<small_size_mini>>);
+        static_assert(test_view_by_cref_v<bytes_array<small_size_mini + 1u>>);
 
-        static_assert(test_view_with_copy_v<bytes_array_with_view<small_size_v - 1u>>);
-        static_assert(test_view_with_copy_v<bytes_array_with_view<small_size_v>>);
-        static_assert(test_view_with_cref_v<bytes_array_with_view<small_size_v + 1u>>);
+        static_assert(test_view_with_copy_v<bytes_array_with_view<small_size_mini - 1u>>);
+        static_assert(test_view_with_copy_v<bytes_array_with_view<small_size_mini>>);
+        static_assert(test_view_with_cref_v<bytes_array_with_view<small_size_mini + 1u>>);
 
-        static_assert(test_view_by_cref_v<bytes_array_with_copy_op<small_size_v - 1u>>);
-        static_assert(test_view_by_cref_v<bytes_array_with_copy_op<small_size_v>>);
-        static_assert(test_view_by_cref_v<bytes_array_with_copy_op<small_size_v + 1u>>);
+        static_assert(test_view_by_cref_v<bytes_array_with_copy_op<small_size_mini - 1u>>);
+        static_assert(test_view_by_cref_v<bytes_array_with_copy_op<small_size_mini>>);
+        static_assert(test_view_by_cref_v<bytes_array_with_copy_op<small_size_mini + 1u>>);
 
-        static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_v - 1u>>);
-        static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_v>>);
-        static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_v + 1u>>);
+        static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_mini - 1u>>);
+        static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_mini>>);
+        static_assert(test_view_with_cref_v<bytes_array_with_copy_op_and_view<small_size_mini + 1u>>);
 
-        static_assert(test_spanview_with_copy_v<std::array<std::byte, small_size_v - 1u>>);
-        static_assert(test_spanview_with_copy_v<std::array<std::byte, small_size_v>>);
-        static_assert(test_spanview_with_cref_v<std::array<std::byte, small_size_v + 1>>);
+        static_assert(test_spanview_with_copy_v<std::array<std::byte, small_size_mini - 1u>>);
+        static_assert(test_spanview_with_copy_v<std::array<std::byte, small_size_mini>>);
+        static_assert(test_spanview_with_cref_v<std::array<std::byte, small_size_mini + 1>>);
 
         static_assert(test_bufferview_with_copy_v<test_buffer>);
     }

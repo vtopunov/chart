@@ -72,6 +72,7 @@
     <ClInclude Include="..\..\..\core\resource.h" />
     <ClInclude Include="..\..\..\core\round.h" />
     <ClInclude Include="..\..\..\core\static_vector.h" />
+    <ClInclude Include="..\..\..\core\types_algorithm.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

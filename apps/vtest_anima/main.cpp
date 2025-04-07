@@ -2,7 +2,7 @@
 
 #include <debug/debug.h>
 
-#include <gl/draw.h>
+#include <gl_core/draw.h>
 
 #include <egl_ui/egl_ui_owner.h>
 
@@ -12,8 +12,8 @@ using namespace std::chrono_literals;
 
 namespace
 {
-    constexpr auto anima_start_color = colors::yellow;
-    constexpr auto anima_end_color = colors::black;
+    constexpr auto anima_start_color = colors::cyan;
+    constexpr auto anima_end_color = colors::yellow;
 
     using ui_duration = ui::milliseconds;
     using ui_duration_rep = ui_duration::rep;
@@ -47,7 +47,7 @@ namespace
         return to_colorf(anima_lerp(oscillating_time(now.count(), period)));
     }
 
-    void draw_figure(pxsize2d viewport, rgbaf_color color) noexcept
+    void draw_figure(pxsizes viewport, rgbaf_color color) noexcept
     {
         static const auto shaders = gl::create_program
         (
@@ -58,7 +58,7 @@ namespace
                 {
                     gl_Position = vec4(a_position, 0.0, 1.0);
                 }
-            )"_glsl,
+            )"_vert_glsl,
             R"(
                 precision mediump float;
                 uniform vec4 u_color;
@@ -67,7 +67,7 @@ namespace
                 {
                     gl_FragColor = u_color;
                 }
-           )"_glsl
+           )"_frag_glsl
         ); 
 
         static const auto a_position = gl::get_attribute_location(shaders, "a_position"_zsv);
@@ -138,7 +138,7 @@ namespace
             D_UNUSED(egl.update_viewport());
         }
 
-        void operator () (ui::redraw_needed_event) noexcept
+        constexpr void operator () (ui::redraw_needed_event) noexcept
         {
             force_redraw = true;
         }

@@ -73,7 +73,7 @@ constexpr void intrusive_reset_ref(basic_intrusive_node<T>& node) noexcept
 }
 
 template<class T>
-constexpr const basic_intrusive_node<T> intrusive_release_ref(basic_intrusive_node<T>& node) noexcept
+[[nodiscard]] constexpr const basic_intrusive_node<T> intrusive_release_ref(basic_intrusive_node<T>& node) noexcept
 {
     const auto old = node;
     intrusive_reset_ref(node);

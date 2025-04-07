@@ -10,7 +10,7 @@
 
 #include <font/font.h>
 
-#include <utility/shader_library.h>
+#include <shader/library.h>
 
 
 using namespace std::string_view_literals;
@@ -130,24 +130,20 @@ int app_main(os::module_handle_t app) noexcept
         return EXIT_FAILURE;
     }
 
-    shader_library<vert::positioned_texture, frag::luminance_texture_mix_color> shaders{};
-    if (!shaders.build())
+    shader_embed::luminance_texture shaders{};
+    if (!shaders.load())
     {
         e_debug("build shaders program error");
         return EXIT_FAILURE;
     }
 
-    shaders.use();
-    shaders.vert().size(texture.sizes());
-    shaders.vert().viewport(egl.viewport());
-    shaders.frag().texture(texture);
+    shaders.viewport(egl.viewport());
+    shaders.texture(texture);
 
     {
         const egl_painting_owner painting_owner{ egl };
         gl::viewport(egl.viewport());
         gl::clear(colors::white_f);
-
-        const auto vb = shaders.vert().frame();
 
         const auto [w, h] = egl.viewport();
         const auto dx = texture.width() + 1_npx;
@@ -161,10 +157,9 @@ int app_main(os::module_handle_t app) noexcept
 
             for (auto x = 0_npx; x < w; x += dx)
             {
-                shaders.frag().color(to_colorf(yx_color_lerp(x)));
-                shaders.vert().position(x, y);
-
-                vb.draw();
+                shaders.color(to_colorf(yx_color_lerp(x)));
+                shaders.position(x, y);
+                shaders.draw();
             }
         }
     }

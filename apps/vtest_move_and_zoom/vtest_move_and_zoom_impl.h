@@ -10,16 +10,16 @@ namespace vtest_move_and_zoom
     {
         using vec2i_t = vec2<intmax_t>;  
 
-        const auto vzoom = md_trunc_cast<vec2i_t>(std::forward<T>(zoom));
+        const auto vzoom = md_ceil_cast<vec2i_t>(std::forward<T>(zoom));
         const auto [vposition, vsizes] = md_numeric_cast<vec2<vec2i_t>>(rc.position, rc.sizes);
 
         const figure_area new_rc
         { 
-            .position{ md_clamp_cast<pxoff2d>(vposition - vzoom / 2) },
-            .sizes{ md_clamp_cast<pxsize2d>(vsizes + vzoom) }
+            .position{ md_clamp_cast<pxoffs>(vposition - vzoom / 2) },
+            .sizes{ md_clamp_cast<pxsizes>(vsizes + vzoom) }
         };
 
-        return update_glpx(rc, new_rc);
+        return px::update_pxf(rc, new_rc);
     }
 
     [[nodiscard]]
@@ -32,11 +32,11 @@ namespace vtest_move_and_zoom
     }
 
     [[nodiscard]]
-    constexpr figure_area default_area(pxsize2d viewport) noexcept
+    constexpr figure_area default_area(pxsizes viewport) noexcept
     {
         return
         {
-            .position{ md_narrow<pxoff2d>(viewport / 4u) },
+            .position{ md_narrow<pxoffs>(viewport / 4u) },
             .sizes{ viewport / 2u }
         };
     }
@@ -45,16 +45,13 @@ namespace vtest_move_and_zoom
     {
     public:
         [[nodiscard]]
-        bool initialize(pxsize2d viewport, gl::texture2d_resource texture) noexcept
+        bool initialize(pxsizes viewport, gl::texture2d_resource texture) noexcept
         {
-            D_UNUSED(lib.build());
-
-            if (lib) [[likely]]
+            if (lib.load()) [[likely]]
             {
-                lib.use();
-                lib.frag().texture(texture);
-                lib.frag().color(1.0f, 0.5f, 0.5f, 1.0f);
-                lib.vert().viewport(viewport);
+                lib.texture(texture);
+                lib.color(1.0f, 0.5f, 0.5f, 1.0f);
+                lib.viewport(viewport);
                 return true;
             }
 
@@ -65,17 +62,16 @@ namespace vtest_move_and_zoom
         void draw(const rectangle<T>& rc) const noexcept
         {
             lib.use();
-            lib.vert().position(rc.position);
-            lib.vert().size(rc.sizes);
-            lib.vert().frame().draw();
+            lib.geometry(rc);
+            lib.draw();
         }
 
     private:
-        shader_library<vert::positioned_texture, frag::luminance_texture_mix_color> lib{};
+        shader_embed::luminance_texture lib{};
     };
 
     [[nodiscard]]
-    inline gl::texture2d make_test_lumpixmap_texture(pxsize2d sizes) noexcept
+    inline gl::texture2d make_test_lumpixmap_texture(pxsizes sizes) noexcept
     {
         using pixmap_t = lumpixmap;
 

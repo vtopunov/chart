@@ -1,185 +1,39 @@
 #pragma once
 
-#include <utility/shader_library.h>
+#include <shader/library.h>
 
 #include <widget/event.h>
 
 
 namespace widget
 {
-    namespace shader
+    template<class T>
+    using decl_store_viewport_t = decltype(std::declval<const T&>().viewport(px::no_sizes));
+
+
+    template<class VS, class FS>
+    class widget_shader_library : public shader_library<VS, FS>
     {
-        namespace private_detail_shader
+        using base_type = shader_library<VS, FS>;
+
+    public:
+        [[nodiscard]] bool operator()(basic_initialization_event<>) noexcept
         {
-#if D_IS_DEBUG
-            template<gl::glsl_typeid type_id>
-            [[nodiscard]] constexpr bool is_initialized(const gl::uniform<type_id>& u) noexcept
-            {
-                return u.__debug_is_stored();
-            }
-
-            [[nodiscard]] constexpr bool is_initialized(const uniform_vec2glpx& vec) noexcept
-            {
-                return is_initialized(vec.uniform);
-            }
-
-            [[nodiscard]] constexpr bool is_initialized(const gl::texture_sampler2D& sampler) noexcept
-            {
-                return is_initialized(sampler.sampler);
-            }
-
-            [[nodiscard]] constexpr bool is_initialized(attribute_frame) noexcept
-            {
-                return true;
-            }
-
-            template<class VS, class FS>
-            [[nodiscard]] constexpr bool all_is_initialized(const shader_library<VS, FS>& lib) noexcept
-            {
-                bool result{ true };
-
-                const auto tester = [&result] (const auto& u, zstring_view) noexcept
-                {
-                    result = result && is_initialized(u);
-                    D_ASSERT(result);
-                };
-
-                as_mutable(lib).serialize(tester);
-
-                return result;
-            }
-#endif
-
-
-            template<class VS, class FS>
-            struct default_widget_shader_user;
-
-            template<class Derived, class VS, class FS>
-            struct widget_shader_user : shader_library<VS, FS>
-            {
-                using shader_library_type = shader_library<VS, FS>;
-                using vertex_shader_type = typename shader_library_type::vertex_shader_type;
-                using fragment_shader_type = typename shader_library_type::fragment_shader_type;
-                using shader_library_type::vert;
-                using shader_library_type::frag;
-
-                template<bool dummy = true, std::enable_if_t<(dummy) && std::is_base_of_v<vert::positioned_frame, vertex_shader_type>, int> = 0>
-                const Derived& position(pxpoint2d new_position) const noexcept
-                {
-                    vert().position(new_position);
-                    return self();
-                }
-
-                template<bool dummy = true, std::enable_if_t<(dummy) && std::is_base_of_v<vert::positioned_frame, vertex_shader_type>, int> = 0>
-                const Derived& sizes(pxsize2d new_sizes) const noexcept
-                {
-                    vert().size(new_sizes);
-                    return self();
-                }
-
-                template<bool dummy = true, std::enable_if_t<(dummy) && std::is_base_of_v<vert::positioned_frame, vertex_shader_type>, int> = 0>
-                const Derived& geometry(pxrectangle rc) const noexcept
-                {
-                    return position(rc.position).sizes(rc.sizes);
-                }
-
-                template<bool dummy = true, std::enable_if_t<(dummy) && frag::has_color_v<fragment_shader_type>, int> = 0>
-                const Derived& color(rgbaf_color colorf) const noexcept
-                {
-                    frag().color(colorf);
-                    return self();
-                }
-
-                template<bool dummy = true, std::enable_if_t<(dummy) && frag::has_texture_v<fragment_shader_type>, int> = 0>
-                const Derived& texture(gl::texture2d_resource new_texture) const noexcept
-                {
-                    frag().texture(new_texture);
-                    return self();
-                }
-
-                template<bool dummy = true, std::enable_if_t<(dummy) && std::conjunction_v<
-                    std::is_base_of<vert::positioned_frame, vertex_shader_type>,
-                    frag::has_texture<fragment_shader_type>
-                >, int> = 0>
-                const Derived& texture(gl::texture2d_resources new_texture) const noexcept
-                {
-                    return sizes(new_texture.sizes).texture(static_cast<gl::texture2d_resource>(new_texture));
-                }
-
-                template<bool dummy = true, std::enable_if_t<(dummy) && std::is_base_of_v<vert::positioned_frame, vertex_shader_type>, int> = 0>
-                void draw() const noexcept
-                {
-                    D_ASSERT(all_is_initialized(*this));
-                    attribute_frame::vertex_buffer_user::draw();
-                }
-
-                constexpr const Derived& self() const noexcept
-                {
-                    return identical_derived_cast<const Derived&>(*this);
-                }
-            };
-
-            template<class VS, class FS>
-            struct default_widget_shader_user : widget_shader_user<default_widget_shader_user<VS, FS>, VS, FS>
-            {};
-
-            template<class VS, class FS, class User = default_widget_shader_user<VS, FS>>
-            class widget_shader_library
-            {
-            public:
-                using shader_user_type = User;
-                using vertex_shader_type = typename shader_user_type::vertex_shader_type;
-                using fragment_shader_type = typename shader_user_type::fragment_shader_type;
-
-                bool operator()(basic_initialization_event<>) noexcept
-                {
-                    return u_.build();
-                }
-
-                void operator()(viewport_event<> e) const noexcept
-                {
-                    if constexpr (std::is_base_of_v<vert::positioned_frame, vertex_shader_type>)
-                    {
-                        u_.use();
-                        u_.vert().viewport(e.viewport());
-                    }
-                }
-
-                const shader_user_type& use() const noexcept
-                {
-                    u_.use();
-
-                    if constexpr (std::is_base_of_v<vert::positioned_frame, vertex_shader_type>)
-                    {
-                        u_.vert().frame.bind();
-                    }
-
-                    return u_;
-                }
-
-                constexpr noapply_t apply(no_overload) const noexcept
-                {
-                    return noapply;
-                }
-
-            private:
-                shader_user_type u_{};
-            };
+            return this->load();
         }
 
-        using private_detail_shader::widget_shader_library;
-        using private_detail_shader::widget_shader_user;
-        using private_detail_shader::default_widget_shader_user;
+        void operator()(viewport_event<> e) const noexcept
+        {
+            if constexpr (is_detected_v<decl_store_viewport_t, base_type>)
+            {
+                this->use();
+                this->viewport(e.viewport());
+            }
+        }
 
-        using luminance_texture_mix_color = widget_shader_library<vert::positioned_texture, frag::luminance_texture_mix_color>;
-        using colored_rectangle = widget_shader_library<vert::positioned_rectangle, frag::default_color>;
-    }
-
-    using shader::widget_shader_library;
-    using shader::widget_shader_user;
-    using shader::default_widget_shader_user;
+        constexpr noapply_t apply(no_overload) const noexcept
+        {
+            return noapply;
+        }
+    };
 }
-
-using widget::widget_shader_library;
-using widget::widget_shader_user;
-using widget::default_widget_shader_user;

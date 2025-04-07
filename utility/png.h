@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gl/texture.h>
+#include <gl_core/texture.h>
 #include <file/path.h>
 
 

@@ -17,7 +17,7 @@
       <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
     </ProjectReference>
     
-    <ProjectReference Include="$(AndroidRepoDir)\gl\gl.vcxproj">
+    <ProjectReference Include="$(AndroidRepoDir)\gl_core\gl_core.vcxproj">
       <Project>{40eaf3cf-7215-4353-9a89-883b91118195}</Project>
     </ProjectReference>
   </ItemGroup>

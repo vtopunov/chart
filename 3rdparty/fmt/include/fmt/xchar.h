@@ -28,7 +28,7 @@ using wmemory_buffer = basic_memory_buffer<wchar_t>;
 
 #if FMT_GCC_VERSION && FMT_GCC_VERSION < 409
 // Workaround broken conversion on older gcc.
-template <typename... Args> using wformat_string = wstring_view;
+template <typename... Types> using wformat_string = wstring_view;
 #else
 template <typename... Args>
 using wformat_string = basic_format_string<wchar_t, type_identity_t<Args>...>;

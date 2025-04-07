@@ -67,7 +67,7 @@ namespace
                 return std::nullopt;
             }
 
-            need_redraw_ = update_glpx
+            need_redraw_ = px::update_pxf
             (
                 area_, 
                 new_manipulation(user_vpoint_cache_, e).transformation_as(area_)

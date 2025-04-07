@@ -12,7 +12,7 @@
 
 namespace ui
 {
-    using title_string_t = D_CONDITIONAL_OS_WINDOWS(std::wstring, wzstring_view);
+    using title_string_t = D_OS_WINDOWS_OR(std::wstring, wzstring_view);
 
     struct window_parameters
     {
@@ -84,41 +84,41 @@ namespace ui
 
         Builder& title(title_string_t title) noexcept
         {
-            D_CONDITIONAL_OS_WINDOWS(params_.title = std::move(title), D_UNUSED(title));
+            D_OS_WINDOWS_OR(params_.title = std::move(title), D_UNUSED(title));
             return _builder();
         }
 
         constexpr Builder& parent(window_handle_t parent_window) noexcept
         {
-            D_CONDITIONAL_OS_WINDOWS(params_.parent = parent_window, D_UNUSED(parent_window));
+            D_OS_WINDOWS_OR(params_.parent = parent_window, D_UNUSED(parent_window));
             return _builder();
         }
 
-        constexpr Builder& position(pxpoint2d position) noexcept
+        constexpr Builder& position(pxpoint position) noexcept
         {
-            D_CONDITIONAL_OS_WINDOWS(params_.geometry.position = position, D_UNUSED(position));
+            D_OS_WINDOWS_OR(params_.geometry.position = position, D_UNUSED(position));
             return _builder();
         }
 
         constexpr Builder& position(npx_t x, npx_t y) noexcept
         {
-            return position(pxpoint2d{ x, y });
+            return position(pxpoint{ x, y });
         }
 
-        constexpr Builder& sizes(pxsize2d sizes) noexcept
+        constexpr Builder& sizes(pxsizes sizes) noexcept
         {
-            D_CONDITIONAL_OS_WINDOWS(params_.geometry.sizes = sizes, D_UNUSED(sizes));
+            D_OS_WINDOWS_OR(params_.geometry.sizes = sizes, D_UNUSED(sizes));
             return _builder();
         }
 
         constexpr Builder& sizes(npx_t width, npx_t height) noexcept
         {
-            return sizes(pxsize2d{ width, height });
+            return sizes(pxsizes{ width, height });
         }
 
         constexpr Builder& geometry(const pxrectangle& rc) noexcept
         {
-            D_CONDITIONAL_OS_WINDOWS(params_.geometry = rc, D_UNUSED(rc));
+            D_OS_WINDOWS_OR(params_.geometry = rc, D_UNUSED(rc));
             return _builder();
         }
 
@@ -250,12 +250,12 @@ namespace ui
     pxrectangle geometry(window_handle_t window) noexcept;
 
     [[nodiscard]]
-    pxsize2d adjust_sizes(pxsize2d sizes) noexcept;
+    pxsizes adjust_sizes(pxsizes sizes) noexcept;
 
     bool geometry(window_handle_t window, pxrectangle rc) noexcept;
 
     [[nodiscard]]
-    pxsize2d desktop_sizes() noexcept;
+    pxsizes desktop_sizes() noexcept;
 
     struct window_resource_deleter
     {
@@ -273,7 +273,7 @@ namespace ui
         return false;
     }
 
-    [[nodiscard]] constexpr pxsize2d adjust_sizes(pxsize2d sizes) noexcept
+    [[nodiscard]] constexpr pxsizes adjust_sizes(pxsizes sizes) noexcept
     {
         return sizes;
     }
@@ -302,20 +302,20 @@ namespace ui
 #endif
 
     [[nodiscard]]
-    pxsize2d sizes(window_handle_t window) noexcept;
+    pxsizes sizes(window_handle_t window) noexcept;
 
-    D_CONDITIONAL_OS_WINDOWS(inline, constexpr) bool show(window_handle_t window, show_command cmd) noexcept
+    D_OS_WINDOWS_OR(inline, constexpr) bool show(window_handle_t window, show_command cmd) noexcept
     {
         return show(window, to_underlying(cmd));
     }
 
-    D_CONDITIONAL_OS_WINDOWS(inline, constexpr) bool show(window_handle_t window) noexcept
+    D_OS_WINDOWS_OR(inline, constexpr) bool show(window_handle_t window) noexcept
     {
         return show(window, show_command::show);
     }
 
     [[nodiscard]]
-    D_CONDITIONAL_OS_WINDOWS(inline, constexpr) pxsize2d adjust_sizes(npx_t w, npx_t h) noexcept
+    D_OS_WINDOWS_OR(inline, constexpr) pxsizes adjust_sizes(npx_t w, npx_t h) noexcept
     {
         return adjust_sizes(size2d{ w, h });
     }

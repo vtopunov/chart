@@ -6,7 +6,7 @@
 namespace private_detail_view
 {
     template<class T>
-    using is_small_size = std::bool_constant<sizeof(T) <= small_size_v>;
+    using is_small_size = std::bool_constant<sizeof(T) <= small_size_mini>;
 
     template<class T>
     constexpr auto is_view_by_copy_v = std::disjunction_v

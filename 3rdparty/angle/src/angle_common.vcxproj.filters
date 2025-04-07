@@ -363,6 +363,5 @@
     <ClCompile Include="common\system_utils_win.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <None Include="angle.gyp"/>
   </ItemGroup>
 </Project>

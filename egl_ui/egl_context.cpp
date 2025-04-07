@@ -2,7 +2,7 @@
 
 #include <ui/app.h>
 
-#include <gl/config.h>
+#include <gl_core/config.h>
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -279,7 +279,7 @@ namespace egl_ui
 
         if (config) [[likely]]
         {
-            attributes_builder<D_CONDITIONAL_OS_WINDOWS(2u, 1u)> surface_attributes;
+            attributes_builder<D_OS_WINDOWS_OR(2u, 1u)> surface_attributes;
 
 #if defined(D_OS_WINDOWS)
             surface_attributes.add(EGL_DIRECT_COMPOSITION_ANGLE, EGL_TRUE);
@@ -301,7 +301,7 @@ namespace egl_ui
 
             if (r.surface) [[likely]]
             {
-                attributes_builder<D_CONDITIONAL_OS_WINDOWS(3u, 2u)> context_attributes;
+                attributes_builder<D_OS_WINDOWS_OR(3u, 2u)> context_attributes;
 
                 if (extensions.has("EGL_KHR_create_context"sv))
                 {

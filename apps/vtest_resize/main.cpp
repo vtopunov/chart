@@ -1,6 +1,6 @@
 ﻿#include <debug/debug.h>
 
-#include <utility/shader_library.h>
+#include <shader/library.h>
 
 #ifdef TEST_EGL_UI
 #include <egl_ui/egl_ui_owner.h>
@@ -17,22 +17,19 @@ namespace
     {
     public:
         [[nodiscard]]
-        bool initialize(pxsize2d viewport) noexcept
+        bool initialize(pxsizes viewport) noexcept
         {
-            D_UNUSED(lib_.build());
-
-            if (lib_)
+            if (lib_.load()) [[likely]]
             {
-                lib_.use();
-                lib_.frag().color(colors::blue_f);
-                lib_.vert().viewport(viewport);
+                lib_.color(colors::blue_f);
+                lib_.viewport(viewport);
                 return true;
             }
 
             return false;
         }
 
-        void update_content_sizes(pxsize2d content_sizes) const noexcept
+        void update_content_sizes(pxsizes content_sizes) const noexcept
         {
             lib_.use();
             _store_content_sizes(content_sizes);
@@ -41,7 +38,7 @@ namespace
         void draw() const noexcept
         {
             lib_.use();
-            lib_.vert().frame().draw();
+            lib_.draw();
         }
 
 #ifdef TEST_EGL_UI
@@ -70,23 +67,23 @@ namespace
             draw();
         }
 
-        constexpr widget::noapply_t apply(no_overload) const noexcept
+        constexpr noapply_t apply(no_overload) const noexcept
         {
-            return widget::noapply;
+            return noapply;
         }
 
 #endif
 
     private:
-        void _store_content_sizes(pxsize2d content_sizes) const noexcept
+        void _store_content_sizes(pxsizes content_sizes) const noexcept
         {
             const auto rect_sizes = content_sizes / 2u;
-            lib_.vert().position((content_sizes - rect_sizes) / 2u);
-            lib_.vert().size(rect_sizes);
+            lib_.position((content_sizes - rect_sizes) / 2u);
+            lib_.sizes(rect_sizes);
         }
 
     private:
-        shader_library<vert::positioned_rectangle, frag::default_color> lib_{};
+        shader_embed::colored_rectangle lib_{};
     };
 
 #ifdef TEST_EGL_UI

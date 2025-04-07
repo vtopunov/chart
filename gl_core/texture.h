@@ -1,10 +1,8 @@
 #pragma once
 
-#include <core/size2d.h>
-
 #include <px/pixspan.h>
 
-#include <gl/shader.h>
+#include <gl_core/shader.h>
 
 
 namespace gl
@@ -78,6 +76,12 @@ namespace gl
 
     using texture2d_resource = specialized_texture_resource<texture_target::texture_2d>;
 
+    inline void store_texture(GLenum num, texture2d_resource texture) noexcept
+    {
+        glActiveTexture(num);
+        bind_texture(texture);
+    }
+
     struct texture2d_resources : texture2d_resource
     {
         using base_resource_type = texture2d_resource;
@@ -92,7 +96,7 @@ namespace gl
             }
         };
 
-        pxsize2d sizes;
+        pxsizes sizes;
     };
 
     static_assert(std::is_same_v<decl_null_type_t<texture2d_resources>, texture2d_resources::null_type>);
@@ -116,16 +120,19 @@ namespace gl
             as_mutable(r().sizes) = px::no_sizes;
         }
 
-        constexpr pxsize2d sizes() const noexcept
+        [[nodiscard]]
+        constexpr pxsizes sizes() const noexcept
         {
             return r().sizes;
         }
 
+        [[nodiscard]]
         constexpr npx_t width() const noexcept
         {
             return r().sizes.width();
         }
 
+        [[nodiscard]]
         constexpr npx_t height() const noexcept
         {
             return r().sizes.height();
@@ -138,12 +145,12 @@ namespace gl
     texture2d create_texture2d() noexcept;
 
     [[nodiscard]]
-    texture2d create_texture2d(pxsize2d sizes, texture_format format, const void* pixels) noexcept;
+    texture2d create_texture2d(pxsizes sizes, texture_format format, const void* pixels) noexcept;
 
-    pxsize2d write(texture2d_resource texture, pxsize2d sizes, texture_format format, const void* pixels) noexcept;
+    pxsizes write(texture2d_resource texture, pxsizes sizes, texture_format format, const void* pixels) noexcept;
 
     [[nodiscard]]
-    inline texture2d image(texture2d texture, pxsize2d pxsizes, texture_format format, const void* pixels) noexcept
+    inline texture2d image(texture2d texture, pxsizes pxsizes, texture_format format, const void* pixels) noexcept
     {
         as_mutable(texture.r().sizes) = write(texture, pxsizes, format, pixels);
         return texture;
@@ -188,7 +195,7 @@ namespace gl
     }
 
     template<class Image>
-    std::enable_if_t<texpix_enabled_v<Image>, pxsize2d> write(texture2d_resource texture, const Image& img) noexcept
+    std::enable_if_t<texpix_enabled_v<Image>, pxsizes> write(texture2d_resource texture, const Image& img) noexcept
     {
         return write(texture, ::sizes(img), texpix_format_v<Image>, as_const_pointer(std::data(img)));
     }
@@ -218,7 +225,7 @@ namespace gl
             return tex_d.sizes;
         };
 
-        pxsize2d wsizes{};
+        pxsizes wsizes{};
 
         if (texture_ref)
         {
@@ -263,8 +270,7 @@ namespace gl
 
         void store(specialized_texture_resource<target> texture) const noexcept
         {
-            glActiveTexture(narrow<GLenum>(GL_TEXTURE0 + value));
-            bind_texture(target, texture);
+            store_texture(narrow<GLenum>(GL_TEXTURE0 + value), texture);
             sampler.store(value);
         }
 

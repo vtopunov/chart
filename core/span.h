@@ -23,54 +23,59 @@ template <class T>
 constexpr bool is_span_v = is_span<T>::value;
 
 
-namespace private_detail_extent_constant
+namespace private_detail_span
 {
-    template<class C>
-    using decl_extent_constant_t = index_constant<C::extent>;
+    namespace private_detail_extent_constant
+    {
+        template<class C>
+        using decl_extent_constant_t = index_constant<C::extent>;
 
-    template<class C>
-    struct extent_constant_for_impl : detected_or_t<index_constant<dynamic_extent>, decl_extent_constant_t, C>
-    {};
+        template<class C>
+        struct extent_constant_for_impl : detected_or_t<index_constant<dynamic_extent>, decl_extent_constant_t, C>
+        {};
 
-    template<class T, size_t Extent>
-    struct extent_constant_for_impl<std::array<T, Extent>> : index_constant<Extent>
-    {};
+        template<class T, size_t Extent>
+        struct extent_constant_for_impl<std::array<T, Extent>> : index_constant<Extent>
+        {};
 
-    template<class T, size_t Extent>
-    struct extent_constant_for_impl<span<T, Extent>> : index_constant<Extent>
-    {};
+        template<class T, size_t Extent>
+        struct extent_constant_for_impl<span<T, Extent>> : index_constant<Extent>
+        {};
 
-    template<class T, size_t Extent>
-    struct extent_constant_for_impl<T[Extent]> : index_constant<Extent>
-    {};
+        template<class T, size_t Extent>
+        struct extent_constant_for_impl<T[Extent]> : index_constant<Extent>
+        {};
 
-    template<class C>
-    using extent_constant_for = extent_constant_for_impl<std::remove_cvref_t<C>>;
+        template<class C>
+        using extent_constant_for = extent_constant_for_impl<std::remove_cvref_t<C>>;
 
-    template<class C>
-    constexpr auto extent_v = extent_constant_for<C>::value;
+        template<class C>
+        constexpr auto extent_v = extent_constant_for<C>::value;
+    }
 }
 
-using private_detail_extent_constant::extent_constant_for;
-using private_detail_extent_constant::extent_v;
+using private_detail_span::private_detail_extent_constant::extent_constant_for;
+using private_detail_span::private_detail_extent_constant::extent_v;
 
-
-namespace private_detail_compatible2span
+namespace private_detail_span
 {
-    template<class C, size_t Extent>
-    struct extent_compatible_impl
+    namespace private_detail_extent_compatible
     {
-        using type = std::bool_constant<Extent == extent_v<C>>;
-    };
+        template<class C, size_t Extent>
+        struct extent_compatible_impl
+        {
+            using type = std::bool_constant<Extent == extent_v<C>>;
+        };
 
-    template<class C>
-    struct extent_compatible_impl<C, dynamic_extent>
-    {
-        using type = std::true_type;
-    };
+        template<class C>
+        struct extent_compatible_impl<C, dynamic_extent>
+        {
+            using type = std::true_type;
+        };
 
-    template<class C, size_t Extent>
-    using extent_compatible = typename extent_compatible_impl<C, Extent>::type;
+        template<class C, size_t Extent>
+        using extent_compatible = typename extent_compatible_impl<C, Extent>::type;
+    }
 }
 
 template <class T, size_t Extent, class C>
@@ -79,7 +84,7 @@ constexpr bool is_compatible2span_v = std::conjunction_v
     std::negation<is_span<C>>,
     has_std_size<C>,
     is_std_data_convertible<C, T*>,
-    private_detail_compatible2span::extent_compatible<C, Extent>
+    private_detail_span::private_detail_extent_compatible::extent_compatible<C, Extent>
 >;
 
 template <class T0, size_t E0, class T1, size_t E1>
@@ -237,7 +242,7 @@ public:
     [[nodiscard]]
     constexpr reference operator[](size_type index) const noexcept
     {
-        return value(index);
+        return data_[index];
     }
 
     [[nodiscard]]
@@ -296,6 +301,33 @@ template <class Rng>
 span(const Rng&) -> span<const value_type_t<Rng>, extent_v<Rng>>;
 
 
+namespace private_detail_span
+{
+   namespace private_detail_make_span
+   {
+       template<class Rng>
+       struct make_span_type
+       {
+           using unref_rng = std::remove_reference_t<Rng>;
+           using type = span<
+               copy_const_t<unref_rng, value_type_t<unref_rng> >, 
+               extent_v<unref_rng>
+           >;
+       };
+
+       template<class Rng>
+       using make_span_t = typename make_span_type<Rng>::type;
+   }
+}
+
+using private_detail_span::private_detail_make_span::make_span_t;
+
+template<class Rng>
+[[nodiscard]] constexpr make_span_t<Rng> to_span(Rng&& rng) noexcept
+{
+    return rng;
+}
+
 template<class OutT, size_t Extent, class T>
 constexpr void fill(span<OutT, Extent> sp, const T& value) noexcept
 {
@@ -306,4 +338,18 @@ template<class InT, size_t Extent, class OutIt>
 constexpr OutIt copy(span<InT, Extent> sp, OutIt out) noexcept
 {
     return std::copy_n(sp.data(), sp.size(), out);
+}
+
+template<class SpanValueT, size_t Extent, class T>
+[[nodiscard]] constexpr size_t find_n(span<SpanValueT, Extent> sp, const T& value, size_t pos = 0_uz) noexcept
+{
+    D_ASSERT(pos <= sp.size());
+
+    for (; pos != sp.size(); ++pos)
+    {
+        if (value == sp[pos])
+            break;
+    }
+
+    return pos;
 }

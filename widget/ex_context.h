@@ -9,11 +9,11 @@ namespace widget
     struct ex_context
     {
         template<class Fn, class... Items>
-        constexpr decltype(auto) operator () (Fn&& fn, Items&&... items) const noexcept
+        constexpr decltype(auto) operator () ([[maybe_unused]] Fn&& fn, [[maybe_unused]] Items&&... items) const noexcept
         {
-            if constexpr (std::is_base_of_v<ex_context_type_enumerator, std::remove_reference_t<Fn>>)
+            if constexpr (std::is_same_v<ex_context_enumerator, std::remove_cvref_t<Fn>>)
             {
-                return std::forward<Fn>(fn)(*this, std::forward<Items>(items)...);
+                return types_pack_v<Types...>;
             }
             else if constexpr (sizeof...(items))
             {
@@ -21,14 +21,8 @@ namespace widget
             }
             else
             {
-                D_UNUSED(fn);
                 return noapply;
             }
-        }
-
-        constexpr noapply_t apply(no_overload) const noexcept
-        {
-            return noapply;
         }
     };
 

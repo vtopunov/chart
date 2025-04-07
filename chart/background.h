@@ -1,6 +1,6 @@
 #pragma once
 
-#include <chart/shader.h>
+#include <shader/library.h>
 
 
 namespace chart
@@ -12,10 +12,10 @@ namespace chart
 
         brush_type brush{ default_brush };
 
-        void operator()(const shader::background_user& shdr) const noexcept
+        void operator()(const shader_embed::colored_rectangle& shdr) const noexcept
         {
-            shdr.color(brush)
-                .draw();
+            shdr.color(brush);
+            shdr.draw();
         }
     };
 }

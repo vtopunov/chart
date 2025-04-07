@@ -35,7 +35,6 @@
   <Import Project="..\build\static_library.props" />
   <ItemGroup>
     <ClInclude Include="$(RepoDir)\utility\png.h" />
-    <ClInclude Include="$(RepoDir)\utility\shader_library.h" />
     <ClInclude Include="..\..\..\utility\cache_storage.h" />
     <ClInclude Include="..\..\..\utility\font_cache.h" />
     <ClInclude Include="..\..\..\utility\px.h" />
@@ -52,7 +51,7 @@
     <ProjectReference Include="..\font\font.vcxproj">
       <Project>{32516e1e-1547-4010-9df2-656fed1ac2d4}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\gl\gl.vcxproj">
+    <ProjectReference Include="..\gl_core\gl_core.vcxproj">
       <Project>{40eaf3cf-7215-4353-9a89-883b91118195}</Project>
     </ProjectReference>
     <ProjectReference Include="..\image\image.vcxproj">

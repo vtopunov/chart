@@ -47,7 +47,7 @@ void test_zstring_view() noexcept
     static_assert(test_has_c_str<true, zstring_view>());
     static_assert(test_has_c_str<true, std::string>());
     static_assert(test_has_c_str<false, std::string_view>());
-
+    
     static_assert(!is_zstring_view<my_string>::value);
     static_assert(is_zstring_view<zstring_view>::value);
     static_assert(!is_zstring_view<std::string>::value);

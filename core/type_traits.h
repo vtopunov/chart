@@ -45,6 +45,13 @@ struct no_overload_for
     {}
 };
 
+struct any_overload
+{
+    template<class T>
+    constexpr operator T () const noexcept;
+};
+
+
 template<class Fn, class... Args>
 constexpr auto call_if_exist(Fn&& fn, Args&&... args) noexcept -> decltype(std::forward<Fn>(fn)(std::forward<Args>(args)...))
 {
@@ -57,13 +64,18 @@ constexpr auto call_if_exist(no_overload, const Args&... args) noexcept -> declt
     return 0;
 }
 
+template<class T, class... Args>
+using subapply_result_t = std::remove_cvref_t<decltype(std::declval<T&>().apply(std::declval<Args>()...))>;
 
-struct nonesuch
+
+struct nonesuch final
 {
+    nonesuch() = delete;
+    nonesuch(const nonesuch&) = delete;
     ~nonesuch() = delete;
-    nonesuch(nonesuch const&) = delete;
-    void operator=(nonesuch const&) = delete;
+    void operator = (const nonesuch&) = delete;
 };
+
 
 namespace private_detail_member_detector
 {
@@ -99,8 +111,8 @@ using detected_or = private_detail_member_detector::detector<Default, void, Op, 
 template <class Default, template<class...> class Op, class... Args>
 using enable_if_detected_or = typename private_detail_member_detector::detector<Default, void, Op, Args...>::enable_if_type;
 
-template <class Default, template<class...> class Op, class... Args>
-using enable_if_detected_and = typename private_detail_member_detector::detector<Default, void, Op, Args...>::enable_if_and_type;
+template <class Result, template<class...> class Op, class... Args>
+using enable_if_detected_and = typename private_detail_member_detector::detector<Result, void, Op, Args...>::enable_if_and_type;
 
 template <template<class...> class Op, class... Args>
 using enable_if_detected = enable_if_detected_or<nonesuch, Op, Args...>;
@@ -114,8 +126,8 @@ using enable_if_detected_t = typename enable_if_detected<Op, Args...>::type;
 template <class Default, template<class...> class Op, class... Args>
 using enable_if_detected_or_t = typename enable_if_detected_or<Default, Op, Args...>::type;
 
-template <class Default, template<class...> class Op, class... Args>
-using enable_if_detected_and_t = typename enable_if_detected_and<Default, Op, Args...>::type;
+template <class Result, template<class...> class Op, class... Args>
+using enable_if_detected_and_t = typename enable_if_detected_and<Result, Op, Args...>::type;
 
 template <class Expected, template<class...> class Op, class... Args>
 using is_detected_exact = std::is_same<Expected, detected_or_t<std::type_identity<Expected>, Op, Args...>>;
@@ -230,7 +242,6 @@ using remove_cve_t = std::remove_cv_t<remove_enum_t<T>>;
 template<class T>
 using remove_cveref_t = std::remove_cvref_t<remove_enum_t<T>>;
 
-
 template<class T>
 using unsigned_or_t = conditional_op_t<std::is_integral_v<T>, std::make_unsigned_t, T>;
 
@@ -238,7 +249,7 @@ template<class T>
 using remove_unsigned_t = conditional_op_t<std::is_unsigned_v<T>, std::make_signed_t, T>;
 
 template<class T>
-struct add_const_pointer {};
+struct add_const_pointer;
 
 template<class T>
 struct add_const_pointer<T*>
@@ -254,6 +265,32 @@ struct add_const_pointer<T* const>
 
 template<class T>
 using add_const_pointer_t = typename add_const_pointer<T>::type;
+
+
+template<class T>
+using has_qualifier = std::disjunction<
+    std::is_const<T>, 
+    std::is_volatile<T>, 
+    std::is_reference<T>,
+    std::is_pointer<T>,
+    std::is_array<T>,
+    std::is_null_pointer<T>
+>;
+
+template<class T>
+constexpr bool has_qualifier_v = has_qualifier<T>::value;
+
+
+template<class T>
+using is_unqualified_class = std::conjunction<
+    std::is_class<T>,
+    std::negation<std::is_const<T>>,
+    std::negation<std::is_volatile<T>>
+>;
+
+template<class T>
+constexpr bool is_unqualified_class_v = is_unqualified_class<T>::value;
+
 
 template<class From, class To>
 struct is_const_convertible : std::false_type
@@ -281,7 +318,7 @@ template<class L, class R>
 using is_same_uncv_r = std::is_same<L, std::remove_cv_t<R>>;
 
 template<class L, class R>
-using is_same_uncv = is_same_uncvref_r<std::remove_cv_t<L>, R>;
+using is_same_uncv = is_same_uncv_r<std::remove_cv_t<L>, R>;
 
 template<class L, class R>
 using is_same_decay_r = std::is_same<L, std::decay_t<R>>;
@@ -332,15 +369,17 @@ template<class T>
 }
 
 template<class Derived, class Base>
-[[nodiscard]] constexpr Derived identical_derived_cast(const Base& base) noexcept
+[[nodiscard]] constexpr const Derived& to_identical_derived(const Base& base) noexcept
 {
     {
-        using derived_t = std::remove_reference_t<Derived>;
+        using derived_t = std::remove_cvref_t<Derived>;
+        static_assert(is_unqualified_class_v<Base>);
+        static_assert(is_unqualified_class_v<derived_t>);
         static_assert(std::is_base_of_v<Base, derived_t>);
         static_assert(sizeof(Base) == sizeof(derived_t));
         static_assert(alignof(Base) == alignof(derived_t));
     }
-    return static_cast<Derived>(base);
+    return static_cast<const Derived&>(base);
 }
 
 
@@ -387,7 +426,7 @@ template<class T>
 constexpr bool has_post_inc_op_v = has_post_inc_op<T>::value;
 
 template<class T>
-constexpr bool has_pre_dec_op_v =  has_pre_dec_op<T>::value;
+constexpr bool has_pre_dec_op_v = has_pre_dec_op<T>::value;
 
 template<class T>
 constexpr bool has_post_dec_op_v = has_post_dec_op<T>::value;
@@ -402,23 +441,14 @@ using has_assignment_op = is_detected<decl_assignment_op_t, L, R>;
 template<class L, class R>
 constexpr bool has_assignment_op_v = has_assignment_op<L, R>::value;
 
-template<class T>
-using decl_eq_op_t = decltype(std::declval<const T&>() == std::declval<const T&>());
+template<class L, class R = L>
+using decl_eq_op_t = decltype(std::declval<const L&>() == std::declval<const R&>());
 
-template<class T>
-using decl_neq_op_t = decltype(std::declval<const T&>() != std::declval<const T&>());
+template<class L, class R = L>
+using decl_neq_op_t = decltype(std::declval<const L&>() != std::declval<const R&>());
 
-template<class T>
-using decl_less_op_t = decltype(std::declval<const T&>() < std::declval<const T&>());
-
-template<class T>
-using has_eq_op = is_detected<decl_eq_op_t, T>;
-
-template<class T>
-using has_neq_op = is_detected<decl_neq_op_t, T>;
-
-template<class T>
-using has_less_op = is_detected<decl_less_op_t, T>;
+template<class L, class R = L>
+using decl_less_op_t = decltype(std::declval<const L&>() < std::declval<const R&>());
 
 
 template<class T>

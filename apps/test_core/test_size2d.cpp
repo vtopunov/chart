@@ -102,6 +102,8 @@ namespace
             using view_type = sizes_mem;
             struct resource_type {};
 
+            static constexpr resource_type dummy_r{};
+
             constexpr operator view_type () const noexcept
             {
                 return sizes_mem_v;
@@ -109,7 +111,7 @@ namespace
 
             constexpr const resource_type& r() const noexcept
             {
-                return {};
+                return dummy_r;
             }
         } sizes_res_mem_view_v{};
     }
@@ -144,7 +146,6 @@ void test_size2d() noexcept
     static_assert(std::is_trivial_v<size2d<int>> && std::is_standard_layout_v<size2d<int>>);
     static_assert(sizeof(v) == sizeof(sz));
     static_assert(alignof(decltype(v)) == alignof(decltype(sz)));
-    static_assert(sz == identical_derived_cast<size2d<int>>(v));
     static_assert(as_vec2(sz) == v);
     static_assert(sz == to_size2d(v));
     static_assert(sz.width() == 3);

@@ -14,12 +14,13 @@
     <ClInclude Include="background.h" />
     <ClInclude Include="grid_shader.h" />
     <ClInclude Include="grid.h" />
+    <ClInclude Include="periodic_position.h" />
     <ClInclude Include="polyline.h" />
     <ClInclude Include="space.h" />
     <ClInclude Include="fwd.h" />
-    <ClInclude Include="shader.h" />
     <ClInclude Include="space_manipulation.h" />
     <ClInclude Include="space_diagonal_cache.h" />
+    <ClInclude Include="value_labels.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="space.cpp" />
