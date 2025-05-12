@@ -60,14 +60,14 @@ namespace font
     };
 
     template<class Out, class T, size_t FractBits>
-    constexpr Out trunc_to(const fixed<T, FractBits>& fp) noexcept
+    [[nodiscard]] constexpr Out trunc_to(const fixed<T, FractBits>& fp) noexcept
     {
         static_assert(std::is_integral_v<Out>);
         return narrow<Out>(fp.discard_fraction());
     }
 
     template<class Out, class T, size_t FractBits>
-    constexpr Out ceil_to(const fixed<T, FractBits>& fp) noexcept
+    [[nodiscard]] constexpr Out ceil_to(const fixed<T, FractBits>& fp) noexcept
     {
         using fixed_type = fixed<T, FractBits>;
 
@@ -94,61 +94,61 @@ namespace font
 
 
     template<class T, size_t FractBits>
-    constexpr fixed<T, FractBits> operator - (const fixed<T, FractBits>& right) noexcept
+    [[nodiscard]] constexpr fixed<T, FractBits> operator - (const fixed<T, FractBits>& right) noexcept
     {
         return { -right.value };
     }
 
     template<class T, size_t FractBits>
-    constexpr fixed<T, FractBits> operator + (const fixed<T, FractBits>& left, const fixed<T, FractBits>& right) noexcept
+    [[nodiscard]] constexpr fixed<T, FractBits> operator + (const fixed<T, FractBits>& left, const fixed<T, FractBits>& right) noexcept
     {
         return { left.value + right.value };
     }
 
     template<class T, size_t FractBits>
-    constexpr fixed<T, FractBits> operator - (const fixed<T, FractBits>& left, const fixed<T, FractBits>& right) noexcept
+    [[nodiscard]] constexpr fixed<T, FractBits> operator - (const fixed<T, FractBits>& left, const fixed<T, FractBits>& right) noexcept
     {
         return { left.value - right.value };
     }
 
     template<class IntT, class T, size_t FractBits>
-    constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator + (const IntT& left, const fixed<T, FractBits>& right) noexcept
+    [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator + (const IntT& left, const fixed<T, FractBits>& right) noexcept
     {
         return fixed<T, FractBits>::instance(left) + right;
     }
 
     template<class IntT, class T, size_t FractBits>
-    constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator - (const IntT& left, const fixed<T, FractBits>& right) noexcept
+    [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator - (const IntT& left, const fixed<T, FractBits>& right) noexcept
     {
         return fixed<T, FractBits>::instance(left) - right;
     }
 
     template<class T, size_t FractBits, class IntT>
-    constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator + (const fixed<T, FractBits>& left, const IntT& right) noexcept
+    [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator + (const fixed<T, FractBits>& left, const IntT& right) noexcept
     {
         return right + left;
     }
 
     template<class T, size_t FractBits, class IntT>
-    constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator - (const fixed<T, FractBits>& left, const IntT& right) noexcept
+    [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator - (const fixed<T, FractBits>& left, const IntT& right) noexcept
     {
         return left - fixed<T, FractBits>::instance(right);
     }
 
     template<class IntT, class T, size_t FractBits>
-    constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator * (const IntT& left, const fixed<T, FractBits>& right) noexcept
+    [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator * (const IntT& left, const fixed<T, FractBits>& right) noexcept
     {
         return { left * right.value };
     }
 
     template<class T, size_t FractBits, class IntT>
-    constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator * (const fixed<T, FractBits>& left, const IntT& right) noexcept
+    [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator * (const fixed<T, FractBits>& left, const IntT& right) noexcept
     {
         return right * left;
     }
 
     template<class T, size_t FractBits, class IntT>
-    constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator / (const fixed<T, FractBits>& left, const IntT& right) noexcept
+    [[nodiscard]] constexpr std::enable_if_t<std::is_integral_v<IntT>, fixed<T, FractBits>> operator / (const fixed<T, FractBits>& left, const IntT& right) noexcept
     {
         return { left.value / right };
     }

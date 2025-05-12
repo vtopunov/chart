@@ -427,13 +427,15 @@ namespace rational_literals
     [[nodiscard]] constexpr rational<ptrdiff_t> operator"" _r() noexcept
     {
         constexpr char string[] = { chars... };
-        return rational<ptrdiff_t>::from_string(string);
+        constexpr auto result = rational<ptrdiff_t>::from_string(string);
+        return result;
     }
 
     template<char ... chars> 
     [[nodiscard]] constexpr rational<size_t> operator"" _ur() noexcept
     {
         constexpr char string[] = { chars... };
-        return rational<size_t>::from_string(string);
+        constexpr auto result = rational<size_t>::from_string(string);
+        return result;
     }
 }

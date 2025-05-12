@@ -77,6 +77,7 @@ namespace
             static constexpr chart::background background{ .brush{ colors::yellow_f.with_blue(0.93f) }};
             static constexpr chart::grid grid{};
 
+            // chart::px_grid grid{};
             chart::value_labels labels{};
 
             struct polyline : chart::polyspanline

@@ -17,6 +17,7 @@
     <ClInclude Include="fmt.h" />
     <ClInclude Include="functional.h" />
     <ClInclude Include="limits.h" />
+    <ClInclude Include="margins.h" />
     <ClInclude Include="null.h" />
     <ClInclude Include="buffer.h" />
     <ClInclude Include="point2d.h" />

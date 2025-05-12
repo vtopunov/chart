@@ -3,89 +3,72 @@
 
 namespace chart
 {
-    event_result space::process(basic_mouse_double_click_event<>) noexcept
+    event_result space::process(const mouse_wheel_event<>& e)  noexcept
     {
-        clear_cache();
-        return event_result::redraw;
-    }
-
-    event_result space::process(mouse_wheel_event<> e) noexcept
-    {
-        if (items_space_cache)
+        if (has_space(e))
         {
-            if (const auto chart_sizes = stretchable_sizes(geometry, e); pixspace_is_updated(chart_sizes))
+            constexpr double zoom_factor = 1.1;
+            const auto nzoom = pow(zoom_factor, e.rot());
+
+            const auto diagonal = space_cache.value();
+            const auto half_d_d_diagonal = (diagonal._1 - diagonal._0) * (0.5 * nzoom - 0.5);
+
+            const space_diagonal new_diagonal
             {
-                const auto n_wheel = e.rot();
-                constexpr double zoom_factor = 1.1;
-                const auto zoom = pow(zoom_factor, n_wheel);
+                ._0{ diagonal._0 - half_d_d_diagonal },
+                ._1{ diagonal._1 + half_d_d_diagonal }
+            };
 
-                const auto diagonal = items_space_cache.value();
-                const auto half_d_d_diagonal = (diagonal._1 - diagonal._0) * (0.5 * zoom - 0.5);
-
-                const space_diagonal new_diagonal
-                {
-                    ._0{ diagonal._0 - half_d_d_diagonal },
-                    ._1{ diagonal._1 + half_d_d_diagonal }
-                };
-
-                if (items_space_cache.try_update(new_diagonal, chart_sizes))
-                {
-                    clear_pixspace_cache();
-                    return event_result::redraw;
-                }
-            }
+            sizes_cache = px::no_sizes;
+            D_UNUSED(space_cache.try_update(new_diagonal, geometry_cache.sizes));
+            return event_result::redraw;
         }
 
         return event_result::idle;
     }
 
-    event_result space::process(gesture_event<> e) noexcept
+    event_result space::process(const gesture_event<>& e) noexcept
     {
-        if (e.keys().is_left() && items_space_cache)
+        if (has_space(e))
         {
-            if (const auto chart_sizes = stretchable_sizes(geometry, e); pixspace_is_updated(chart_sizes))
+            const auto has_shift = (zero_v<> != md_trunc_cast<pxoffs>(e.shift()));
+            const auto has_scale = (geometry_cache.sizes != e.transformation_as(geometry_cache.sizes));
+
+            if (has_shift || has_scale)
             {
-                const auto has_shift = (zero_v<> != md_trunc_cast<pxoffs>(e.shift()));
-                const auto has_scale = (chart_sizes != e.transformation_as(chart_sizes));
+                const auto diagonal0 = space_cache.value();
+                auto new_diagonal = diagonal0;
 
-                if (has_shift || has_scale)
+                if (has_shift)
                 {
-                    const auto diagonal0 = items_space_cache.value();
-                    auto new_diagonal = diagonal0;
+                    const auto scale_to_chart = make_scale_transformation
+                    (
+                        make_pxspace_diagonal(geometry_cache.sizes),
+                        diagonal0
+                    );
 
-                    if (has_shift)
-                    {
-                        const auto scale_to_chart = make_scale_transformation
-                        (
-                            make_pxspace_diagonal(chart_sizes),
-                            diagonal0
-                        );
-
-                        const auto chart_shift = -scale_to_chart(e.shift());
-                        new_diagonal._0 += chart_shift;
-                        new_diagonal._1 += chart_shift;
-                    }
-
-                    if (has_scale)
-                    {
-                        const point2d d0
-                        {
-                            diagonal0._1.x() - diagonal0._0.x(),
-                            diagonal0._0.y() - diagonal0._1.y()
-                        };
-
-                        const auto d = d0 / e.scale();
-
-                        new_diagonal._0.ref_y() = new_diagonal._1.y() + d.y();
-                        new_diagonal._1.ref_x() = new_diagonal._0.x() + d.x();
-                    }
-
-                    if (items_space_cache.try_update(new_diagonal, chart_sizes))
-                    {
-                        clear_pixspace_cache();
-                        return event_result::redraw;
-                    }
+                    const auto chart_shift = -scale_to_chart(e.shift());
+                    new_diagonal._0 += chart_shift;
+                    new_diagonal._1 += chart_shift;
                 }
+
+                if (has_scale)
+                {
+                    const point2d d0
+                    {
+                        diagonal0._1.x() - diagonal0._0.x(),
+                        diagonal0._0.y() - diagonal0._1.y()
+                    };
+
+                    const auto d = d0 / e.scale();
+
+                    new_diagonal._0.ref_y() = new_diagonal._1.y() + d.y();
+                    new_diagonal._1.ref_x() = new_diagonal._0.x() + d.x();
+                }
+
+                sizes_cache = px::no_sizes;
+                D_UNUSED(space_cache.try_update(new_diagonal, geometry_cache.sizes));
+                return event_result::redraw;
             }
         }
 

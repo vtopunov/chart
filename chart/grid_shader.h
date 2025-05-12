@@ -45,7 +45,11 @@ namespace chart
                         vec2 out_of_gridline = current + u_width;
                         bvec2 b_grid = grid(current);
                         bvec2 b_out_of_grid = grid(out_of_gridline);
-                        if((b_grid.x && !b_out_of_grid.x) || (b_grid.y && !b_out_of_grid.y))
+                        bool b_x_bound = (current.x > 0.5) && (out_of_gridline.x < (u_size.x - u_begin.x));
+                        bool b_y_bound = (current.y > 0.5) && (out_of_gridline.y < (u_size.y - u_begin.y));
+                        bool b_x_grid_filter = b_grid.x && !b_out_of_grid.x;
+                        bool b_y_grid_filter = b_grid.y && !b_out_of_grid.y;
+                        if( (b_x_bound && b_x_grid_filter) || (b_y_bound && b_y_grid_filter) )
                         {
                             gl_FragColor = u_color;
                         }

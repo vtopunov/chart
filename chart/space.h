@@ -23,32 +23,31 @@ namespace chart
     struct space
     {
         stretchable_pxrectangle geometry{};
-        space_diagonal_cache items_space_cache{};
-        pxsizes pixspace_sizes_cache{ px::no_sizes };
+        space_diagonal_cache space_cache{};
+        pxrectangle geometry_cache
+        {
+            .position{},
+            .sizes{ px::no_sizes }
+        };
+        pxsizes sizes_cache{ px::no_sizes };
+
 
         template<class... Items>
         [[nodiscard]] constexpr subitems<Items...> operator () (Items&... items) noexcept;
 
-        [[nodiscard]] event_result process(basic_mouse_double_click_event<>) noexcept;
-        [[nodiscard]] event_result process(mouse_wheel_event<> e) noexcept;
-        [[nodiscard]] event_result process(gesture_event<> e) noexcept;
-
-        constexpr void clear_pixspace_cache() noexcept
-        {
-            pixspace_sizes_cache = px::no_sizes;
-        }
+        [[nodiscard]] event_result process(const mouse_wheel_event<>& e) noexcept;
+        [[nodiscard]] event_result process(const gesture_event<>& e) noexcept;
 
         constexpr void clear_cache() noexcept
         {
-            items_space_cache.clear();
-            clear_pixspace_cache();
+            space_cache.clear();
+            sizes_cache = px::no_sizes;
         }
 
-        [[nodiscard]]
-        constexpr bool pixspace_is_updated(pxsizes pixspace_sizes_now) const noexcept
+        template<class E>
+        [[nodiscard]] constexpr auto has_space(const E& e) const noexcept -> decltype((e.content().sizes(), true))
         {
-            return pixspace_sizes_now.has_positive_square()
-                && pixspace_sizes_cache == pixspace_sizes_now;
+            return space_cache && (sizes_cache == e.content().sizes());
         }
     };
 
@@ -125,19 +124,27 @@ namespace chart
 
         using private_detail_call_items::call_items;
 
+        template<class Tuple, class Value>
+        [[nodiscard]] constexpr std::enable_if_t<
+            std::negation_v<std::is_const<Value>>, Value
+        > calculate_items_value(const Tuple& items, Value value) noexcept
+        {
+            call_items(items, value);
+            return value;
+        }
 
         namespace private_detail_call_items_for_tuple
         {
-            template<size_t... TupleIndicesArg0, class Tuple, class TupleArg0, class... Args>
+            template<size_t... IndicesTupleArg0, class Tuple, class TupleArg0, class... Args>
             constexpr void call_items_for_tuple_impl(
-                std::index_sequence<TupleIndicesArg0...>,
+                std::index_sequence<IndicesTupleArg0...>,
                 [[maybe_unused]] Tuple&& items,
                 [[maybe_unused]] TupleArg0&& tuple_arg0,
                 [[maybe_unused]] Args&&... args) noexcept
             {
-                if constexpr (sizeof...(TupleIndicesArg0))
+                if constexpr (sizeof...(IndicesTupleArg0))
                 {
-                    (call_items(std::forward<Tuple>(items), std::get<TupleIndicesArg0>(std::forward<TupleArg0>(tuple_arg0)), std::forward<Args>(args)...), ...);
+                    (call_items(std::forward<Tuple>(items), std::get<IndicesTupleArg0>(std::forward<TupleArg0>(tuple_arg0)), std::forward<Args>(args)...), ...);
                 }
             }
 
@@ -159,23 +166,16 @@ namespace chart
         namespace private_detail_update_space
         {
             template<class Tuple>
-            [[nodiscard]] constexpr space_diagonal calculate_space(const Tuple& items) noexcept
-            {
-                space_diagonal diagonal{ space_diagonal_initializer };
-                call_items(items, diagonal);
-                return diagonal;
-            }
-
-            template<class Tuple>
             [[nodiscard]] constexpr bool try_first_update_space(space_diagonal_cache& space, const Tuple& items, pxsizes sizes) noexcept
             {
-                return space.try_first_update(calculate_space(items), sizes);
+                return space.try_first_update(calculate_items_value(items, space_diagonal_initializer), sizes);
             }
 
             template<class Tuple>
             [[nodiscard]] constexpr bool try_update_space(space_diagonal_cache& space, const Tuple& items, pxsizes sizes) noexcept
             {
-                return space.has_value() || try_first_update_space(space, items, sizes);
+                return space.has_value()
+                    || try_first_update_space(space, items, sizes);
             }
         }
 
@@ -189,8 +189,9 @@ namespace chart
             static constexpr bool has = Has;
             using resource_pack = std::conditional_t<has, types_pack<resource_type>, types_pack<>>;
 
-            template<class Tuple>
-            [[nodiscard]] static constexpr auto get(const Tuple& e_context) noexcept -> decltype(e_context.template get<resource_type>())
+            template<class Tuple, std::enable_if_t<types_size_v<Tuple> && has, int> = 0>
+            [[nodiscard]] static constexpr auto get(const Tuple& e_context) noexcept 
+                -> decltype(e_context.template get<resource_type>())
             {
                 return e_context.template get<resource_type>();
             }
@@ -213,7 +214,7 @@ namespace chart
 
             using items_has_space = items_has_call<space_diagonal&>;
             using items_has_limpix_space = items_has_cref_call<lumpixspan, space_manipulation>;
-            using items_has_buffer = items_has_cref_call<any_overload, buffer_view>;
+            using items_has_any_limpix = items_has_cref_call<any_overload, lumpixspan>;
 
             using items_has_lumtex_space = std::conjunction<
                 items_has_space,
@@ -229,7 +230,7 @@ namespace chart
 
             static constexpr bool items_has_space_buffer_view_value = std::conjunction_v<
                 items_has_space,
-                std::disjunction<items_has_buffer, items_has_limpix_space>
+                std::disjunction<items_has_any_limpix, items_has_limpix_space>
             >;
 
             static constexpr bool items_has_grid_value = std::conjunction_v<
@@ -258,6 +259,13 @@ namespace chart
                 return event_result::redraw;
             }
 
+            [[nodiscard]]
+            constexpr event_result operator () (const ui::mouse_double_click_event&) const noexcept
+            {
+                space_ref.clear_cache();
+                return event_result::redraw;
+            }
+
             template<class T>
             [[nodiscard]] auto operator () (const T& e) const noexcept -> decltype(space_ref.process(e))
             {
@@ -266,84 +274,76 @@ namespace chart
 
             constexpr void operator () (redraw_event_type e) const noexcept
             {
-                if (const auto space_sizes = stretchable_sizes(space_ref.geometry, e); space_sizes.has_positive_square()) [[likely]]
+                const auto window_sizes = e.content().sizes();
+                const auto has_new_sizes = window_sizes != space_ref.sizes_cache;
+
+                if (has_new_sizes)
                 {
-                    const pxrectangle geometry
-                    {
-                        .position{ space_ref.geometry.position },
-                        .sizes{ space_sizes }
-                    };
+                    space_ref.sizes_cache = window_sizes;
+                    space_ref.geometry_cache = calculate_items_value(items,
+                        widget::stretchable_geometry(space_ref.geometry, window_sizes)
+                    );
+                }
 
-                    if constexpr (background_context::has)
-                    {
-                        const auto& shdr = background_context::get(e);
-                        shdr.use();
-                        shdr.geometry(geometry);
+                if constexpr (background_context::has)
+                {
+                    const auto& shdr = background_context::get(e);
+                    shdr.use();
+                    shdr.geometry(space_ref.geometry_cache);
 
-                        call_items(items, shdr);
-                    }
+                    call_items(items, shdr);
+                }
 
-                    if constexpr (items_has_space::value)
+                if constexpr (items_has_space::value)
+                {
+                    if (try_update_space(space_ref.space_cache, items, space_ref.geometry_cache.sizes)) [[likely]]
                     {
-                        if (try_update_space(space_ref.items_space_cache, items, space_sizes)) [[likely]]
+                        const space_manipulation sys
                         {
-                            const space_manipulation sys
+                            space_ref.space_cache.value(),
+                            make_pxspace_diagonal(space_ref.geometry_cache.sizes)
+                        };
+
+                        [[maybe_unused]]
+                        const auto temp_items = call_items(items, sys);
+
+                        if constexpr (buffer_context::has)
+                        {
+                            if (has_new_sizes)
                             {
-                                space_ref.items_space_cache.value(),
-                                make_pxspace_diagonal(space_sizes)
-                            };
+                                const auto image = px::create_lumpixspan(buffer_context::get(e), space_ref.geometry_cache.sizes);
 
-                            [[maybe_unused]]
-                            const auto temp_items = call_items(items, sys);
-
-                            if (space_sizes != space_ref.pixspace_sizes_cache)
-                            {
-                                space_ref.pixspace_sizes_cache = space_sizes;
-
-                                if constexpr (buffer_context::has)
+                                if constexpr (items_has_limpix_space::value)
                                 {
-                                    const auto buffer = buffer_context::get(e);
+                                    call_items(items, image, sys);
+                                }
 
-                                    if constexpr (items_has_limpix_space::value)
-                                    {
-                                        const auto image = px::create_lumpixspan(buffer, space_sizes);
-
-                                        call_items(items, image, sys);
-                                    }
-
-                                    if constexpr (items_has_buffer::value)
-                                    {
-                                        call_items_for_tuple(items, temp_items, buffer);
-                                    }
+                                if constexpr (items_has_any_limpix::value)
+                                {
+                                    call_items_for_tuple(items, temp_items, image);
                                 }
                             }
-
-                            if constexpr (grid_context::has)
-                            {
-                                const auto& shdr = grid_context::get(e);
-                                shdr.use();
-                                shdr.geometry(geometry);
-
-                                call_items_for_tuple(items, temp_items, shdr);
-                            }
-
-                            if constexpr (luminance_figure_context::has)
-                            {
-                                const auto& shdr = luminance_figure_context::get(e);
-                                shdr.use();
-
-                                call_items_for_tuple(items, temp_items, shdr);
-                            }
                         }
-                    }
 
-                    if constexpr (luminance_figure_context::has)
-                    {
-                        const auto& shdr = luminance_figure_context::get(e);
-                        shdr.use();
-                        shdr.geometry(geometry);
+                        if constexpr (grid_context::has)
+                        {
+                            const auto& shdr = grid_context::get(e);
+                            shdr.use();
+                            shdr.geometry(space_ref.geometry_cache);
 
-                        call_items(items, shdr);
+                            call_items_for_tuple(items, temp_items, shdr);
+                        }
+
+                        if constexpr (luminance_figure_context::has)
+                        {
+                            const auto& shdr = luminance_figure_context::get(e);
+                            shdr.use();
+
+                            call_items(items, shdr, space_ref.geometry_cache);
+
+                            shdr.geometry(space_ref.geometry_cache);
+                            call_items(items, shdr);
+                        }
                     }
                 }
             }

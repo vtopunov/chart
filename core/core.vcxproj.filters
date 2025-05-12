@@ -33,5 +33,6 @@
     <ClInclude Include="functional.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="transformation.h" />
+    <ClInclude Include="margins.h" />
   </ItemGroup>
 </Project>

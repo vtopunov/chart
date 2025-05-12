@@ -32,7 +32,6 @@ namespace file
         };
 
         using file_resource_descriptor_t = std::conditional_t<file_descriptor_is_integral_v, e_file_descriptor, s_file_descriptor*>;
-
     }
 
     using private_detail_file_descriptor::file_resource_descriptor_t;

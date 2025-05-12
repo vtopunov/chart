@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/rectangle.h>
+#include <core/margins.h>
 
 
 namespace px
@@ -17,6 +18,7 @@ namespace px
     using pxsizes = size2d<npx_t>;
 
     using pxrectangle = rectangle<npx_t>;
+    using pxmargins = margins<npx_t>;
 
     using real_t = double_t;
     using real_vec2 = vec2<real_t>;
@@ -60,5 +62,6 @@ using px::pxpoint;
 using px::pxoffs;
 using px::pxsizes;
 using px::pxrectangle;
+using px::pxmargins;
 
 using namespace px_literals;

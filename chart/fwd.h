@@ -19,5 +19,8 @@ namespace chart
 
     using widget::stretchable_pxrectangle;
     using widget::event_result;
+    
+    using widget::redraw_if;
+    
     using namespace widget::event_declaration;
 }

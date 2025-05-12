@@ -108,7 +108,7 @@ namespace widget
     };
 
     template<class... ETypes, class EventBase, class... Types>
-    constexpr basic_widget_event<EventBase, ETypes...> make_widget_event(const EventBase& base, const context<Types...>& cc) noexcept
+    [[nodiscard]] constexpr basic_widget_event<EventBase, ETypes...> make_widget_event(const EventBase& base, const context<Types...>& cc) noexcept
     {
         return basic_widget_event<EventBase, ETypes...>{ base, unrefwrap(cc.template cget<context_unview_t<ETypes>>())... };
     }

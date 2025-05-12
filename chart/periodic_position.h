@@ -15,5 +15,6 @@ namespace chart
     {
         periodic_position value;
         periodic_position px;
+        point2d<size_t> count;
     };
 }
