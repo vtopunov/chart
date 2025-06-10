@@ -34,8 +34,8 @@ namespace chart
         const auto last = (end - begin) / increment;
 
         {
-            constexpr T sizef_mini{ -1 };
-            constexpr auto sizef_maxi = clamp_cast<T>(size_maxi);
+            [[maybe_unused]] constexpr T sizef_mini{ -1 };
+            [[maybe_unused]] constexpr auto sizef_maxi = clamp_cast<T>(size_maxi);
             D_ASSERT(last > sizef_mini);
             D_ASSERT(last < sizef_maxi);
         }

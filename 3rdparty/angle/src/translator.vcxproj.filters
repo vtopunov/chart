@@ -1968,6 +1968,5 @@
     <ClCompile Include="compiler\translator\emulated_builtin_functions_hlsl_autogen.cpp">
       <Filter>compiler\translator</Filter>
     </ClCompile>
-    <None Include="angle.gyp"/>
   </ItemGroup>
 </Project>

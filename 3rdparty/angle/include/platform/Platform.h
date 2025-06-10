@@ -12,23 +12,28 @@
 #include <stdint.h>
 #include <array>
 
-#if defined(_WIN32)
-#   if !defined(LIBANGLE_IMPLEMENTATION)
-#       define ANGLE_PLATFORM_EXPORT __declspec(dllimport)
-#   endif
-#elif defined(__GNUC__)
-#   if defined(LIBANGLE_IMPLEMENTATION)
-#       define ANGLE_PLATFORM_EXPORT __attribute__((visibility ("default")))
+#if !defined(ANGLE_PLATFORM_EXPORT)
+#   if defined(_WIN32)
+#       if !defined(LIBANGLE_IMPLEMENTATION)
+#           define ANGLE_PLATFORM_EXPORT __declspec(dllimport)
+#       endif
+#   elif defined(__GNUC__)
+#       if defined(LIBANGLE_IMPLEMENTATION)
+#           define ANGLE_PLATFORM_EXPORT __attribute__((visibility ("default")))
+#       endif
 #   endif
 #endif
+
 #if !defined(ANGLE_PLATFORM_EXPORT)
 #   define ANGLE_PLATFORM_EXPORT
 #endif
 
-#if defined(_WIN32)
-#   define ANGLE_APIENTRY __stdcall
-#else
-#   define ANGLE_APIENTRY
+#if !defined(ANGLE_APIENTRY)
+#   if defined(_WIN32)
+#       define ANGLE_APIENTRY __stdcall
+#   else
+#       define ANGLE_APIENTRY
+#   endif
 #endif
 
 namespace angle

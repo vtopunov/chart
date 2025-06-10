@@ -37,12 +37,12 @@ namespace chart
             geometry.sizes.ref_height() -= (margins.top + margins.bottom);
         }
 
-        void operator () (const periodic_value_position& position, buffer_view buffer) noexcept
+        void operator () (const periodic_value_position&, buffer_view) noexcept
         {
             
         }
 
-        void operator () (const shader_embed::luminance_texture& shdr, const pxrectangle& geometry) noexcept
+        void operator () (const shader_embed::luminance_texture&, const pxrectangle&) noexcept
         {
 
         }
