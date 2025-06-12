@@ -1,6 +1,5 @@
 #include <core/null.h>
 
-#include <cerrno>
 #include <chrono>
 
 #include <core/resource.h>

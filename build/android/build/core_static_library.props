@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="static_library.props" />
+  <Import Project="$(ThirdPartyDir)\mimalloc\out.props" />
+  
+  <ItemGroup>
+    <ProjectReference Include="$(AndroidThirdPartyDir)\mimalloc\mimalloc.vcxproj">
+      <Project>{9f16f012-f707-0d6f-bbb2-011294039cb5}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

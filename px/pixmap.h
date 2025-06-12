@@ -8,11 +8,6 @@
 
 namespace px
 {
-    struct pixmap_construct_t
-    {};
-
-    constexpr pixmap_construct_t pixmap_construct{};
-
     template<class T, size_t Alignment = default_alignment>
     class pixmap : public pixspace<sizeof(T), Alignment>
     {
@@ -35,13 +30,6 @@ namespace px
         constexpr pixmap() noexcept = default;
 
         constexpr pixmap(const pixmap&) noexcept = delete;
-
-        constexpr pixmap(pixmap_construct_t, byte_buffer&& buffer, const space_type& space) noexcept
-            : space_type{ space }
-            , buffer_{ std::move(buffer) }
-        {
-            D_ASSERT(space.size_bytes() <= buffer_.size());
-        }
 
         constexpr pixmap(pixmap&& right) noexcept
             : space_type{ std::exchange(right._space_ref(), {}) }
@@ -76,8 +64,15 @@ namespace px
             }
         }
 
-        constexpr explicit pixmap(byte_buffer&& buffer) noexcept
-            : pixmap{ std::move(buffer), space_type{} }
+        constexpr pixmap(memory_construct_t, byte_buffer&& buffer, const space_type& space) noexcept
+            : space_type{ space }
+            , buffer_{ std::move(buffer) }
+        {
+            D_ASSERT(space.size_bytes() <= buffer_.size());
+        }
+
+        constexpr pixmap(memory_construct_t, byte_buffer&& buffer) noexcept
+            : pixmap{ memory_construct, std::move(buffer), space_type{} }
         {}
 
         constexpr explicit pixmap(pxsizes sizes) noexcept

@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="base.props" />
+  
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  
+  <ItemGroup>
+    <ClCompile Include="$(LibMiMallocDir)src\alloc-aligned.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\alloc-override.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(LibMiMallocDir)src\alloc-posix.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\alloc.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\arena-abandon.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(LibMiMallocDir)src\arena.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\bitmap.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\free.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(LibMiMallocDir)src\heap.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\init.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\libc.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\prim\prim.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\prim\windows\prim.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(LibMiMallocDir)src\options.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\page-queue.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="$(LibMiMallocDir)src\page.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\random.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\segment-map.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\segment.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\os.c" />
+    <ClCompile Include="$(LibMiMallocDir)src\stats.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(LibMiMallocDir)include\mimalloc.h" />
+    <ClInclude Include="$(LibMiMallocDir)include\mimalloc-override.h" />
+    <ClInclude Include="$(LibMiMallocDir)include\mimalloc-new-delete.h" />
+    <ClInclude Include="$(LibMiMallocDir)include\mimalloc-stats.h" />
+    <ClInclude Include="$(LibMiMallocDir)include\mimalloc\atomic.h" />
+    <ClInclude Include="$(LibMiMallocDir)include\mimalloc\internal.h" />
+    <ClInclude Include="$(LibMiMallocDir)include\mimalloc\prim.h" />
+    <ClInclude Include="$(LibMiMallocDir)include\mimalloc\track.h" />
+    <ClInclude Include="$(LibMiMallocDir)include\mimalloc\types.h" />
+    <ClInclude Include="$(LibMiMallocDir)src\bitmap.h" />
+  </ItemGroup>
+</Project>

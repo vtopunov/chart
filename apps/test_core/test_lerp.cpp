@@ -2,8 +2,6 @@
 
 #include <core/fwd.h>
 
-#include <cerrno>
-
 
 void test_lerp() noexcept
 {

@@ -9,7 +9,7 @@ D_WARNING_PUSH
 D_WARNING_DISABLE_MSVC(W_do_not_use_const_cast)
 D_WARNING_DISABLE_MSVC(W_variable_is_uninitialized)
 
-namespace private_detail_back_move
+namespace private_detail_small_vector
 {
     template<class It>
     constexpr void back_move(It to, It back) noexcept
@@ -32,19 +32,112 @@ namespace private_detail_back_move
             }
         }
     }
-}
 
+    template<class T, class Buffer>
+    class temp_vector
+    {
+    public:
+        using value_type = T;
+        using buffer_type = Buffer;
+        using pointer = value_type*;
+        using size_type = typename buffer_type::size_type;
+
+        constexpr temp_vector(buffer_type&& data, size_type size) noexcept
+            : data_{ std::move(data) }
+            , end_of_array_{ data_.data() + size }
+        {
+            D_ASSERT(size <= data_.size());
+        }
+
+        constexpr explicit temp_vector(size_type max_size) noexcept
+            : data_{ max_size }
+            , end_of_array_{ data_.data() }
+        {}
+
+        D_DISABLE_COPYMOVE_CA(temp_vector);
+
+        constexpr ~temp_vector() noexcept
+        {
+            D_ASSERT(end() >= begin());
+            D_ASSERT(narrow<size_type>(end() - begin()) <= data_.size());
+            std::destroy(begin(), end());
+        }
+
+        constexpr void emplace_push_range(pointer first, pointer last) noexcept
+        {
+            end_of_array_ = std::uninitialized_move(first, last, end());
+        }
+
+        template<class... Args>
+        constexpr pointer emplace_push(Args&&... args) noexcept
+        {
+            const auto result = end_of_array_;
+            new (result) value_type{ std::forward<Args>(args)... };
+            ++end_of_array_;
+            return result;
+        }
+
+        [[nodiscard]] constexpr pointer begin() const noexcept
+        {
+            return data_.data();
+        }
+
+        [[nodiscard]] constexpr pointer end() const noexcept
+        {
+            return end_of_array_;
+        }
+
+        [[nodiscard]] constexpr buffer_type& buffer_ref() noexcept
+        {
+            return data_;
+        }
+
+        constexpr void leave() noexcept
+        {
+            end_of_array_ = begin();
+        }
+
+        constexpr explicit operator bool() const noexcept
+        {
+            return !!data_;
+        }
+
+    private:
+        buffer_type data_;
+        pointer end_of_array_;
+    };
+
+    constexpr struct
+    {
+        void operator () () const noexcept
+        {
+            D_ASSERT(!"bad alloc");
+            errno = ENOMEM;
+        }
+    } accept_bad_alloc;
+}
 
 [[nodiscard]] constexpr size_t optimal_memory_growth(size_t value) noexcept
 {
     D_ASSERT(0_uz < value);
-    return size_mul_or_max<3u>(value);
+    return size_mul_or_max<3_uz>(value);
 }
 
-[[nodiscard]] constexpr size_t optimal_capacity_limit(size_t expected_capacity) noexcept
+[[nodiscard]] constexpr size_t optimal_memory_limit(size_t value) noexcept
 {
-    D_ASSERT(0_uz < expected_capacity);
-    return size_mul_or_max<9u>(expected_capacity);
+    constexpr auto mul = optimal_memory_growth(optimal_memory_growth(1_uz));
+    constexpr auto add = 1_uz;
+
+    constexpr auto overflow = size_maxi / mul;
+    static_assert(add <= (size_maxi - overflow * mul));
+
+    D_ASSERT(0_uz < value);
+    if (value <= overflow) [[likely]]
+    {
+        return value * mul + add;
+    }
+
+    return size_maxi;
 }
 
 template<class T>
@@ -59,6 +152,7 @@ template
 class small_vector
 {
     using self = small_vector;
+    using temp_vector_type = private_detail_small_vector::temp_vector<T, Buffer>;
 
 public:
     using value_type = T;
@@ -72,21 +166,27 @@ public:
     using span_type = span<value_type>;
     using const_span_type = span<const_value_type>;
     using buffer_type = Buffer;
-    using size_type = size_t;
+    using size_type = typename buffer_type::size_type;
     using view_type = const_span_type;
     using null_type = nullmem_t;
 
-    static constexpr size_type static_size{ N };
-    static constexpr auto min_capacity_limit = optimal_capacity_limit(static_size);
-
-    static_assert(0_uz < static_size);
-    static_assert(std::is_same_v<size_t, typename buffer_type::size_type>);
+    static_assert(std::is_same_v<size_t, size_type>);
+    static_assert(std::is_nothrow_default_constructible_v<buffer_type>);
+    static_assert(std::is_nothrow_constructible_v<buffer_type, size_type>);
+    static_assert(std::is_nothrow_move_constructible_v<buffer_type>);
+    static_assert(std::is_nothrow_move_assignable_v<buffer_type>);
     static_assert(!std::is_copy_constructible_v<buffer_type>);
     static_assert(!std::is_copy_assignable_v<buffer_type>);
 
+    static constexpr size_type static_size{ N };
+    static constexpr auto min_capacity_limit = optimal_memory_limit(static_size);
+
+    static_assert(0_uz < static_size);
+    static_assert(static_size < min_capacity_limit);
+
     constexpr small_vector() noexcept
         : data_{ static_ }
-        , size_{ 0_uz }
+        , size_{}
     {}
 
     constexpr small_vector(null_type) noexcept
@@ -94,32 +194,37 @@ public:
     {}
 
     constexpr small_vector(const self& right) noexcept
-        : self{ static_cast<const_span_type>(right) }
+        : self
+        {
+            static_cast<const_span_type>(right),
+            private_detail_small_vector::accept_bad_alloc
+        }
     {}
 
-    constexpr small_vector(const_span_type right) noexcept
+    template<class FnBadAllocException, std::enable_if_t<std::is_invocable_v<FnBadAllocException>, int> = 0>
+    constexpr small_vector(const_span_type right, FnBadAllocException accept_bad_alloc) noexcept
         : self{}
     {
         if (right.size() > static_size)
         {
             buffer_type temp{ right.size() };
-            D_ASSERT(temp);
             if (!temp) [[unlikely]]
             {
+                std::invoke(accept_bad_alloc);
                 return;
             }
 
-            data_ = (new (std::addressof(dynamic_)) buffer_type(std::move(temp)))->data();
+            _dynamic_construct_buffer(std::move(temp));
         }
 
-        _copy_initialization(right);
+        std::uninitialized_copy_n(right.data(), right.size(), data_);
+        size_ = right.size();
     }
 
-    constexpr explicit small_vector(buffer_type&& mem) noexcept
+    constexpr small_vector(memory_construct_t, buffer_type&& mem) noexcept
         : self{}
     {
-        D_ASSERT(static_size > mem.size());
-        data_ = (new (std::addressof(dynamic_)) buffer_type(std::move(mem)))->data();
+        _dynamic_construct_buffer(std::move(mem));
     }
 
     constexpr small_vector(self&& right) noexcept
@@ -132,10 +237,7 @@ public:
         }
         else
         {
-            data_ = (new (std::addressof(dynamic_)) buffer_type(std::move(right.dynamic_)))->data();
-            size_ = std::exchange(right.size_, {});
-            right.data_ = right.static_;
-            right._destroy_nullmem();
+            _dynamic_construct(std::move(right));
         }
     }
 
@@ -149,7 +251,10 @@ public:
     {
         if (this != std::addressof(right)) [[likely]]
         {
-            D_ASSERT_OR_UNUSED(try_assign(right));
+            if(!try_assign(right)) [[unlikely]]
+            {
+                std::invoke(private_detail_small_vector::accept_bad_alloc);
+            }
         }
 
         return *this;
@@ -161,14 +266,7 @@ public:
         {
             if (right.is_static())
             {
-                std::destroy_n(data_, std::exchange(size_, {}));
-
-                if (min_capacity_limit < capacity()) [[unlikely]]
-                {
-                    data_ = static_;
-                    std::destroy_at(std::addressof(dynamic_));
-                }
-
+                clear();
                 std::uninitialized_move_n(right.data_, right.size_, data_);
                 size_ = right.size_;
             }
@@ -176,10 +274,8 @@ public:
             {
                 if (is_static())
                 {
-                    std::destroy_n(data_, std::exchange(size_, std::exchange(right.size_, {})));
-                    data_ = (new (std::addressof(dynamic_)) buffer_type(std::move(right.dynamic_)))->data();
-                    right.data_ = right.static_;
-                    right._destroy_nullmem();
+                    _destroys();
+                    _dynamic_construct(std::move(right));
                 }
                 else
                 {
@@ -197,12 +293,9 @@ public:
     {
         return !!size_;
     }
-
     [[nodiscard]]
-    bool try_assign(const_span_type right) noexcept
+    bool try_assign(const const_span_type right) noexcept
     {
-        std::destroy_n(data_, std::exchange(size_, {}));
-
         if (right.size() > capacity())
         {
             buffer_type temp{ right.size() };
@@ -211,14 +304,18 @@ public:
                 return false;
             }
 
+            std::uninitialized_copy_n(right.data(), right.size(), temp.data());
+            _destroys();
             _set_buffer(std::move(temp));
         }
         else
         {
+            _clear();
             _collect(right.size());
+            std::uninitialized_copy_n(right.data(), right.size(), data_);
         }
 
-        _copy_initialization(right);
+        size_ = right.size();
 
         return true;
     }
@@ -235,87 +332,15 @@ public:
         return result;
     }
 
-    class temp_vector
-    {
-    public:
-        constexpr temp_vector(buffer_type&& data) noexcept
-            : data_{ std::move(data) }
-            , end_of_array_{ data_.data() }
-        {}
-
-        constexpr temp_vector(buffer_type&& data, size_type size) noexcept
-            : data_{ std::move(data) }
-            , end_of_array_{ data_.data() + size }
-        {
-            D_ASSERT(size <= data_.size());
-        }
-
-        constexpr temp_vector(size_t max_size) noexcept
-            : data_{ max_size }
-            , end_of_array_{ data_.data() }
-        {}
-
-        D_DISABLE_COPYMOVE_CA(temp_vector);
-
-        constexpr ~temp_vector() noexcept
-        {
-            D_ASSERT(end_of_array_ >= data_.data());
-            D_ASSERT(narrow<size_type>(end_of_array_ - data_.data()) <= data_.size());
-            std::destroy(data_.data(), end_of_array_);
-        }
-
-        constexpr void emplace_push_range(pointer first, pointer last) noexcept
-        {
-            end_of_array_ = std::uninitialized_move(first, last, end_of_array_);
-        }
-
-        template<class... Args>
-        constexpr pointer emplace_push(Args&&... args) noexcept
-        {
-            const auto result = end_of_array_;
-            new (result) value_type{ std::forward<Args>(args)... };
-            ++end_of_array_;
-            return result;
-        }
-
-        constexpr void uninitialized_move_to(pointer to) noexcept
-        {
-            std::uninitialized_move(data_.data(), end_of_array_, to);
-        }
-
-        [[nodiscard]] constexpr buffer_type& buffer_ref() noexcept
-        {
-            return data_;
-        }
-
-        constexpr void leave() noexcept
-        {
-            end_of_array_ = data_.data();
-        }
-
-        constexpr explicit operator bool() const noexcept
-        {
-            return !!data_;
-        }
-
-    private:
-        buffer_type data_;
-        pointer end_of_array_;
-    };
-
     [[nodiscard]]
     constexpr buffer_type release_buffer() noexcept
     {
         buffer_type temp{};
 
-        if (static_ != data_)
+        if (is_dynamic())
         {
-            std::destroy_n
-            (
-                std::exchange(data_, static_),
-                std::exchange(size_, {})
-            );
-
+            _clear();
+            _set_static();
             temp = std::move(dynamic_);
             _destroy_nullmem();
         }
@@ -331,12 +356,12 @@ public:
 
         const auto mut_postion = const_cast<pointer>(position);
         const auto size = size_;
-        const auto new_size = size + 1_uz;
+        const auto new_size = size + 1u;
         const auto old_capacity = capacity();
 
         if (size < old_capacity) [[likely]]
         {
-            using private_detail_back_move::back_move;
+            using private_detail_small_vector::back_move;
 
             const auto last = data_ + size;
 
@@ -365,7 +390,7 @@ public:
             return position;
         }
 
-        if (temp_vector temp{ optimal_memory_growth(old_capacity) }) [[likely]]
+        if (temp_vector_type temp{ optimal_memory_growth(old_capacity) }) [[likely]]
         {
             const auto first = data_;
             const auto last = first + size;
@@ -425,7 +450,10 @@ public:
             }
             else
             {
-                ok = _try_reallocate(size_);
+                if (dynamic_.size() > buffer_type::good_size(size_))
+                {
+                    ok = _try_reallocate(size_);
+                }
             }
         }
 
@@ -485,8 +513,8 @@ public:
 
     constexpr void clear() noexcept
     {
-        std::destroy_n(data_, std::exchange(size_, {}));
-        _collect(0_uz);
+        _clear();
+        _collect(0u);
     }
 
     [[nodiscard]]
@@ -560,7 +588,7 @@ public:
     constexpr const_reference cback() const noexcept
     {
         D_ASSERT(size_);
-        return *(cend() - 1_uz);
+        return *(cend() - 1);
     }
 
     [[nodiscard]]
@@ -632,37 +660,81 @@ public:
 
     constexpr ~small_vector() noexcept
     {
-        std::destroy_n(data_, size_);
+        _destroys();
 
         if (is_dynamic())
         {
-            std::destroy_at(std::addressof(dynamic_));
+            _destroy_dynamic();
         }
     }
 
 private:
-    void _copy_initialization(const_span_type source) noexcept
-    {
-        D_ASSERT(0_uz == size_);
-        D_ASSERT(capacity() >= source.size());
-        std::uninitialized_copy_n(source.data(), source.size(), data_);
-        size_ = source.size();
-    }
-
     constexpr void _set_buffer(buffer_type&& mem) noexcept
     {
-        D_ASSERT(static_size < mem.size());
-
         if (is_static())
         {
-            new (std::addressof(dynamic_)) buffer_type(std::move(mem));
+            _construct_buffer(std::move(mem));
         }
         else
         {
-            dynamic_ = std::move(mem);
+            _assignment_buffer(std::move(mem));
         }
 
+        _set_dynamic();
+    }
+
+    constexpr void _set_static() noexcept
+    {
+        D_ASSERT(is_dynamic());
+        D_ASSERT(data_ == dynamic_.data() || !dynamic_.data());
+        data_ = static_;
+    }
+
+    constexpr void _set_dynamic() noexcept
+    {
+        D_ASSERT(dynamic_);
+        D_ASSERT(data_ != dynamic_.data());
         data_ = dynamic_.data();
+    }
+
+    constexpr void _construct_buffer(buffer_type&& mem) noexcept
+    {
+        D_ASSERT(static_size < mem.size());
+        D_ASSERT(is_static());
+        new (std::addressof(dynamic_)) buffer_type(std::move(mem));
+    }
+
+    constexpr void _assignment_buffer(buffer_type&& mem) noexcept
+    {
+        D_ASSERT(static_size < mem.size());
+        D_ASSERT(is_dynamic());
+        dynamic_ = std::move(mem);
+    }
+
+    constexpr void _dynamic_construct_buffer(buffer_type&& mem) noexcept
+    {
+        _construct_buffer(std::move(mem));
+        _set_dynamic();
+    }
+
+    constexpr void _dynamic_construct(self&& right) noexcept
+    {
+        D_ASSERT(right.is_dynamic());
+        _dynamic_construct_buffer(std::move(right.dynamic_));
+        size_ = std::exchange(right.size_, {});
+        right._set_static();
+        right._destroy_nullmem();
+    }
+
+    constexpr void _destroys() const noexcept
+    {
+        std::destroy_n(data_, size_);
+    }
+
+    constexpr void _clear() noexcept
+    {
+        _destroys();
+        size_ = {};
     }
 
     [[nodiscard]]
@@ -682,11 +754,11 @@ private:
         D_ASSERT(is_dynamic());
         D_ASSERT(size() <= static_size);
 
-        data_ = static_;
+        _set_static();
         const auto size = std::exchange(size_, {});
-        temp_vector temp{ std::move(dynamic_), size };
+        const temp_vector_type temp{ std::move(dynamic_), size };
         _destroy_nullmem();
-        temp.uninitialized_move_to(static_);
+        std::uninitialized_move(temp.begin(), temp.end(), data_);
         size_ = size;
     }
 
@@ -702,19 +774,26 @@ private:
             const auto capacity_limit
                 = is_expected_small
                 ? min_capacity_limit
-                : optimal_capacity_limit(expected_capacity);
+                : optimal_memory_limit(expected_capacity);
 
             const auto current_capacity = dynamic_.size();
 
-            if (current_capacity > capacity_limit) [[unlikely]]
+            if (current_capacity >= capacity_limit) [[unlikely]]
             {
-                if (is_expected_small)
+                const auto buffer_size_limit = size_add_or_max<1_uz>(
+                    buffer_type::good_size(capacity_limit)
+                );
+
+                if (current_capacity >= buffer_size_limit)
                 {
-                    _switch_to_static();
-                }
-                else
-                {
-                    ok = _try_reallocate(expected_capacity);
+                    if (is_expected_small)
+                    {
+                        _switch_to_static();
+                    }
+                    else
+                    {
+                        ok = _try_reallocate(expected_capacity);
+                    }
                 }
             }
         }
@@ -732,14 +811,19 @@ private:
         _collect(size_);
     }
 
-    constexpr void _destroy_nullmem() noexcept
+    constexpr void _destroy_nullmem() const noexcept
     {
         D_ASSERT(!dynamic_);
 
         if constexpr (!std::is_base_of_v<buffer_void, buffer_type>)
         {
-            std::destroy_at(std::addressof(dynamic_));
+            _destroy_dynamic();
         }
+    }
+
+    constexpr void _destroy_dynamic() const noexcept
+    {
+        std::destroy_at(std::addressof(dynamic_));
     }
 
 private:

@@ -16,7 +16,7 @@
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Android</ApplicationType>
     <ApplicationTypeRevision>3.0</ApplicationTypeRevision>
-    <ProjectGuid>{41A1FAE5-2CD8-4894-A1B8-AF520FBF3239}</ProjectGuid>
+    <ProjectGuid>{9F16F012-F707-0D6F-BBB2-011294039CB5}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
@@ -32,25 +32,17 @@
     <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\build\core_static_library.props" />
-  <ItemGroup>
-    <ClInclude Include="..\..\..\file\file.h" />
-    <ClInclude Include="..\..\..\file\file_asset.h" />
-    <ClInclude Include="..\..\..\file\file_io.h" />
-    <ClInclude Include="..\..\..\file\file_mmap.h" />
-    <ClInclude Include="..\..\..\file\path.h" />
-    <ClInclude Include="private\private_file.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="file.cpp" />
-    <ClCompile Include="file_asset.cpp" />
-    <ClCompile Include="file_io.cpp" />
-    <ClCompile Include="file_mmap.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\common\asset_manager.vcxproj">
-      <Project>{58e8699e-edd0-4cff-87e6-7276601a1332}</Project>
-    </ProjectReference>
-  </ItemGroup>
+  <Import Project="..\..\build\static_library.props" />
+  <Import Project="$(ThirdPartyDir)\mimalloc\in.props" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <ClCompile>
+      <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <ClCompile>
+      <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

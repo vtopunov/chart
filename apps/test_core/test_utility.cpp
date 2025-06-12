@@ -1,7 +1,5 @@
 #include <core/utility.h>
 
-#include <cerrno>
-
 
 namespace
 {

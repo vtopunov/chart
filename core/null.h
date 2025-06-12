@@ -86,6 +86,8 @@ namespace private_detail_null
 
     namespace private_detail_null_type
     {
+        using namespace ordered_overload;
+
         template<class To, class From>
         using decl_cref_cast_t = decltype(static_cast<const To&>(std::declval<const From&>()));
 
@@ -126,30 +128,20 @@ namespace private_detail_null
         template<class T>
         using null_t = typename null_type_type<T>::type;
 
-        template<class NullT, class = void>
-        struct null_type_instance_selector
-        {};
+        template<class NullT>
+        constexpr std::enable_if_t<std::is_constructible_v<NullT, memory_construct_t>, NullT> create_null_type(_overload<NullT>, _order<_1>) noexcept
+        {
+            return NullT(memory_construct);
+        }
 
         template<class NullT>
-        struct null_type_instance_selector<NullT, std::enable_if_t<std::is_default_constructible_v<NullT> > >
+        constexpr std::enable_if_t<std::is_default_constructible_v<NullT>, NullT> create_null_type(_overload<NullT>, _order<_0>) noexcept
         {
-            [[nodiscard]] static constexpr NullT instance() noexcept
-            {
-                return {};
-            }
-        };
-
-        template<class NullT>
-        struct null_type_instance_selector<NullT, std::enable_if_t<std::is_constructible_v<NullT, nulltype_construct_t> > >
-        {
-            [[nodiscard]] static constexpr NullT instance() noexcept
-            {
-                return NullT(nulltype_construct);
-            }
-        };
+            return {};
+        }
 
         template<class T>
-        constexpr auto null_v = null_type_instance_selector<null_t<T>>::instance();
+        constexpr auto null_v = create_null_type(_overload_v<null_t<T>>, ordered_overload::_start);
     }
 
 

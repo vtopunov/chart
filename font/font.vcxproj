@@ -48,7 +48,7 @@
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
-  <Import Project="..\build\windows\static_library.props" />
+  <Import Project="..\build\windows\core_static_library.props" />
   <Import Project="$(ThirdPartyDir)\freetype2\out.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

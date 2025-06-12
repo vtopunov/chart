@@ -5,4 +5,4 @@
   <PropertyGroup>
     <TargetName>lib$(ProjectName)</TargetName>
   </PropertyGroup>
-</Project>  
+</Project>

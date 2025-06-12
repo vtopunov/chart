@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cassert>
+#include <cerrno>
 
 #include <core/warnings.h>
 
@@ -104,18 +105,22 @@ constexpr size_t small_size_mini{ 4_uz * sizeof(size_t) };
 constexpr size_t dynamic_extent{ size_maxi };
 
 
-struct nulltype_construct_t
-{};
+struct memory_construct_t
+{
+    static constexpr struct construct_tag_t {} tag;
 
-constexpr nulltype_construct_t nulltype_construct{};
+    constexpr explicit memory_construct_t(construct_tag_t) noexcept {}
+};
+
+constexpr memory_construct_t memory_construct{ memory_construct_t::tag };
 
 struct nullmem_t
 {
-    constexpr explicit nullmem_t(nulltype_construct_t) noexcept
+    constexpr explicit nullmem_t(memory_construct_t) noexcept
     {}
 };
 
-constexpr nullmem_t nullmem{ nulltype_construct };
+constexpr nullmem_t nullmem{ memory_construct };
 
 
 template<class T>

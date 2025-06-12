@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <span>
-#include <cerrno>
 
 
 namespace

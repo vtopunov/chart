@@ -2,15 +2,6 @@
 
 #include <ui/fwd.h>
 
-
-#ifdef D_OS_WINDOWS
-#define D_EGLAPI __declspec(dllimport)
-#define D_EGLAPIENTRY __stdcall
-#else
-#define D_EGLAPI
-#define D_EGLAPIENTRY
-#endif
-
 using egl_display_t = void*;
 using egl_surface_t = void*;
 using egl_context_t = void*;
@@ -18,7 +9,7 @@ using egl_boolean_t = unsigned int;
 
 extern "C" 
 {
-    D_EGLAPI egl_boolean_t D_EGLAPIENTRY eglSwapBuffers(egl_display_t, egl_surface_t);
+    egl_boolean_t eglSwapBuffers(egl_display_t, egl_surface_t);
 }
 
 namespace egl_ui

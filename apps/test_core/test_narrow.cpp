@@ -1,8 +1,5 @@
 #include <core/narrow.h>
 
-#include <cerrno>
-#include <cstdint> 
-
 
 void test_narrow() noexcept
 {

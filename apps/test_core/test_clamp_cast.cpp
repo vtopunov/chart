@@ -1,6 +1,5 @@
 #include <core/clamp_cast.h>
 
-#include <cerrno>
 #include <cinttypes>
 
 

@@ -235,7 +235,7 @@ namespace image
         using base_type::space_type;
 
         constexpr rgba_pixmap_result(byte_buffer&& mem, const space_type& space) noexcept
-            : base_type{ px::pixmap_construct, std::move(mem), space }
+            : base_type{ memory_construct, std::move(mem), space }
         {}
 
         constexpr rgba_pixmap_result(png_errno error_code) noexcept

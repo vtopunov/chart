@@ -27,6 +27,5 @@
     <ClInclude Include="libEGL\resource.h">
       <Filter>libEGL</Filter>
     </ClInclude>
-    <None Include="angle.gyp"/>
   </ItemGroup>
 </Project>

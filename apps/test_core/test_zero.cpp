@@ -1,7 +1,5 @@
 #include <core/zero.h>
 
-#include <cerrno>
-
 #include <string>
 #include <vector>
 

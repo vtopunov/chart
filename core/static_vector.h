@@ -14,11 +14,11 @@ namespace private_detail_static_vector
 
         D_DEFAULT_ONLYMOVE_CA(dummy_buffer);
 
-        constexpr explicit dummy_buffer(size_t) noexcept
+        constexpr explicit dummy_buffer(size_type) noexcept
         {}
 
         [[nodiscard]]
-        constexpr const T* data() const noexcept
+        constexpr T* data() const noexcept
         {
             return nullptr;
         }
@@ -29,12 +29,6 @@ namespace private_detail_static_vector
             return 0u;
         }
 
-        [[nodiscard]]
-        constexpr T* data() noexcept
-        {
-            return nullptr;
-        }
-
         constexpr explicit operator bool() const noexcept
         {
             return false;
@@ -42,6 +36,12 @@ namespace private_detail_static_vector
 
         constexpr void swap(dummy_buffer&) noexcept
         {}
+
+        [[nodiscard]]
+        static constexpr size_type good_size(size_type size) noexcept
+        {
+            return size;
+        }
     };
 }
 

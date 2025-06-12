@@ -1,7 +1,5 @@
 #include "core/view.h"
 
-#include <cerrno>
-
 
 namespace
 {

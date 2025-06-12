@@ -27,6 +27,5 @@
     <ClCompile Include="gpu_info_util\SystemInfo_win.cpp">
       <Filter>gpu_info_util</Filter>
     </ClCompile>
-    <None Include="angle.gyp"/>
   </ItemGroup>
 </Project>

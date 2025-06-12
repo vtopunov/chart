@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="global.props" />
-  <Import Project="cl_compile.props" />
-  <Import Project="link.props" />
-  <Import Project="subsystem_windows_link.props" />
-	
+  <Import Project="core_static_library.props" />
+
   <ItemDefinitionGroup>
     <Link>
       <StackReserveSize>8388608</StackReserveSize>
@@ -14,9 +11,9 @@
       <EnableDpiAwareness>true</EnableDpiAwareness>
     </Manifest>
   </ItemDefinitionGroup>
-  
+
   <ItemGroup>
-	<ProjectReference Include="$(RepoDir)\entry_point\entry_point.vcxproj">
+    <ProjectReference Include="$(RepoDir)\entry_point\entry_point.vcxproj">
       <Project>{d7f4dacc-5d6f-4349-9d71-12de6e29cf94}</Project>
     </ProjectReference>
   </ItemGroup>

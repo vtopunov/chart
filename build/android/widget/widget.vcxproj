@@ -32,7 +32,7 @@
     <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\build\static_library.props" />
+  <Import Project="..\build\core_static_library.props" />
   <ItemGroup>
     <ClInclude Include="$(RepoDir)\widget\button.h" />
     <ClInclude Include="$(RepoDir)\widget\label.h" />

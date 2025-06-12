@@ -12,7 +12,7 @@ namespace
 {
     void set_current_directory(const char* path) noexcept
     {
-        if (is_null_or_empty(path)) [[unlikely]]
+        if (is_null_or_zterm(path)) [[unlikely]]
         {
             e_debug("{}: set_current_directory: path is null or empty", __FILE__);
             return;

@@ -173,7 +173,7 @@ namespace private_detail_u_swap
 using private_detail_u_swap::u_swap;
 
 template<class T>
-[[nodiscard]] constexpr bool is_null_or_empty(const T* string) noexcept
+[[nodiscard]] constexpr bool is_null_or_zterm(const T* string) noexcept
 {
     return !string || !*string;
 }
@@ -186,6 +186,13 @@ template<size_t mul>
     return size <= overflow;
 }
 
+template<size_t add>
+[[nodiscard]] constexpr bool has_size_add(const size_t size) noexcept
+{
+    constexpr auto overflow = size_maxi - add;
+    return size <= overflow;
+}
+
 template<size_t mul>
 [[nodiscard]] constexpr size_t size_mul(const size_t size) noexcept
 {
@@ -194,15 +201,30 @@ template<size_t mul>
     return size * mul;
 }
 
+template<size_t add>
+[[nodiscard]] constexpr size_t size_add(const size_t size) noexcept
+{
+    D_ASSERT(has_size_add<add>(size));
+    return size + add;
+}
+
 template<size_t mul>
 [[nodiscard]] constexpr size_t size_mul_or_max(const size_t size) noexcept
 {
-    static_assert(mul > 0_uz);
-    constexpr auto overflow = size_maxi / mul;
-
-    if(size <= overflow) [[likely]]
+    if(has_size_mul<mul>(size)) [[likely]]
     {
         return size * mul;
+    }
+
+    return size_maxi;
+}
+
+template<size_t add>
+[[nodiscard]] constexpr size_t size_add_or_max(const size_t size) noexcept
+{
+    if(has_size_add<add>(size)) [[likely]]
+    {
+        return size + add;
     }
 
     return size_maxi;

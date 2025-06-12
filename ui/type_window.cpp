@@ -119,7 +119,7 @@ namespace ui
     {
         const auto p_impl = _p_impl();
         p_impl->lpszClassName = name.c_str();
-        D_ASSERT(!is_null_or_empty(p_impl->lpszClassName));
+        D_ASSERT(!is_null_or_zterm(p_impl->lpszClassName));
 
         if (!p_impl->hInstance)
         {

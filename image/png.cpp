@@ -163,7 +163,7 @@ namespace image
 
         return 
         { 
-            std::as_const(temp).as_span<rgba_pixview_result::pixel_type>().data(),
+            std::as_const(temp).as_span<const rgba_pixview_result::pixel_type>().data(),
             space
         };
     }

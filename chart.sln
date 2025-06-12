@@ -139,6 +139,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_shader", "apps\test_sh
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_shader_texture", "apps\vtest_shader_texture\vtest_shader_texture.vcxproj", "{F98FCFED-DAD8-420F-94D4-98033AAA3A73}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mimalloc", "3rdparty\mimalloc\mimalloc.vcxproj", "{ABB5EAE7-B3E6-432E-B636-333449892EA6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -641,6 +643,14 @@ Global
 		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Release|x64.Build.0 = Release|x64
 		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Release|x86.ActiveCfg = Release|x64
 		{F98FCFED-DAD8-420F-94D4-98033AAA3A73}.Release|x86.Build.0 = Release|x64
+		{ABB5EAE7-B3E6-432E-B636-333449892EA6}.Debug|x64.ActiveCfg = Debug|x64
+		{ABB5EAE7-B3E6-432E-B636-333449892EA6}.Debug|x64.Build.0 = Debug|x64
+		{ABB5EAE7-B3E6-432E-B636-333449892EA6}.Debug|x86.ActiveCfg = Debug|x64
+		{ABB5EAE7-B3E6-432E-B636-333449892EA6}.Debug|x86.Build.0 = Debug|x64
+		{ABB5EAE7-B3E6-432E-B636-333449892EA6}.Release|x64.ActiveCfg = Release|x64
+		{ABB5EAE7-B3E6-432E-B636-333449892EA6}.Release|x64.Build.0 = Release|x64
+		{ABB5EAE7-B3E6-432E-B636-333449892EA6}.Release|x86.ActiveCfg = Release|x64
+		{ABB5EAE7-B3E6-432E-B636-333449892EA6}.Release|x86.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -697,6 +707,7 @@ Global
 		{3925A46B-86CA-4560-ACF9-BCFB9F35D056} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{68B88186-530C-4FEB-9092-A89F31AB17DF} = {522D351D-0C5D-40A1-A856-3C94167BA347}
 		{F98FCFED-DAD8-420F-94D4-98033AAA3A73} = {522D351D-0C5D-40A1-A856-3C94167BA347}
+		{ABB5EAE7-B3E6-432E-B636-333449892EA6} = {84B9E53F-704C-4892-B718-EF1321217A22}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA32F6CD-3CF1-41D1-9B1C-B19E96B2EE6A}

@@ -182,6 +182,8 @@ namespace
         static_assert(std::is_same_v<decl_null_type_t<small_vector_type>, typename small_vector_type::null_type>);
         static_assert(std::is_same_v<decl_null_type_t<small_vector_type>, nullmem_t>);
 
+        using buffer_type = typename small_vector_type::buffer_type;
+
         using test_vector_type = std::vector<TestT>;
 
         small_vector_type small_v_;
@@ -294,6 +296,15 @@ namespace
         void test_is_static(bool is_static) const noexcept
         {
             D_ASSERT(small_v_.is_static() == is_static);
+
+            if(is_static)
+            {
+                D_ASSERT(static_size == small_v_.capacity());
+            }
+            else
+            {
+                D_ASSERT(static_size < small_v_.capacity());
+            }
         }
 
         static ptrdiff_t generate_unique() noexcept
@@ -375,16 +386,16 @@ namespace
 
             if (v_size > capacity)
             {
-                D_ASSERT(v.small_v_.capacity() == v_size);
+                D_ASSERT(v.small_v_.capacity() == buffer_type{ v_size }.size());
                 D_ASSERT(v.small_v_.data() != data);
             }
             else
             {
 
                 if (const auto test_capacity = std::max(static_size, v_size);
-                    capacity > optimal_capacity_limit(test_capacity))
+                    capacity > buffer_type::good_size(optimal_memory_limit(test_capacity)))
                 {
-                    D_ASSERT(small_v_.capacity() == test_capacity);
+                    D_ASSERT(small_v_.capacity() == buffer_type{ test_capacity }.size());
                     D_ASSERT(small_v_.data() != data);
                     test_is_static(v_size <= static_size);
                 }
@@ -522,7 +533,7 @@ namespace
             if (new_capacity > static_size && new_capacity > capacity)
             {
                 D_ASSERT(small_v_.data() != data);
-                D_ASSERT(small_v_.capacity() == new_capacity);
+                D_ASSERT(small_v_.capacity() == buffer_type{ new_capacity }.size());
             }
             else
             {
@@ -590,17 +601,13 @@ namespace
 
             test_is_static(!is_dynamic_size);
 
-            if (is_dynamic_capacity && capacity > size)
+            if (is_dynamic_capacity && capacity > buffer_type::good_size(size))
             {
                 D_ASSERT(small_v_.data() != data);
 
                 if (is_dynamic_size)
                 {
-                    D_ASSERT(small_v_.capacity() == size);
-                }
-                else
-                {
-                    D_ASSERT(small_v_.capacity() == static_size);
+                    D_ASSERT(small_v_.capacity() == buffer_type{ size }.size());
                 }
             }
             else
@@ -653,7 +660,7 @@ namespace
 
         void test_attach_buffer() noexcept
         {
-            buffer<T> buf{ 3u * small_v_.capacity() };
+            buffer_type buf{ 3u * small_v_.capacity() };
             D_ASSERT(buf);
 
             const auto new_data = buf.data();
@@ -672,6 +679,7 @@ namespace
         static constexpr size_t n_static{ 16_uz };
 
         using test_type = vector_test<T, TestT, n_static>;
+        using buffer_type = typename test_type::buffer_type;
 
         static void static_empty_init(test_type&) noexcept
         {};
@@ -722,7 +730,7 @@ namespace
 
         static void dynamic_big_init(test_type& test) noexcept
         {
-            test.fill(dynamic_big_size);
+            test.fill(buffer_type::good_size(dynamic_big_size) + 1_uz);
         };
 
         static void dynamic_medium_init(test_type& test) noexcept
@@ -776,7 +784,7 @@ namespace
             left.test_move_constuctor(right);
         };
 
-        static void test_сopy_assigment(test_type& left, test_type& right) noexcept
+        static void test_copy_assigment(test_type& left, test_type& right) noexcept
         {
             left.test_copy_assignment(std::as_const(right));
         };
@@ -812,7 +820,7 @@ namespace
                     {
                         constexpr op2_t assignment_op_tests[]
                         {
-                            test_сopy_assigment,
+                            test_copy_assigment,
                             test_move_assignment
                         };
 
@@ -971,9 +979,9 @@ namespace
 void test_small_vector() noexcept
 {
     static_assert(1_uz < optimal_memory_growth(1_uz));
-    static_assert(optimal_memory_growth(1_uz) < optimal_capacity_limit(1_uz));
+    static_assert(optimal_memory_growth(1_uz) < optimal_memory_limit(1_uz));
     static_assert(optimal_memory_growth(1_uz) < optimal_memory_growth(2_uz));
-    static_assert(optimal_memory_growth(2_uz) < optimal_capacity_limit(2_uz));
+    static_assert(optimal_memory_growth(2_uz) < optimal_memory_limit(2_uz));
 
     tests<ptrdiff_t, ptrdiff_t>::test_all();
     tests<test_int<0>, test_int<1>>::test_all();

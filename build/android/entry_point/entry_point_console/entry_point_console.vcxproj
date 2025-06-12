@@ -41,7 +41,7 @@
     <ProjectGuid>{89189AE4-8ECD-4BAE-B09F-CE8C6B9F0246}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <Import Project="..\..\build\static_library.props" />
+  <Import Project="..\..\build\core_static_library.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>

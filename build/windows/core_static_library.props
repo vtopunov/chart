@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="static_library.props" />
+  <Import Project="$(ThirdPartyDir)\mimalloc\out.props" />
+  
+  <ItemGroup>
+    <ProjectReference Include="$(ThirdPartyDir)\mimalloc\mimalloc.vcxproj">
+      <Project>{abb5eae7-b3e6-432e-b636-333449892ea6}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

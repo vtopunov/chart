@@ -194,7 +194,7 @@ namespace font
         if (lib) [[likely]]
         {
             constexpr FT_Long face_index{ 0 };
-            const auto ft_font_storage = font_storage.as_span<FT_Byte>();
+            const auto ft_font_storage = font_storage.as_span<const FT_Byte>();
             unique_resource<FT_Face, ft_face_deleter> ft_face{};
 
             if (const auto errc

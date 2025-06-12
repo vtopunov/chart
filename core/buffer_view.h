@@ -216,12 +216,6 @@ public:
     }
 
     [[nodiscard]]
-    constexpr const_opt_span<byte_type> as_bytes() const noexcept
-    {
-        return { _as_bytes_ptr(), size() };
-    }
-
-    [[nodiscard]]
     constexpr reference value(size_type index) const noexcept
     {
         return _as_bytes_ptr()[index];

@@ -39,7 +39,6 @@
 #define W_incorrect_logical_or                                         6285
 #define W_redundant_code__left_and_right_subexpressions_are_identical  6287
 #define W_potential_comparison_of_a_constant_with_another_constant     6326
-#define W_avoid_malloc_and_free                                        26408
 #define W_use_not_null                                                 26429                                                     
 #define W_unchecked_subscript_operator                                 26446 26482
 #define W_do_not_use_const_cast                                        26465 26492

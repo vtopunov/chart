@@ -3,5 +3,4 @@
   <Import Project="global.props" />
   <Import Project="cl_compile.props" />
   <Import Project="link.props" />
-  <Import Project="subsystem_windows_link.props" />
 </Project>

@@ -21,7 +21,7 @@
       <WarningLevel>Level4</WarningLevel>
       <BuildStlModules>false</BuildStlModules>
       <DisableSpecificWarnings>26437;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <AdditionalOptions>/Zc:char8_t %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:__cplusplus /Zc:char8_t %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   
