@@ -6,9 +6,9 @@ namespace
 {
     struct dummy_exports
     {
-        static constexpr noapply_t apply(no_overload) noexcept
+        static constexpr dummy apply(no_overload) noexcept
         {
-            return noapply;
+            return dummy_v;
         }
 
         template<class>
@@ -29,7 +29,7 @@ namespace
 
     using dummy_shader_libarary = shader_library<dummy_vertex_shader, dummy_fragment_shader>;
 
-    using dummy_exports_pack = types_pack<dummy_exports>;
+    using dummy_exports_pack = ttypes<dummy_exports>;
 
     using dummy_interface = typename dummy_exports::template interface<dummy_shader_libarary>;
 
@@ -97,7 +97,7 @@ int main() noexcept
     static_assert(!shader_common::is_not_uniform_v<shader_export::sampler>);
     static_assert(shader_common::is_not_uniform_v<shader_export::frame>);
 
-    static_assert(std::is_same_v<types_pack<>, shader_common::export_pack_variables_t<dummy_exports_pack> >);
+    static_assert(std::is_same_v<ttypes<>, shader_common::export_pack_variables_t<dummy_exports_pack> >);
     static_assert(0_uz == shader_common::count_of_for_v<shader_common::is_sampler, dummy_exports_pack>);
     static_assert(0_uz == shader_common::count_of_for_v<shader_common::has_indexed_location, dummy_exports_pack>);
     static_assert(0_uz == shader_common::count_of_for_v<shader_common::is_not_uniform, dummy_exports_pack>);
@@ -126,10 +126,10 @@ int main() noexcept
     static_assert(dummy_pu2 == dummy_uniforms_v[2]);
     static_assert(dummy_pu3 == dummy_uniforms_v[3]);
 
-    static_assert(0_uz == find_n(to_span(dummy_uniforms_v), dummy_pu0));
-    static_assert(1_uz == find_n(to_span(dummy_uniforms_v), dummy_pu1));
-    static_assert(2_uz == find_n(to_span(dummy_uniforms_v), dummy_pu2));
-    static_assert(3_uz == find_n(to_span(dummy_uniforms_v), dummy_pu3));
+    static_assert(0_uz == find_n(make_span(dummy_uniforms_v), dummy_pu0));
+    static_assert(1_uz == find_n(make_span(dummy_uniforms_v), dummy_pu1));
+    static_assert(2_uz == find_n(make_span(dummy_uniforms_v), dummy_pu2));
+    static_assert(3_uz == find_n(make_span(dummy_uniforms_v), dummy_pu3));
 
     static_assert(dummy_pu0 == &std::get<0>(dummy_uniform_tuple_v));
     static_assert(dummy_pu1 == &std::get<1>(dummy_uniform_tuple_v));

@@ -40,7 +40,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="..\build\core_static_library.props" />
   <ItemGroup>
-    <ClInclude Include="..\..\..\ui\app.h" />
+    <ClInclude Include="..\..\..\ui\debug.h" />
     <ClInclude Include="..\..\..\ui\event.h" />
     <ClInclude Include="..\..\..\ui\event_loop.h" />
     <ClInclude Include="..\..\..\ui\event_matching.h" />
@@ -54,11 +54,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\ui\manipulator.cpp" />
-    <ClCompile Include="app.cpp" />
     <ClCompile Include="event.cpp" />
     <ClCompile Include="event_loop.cpp" />
     <ClCompile Include="type_window.cpp" />
     <ClCompile Include="window.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\common\app.vcxproj">
+      <Project>{ec1bb6b3-d059-4eb7-8193-2f2fcf375a06}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

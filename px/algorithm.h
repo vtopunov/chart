@@ -213,8 +213,8 @@ namespace px
     constexpr antialiasing_line_result draw_antialiasing_line
     (
         const lumpixspan image,
-        const real_point2d p0,
-        const real_point2d p1,
+        const point2re p0,
+        const point2re p1,
         antialiasing_line_result joiner
     ) noexcept
     {
@@ -405,8 +405,8 @@ namespace px
     constexpr antialiasing_line_result draw_antialiasing_line
     (
         const lumpixspan image,
-        const real_point2d p0,
-        const real_point2d p1
+        const point2re p0,
+        const point2re p1
     ) noexcept
     {
         return draw_antialiasing_line(image, p0, p1, invalid_antialiasing_line_result);
@@ -428,7 +428,7 @@ namespace px
     constexpr void draw_polyline
     (
         const lumpixspan image,
-        const real_point2d_cspan values,
+        const point2re_cspan values,
         const Transformation value2px
     ) noexcept
     {
@@ -455,7 +455,7 @@ namespace px
         {
             constexpr pxvec line_width_range(real_t position, npx_t width, npx_t size) noexcept
             {
-                D_ASSERT(is_positive(width));
+                D_ASSERT_OR_ASSUME(is_positive(width));
 
                 const auto half_width = _0_5 * width;
                 const vec2 real_result{ position - half_width, position + half_width };
@@ -467,7 +467,7 @@ namespace px
                     static_cast<npx_t>(std::clamp(real_result._1, _0_0, max_position))
                 };
 
-                D_ASSERT(result._1 >= result._0);
+                D_ASSERT_OR_ASSUME(result._1 >= result._0);
                 return result;
             }
         }

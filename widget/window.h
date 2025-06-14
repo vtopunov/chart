@@ -2,7 +2,7 @@
 
 #include <gl_core/draw.h>
 
-#include <egl_ui/egl_ui_owner.h>
+#include <egli/egli_owner.h>
 
 #include <widget/fwd.h>
 
@@ -31,20 +31,20 @@ namespace widget
         friend class window;
 
     private:
-        pxsizes sizes_{ ui::no_sizes };
+        pxsizes sizes_{ no_sizes };
     };
     
-    using window_parameters = egl_ui_parameters;
+    using window_parameters = egli_parameters;
 
-    class window : public egl_ui_owner
+    class window : public egli_owner
     {
     public:
         constexpr window() noexcept = default;
 
         explicit window(const window_parameters& params) noexcept
-            : egl_ui_owner{ create_egl_ui(params) }
+            : egli_owner{ create_egli(params) }
         {
-            if (std::as_const<egl_ui_owner>(*this)) [[likely]]
+            if (std::as_const<egli_owner>(*this)) [[likely]]
             {
                 gl::clear_color(colors::dialog_color_f);
             }
@@ -52,9 +52,9 @@ namespace widget
 
         D_DISABLE_COPYMOVE_CA(window);
 
-        constexpr noapply_t apply(no_overload) const noexcept
+        constexpr dummy apply(no_overload) const noexcept
         {
-            return noapply;
+            return dummy_v;
         }
 
         [[nodiscard]]
@@ -64,7 +64,7 @@ namespace widget
             return content_cache_;
 #else
             window_content temp{};
-            temp.sizes_ = egl_ui_owner::viewport();
+            temp.sizes_ = egli_owner::viewport();
             return temp;
 #endif
     }
@@ -84,7 +84,7 @@ namespace widget
     };
 
 
-    struct window_builder : egl_ui::egl_ui_gatherer<window_builder, window_parameters>
+    struct window_builder : egli::egli_gatherer<window_builder, window_parameters>
     {
 #ifdef D_OS_WINDOWS
         window_builder() noexcept

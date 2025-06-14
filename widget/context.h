@@ -18,9 +18,9 @@ namespace widget
             };
 
             template<>
-            struct context_unview_type<buffer_view>
+            struct context_unview_type<widget::window>
             {
-                using type = temp_buffer;
+                using type = windowrefwrap_t;
             };
 
             template<>
@@ -36,7 +36,7 @@ namespace widget
             };
 
             template<class T>
-            using context_unview_t = typename context_unview_type<T>::type;
+            using context_unview_t = typename context_unview_type<std::remove_const_t<T>>::type;
         }
     }
 
@@ -47,7 +47,7 @@ namespace widget
     class context
     {
     public:
-        using tuple_type = D_OS_WINDOWS_OR(types_sizeof_optimization_t<std::tuple<Types...>>, std::tuple<Types...>);
+        using tuple_type = D_OS_WINDOWS_OR(ttypes_sizeof_optimization_t<std::tuple<Types...>>, std::tuple<Types...>);
 
         constexpr explicit context(const widget::window& window) noexcept
             : tuple_{}
@@ -100,7 +100,7 @@ namespace widget
         template <class Fn, size_t... Indices>
         constexpr decltype(auto) apply_impl(Fn& fn, std::index_sequence<Indices...>) noexcept
         {
-            return fn(unrefwrap(std::get<Indices>(tuple_))...);
+            return fn(unorefwrap(std::get<Indices>(tuple_))...);
         }
 
     private:
@@ -108,16 +108,16 @@ namespace widget
     };
 
     template<class... ETypes, class EventBase, class... Types>
-    [[nodiscard]] constexpr basic_widget_event<EventBase, ETypes...> make_widget_event(const EventBase& base, const context<Types...>& cc) noexcept
+    [[nodiscard]] constexpr basic_widget_event<EventBase, ETypes...> make_widget_event(const EventBase& base, context<Types...>& cc) noexcept
     {
-        return basic_widget_event<EventBase, ETypes...>{ base, unrefwrap(cc.template cget<context_unview_t<ETypes>>())... };
+        return basic_widget_event<EventBase, ETypes...>{ base, unorefwrap(cc.template get<context_unview_t<ETypes>>())... };
     }
 
     template<class Event, class CommonContext>
     struct widget_event_factory
     {
         const Event& ui_event;
-        const CommonContext& widget_common_context;
+        CommonContext& widget_common_context;
 
         constexpr operator const Event& () const noexcept
         {
@@ -145,13 +145,13 @@ namespace widget
                 struct siblings_loop_type;
 
                 template<class P>
-                struct siblings_loop_type<P, types_pack<>>
+                struct siblings_loop_type<P, ttypes<>>
                 {
-                    using type = add_template_t<types_pack, P>;
+                    using type = add_template_t<ttypes, P>;
                 };
 
                 template<class P, class... S>
-                struct siblings_loop_type<P, types_pack<S...>>
+                struct siblings_loop_type<P, ttypes<S...>>
                 {
                     using type = types_cat_t<P, typename siblings_loop_type<S, subtypes_t<S>>::type...>;
                 };
@@ -160,7 +160,7 @@ namespace widget
                 struct widgets
                 {
                     using widget_type = std::remove_cvref_t<Widget>;
-                    using type = types_unique_t<typename siblings_loop_type<
+                    using type = ttypes_unique_t<typename siblings_loop_type<
                         widget_type,
                         subtypes_t<widget_type>
                     >::type>;
@@ -173,22 +173,22 @@ namespace widget
             using private_detail_widgets::widgets_t;
 
             template<class SubtypesOrContext>
-            using contexts_t = detected_or_t<add_template_t<types_pack, SubtypesOrContext>, decl_contexts_t, SubtypesOrContext>;
+            using contexts_t = detected_or_t<add_template_t<ttypes, SubtypesOrContext>, decl_context_t, SubtypesOrContext>;
 
             template<class Widget>
             using ex_subtypes_t = subapply_result_t<Widget, ex_context_enumerator>;
 
             template<class Widgets>
-            using ex_subtypes_sol_t = types_sol_t<transform_types_t<ex_subtypes_t, Widgets> >;
+            using ex_subtypes_sol_t = types_sol_t<ttypes_transform_t<ex_subtypes_t, Widgets> >;
 
             template<class Contexts>
-            using contexts_sol_t = types_sol_t<transform_types_t<contexts_t, Contexts> >;
+            using contexts_sol_t = types_sol_t<ttypes_transform_t<contexts_t, Contexts> >;
 
             template<class Contexts>
-            using contexts_unview_t = transform_types_t<context_unview_t, Contexts>;
+            using contexts_unview_t = ttypes_transform_t<context_unview_t, Contexts>;
 
             template<class Contexts>
-            using contexts_unique_t = types_unique_push_back_pack_t<types_pack, types_pack<windowrefwrap_t>, Contexts>;
+            using contexts_unique_t = ttypes_unique_push_back_ttypes_t<ttypes, ttypes<windowrefwrap_t>, Contexts>;
 
             template<class Widgets>
             using ex_contexts_sol_t = contexts_sol_t<ex_subtypes_sol_t<Widgets>>;
@@ -200,7 +200,7 @@ namespace widget
             using ex_contexts_t = ex_contexts_unique_unview_sol_t<widgets_t<Widget> >;
 
             template<class Widget>
-            using context_t = repack_types_t<ex_contexts_t<Widget>, context>;
+            using context_t = ttypes_repack_t<ex_contexts_t<Widget>, context>;
         }
     }
 

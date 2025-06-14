@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="app.h" />
     <ClInclude Include="brush.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="event_processor_fwd.h" />
@@ -27,8 +26,8 @@
     <ClInclude Include="window_procedure.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="app.cpp" />
     <ClCompile Include="brush.cpp" />
+    <ClCompile Include="debug.cpp" />
     <ClCompile Include="event_loop.cpp" />
     <ClCompile Include="event_processor.cpp" />
     <ClCompile Include="event_processors_storage.cpp" />
@@ -48,12 +47,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />

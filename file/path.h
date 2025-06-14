@@ -64,7 +64,7 @@ namespace file
     namespace literals
     {
         [[nodiscard]]
-        constexpr path_string_literal_t operator"" _path(const path_char_t* string, size_t size) noexcept
+        constexpr path_string_literal_t operator ""_path(const path_char_t* string, size_t size) noexcept
         {
             return { string, size };
         }

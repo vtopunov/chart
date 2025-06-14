@@ -28,7 +28,7 @@ namespace font_cache
             }
 
             [[nodiscard]]
-            constexpr operator const_buffer_view() const noexcept
+            constexpr operator const_byte_buffer_view() const noexcept
             {
                 const auto p = std::addressof(mmap_variant);
 
@@ -87,7 +87,7 @@ namespace font_cache
 
             struct by_face
             {
-                font::face_descriptor_t face;
+                font::face_resource face;
 
                 [[nodiscard]]
                 constexpr bool operator () (const face_item& item) const noexcept
@@ -138,7 +138,7 @@ namespace font_cache
         }
     }
 
-    void cache_deref::unsafe_deref(face_resource notnull_face) noexcept
+    void cache_deref::unsafe_deref(cached_face_resource notnull_face) noexcept
     {
         D_ASSERT(notnull_face);
 
@@ -152,7 +152,7 @@ namespace font_cache
         mmap_item.deref(mmaps);
     }
 
-    face clone(const face_resource face_r) noexcept
+    cached_face clone(const cached_face_resource face_r) noexcept
     {
         if (face_r)
         {
@@ -166,14 +166,14 @@ namespace font_cache
             item.ref();
         }
 
-        return face
+        return cached_face
         {
             face_r.face,
             face_r.cache_index
         };
     }
 
-    face load_font(file::path_zstring_view name, const npx_t size) noexcept
+    cached_face load_font(file::path_zstring_view name, const npx_t size) noexcept
     {
         const file::path_string_view name_sv{ name.c_str() };
         auto& mmaps = global_mmaps_cache();
@@ -181,7 +181,7 @@ namespace font_cache
 
         auto cached_mmap = mmaps.select(mmap_item::by_name{ name_sv });
 
-        faces_pointer cached_face{ nullptr };
+        faces_pointer cached_face_index_pointer{ nullptr };
         if (cached_mmap)
         {
             const auto [identical, garbage] = faces.select_with_garbage
@@ -192,7 +192,7 @@ namespace font_cache
 
             if (identical)
             {
-                cached_face = identical;
+                cached_face_index_pointer = identical;
             }
             else if (garbage)
             {
@@ -201,13 +201,13 @@ namespace font_cache
                     return {};
                 }
                 garbage->size = size;
-                cached_face = garbage;
+                cached_face_index_pointer = garbage;
             }
         }
 
-        if (!cached_face)
+        if (!cached_face_index_pointer)
         {
-            const_buffer_view font_storage;
+            const_byte_buffer_view font_storage;
             asset_or_file_mmap file_mmap;
 
             if (cached_mmap)
@@ -248,8 +248,8 @@ namespace font_cache
                     }
                 }
 
-            cached_face = faces.try_emplace(std::move(face), mmaps.index(cached_mmap), size);
-            if (!cached_face) [[unlikely]]
+            cached_face_index_pointer = faces.try_emplace(std::move(face), mmaps.index(cached_mmap), size);
+            if (!cached_face_index_pointer) [[unlikely]]
             {
                 e_debug("load_font: out of memory");
                 return {};
@@ -257,15 +257,15 @@ namespace font_cache
         }
 
         cached_mmap->ref();
-        cached_face->ref();
-        return face
+        cached_face_index_pointer->ref();
+        return font_cache::cached_face
         {
-            cached_face->face,
-            faces.index(cached_face)
+            cached_face_index_pointer->face,
+            faces.index(cached_face_index_pointer)
         };
     }
 
-    face default_font() noexcept
+    cached_face default_font() noexcept
     {
         static const auto cached_font = load_font(default_font_name, default_font_size);
         return clone(cached_font);

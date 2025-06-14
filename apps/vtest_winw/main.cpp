@@ -1,5 +1,4 @@
-#include <debug/debug.h>
-
+#include <ui/debug.h>
 #include <ui/window.h>
 #include <ui/event_loop.h>
 
@@ -55,11 +54,10 @@ namespace
 }
 
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
     debug("create main window");
     ui::window_builder builder{};
-    builder.module(app);
 
     const auto mainwindow 
         = builder

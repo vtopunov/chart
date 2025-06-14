@@ -120,7 +120,7 @@ namespace ui
             }
 
         private:
-            size_t counter_{ 0_uz };
+            size_t counter_{ 0u };
         };
 
         recursive_lock lock_{};
@@ -133,13 +133,12 @@ namespace ui
 
             constexpr event_processor_resource operator () () noexcept
             {
-                const auto result = underlying_cast<event_processor_resource>(++current_);
-                D_ASSERT(nulleventprocessor != result);
-                return result;
+                return underlying_cast<event_processor_resource>(++current_);
             }
 
         private:
-            std::underlying_type_t<event_processor_resource> current_{ to_underlying(event_processor_resource::null) };
+            static constexpr auto nulldesctiptor_ = to_underlying(instance_for_null_v<event_processor_resource>);
+            std::underlying_type_t<event_processor_resource> current_{ nulldesctiptor_ };
         };
 
         desctiptor_generator desctiptor_generator_{};

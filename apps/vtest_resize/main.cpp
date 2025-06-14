@@ -3,7 +3,7 @@
 #include <shader/library.h>
 
 #ifdef TEST_EGL_UI
-#include <egl_ui/egl_ui_owner.h>
+#include <egli/egli_owner.h>
 #endif
 
 #ifdef TEST_WIDGET
@@ -67,9 +67,9 @@ namespace
             draw();
         }
 
-        constexpr noapply_t apply(no_overload) const noexcept
+        constexpr dummy apply(no_overload) const noexcept
         {
-            return noapply;
+            return dummy_v;
         }
 
 #endif
@@ -89,7 +89,7 @@ namespace
 #ifdef TEST_EGL_UI
     struct main_processor
     {
-        const egl_ui_owner egl{};
+        const egli_owner egl{};
         simple_widget widget{};
 
         bool initialize() noexcept
@@ -116,7 +116,7 @@ namespace
 #endif
 }
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
     constexpr size2d sizes0{ 300_npx, 300_npx };
 
@@ -125,8 +125,7 @@ int app_main(os::module_handle_t app) noexcept
     {
         .egl
         {
-            egl_ui_builder{}
-                .module(app)
+            egli_builder{}
                 .sizes(sizes0)
                 .command_show(ui::show_command::normal)
                 .build()
@@ -135,7 +134,7 @@ int app_main(os::module_handle_t app) noexcept
 
     if (!processor.initialize())
     {
-        e_debug("initialize error: window error: {}, egl error: {}\n", egl_ui::error_code());
+        e_debug("initialize error: window error: {}, egl error: {}\n", egli::error_code());
         return EXIT_FAILURE;
     }
 
@@ -145,7 +144,6 @@ int app_main(os::module_handle_t app) noexcept
 
 #ifdef TEST_WIDGET
     auto window = widget::window_builder{}
-        .module(app)
         .sizes(sizes0)
         .command_show(ui::show_command::normal)
         .build();

@@ -1,14 +1,14 @@
 #pragma once
 
-#include <px/fwd.h>
+#include <core/point2d.h>
 
 
 namespace chart
 {
     struct periodic_position
     {
-        px::real_point2d begin;
-        px::real_point2d repeat;
+        point2re begin;
+        point2re repeat;
     };
 
     struct periodic_value_position

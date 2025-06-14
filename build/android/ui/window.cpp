@@ -2,6 +2,7 @@
 
 #include <android/native_window.h>
 #include <entry_point/android_native_app_glue.h>
+#include <common/app.h>
 
 namespace ui
 {
@@ -13,17 +14,17 @@ namespace ui
             return narrow<npx_t>(clamp_to_unsigned(value));
         }
 
-        window_handle_t startup_request(module_handle_t module) noexcept
+        window_handle_t startup_request() noexcept
         {
-            if (module) [[likely]]
+            if (const auto app = common::app()) [[likely]]
             {
                 constexpr int max_timeout_ms = 3000;
 
-                while (!(module->destroyRequested))
+                while (!(app->destroyRequested))
                 {
-                    if (module->window)
+                    if (app->window)
                     {
-                        return module->window;
+                        return app->window;
                     }
 
                     int events{};
@@ -34,7 +35,7 @@ namespace ui
                     {
                         if (source && source->process)
                         {
-                            source->process(module, source);
+                            source->process(app, source);
                         }
                     }
                     else
@@ -67,12 +68,13 @@ namespace ui
 
     window create_window(const window_parameters& params) noexcept
     {
-        prepare(params);
+        window w{ .type{ params.type_builder.build() } };
 
-        return 
+        if(w.type) [[likely]]
         {
-            params.cached_type,
-            startup_request(params.cached_type.r().module)
-        };
+            w.handle = startup_request();
+        }
+
+        return w;
     }
 }

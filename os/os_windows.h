@@ -11,5 +11,4 @@
 
 #pragma warning(push, 0)
 #include <windows.h>
-#include <windowsx.h>
 #pragma warning(pop)

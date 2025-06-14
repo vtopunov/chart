@@ -54,9 +54,9 @@ namespace widget
             clear();
         }
 
-        constexpr noapply_t apply(no_overload) const noexcept
+        constexpr dummy apply(no_overload) const noexcept
         {
-            return noapply;
+            return dummy_v;
         }
 
     private:

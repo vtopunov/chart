@@ -3,7 +3,7 @@
 #include <px/algorithm.h>
 #include <px/pixmap.h>
 
-#include <egl_ui/egl_ui_owner.h>
+#include <egli/egli_owner.h>
 
 #include <shader/library.h>
 
@@ -15,7 +15,7 @@ namespace
     gl::texture2d lines_rendering(const lumpixspan image, const pxoffs d) noexcept
     {
         {
-            const auto dd = md_narrow<px::real_point2d>(d);
+            const auto dd = md_narrow<px::point2re>(d);
             for (const auto& line : vtest_line_figure::figure)
             {
                 draw_antialiasing_line
@@ -46,7 +46,7 @@ namespace
 
     public:
         [[nodiscard]]
-        bool initialize(os::module_handle_t app) noexcept
+        bool initialize() noexcept
         {
 #ifdef D_OS_WINDOWS
             {
@@ -56,14 +56,13 @@ namespace
                     return false;
                 }
 
-                egl_ = egl_ui_builder{}
-                    .module(app)
+                egl_ = egli_builder{}
                     .background(std::move(brush))
                     .build();
             }
 
 #else
-            egl_ = create_egl_ui(app);
+            egl_ = egli_builder{}.build();
 
 #endif
 
@@ -229,7 +228,7 @@ namespace
             > lib{};
         };
 
-        egl_ui_owner egl_{};
+        egli_owner egl_{};
         shaders_lib shaders_{};
         gl::texture2d texture_{};
         ui::pointer_event::point2d_type mouse_pos_{};
@@ -240,13 +239,13 @@ namespace
 }
 
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
     main_processor processor;
 
-    if (!processor.initialize(app))
+    if (!processor.initialize())
     {
-        e_debug("create window error: {}", egl_ui::error_code());
+        e_debug("create window error: {}", egli::error_code());
         return EXIT_FAILURE;
     }
 

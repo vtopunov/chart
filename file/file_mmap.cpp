@@ -7,21 +7,21 @@
 
 namespace file
 {
-    void file_mmap_resource_deleter::operator()(file_mmap_resource resource) const noexcept
+    void file_mmap_resource::deleter_type::operator()(file_mmap_resource resource) const noexcept
     {
         const auto& p = resource.private_detail_;
 
-        if ( p.data_ )
+        if (p.data_)
         {
             UnmapViewOfFile(p.data_);
         }
 
-        if ( p.fmmd_ )
+        if (p.fmmd_)
         {
             CloseHandle(p.fmmd_);
         }
 
-        constexpr file_resource_deleter close{};
+        constexpr file_resource::deleter_type close{};
         close(p.file_);
     }
 

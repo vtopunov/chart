@@ -48,6 +48,7 @@ namespace
                 .sizes{160_npx, 70_npx}
             },
             .text{ u8"Exit" },
+            .clicked{ ui::quit }
         };
 
         label lb
@@ -56,7 +57,7 @@ namespace
             .text{ u8"Привет мир!" },
         };
 
-        void operator () (widget::initialization_event<> e) noexcept
+        main_widget([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) noexcept
         {
             b0.clicked = [this] () noexcept
             {
@@ -71,11 +72,6 @@ namespace
             b2.clicked = [this] () noexcept
             {
                 clicked(this->b2);
-            };
-
-            exit_b.clicked = [app = e.app()] () noexcept
-            {
-                ui::quit(app);
             };
         }
 
@@ -92,7 +88,7 @@ namespace
     };
 }
 
-int app_main(os::module_handle_t app) noexcept
+int main(int argc, char *argv[]) noexcept
 {
-    return widget::run<main_widget>(app);
+    return widget::run<main_widget>(argc, argv);
 }

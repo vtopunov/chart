@@ -32,7 +32,7 @@
     <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\build\core_static_library.props" />
+  <Import Project="..\build\static_library.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
       <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>
@@ -47,6 +47,9 @@
   <ItemGroup>
     <ProjectReference Include="$(AndroidThirdPartyDir)\fmt\libfmt.vcxproj">
       <Project>{9c883076-1fce-4950-b4e8-d40a0fff03b5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\3rdparty\mimalloc\mimalloc.vcxproj">
+      <Project>{9f16f012-f707-0d6f-bbb2-011294039cb5}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

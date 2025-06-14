@@ -51,14 +51,14 @@ namespace
         return result;
     }();
 
-    using const_faces_span = span<const font_cache::face, names_npxs_size>;
-    using faces_span = span<font_cache::face, names_npxs_size>;
-    using face_d_array = std::array<font::face_descriptor_t, names_npxs_size>;
-    using const_face_d_span = span<const font::face_descriptor_t, names_npxs_size>;
+    using const_faces_span = span<const font_cache::cached_face, names_npxs_size>;
+    using faces_span = span<font_cache::cached_face, names_npxs_size>;
+    using face_d_array = std::array<font::face_resource, names_npxs_size>;
+    using const_face_d_span = span<const font::face_resource, names_npxs_size>;
 
     constexpr face_d_array make_face_d_array(const_faces_span fonts) noexcept
     {
-        std::array<font::face_descriptor_t, names_npxs_size> views{};
+        std::array<font::face_resource, names_npxs_size> views{};
         std::copy(fonts.begin(), fonts.end(), views.begin());
         return views;
     }
@@ -72,7 +72,7 @@ namespace
 
     void test_constexpr_instance() noexcept
     {
-        constexpr font_cache::face face{};
+        constexpr font_cache::cached_face face{};
         static_assert(!face);
         D_ASSERT(!errno);
     }
@@ -103,7 +103,7 @@ namespace
             const auto [name, npx] = names_npxs[i];
             auto& font = fonts[i];
 
-            const font::face_descriptor_t d_font{ font };
+            const font::face_resource d_font{ font };
 
             {
                 const auto identical_font = font_cache::load_font(name, npx);
@@ -197,7 +197,7 @@ namespace
 
 void test_font_cache() noexcept
 {
-    std::array<font_cache::face, names_npxs_size> fonts{};
+    std::array<font_cache::cached_face, names_npxs_size> fonts{};
     test_constexpr_instance();
     test_fill(fonts);
     test_load_form_cache(fonts);

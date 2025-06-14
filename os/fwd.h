@@ -35,11 +35,14 @@
 namespace os
 {
     using dword_t = unsigned long;
-    using word_t = uint16_t;
+    using word_t = unsigned short;
     using uint_t = unsigned int;
     using word_parameter_t = size_t;
     using long_parameter_t = ptrdiff_t;
     using long_result_t = ptrdiff_t;
+
+    static_assert(2u == sizeof(word_t));
+    static_assert(4u == sizeof(dword_t));
 }
 
 
@@ -50,7 +53,6 @@ struct tagMSG;
 
 #define D_OS_HANDLE_FWD(name, def) struct name##__; namespace os { using def = name##__*; } 
 D_OS_HANDLE_FWD(HBRUSH, brush_handle_t);
-D_OS_HANDLE_FWD(HINSTANCE, module_handle_t);
 D_OS_HANDLE_FWD(HWND, window_handle_t);
 #undef D_OS_HANDLE_FWD
 
@@ -84,7 +86,6 @@ extern "C" __declspec(dllimport) os::long_result_t D_OS_APICALL DefWindowProcW
 D_WARNING_POP
 
 #elif defined(D_OS_ANDROID)
-struct android_app;
 struct ANativeWindow;
 struct ASensorManager;
 struct ASensorEventQueue;
@@ -103,7 +104,6 @@ namespace os
     constexpr wndproc_t def_window_proc = DefWindowProcW;
 
 #elif defined(D_OS_ANDROID)
-    using module_handle_t = android_app*;
     using window_handle_t = ANativeWindow*;
     using sensor_manager_handle_t = ASensorManager*;
     using sensor_event_queue_handle_t = ASensorEventQueue*;
@@ -112,7 +112,6 @@ namespace os
 #endif
 
     D_ONLY_OS_WINDOWS(using const_brush_handle_t = add_const_pointer_t<brush_handle_t>);
-    using const_module_handle_t = add_const_pointer_t<module_handle_t>;
     using file_descriptor_t = D_OS_WINDOWS_OR(handle_t, int);
 
     namespace private_detail_osfwd_test
@@ -122,6 +121,5 @@ namespace os
 
         D_ONLY_OS_WINDOWS(static_assert(handle_type_is_valid_v<brush_handle_t>));
         static_assert(handle_type_is_valid_v<window_handle_t>);
-        static_assert(handle_type_is_valid_v<module_handle_t>);
     }
 }

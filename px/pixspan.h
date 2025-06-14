@@ -47,7 +47,7 @@ namespace px
     template<class OtherContainer, class Px, class Space>
     using is_compatible_pixcontainer = std::conjunction<
         std::negation<is_pixspan<OtherContainer>>,
-        is_std_data_convertible<OtherContainer, Px*>,
+        has_std_data_compatible<Px, OtherContainer>,
         is_pixcontainer_space_convertible<OtherContainer, Space>
     >;
 
@@ -117,11 +117,6 @@ namespace px
             , data_{ data }
         {}
 
-        constexpr pixspan(pointer data, pxsizes sizes) noexcept
-            : space_type{ sizes }
-            , data_{ data }
-        {}
-
         constexpr pixspan(pointer data, npx_t w, npx_t h) noexcept
             : space_type{ w, h }
             , data_{ data }
@@ -168,7 +163,7 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr const_pointer cdata() const noexcept
+        constexpr const const_pointer cdata() const noexcept
         {
             return data_;
         }
@@ -182,7 +177,7 @@ namespace px
         [[nodiscard]]
         constexpr line_type lines(npx_t index) const noexcept
         {
-            D_ASSERT(index < space_type::height());
+            D_ASSERT_OR_ASSUME(index < space_type::height());
             const auto line_size = space_type::line_size();
             return { data_ + index * line_size, line_size, space_type::width() };
         }
@@ -236,7 +231,7 @@ namespace px
             static_assert(is_compatible_for_store_v<C>);
             const auto image_space = space(image);
             constexpr auto align = decl_alignment_v<decltype(image_space)>;
-            const pixspan<const pixel_type, align> span_image{ std::data(image), image_space };
+            const pixspan<const pixel_type, align> span_image{ ::cdata(image), image_space };
             return px::write(*this, position, span_image);
         }
 

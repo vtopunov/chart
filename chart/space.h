@@ -1,7 +1,5 @@
 #pragma once
 
-#include <utility/px.h>
-
 #include <widget/ex_context.h>
 #include <widget/stretchable.h>
 
@@ -27,9 +25,9 @@ namespace chart
         pxrectangle geometry_cache
         {
             .position{},
-            .sizes{ px::no_sizes }
+            .sizes{ no_sizes }
         };
-        pxsizes sizes_cache{ px::no_sizes };
+        pxsizes sizes_cache{ no_sizes };
 
 
         template<class... Items>
@@ -41,7 +39,7 @@ namespace chart
         constexpr void clear_cache() noexcept
         {
             space_cache.clear();
-            sizes_cache = px::no_sizes;
+            sizes_cache = no_sizes;
         }
 
         template<class E>
@@ -125,10 +123,9 @@ namespace chart
         using private_detail_call_items::call_items;
 
         template<class Tuple, class Value>
-        [[nodiscard]] constexpr std::enable_if_t<
-            std::negation_v<std::is_const<Value>>, Value
-        > calculate_items_value(const Tuple& items, Value value) noexcept
+        [[nodiscard]] constexpr std::remove_cvref_t<Value> calculate_items_value(const Tuple& items, Value&& value0) noexcept
         {
+            std::remove_cvref_t<Value> value{ std::forward<Value>(value0) };
             call_items(items, value);
             return value;
         }
@@ -187,10 +184,10 @@ namespace chart
         {
             using resource_type = Resource;
             static constexpr bool has = Has;
-            using resource_pack = std::conditional_t<has, types_pack<resource_type>, types_pack<>>;
+            using resource_pack = std::conditional_t<has, ttypes<resource_type>, ttypes<>>;
 
-            template<class Tuple, std::enable_if_t<types_size_v<Tuple> && has, int> = 0>
-            [[nodiscard]] static constexpr auto get(const Tuple& e_context) noexcept 
+            template<class Tuple, std::enable_if_t<ttypes_size_v<Tuple>&& has, int> = 0>
+            [[nodiscard]] static constexpr auto get(const Tuple& e_context) noexcept
                 -> decltype(e_context.template get<resource_type>())
             {
                 return e_context.template get<resource_type>();
@@ -198,7 +195,7 @@ namespace chart
         };
 
         template<class... Args>
-        using items_redraw_event_t = repack_types_t<types_cat_t<typename Args::resource_pack...>, redraw_event>;
+        using items_redraw_event_t = ttypes_repack_t<types_cat_t<typename Args::resource_pack...>, redraw_event>;
 
 
         template<class... Items>
@@ -207,25 +204,20 @@ namespace chart
             using items_ref_tuple = std::tuple<Items&...>;
 
             template<class... Args>
-            using items_has_call = types_has_call<items_ref_tuple, Args...>;
+            using items_has_call = ttypes_has_call<items_ref_tuple, Args...>;
 
             template<class... Args>
             using items_has_cref_call = items_has_call<const Args&...>;
 
             using items_has_space = items_has_call<space_diagonal&>;
             using items_has_limpix_space = items_has_cref_call<lumpixspan, space_manipulation>;
-            using items_has_any_limpix = items_has_cref_call<any_overload, lumpixspan>;
-
-            using items_has_lumtex_space = std::conjunction<
-                items_has_space,
-                items_has_cref_call<any_overload, shader_embed::luminance_texture>
-            >;
+            using items_has_any_limpix = items_has_call<any_overload, temp_byte_buffer&, any_overload>;
 
             static constexpr bool items_has_background_value = items_has_cref_call<shader_embed::colored_rectangle>::value;
 
             static constexpr bool items_has_lumtex_value = std::disjunction_v<
-                items_has_cref_call<shader_embed::luminance_texture>,
-                items_has_lumtex_space
+                items_has_call<const shader_embed::luminance_texture&>,
+                items_has_call<const shader_embed::luminance_texture&, any_overload>
             >;
 
             static constexpr bool items_has_space_buffer_view_value = std::conjunction_v<
@@ -235,13 +227,13 @@ namespace chart
 
             static constexpr bool items_has_grid_value = std::conjunction_v<
                 items_has_space,
-                items_has_cref_call<any_overload, shader::grid>
+                items_has_call<any_overload, const shader::grid&>
             >;
 
-            using background_context = item_context<shader_embed::colored_rectangle, items_has_background_value >;
-            using luminance_figure_context = item_context<shader_embed::luminance_texture, items_has_lumtex_value >;
-            using grid_context = item_context<shader::grid, items_has_grid_value >;
-            using buffer_context = item_context<buffer_view, items_has_space_buffer_view_value >;
+            using background_context = item_context<const shader_embed::colored_rectangle, items_has_background_value >;
+            using luminance_figure_context = item_context<const shader_embed::luminance_texture, items_has_lumtex_value >;
+            using grid_context = item_context<const shader::grid, items_has_grid_value >;
+            using buffer_context = item_context<temp_byte_buffer, items_has_space_buffer_view_value >;
 
             using redraw_event_type = items_redraw_event_t<
                 background_context,
@@ -301,7 +293,7 @@ namespace chart
                         const space_manipulation sys
                         {
                             space_ref.space_cache.value(),
-                            make_pxspace_diagonal(space_ref.geometry_cache.sizes)
+                            make_space_diagonal(space_ref.geometry_cache.sizes)
                         };
 
                         [[maybe_unused]]
@@ -311,16 +303,18 @@ namespace chart
                         {
                             if (has_new_sizes)
                             {
-                                const auto image = px::create_lumpixspan(buffer_context::get(e), space_ref.geometry_cache.sizes);
+                                auto& temp_buffer = buffer_context::get(e);
 
                                 if constexpr (items_has_limpix_space::value)
                                 {
+                                    const auto image = temp_buffer.image(space_ref.geometry_cache.sizes);
+
                                     call_items(items, image, sys);
                                 }
 
                                 if constexpr (items_has_any_limpix::value)
                                 {
-                                    call_items_for_tuple(items, temp_items, image);
+                                    call_items_for_tuple(items, temp_items, temp_buffer, space_ref.geometry_cache);
                                 }
                             }
                         }
@@ -333,18 +327,18 @@ namespace chart
 
                             call_items_for_tuple(items, temp_items, shdr);
                         }
-
-                        if constexpr (luminance_figure_context::has)
-                        {
-                            const auto& shdr = luminance_figure_context::get(e);
-                            shdr.use();
-
-                            call_items(items, shdr, space_ref.geometry_cache);
-
-                            shdr.geometry(space_ref.geometry_cache);
-                            call_items(items, shdr);
-                        }
                     }
+                }
+
+                if constexpr (luminance_figure_context::has)
+                {
+                    const auto& shdr = luminance_figure_context::get(e);
+                    shdr.use();
+
+                    call_items(items, shdr, space_ref.geometry_cache);
+
+                    shdr.geometry(space_ref.geometry_cache);
+                    call_items(items, shdr);
                 }
             }
 

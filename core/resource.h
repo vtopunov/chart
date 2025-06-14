@@ -252,3 +252,41 @@ private:
     resource_type resource_;
     intrusive_node copies_;
 };
+
+
+template<class View>
+struct default_resource
+{
+    using base_resource_type = default_resource<View>;
+    using view_type = View;
+
+    struct null_type
+    {
+        template<class N>
+        constexpr operator N () const noexcept
+        {
+            static_assert(identical_derived_v<N, base_resource_type>);
+
+            if constexpr (std::is_pointer_v<view_type>)
+            {
+                return { nullptr };
+            }
+            else
+            {
+                return { null_v<view_type> };
+            }
+        }
+    };
+
+    view_type handle;
+
+    constexpr operator view_type() const noexcept
+    {
+        return handle;
+    }
+
+    constexpr explicit operator bool() const noexcept
+    {
+        return !!handle;
+    }
+};

@@ -18,7 +18,6 @@
     <ClInclude Include="size2d.h" />
     <ClInclude Include="point2d.h" />
     <ClInclude Include="utf.h" />
-    <ClInclude Include="view.h" />
     <ClInclude Include="warnings.h" />
     <ClInclude Include="zero.h" />
     <ClInclude Include="clamp_cast.h" />
@@ -34,5 +33,9 @@
     <ClInclude Include="fwd.h" />
     <ClInclude Include="transformation.h" />
     <ClInclude Include="margins.h" />
+    <ClInclude Include="view.h" />
+    <ClInclude Include="reference_wrapper.h" />
+    <ClInclude Include="memory.h" />
+    <ClInclude Include="math.h" />
   </ItemGroup>
 </Project>

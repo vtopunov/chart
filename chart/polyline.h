@@ -11,10 +11,10 @@
 
 namespace chart
 {
-    using real_vpoint2d = small_vector<real_point2d>;
+    using vpoint2re = small_vector<point2re>;
 
     [[nodiscard]]
-    constexpr space_diagonal space_diagonal_with(const space_diagonal& dia, const real_point2d& pt) noexcept
+    constexpr space_diagonal space_diagonal_with(const space_diagonal& dia, const point2re& pt) noexcept
     {
         return
         {
@@ -23,7 +23,7 @@ namespace chart
         };
     }
 
-    constexpr void update_polyline_space_diagonal(space_diagonal& diagonal, real_point2d_cspan line) noexcept
+    constexpr void update_polyline_space_diagonal(space_diagonal& diagonal, point2re_cspan line) noexcept
     {
         for (const auto& pt : line) [[likely]]
         {
@@ -79,6 +79,6 @@ namespace chart
         }
     };
 
-    using polyline = basic_polyline<real_vpoint2d>;
-    using polyspanline = basic_polyline<real_point2d_cspan>;
+    using polyline = basic_polyline<vpoint2re>;
+    using polyspanline = basic_polyline<point2re_cspan>;
 }

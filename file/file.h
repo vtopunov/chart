@@ -56,6 +56,11 @@ namespace file
             }
         };
 
+        struct deleter_type
+        {
+            void operator () (file_resource resource) const noexcept;
+        };
+
         file_resource_descriptor_t fd;
 
         [[nodiscard]]
@@ -127,12 +132,7 @@ namespace file
 
 #endif
 
-    struct file_resource_deleter
-    {
-        void operator () (file_resource file) const noexcept;
-    };
-
-    struct ro_file : unique_resource<ro_file_resource, file_resource_deleter>
+    struct ro_file : unique_resource<ro_file_resource>
     {
         using unique_resource::unique_resource;
 
@@ -143,7 +143,7 @@ namespace file
         }
     };
 
-    struct wo_file : unique_resource<wo_file_resource, file_resource_deleter>
+    struct wo_file : unique_resource<wo_file_resource>
     {
         using unique_resource::unique_resource;
 
@@ -154,7 +154,7 @@ namespace file
         }
     };
 
-    struct rw_file : unique_resource<rw_file_resource, file_resource_deleter>
+    struct rw_file : unique_resource<rw_file_resource>
     {
         using unique_resource::unique_resource;
 

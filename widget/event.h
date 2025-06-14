@@ -1,7 +1,7 @@
 #pragma once
 
 #include <core/types_algorithm.h>
-#include <core/functional.h>
+#include <core/reference_wrapper.h>
 
 #include <ui/event.h>
 #include <ui/manipulator.h>
@@ -11,72 +11,49 @@
 
 namespace widget
 {
-    namespace helpers
-    {
-        template<class T>
-        constexpr auto is_nothrow_copiable_v = std::conjunction_v<
-            std::is_nothrow_copy_constructible<T>,
-            std::is_nothrow_copy_assignable<T>
-        >;
-
-        template<class T>
-        using cref_wrap_if_need_t = std::conditional_t<
-            is_nothrow_copiable_v<T>, T,
-            std::reference_wrapper<std::add_const_t<T>>
-        >;
-
-        template<class T>
-        using cref_if_need_t = std::conditional_t<
-            is_nothrow_copiable_v<T>, std::add_const_t<T>,
-            std::add_lvalue_reference_t<std::add_const_t<T>>
-        >;
-    }
-
     template<class EventBase, class... Args>
     class widget_event_base : public EventBase
     {
-    private:
-        using cref_wrap_tuple_type = std::tuple<helpers::cref_wrap_if_need_t<Args>...>;
-
     public:
-        using contexts_t = types_pack<Args...>;
+        using stdtuple = std::tuple<ref_wrap_if_need_t<Args>...>;
+        using decay_ttypes = ttypes<std::decay_t<Args>...>;
 
-        constexpr explicit widget_event_base(const EventBase& e, const Args&... args) noexcept
+        template<class T>
+        static constexpr size_t index_element_v = ttypes_index_element_v<std::decay_t<T>, decay_ttypes>;
+
+        using context_ttypes = decay_ttypes;
+
+        template<class... ContextArgs>
+        constexpr explicit widget_event_base(const EventBase& e, ref_wrap_if_need_t<Args>... args) noexcept
             : EventBase{ e }
             , tuple_{ args... }
         {}
 
         template<class T>
-        [[nodiscard]] constexpr helpers::cref_if_need_t<T> get() const noexcept
+        [[nodiscard]] constexpr auto get() const noexcept -> 
+            decltype(unorefwrap(std::get<index_element_v<T>>(std::declval<stdtuple&>())))
         {
-            return std::get<helpers::cref_wrap_if_need_t<T>>(tuple_);
-        }
-
-    protected:
-        [[nodiscard]]
-        constexpr const cref_wrap_tuple_type& tuple() const noexcept
-        {
-            return tuple_;
+            return std::get<index_element_v<T>>(tuple_);
         }
 
     private:
-        cref_wrap_tuple_type tuple_{};
+        stdtuple tuple_;
     };
-    
-    static_assert(std::is_same_v<types_pack<dummy>, decl_contexts_t<widget_event_base<dummy, dummy>>>);
+
+    static_assert(std::is_same_v<ttypes<dummy>, decl_context_t<widget_event_base<dummy, dummy>>>);
 
     template<class EventBase>
     class widget_event_base<EventBase> : public EventBase
     {
     public:
-        using contexts_t = types_pack<>;
+        using context_ttypes = ttypes<>;
 
         constexpr explicit widget_event_base(const EventBase& e) noexcept
             : EventBase{ e }
         {}
     };
 
-    static_assert(std::is_same_v<types_pack<>, decl_contexts_t<widget_event_base<dummy>>>);
+    static_assert(std::is_same_v<ttypes<>, decl_context_t<widget_event_base<dummy>>>);
 
 
     template<class EventBase, class... Args>
@@ -94,13 +71,7 @@ namespace widget
         [[nodiscard]]
         constexpr const window& window() const noexcept
         {
-            return std::get<windowrefwrap_t>(this->tuple());
-        }
-
-        [[nodiscard]]
-        constexpr const_module_handle_t app() const noexcept
-        {
-            return window().module();
+            return this->template get<widget::window>();
         }
 
         [[nodiscard]]
@@ -124,17 +95,17 @@ namespace widget
         [[nodiscard]]
         constexpr const ui::gesture& gesture() const noexcept
         {
-            return std::get<ui::gesture>(this->tuple());
+            return this->template get<ui::gesture>();
         }
 
         [[nodiscard]]
-        constexpr px::real_point2d shift() const noexcept
+        constexpr point2re shift() const noexcept
         {
             return gesture().shift();
         }
 
         [[nodiscard]]
-        constexpr px::real_size2d scale() const noexcept
+        constexpr size2re scale() const noexcept
         {
             return gesture().scale();
         }
@@ -156,29 +127,29 @@ namespace widget
     using widget_event_gesture_window_interface = gesture_interface_widget_event<window_interface_window_event<Base>>;
 
     template<class EventBase, class... Args>
-    class basic_widget_event<EventBase, windowrefwrap_t, Args...> : public window_interface_window_event<widget_event_base<EventBase, windowrefwrap_t, Args...>>
+    class basic_widget_event<EventBase, const window, Args...> : public window_interface_window_event<widget_event_base<EventBase, const window, Args...>>
     {
     public:
-        using window_interface_window_event<widget_event_base<EventBase, windowrefwrap_t, Args...>>::window_interface_window_event;
+        using window_interface_window_event<widget_event_base<EventBase, const window, Args...>>::window_interface_window_event;
     };
 
     template<class EventBase, class... Args>
-    class basic_widget_event<EventBase, ui::gesture, Args...> : public gesture_interface_widget_event<widget_event_base<EventBase, ui::gesture, Args...> >
+    class basic_widget_event<EventBase, const ui::gesture, Args...> : public gesture_interface_widget_event<widget_event_base<EventBase, const ui::gesture, Args...> >
     {
     public:
         using gesture_interface_widget_event<
-            widget_event_base<EventBase, ui::gesture, Args...>
+            widget_event_base<EventBase, const ui::gesture, Args...>
         >::gesture_interface_widget_event;
     };
 
     template<class EventBase, class... Args>
-    class basic_widget_event<EventBase, windowrefwrap_t, ui::gesture, Args...> : public widget_event_gesture_window_interface<
-        widget_event_base<EventBase, windowrefwrap_t, ui::gesture, Args...>
+    class basic_widget_event<EventBase, const window, const ui::gesture, Args...> : public widget_event_gesture_window_interface<
+        widget_event_base<EventBase, const window, const ui::gesture, Args...>
     >
     {
     public:
         using widget_event_gesture_window_interface<
-            widget_event_base<EventBase, windowrefwrap_t, ui::gesture, Args...>
+            widget_event_base<EventBase, const window, const ui::gesture, Args...>
         >::widget_event_gesture_window_interface;
     };
 }

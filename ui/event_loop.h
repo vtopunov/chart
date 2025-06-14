@@ -2,9 +2,6 @@
 
 #include <chrono>
 
-#include <os/os_detection.h>
-
-#include <ui/app.h>
 #include <ui/event_processor.h>
 #include <ui/event_matching.h>
 
@@ -21,7 +18,6 @@ namespace ui
     constexpr milliseconds infinite{ 0xffffffffLL };
 
 #endif
-
 
     constexpr idle_event idle_event_v{};
 
@@ -98,7 +94,7 @@ namespace ui
                     }
                 }
 
-            } 
+            }
             while (event_style::quit != e_style(pmsg));
 
             return exit_status(pmsg);
@@ -114,7 +110,7 @@ namespace ui
             return create_event_processor
             (
                 window,
-                event_match{ std::ref(target) }
+                event_match{ oref(target) }
             );
         }
 
@@ -126,7 +122,7 @@ namespace ui
     {
         using event_source_binder_type = event_binder_type_t<std::remove_cvref_t<EventSource>>;
         auto& target_ref = as_reference(target);
-        const auto event_bind_holder = event_source_binder_type{source}.bind(target_ref);
+        const auto event_bind_holder = event_source_binder_type{ source }.bind(target_ref);
         private_detail_event_loop::sizes_initialization();
         return private_detail_event_loop::run_event_loop_impl(target_ref);
     }
@@ -134,14 +130,46 @@ namespace ui
 #elif defined(D_OS_ANDROID)
     namespace private_detail_event_loop
     {
+        struct _private_app;
+
+        template<class Processor>
+        struct processor_callbacks
+        {
+            static_assert(!std::is_reference_v<Processor>);
+
+            static void cmd_callback(void* processor, const ui::cmd_event& cmd_e) noexcept
+            {
+                do_cmd_event_match(processor_ref(processor), cmd_e);
+            }
+
+            static void input_event_callback(void* processor, const ui::event& input_e) noexcept
+            {
+                do_event_match(processor_ref(processor), input_e);
+            }
+
+            [[nodiscard]]
+            static constexpr Processor& processor_ref(void* processor) noexcept
+            {
+                return *static_cast<Processor*>(processor);
+            }
+        };
+
+        using cmd_callback_t = std::decay_t<decltype(processor_callbacks<nothing>::cmd_callback)>;
+        using input_event_callback_t = std::decay_t<decltype(processor_callbacks<nothing>::input_event_callback)>;
+
+        struct user_data
+        {
+            void* const processor;
+            const cmd_callback_t cmd_callback;
+            const input_event_callback_t input_event_callback;
+        };
+
         class message
         {
         public:
-            constexpr explicit message(window_handle_t window) noexcept
-                : window_{ window }
-            {
-                D_ASSERT(window_);
-            }
+            explicit message(const user_data& user_data) noexcept;
+
+            D_DISABLE_COPYMOVE_CA(message);
 
             [[nodiscard]]
             D_FORCEINLINE bool poll(ui::milliseconds timeout) noexcept
@@ -156,65 +184,40 @@ namespace ui
             }
 
             [[nodiscard]]
-            bool process(module_handle_t app) const noexcept;
+            bool process() const noexcept;
 
         private:
-            window_handle_t window_;
+            window_handle_t window_{ nullptr };
+            _private_app* app_{ nullptr };
             android_poll_source* source_{ nullptr };
             int events_{ 0 };
         };
 
         template<class Processor>
-        struct message_callbacks_instance
+        int run_event_loop(Processor& processor) noexcept
         {
-            static_assert(!std::is_reference_v<Processor>);
-
-            static void cmd_callback(module_handle_t app, int32_t cmd) noexcept
             {
-                const ui::cmd_event e{ to_cmd_event_style(cmd) };
-                do_cmd_event_match(processor_ref(app), e);
-            }
+                using processor_callbacks_type = processor_callbacks<std::remove_reference_t<Processor>>;
 
-            [[nodiscard]]
-            static int input_event_callback(module_handle_t app, AInputEvent* input_e) noexcept
-            {
-                if (const ui::event e { input_e })
+                const user_data user_data_instance
                 {
-                    do_event_match(processor_ref(app), e);
-                }
+                    as_mutable_pointer(std::addressof(processor)),
+                    processor_callbacks_type::cmd_callback,
+                    processor_callbacks_type::input_event_callback
+                };
 
-                return 0;
+                for (message msg{ user_data_instance }; !msg.poll(do_idle(processor)) || msg.process(); ) [[likely]]
+                {}
             }
-
-            static Processor& processor_ref(const_module_handle_t app) noexcept
-            {
-                return *static_cast<Processor*>(user_data(app));;
-            }
-        };
-
-        template<class Processor>
-        int run_event_loop(module_handle_t app, Processor& processor) noexcept
-        {
-            using message_callbacks_instance_t = message_callbacks_instance<std::remove_reference_t<Processor>>;
-            set_user_data(app, as_mutable_pointer(std::addressof(processor)));
-            set_cmd_callback(app, message_callbacks_instance_t::cmd_callback);
-            set_input_event_callback(app, message_callbacks_instance_t::input_event_callback);
-
-            for (message msg{ app_window_handle(app) }; !msg.poll(do_idle(processor)) || msg.process(app); )
-            {}
 
             return EXIT_SUCCESS;
         }
     }
 
-    template<class EventSource, class T>
-    int run_event_loop(const EventSource& source, T&& target) noexcept
+    template<class T>
+    int run_event_loop(const no_overload, T&& target) noexcept
     {
-        return private_detail_event_loop::run_event_loop
-        (
-            const_cast<module_handle_t>(static_cast<const_module_handle_t>(source)), 
-            as_reference(target)
-        );
+        return private_detail_event_loop::run_event_loop(as_reference(target));
     }
 
 #endif

@@ -100,7 +100,7 @@ ERRMSG(InvalidTextureRange, "Cannot be less than 0 or greater than maximum numbe
 ERRMSG(InvalidTextureTarget, "Invalid or unsupported texture target.");
 ERRMSG(InvalidTextureWrap, "Texture wrap mode not recognized.");
 ERRMSG(InvalidType, "Invalid type.");
-ERRMSG(InvalidTypePureInt, "Invalid type, should be sint");
+ERRMSG(InvalidTypePureInt, "Invalid type, should be integer");
 ERRMSG(InvalidUnpackAlignment, "Unpack alignment must be 1, 2, 4, or 8.");
 ERRMSG(InvalidVertexAttrSize, "Vertex attribute size must be 1, 2, 3, or 4.");
 ERRMSG(InvalidWidth, "Invalid width.");

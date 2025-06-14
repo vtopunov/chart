@@ -68,8 +68,8 @@ namespace px
     [[nodiscard]] constexpr auto md_is_safe_conversion_pxf(const R& v) noexcept ->
         decltype(md_is_safe_conversion_pxf(as_rectangle(v).position) && md_is_safe_conversion_pxf(as_rectangle(v).sizes))
     {
-        return is_safe_conversion_pxf(v.position)
-            && is_safe_conversion_pxf(v.sizes);
+        return md_is_safe_conversion_pxf(v.position)
+            && md_is_safe_conversion_pxf(v.sizes);
     }
 
 
@@ -93,7 +93,7 @@ namespace px
     {
         D_WARNING_PUSH;
         D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
-        D_ASSERT(is_safe_conversion_pxf(value));
+        D_ASSERT_OR_ASSUME(is_safe_conversion_pxf(value));
         return static_cast<npxf_t>(value);
         D_WARNING_POP;
     }
@@ -105,7 +105,7 @@ namespace px
     [[nodiscard]] constexpr Target narrow_px(const Source& v) noexcept
     {
         if constexpr (is_same_uncvref_v<
-            Target, detected_or_t<std::type_identity<Target>, decl_to_pxf_t, Source>
+            Target, detected_or_t<ttypes<Target>, decl_to_pxf_t, Source>
         >)
         {
             return to_pxf(v);

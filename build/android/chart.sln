@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.6.33829.357
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11205.157
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3rdparty", "3rdparty", "{2F9B7D91-3F38-485A-926B-62B2FC1EEF69}"
 EndProject
@@ -10,8 +10,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "native_app_glue", "3rdparty\native_app_glue\native_app_glue.vcxproj", "{F6E5BB2F-0C95-4914-AB39-0F2C69471055}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "debug", "debug\debug.vcxproj", "{6FCB1CA4-9A18-4ECF-A118-154EBF517D91}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "entry_point", "entry_point\entry_point\entry_point.vcxproj", "{8F08613C-D40B-4589-AA40-E4EC8F39632A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apps", "apps", "{41B10E82-3141-4F27-859E-E16086E7F3CB}"
 EndProject
@@ -33,8 +31,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "vtest_entry_point", "vtest_
 EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_entry_point", "apps\vtest_entry_point\vtest_entry_point.androidproj", "{12A97E45-1FA9-4E91-9A59-8F2BA7CBAD69}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "entry_point_console", "entry_point\entry_point_console\entry_point_console.vcxproj", "{89189AE4-8ECD-4BAE-B09F-CE8C6B9F0246}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test_core", "test_core", "{FF5D80F2-AA76-4594-9372-332069B0D3BB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_core_applib", "apps\test_core\test_core_applib.vcxproj", "{BF9FBC59-47DD-402B-A56E-8C7A864CEFF6}"
@@ -49,7 +45,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vtest_anima_applib", "apps\
 EndProject
 Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_anima", "apps\vtest_anima\vtest_anima.androidproj", "{BA44A99A-DFF2-4456-A5E3-73BDA173A4F4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "egl_ui", "egl_ui\egl_ui.vcxproj", "{C0808F2E-6821-487F-B347-6AE09A529F59}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "egli", "egli\egli.vcxproj", "{C0808F2E-6821-487F-B347-6AE09A529F59}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gl_core", "gl_core\gl_core.vcxproj", "{40EAF3CF-7215-4353-9A89-883B91118195}"
 EndProject
@@ -209,6 +205,16 @@ Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "vtest_shader_texture", "app
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mimalloc", "3rdparty\mimalloc\mimalloc.vcxproj", "{9F16F012-F707-0D6F-BBB2-011294039CB5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "app", "common\app.vcxproj", "{EC1BB6B3-D059-4EB7-8193-2F2FCF375A06}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "entry_point", "entry_point\entry_point.vcxproj", "{8F08613C-D40B-4589-AA40-E4EC8F39632A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test_widget", "test_widget", "{13F7A3FA-6245-4955-854E-F9DF4CB5FD0C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_widget_applib", "apps\test_widget\test_widget_applib.vcxproj", "{E3EAC748-BD2C-41BF-A461-450F28C2F142}"
+EndProject
+Project("{39E2626F-3545-4960-A6E8-258AD8476CE5}") = "test_widget", "apps\test_widget\test_widget.androidproj", "{0981586B-1CBD-460C-A690-3D1626EFC428}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -227,10 +233,6 @@ Global
 		{6FCB1CA4-9A18-4ECF-A118-154EBF517D91}.Debug|ARM.Build.0 = Debug|ARM
 		{6FCB1CA4-9A18-4ECF-A118-154EBF517D91}.Release|ARM.ActiveCfg = Release|ARM
 		{6FCB1CA4-9A18-4ECF-A118-154EBF517D91}.Release|ARM.Build.0 = Release|ARM
-		{8F08613C-D40B-4589-AA40-E4EC8F39632A}.Debug|ARM.ActiveCfg = Debug|ARM
-		{8F08613C-D40B-4589-AA40-E4EC8F39632A}.Debug|ARM.Build.0 = Debug|ARM
-		{8F08613C-D40B-4589-AA40-E4EC8F39632A}.Release|ARM.ActiveCfg = Release|ARM
-		{8F08613C-D40B-4589-AA40-E4EC8F39632A}.Release|ARM.Build.0 = Release|ARM
 		{113A303B-D17E-45B4-BB22-BCA7253D9F6F}.Debug|ARM.ActiveCfg = Debug|ARM
 		{113A303B-D17E-45B4-BB22-BCA7253D9F6F}.Debug|ARM.Build.0 = Debug|ARM
 		{113A303B-D17E-45B4-BB22-BCA7253D9F6F}.Debug|ARM.Deploy.0 = Debug|ARM
@@ -261,10 +263,6 @@ Global
 		{12A97E45-1FA9-4E91-9A59-8F2BA7CBAD69}.Release|ARM.ActiveCfg = Release|ARM
 		{12A97E45-1FA9-4E91-9A59-8F2BA7CBAD69}.Release|ARM.Build.0 = Release|ARM
 		{12A97E45-1FA9-4E91-9A59-8F2BA7CBAD69}.Release|ARM.Deploy.0 = Release|ARM
-		{89189AE4-8ECD-4BAE-B09F-CE8C6B9F0246}.Debug|ARM.ActiveCfg = Debug|ARM
-		{89189AE4-8ECD-4BAE-B09F-CE8C6B9F0246}.Debug|ARM.Build.0 = Debug|ARM
-		{89189AE4-8ECD-4BAE-B09F-CE8C6B9F0246}.Release|ARM.ActiveCfg = Release|ARM
-		{89189AE4-8ECD-4BAE-B09F-CE8C6B9F0246}.Release|ARM.Build.0 = Release|ARM
 		{BF9FBC59-47DD-402B-A56E-8C7A864CEFF6}.Debug|ARM.ActiveCfg = Debug|ARM
 		{BF9FBC59-47DD-402B-A56E-8C7A864CEFF6}.Debug|ARM.Build.0 = Debug|ARM
 		{BF9FBC59-47DD-402B-A56E-8C7A864CEFF6}.Release|ARM.ActiveCfg = Release|ARM
@@ -563,6 +561,24 @@ Global
 		{9F16F012-F707-0D6F-BBB2-011294039CB5}.Debug|ARM.Build.0 = Debug|ARM
 		{9F16F012-F707-0D6F-BBB2-011294039CB5}.Release|ARM.ActiveCfg = Release|ARM
 		{9F16F012-F707-0D6F-BBB2-011294039CB5}.Release|ARM.Build.0 = Release|ARM
+		{EC1BB6B3-D059-4EB7-8193-2F2FCF375A06}.Debug|ARM.ActiveCfg = Debug|ARM
+		{EC1BB6B3-D059-4EB7-8193-2F2FCF375A06}.Debug|ARM.Build.0 = Debug|ARM
+		{EC1BB6B3-D059-4EB7-8193-2F2FCF375A06}.Release|ARM.ActiveCfg = Release|ARM
+		{EC1BB6B3-D059-4EB7-8193-2F2FCF375A06}.Release|ARM.Build.0 = Release|ARM
+		{8F08613C-D40B-4589-AA40-E4EC8F39632A}.Debug|ARM.ActiveCfg = Debug|ARM
+		{8F08613C-D40B-4589-AA40-E4EC8F39632A}.Debug|ARM.Build.0 = Debug|ARM
+		{8F08613C-D40B-4589-AA40-E4EC8F39632A}.Release|ARM.ActiveCfg = Release|ARM
+		{8F08613C-D40B-4589-AA40-E4EC8F39632A}.Release|ARM.Build.0 = Release|ARM
+		{E3EAC748-BD2C-41BF-A461-450F28C2F142}.Debug|ARM.ActiveCfg = Debug|ARM
+		{E3EAC748-BD2C-41BF-A461-450F28C2F142}.Debug|ARM.Build.0 = Debug|ARM
+		{E3EAC748-BD2C-41BF-A461-450F28C2F142}.Release|ARM.ActiveCfg = Release|ARM
+		{E3EAC748-BD2C-41BF-A461-450F28C2F142}.Release|ARM.Build.0 = Release|ARM
+		{0981586B-1CBD-460C-A690-3D1626EFC428}.Debug|ARM.ActiveCfg = Debug|ARM
+		{0981586B-1CBD-460C-A690-3D1626EFC428}.Debug|ARM.Build.0 = Debug|ARM
+		{0981586B-1CBD-460C-A690-3D1626EFC428}.Debug|ARM.Deploy.0 = Debug|ARM
+		{0981586B-1CBD-460C-A690-3D1626EFC428}.Release|ARM.ActiveCfg = Release|ARM
+		{0981586B-1CBD-460C-A690-3D1626EFC428}.Release|ARM.Build.0 = Release|ARM
+		{0981586B-1CBD-460C-A690-3D1626EFC428}.Release|ARM.Deploy.0 = Release|ARM
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -652,6 +668,10 @@ Global
 		{A40F47AC-9A91-481F-BA77-9C6822D8859D} = {DB718E67-3733-49BE-9E8A-178A6E815BE8}
 		{B1165C1F-774B-454E-889A-D5B53B2B7CE8} = {DB718E67-3733-49BE-9E8A-178A6E815BE8}
 		{9F16F012-F707-0D6F-BBB2-011294039CB5} = {2F9B7D91-3F38-485A-926B-62B2FC1EEF69}
+		{EC1BB6B3-D059-4EB7-8193-2F2FCF375A06} = {E77BF39C-822D-4C66-9B33-06ACD8D9B370}
+		{13F7A3FA-6245-4955-854E-F9DF4CB5FD0C} = {41B10E82-3141-4F27-859E-E16086E7F3CB}
+		{E3EAC748-BD2C-41BF-A461-450F28C2F142} = {13F7A3FA-6245-4955-854E-F9DF4CB5FD0C}
+		{0981586B-1CBD-460C-A690-3D1626EFC428} = {13F7A3FA-6245-4955-854E-F9DF4CB5FD0C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6BA0FE90-5B90-4621-9483-7FC05A6F0C49}

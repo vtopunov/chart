@@ -187,7 +187,7 @@ namespace gl
     template<class Vertex>
     void set_vertex_pointer(attribute_location attribute, const Vertex* data) noexcept
     {
-        set_vertex_pointer(span<attribute_location>{std::addressof(attribute), 1_uz}, data);
+        set_vertex_pointer(span<attribute_location>{std::addressof(attribute), 1u}, data);
     }
 
     using buffer_descriptor_t = GLuint;
@@ -234,7 +234,7 @@ namespace gl
     }
 
     [[nodiscard]]
-    buffer create_buffer(const_buffer_view data) noexcept;
+    buffer create_buffer(const_byte_buffer_view data) noexcept;
 
     template<class Vertex>
     void set_vertex_buffer(span<const attribute_location> attributes, array_buffer_resource buffer) noexcept
@@ -308,13 +308,13 @@ namespace gl
 
         vertex_buffer_user bind(attribute_location attribute) const noexcept
         {
-            bind(span<attribute_location>{std::addressof(attribute), 1_uz});
+            bind(span<attribute_location>{std::addressof(attribute), 1u});
             return { size_ };
         }
 
     private:
         gl::buffer bo_{};
-        size_t size_{ 0_uz };
+        size_t size_{ 0u };
     };
 
     template <class T, size_t Extent>

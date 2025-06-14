@@ -2,8 +2,9 @@
 
 #include <unistd.h>
 
-#include <debug/debug.h>
+#include <common/app.h>
 #include <common/asset_manager.h>
+#include <debug/debug.h>
 
 #include "android_native_app_glue.h"
 
@@ -12,7 +13,7 @@ namespace
 {
     void set_current_directory(const char* path) noexcept
     {
-        if (is_null_or_zterm(path)) [[unlikely]]
+        if (is_null_or_zfront(path)) [[unlikely]]
         {
             e_debug("{}: set_current_directory: path is null or empty", __FILE__);
             return;
@@ -28,12 +29,17 @@ namespace
 
 extern "C" int android_main(android_app* app)
 {
-    D_ASSERT(app);
-    D_ASSERT(app->activity);
+    int exit_code = EXIT_SUCCESS;
+    {
+        const common::app_own app_own{ app };
+        {
+            const common::asset_manager_own asset_manager_own{ app->activity->assetManager };
 
-    const common::asset_manager_own asset_manager_own{ app->activity->assetManager };
+            set_current_directory(app->activity->internalDataPath);
 
-    set_current_directory(app->activity->internalDataPath);
+            exit_code = main();
+        }
+    }
 
-    return app_main(app);
+    return exit_code;
 }

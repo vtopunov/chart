@@ -6,8 +6,9 @@
 	<ClCompile>
       <AdditionalIncludeDirectories>$(AndroidRepoDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CLanguageStandard>c11</CLanguageStandard>
-	  <PreprocessorDefinitions>_LIBCPP_STD_VER=18;__USE_LARGEFILE64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+	  <PreprocessorDefinitions>_LIBCPP_STD_VER=26;__USE_LARGEFILE64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StrictAliasing>true</StrictAliasing>
+	  <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
   </ItemDefinitionGroup>
   

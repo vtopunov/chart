@@ -1,8 +1,13 @@
+#include <cmath>
+#include <string_view>
+
 #include <core/rational.h>
 
 
 void test_rational() noexcept
 {
+    const errno_holder hold_errno{};
+
     using namespace rational_literals;
 
     static_assert(std::is_trivial_v<rational<int>> && std::is_standard_layout_v<rational<int>>);
@@ -36,8 +41,8 @@ void test_rational() noexcept
     static_assert(2 * r1 == rational{ 3, 2 });
     static_assert(3 / rational{ 2, 5 } == rational{ 15, 2 });
     static_assert((1 / 2_r) == rational<ptrdiff_t>{ 1, 2 });
-    static_assert(rational<int>::from_int(5) == rational{ 5, 1 });
-    static_assert(rational<ptrdiff_t>::zero() == rational<ptrdiff_t>::from_int(0));
+    static_assert(rational<int>::instance(5) == rational{ 5, 1 });
+    static_assert(rational<ptrdiff_t>::zero() == rational<ptrdiff_t>::instance(0));
     static_assert(rational<ptrdiff_t>::zero() == rational<ptrdiff_t>{ 0, 1 });
     static_assert(rational<ptrdiff_t>::zero() == zero_v<rational<ptrdiff_t>>);
     static_assert(0.0_r == rational<ptrdiff_t>::zero());
@@ -67,5 +72,74 @@ void test_rational() noexcept
         static_assert(rmaxuir.den == uir.den);
     }
 
-    D_ASSERT(!errno);
+    {
+        constexpr int den = 8;
+        static_assert(std::has_single_bit(to_unsigned(den)));
+        constexpr int fraction_width = std::bit_width(to_unsigned(den)) - 1;
+        constexpr int mask = den - 1;
+        constexpr double denf{ den };
+        using fixed3bit_t = rational<int, den>;
+        
+        {
+            constexpr auto r_0_125 = fixed3bit_t::instance(std::string_view{ "0.125" });
+            constexpr auto r_37_125 = fixed3bit_t::instance(std::string_view{ "37.125" });
+            constexpr auto r_0_25 = fixed3bit_t::instance(std::string_view{ "0.25" });
+            constexpr auto r_37_25 = fixed3bit_t::instance(std::string_view{ "37.25" });
+            static_assert(1 == r_0_125.num);
+            static_assert(37 * den + 1 == r_37_125.num);
+            static_assert(2 == r_0_25.num);
+            static_assert(37 * den + 2 == r_37_25.num);
+        }
+
+        for (int i = -6; i < 6; ++i)
+        {
+            for (int j = 0; j < den; ++j)
+            {
+                const auto num = (i * den + j);
+                const auto discard_fraction = (num >> fraction_width);
+                const auto fraction = (num & mask);
+                const auto discard_fraction2 = num / den;
+                const auto fraction2 = num % den;
+                const auto ff = discard_fraction + fraction / denf;
+                const auto ff2 = discard_fraction2 + fraction2 / denf;
+                const auto ff3 = num / denf;
+                D_ASSERT(is_eqfp(ff, ff2));
+                D_ASSERT(is_eqfp(ff, ff3));
+
+
+                fixed3bit_t fx{ i * den + j };
+                rational<int> xz{ fx.num, fx.den };
+
+                static_assert(den == fx.den);
+                static_assert(fraction_width == decltype(fx)::denominator_traits_type::fraction_width);
+                D_ASSERT(fx.discard_fraction() == i);
+                D_ASSERT(fx.fraction() == j);
+                D_ASSERT(xz.discard_fraction() == discard_fraction2);
+                D_ASSERT(xz.fraction() == fraction2);
+
+                const fixed3bit_t ppfx{ fx.num + fx.den };
+                const fixed3bit_t mmfx{ fx.num - fx.den };
+                D_ASSERT((fx + 1) > fx);
+                D_ASSERT((fx - 1) < fx);
+                D_ASSERT((fx + 1) == ppfx);
+                D_ASSERT((fx - 1) == mmfx);
+                D_ASSERT((fx + 1) != fx);
+                D_ASSERT((fx - 1) != fx);
+
+                D_ASSERT((fx + 1) >= fx);
+                D_ASSERT((fx - 1) <= fx);
+                D_ASSERT((fx + 1) >= ppfx);
+                D_ASSERT((fx + 1) <= ppfx);
+                D_ASSERT((fx + 1) >= mmfx);
+                D_ASSERT((fx - 1) >= mmfx);
+                D_ASSERT((fx - 1) <= mmfx);
+                D_ASSERT((fx - 1) <= ppfx);
+
+                const auto ceil_ff = std::ceil(ff);
+                const auto floor_ff = std::floor(ff);
+                D_ASSERT(is_eqfp<double>(ceil_ff, ceil_to<int>(fx)));
+                D_ASSERT(is_eqfp<double>(floor_ff, floor_to<int>(fx)));
+            }
+        }
+    }
 }

@@ -57,7 +57,7 @@ namespace
         constexpr bool equal(const collector& right) const  noexcept
         {
             return right.max_id == max_id &&
-                !memcmp(all_copies, right.all_copies, (max_id + 1_uz) * sizeof(counter_t));
+                !memcmp(all_copies, right.all_copies, (max_id + 1u) * sizeof(counter_t));
         }
 
         ~collector() noexcept
@@ -247,8 +247,8 @@ namespace
             static_assert(std::is_same_v<decltype(c_small_v.back()), test_const_reference>);
             static_assert(std::is_same_v<decltype(mut_small_v.front()), test_reference>);
             static_assert(std::is_same_v<decltype(mut_small_v.back()), test_reference>);
-            static_assert(std::is_same_v<decltype(c_small_v[0_uz]), test_const_reference>);
-            static_assert(std::is_same_v<decltype(mut_small_v[0_uz]), test_reference>);
+            static_assert(std::is_same_v<decltype(c_small_v[0u]), test_const_reference>);
+            static_assert(std::is_same_v<decltype(mut_small_v[0u]), test_reference>);
 
             if (size)
             {
@@ -260,10 +260,10 @@ namespace
                 D_ASSERT(&c_small_v.back() == back_ptr);
                 D_ASSERT(&mut_small_v.front() == data);
                 D_ASSERT(&mut_small_v.back() == back_ptr);
-                D_ASSERT(&c_small_v[0_uz] == data);
-                D_ASSERT(&c_small_v[size - 1_uz] == back_ptr);
-                D_ASSERT(&mut_small_v[0_uz] == data);
-                D_ASSERT(&mut_small_v[size - 1_uz] == back_ptr);
+                D_ASSERT(&c_small_v[0u] == data);
+                D_ASSERT(&c_small_v[size - 1u] == back_ptr);
+                D_ASSERT(&mut_small_v[0u] == data);
+                D_ASSERT(&mut_small_v[size - 1u] == back_ptr);
             }
 
             D_ASSERT(size == test_.size());
@@ -346,7 +346,7 @@ namespace
 
                 D_ASSERT(small_value_ref == big_value_ref);
 
-                const auto size = size0 + i + 1_uz;
+                const auto size = size0 + i + 1u;
                 D_ASSERT(size == small_v_.size());
                 test_is_static(is_static0 && size <= static_size);
                 test_state();
@@ -465,7 +465,7 @@ namespace
                     test_.clear();
                     test_ = std::move(v.test_);
 
-                    D_ASSERT(v.small_v_.size() == 0_uz);
+                    D_ASSERT(v.small_v_.size() == 0u);
                     D_ASSERT(v.small_v_.data() != data);
                     D_ASSERT(v.small_v_.data() != v_data);
                     D_ASSERT(v.small_v_.is_static());
@@ -730,12 +730,12 @@ namespace
 
         static void dynamic_big_init(test_type& test) noexcept
         {
-            test.fill(buffer_type::good_size(dynamic_big_size) + 1_uz);
+            test.fill(buffer_type::good_size(dynamic_big_size) + 1u);
         };
 
         static void dynamic_medium_init(test_type& test) noexcept
         {
-            test.fill(capacity_growth1 + 1_uz);
+            test.fill(capacity_growth1 + 1u);
         };
 
         static test_type dynamic_medium() noexcept
@@ -865,7 +865,7 @@ namespace
         {
             const auto factory = static_full();
 
-            for (size_t i = 0_uz; i < n_static; ++i)
+            for (size_t i = 0u; i < n_static; ++i)
             {
                 factory.clone().test_switch_emplace(i);
             }
@@ -877,9 +877,9 @@ namespace
             {
                 const auto size = factory.small_v_.size();
 
-                for (size_t i = 0_uz; i < size; ++i)
+                for (size_t i = 0u; i < size; ++i)
                 {
-                    for (size_t count = 0_uz; count < (size - i); ++count)
+                    for (size_t count = 0u; count < (size - i); ++count)
                     {
                         factory.clone().test_shrink_erase(i, count);
                     }
@@ -908,9 +908,9 @@ namespace
 
             std::mt19937_64 random_engine{ std::random_device{}() };
 
-            for (size_t max_index = 0_uz; max_index < dynamic_big_size; ++max_index)
+            for (size_t max_index = 0u; max_index < dynamic_big_size; ++max_index)
             {
-                const auto position = std::uniform_int_distribution<size_t>{ 0_uz, max_index }(random_engine);
+                const auto position = std::uniform_int_distribution<size_t>{ 0u, max_index }(random_engine);
                 test.test_emplace(position);
             }
         }
@@ -922,15 +922,15 @@ namespace
             test_type test;
             dynamic_big_init(test);
 
-            std::random_device rd{};
-            std::mt19937_64 count_random_engine{ rd() };
-            std::mt19937_64 position_random_engine{ rd() };
-            distribution_t count_distribution{ 1_uz, 3_uz };
+            std::random_device entropy{};
+            std::mt19937_64 count_random_engine{ entropy() };
+            std::mt19937_64 position_random_engine{entropy() };
+            distribution_t count_distribution{ 1u, 3u };
 
             while (const auto size = test.small_v_.size())
             {
                 const auto count = std::min(count_distribution(count_random_engine), size);
-                const auto position = distribution_t{ 0_uz, size - count }(position_random_engine);
+                const auto position = distribution_t{ 0u, size - count }(position_random_engine);
                 test.test_erase(position, count);
             }
         }

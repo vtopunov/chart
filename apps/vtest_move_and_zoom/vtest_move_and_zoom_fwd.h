@@ -8,4 +8,4 @@
 
 #include <shader/library.h>
 
-#include <egl_ui/egl_ui_owner.h>
+#include <egli/egli_owner.h>

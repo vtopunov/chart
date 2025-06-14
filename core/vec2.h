@@ -2,7 +2,6 @@
 
 #include <algorithm>
 
-#include <core/narrow.h>
 #include <core/round.h>
 
 
@@ -533,7 +532,7 @@ template<class T, class Near>
 [[nodiscard]] constexpr std::enable_if_t<
     std::conjunction_v<std::is_arithmetic<T>, std::is_arithmetic<Near>>,
     Near
-> md_round_to_near(T v, Near v_near) noexcept
+> md_round_to_near(const T& v, const Near& v_near) noexcept
 {
     return round_to_near(v, v_near);
 }

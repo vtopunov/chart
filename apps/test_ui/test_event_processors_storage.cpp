@@ -58,7 +58,7 @@ namespace
         constexpr bool equal(const collector& right) const  noexcept
         {
             return right.max_id == max_id &&
-                !memcmp(all_copies, right.all_copies, (max_id + 1_uz) * sizeof(counter_t));
+                !memcmp(all_copies, right.all_copies, (max_id + 1u) * sizeof(counter_t));
         }
 
         ~collector() noexcept

@@ -9,9 +9,9 @@ namespace font_cache
     constexpr auto default_font_name = _PATH("OpenSans-Regular.ttf");
     constexpr auto default_font_size = 15_npx;
 
-    struct face_resource
+    struct cached_face_resource
     {
-        using view_type = ::font::face_descriptor_t;
+        using view_type = ::font::face_resource;
 
         view_type face;
         size_t cache_index;
@@ -19,12 +19,12 @@ namespace font_cache
         struct null_type
         {
             [[nodiscard]]
-            constexpr operator face_resource () const noexcept
+            constexpr operator cached_face_resource () const noexcept
             {
                 return
                 {
                     .face{ nullptr },
-                    .cache_index{ 0_uz }
+                    .cache_index{ 0u }
                 };
             }
         };
@@ -40,14 +40,14 @@ namespace font_cache
         }
     };
 
-    static_assert(std::is_same_v<decl_null_type_t<face_resource>, face_resource::null_type>);
-    static_assert(std::is_same_v<decl_view_type_t<face_resource>, face_resource::view_type>);
+    static_assert(std::is_same_v<decl_null_type_t<cached_face_resource>, cached_face_resource::null_type>);
+    static_assert(std::is_same_v<decl_view_type_t<cached_face_resource>, cached_face_resource::view_type>);
 
     struct cache_deref
     {
-        static void unsafe_deref(face_resource notnull_face) noexcept;
+        static void unsafe_deref(cached_face_resource notnull_face) noexcept;
 
-        constexpr void operator () (face_resource face) const noexcept
+        constexpr void operator () (cached_face_resource face) const noexcept
         {
             if(face)
             {
@@ -56,15 +56,14 @@ namespace font_cache
         }
     };
 
-    using face = unique_resource<face_resource, cache_deref>;
-
-
-    [[nodiscard]]
-    face clone(face_resource r) noexcept;
+    using cached_face = unique_resource<cached_face_resource, cache_deref>;
 
     [[nodiscard]]
-    face load_font(file::path_zstring_view name, npx_t size) noexcept;
+    cached_face clone(cached_face_resource r) noexcept;
 
     [[nodiscard]]
-    face default_font() noexcept;
+    cached_face load_font(file::path_zstring_view name, npx_t size) noexcept;
+
+    [[nodiscard]]
+    cached_face default_font() noexcept;
 }

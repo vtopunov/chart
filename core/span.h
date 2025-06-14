@@ -4,7 +4,6 @@
 #include <array>
 
 #include <core/utility.h>
-#include <core/narrow.h>
 
 
 template <class T>
@@ -57,41 +56,47 @@ namespace private_detail_span
 using private_detail_span::private_detail_extent_constant::extent_constant_for;
 using private_detail_span::private_detail_extent_constant::extent_v;
 
+template<size_t Extent, size_t TestExtent>
+using is_compatible_extent = std::negation< is_less_size<TestExtent, Extent> >;
+
 namespace private_detail_span
 {
-    namespace private_detail_extent_compatible
+    namespace private_detail_has_extent_compatible
     {
-        template<class C, size_t Extent>
-        struct extent_compatible_impl
+        template<class Container, size_t Extent>
+        struct has_extent_compatible_impl
         {
-            using type = std::bool_constant<Extent == extent_v<C>>;
+            using type = is_less_equal_size<Extent, extent_v<Container> >;
         };
 
-        template<class C>
-        struct extent_compatible_impl<C, dynamic_extent>
+        template<class Container>
+        struct has_extent_compatible_impl<Container, dynamic_extent>
         {
             using type = std::true_type;
         };
 
-        template<class C, size_t Extent>
-        using extent_compatible = typename extent_compatible_impl<C, Extent>::type;
+        template<size_t Extent, class Container>
+        using has_extent_compatible = typename has_extent_compatible_impl<Container, Extent>::type;
     }
 }
 
-template <class T, size_t Extent, class C>
+using private_detail_span::private_detail_has_extent_compatible::has_extent_compatible;
+
+template <class Target, size_t Extent, class Container>
 constexpr bool is_compatible2span_v = std::conjunction_v
 <
-    std::negation<is_span<C>>,
-    has_std_size<C>,
-    is_std_data_convertible<C, T*>,
-    private_detail_span::private_detail_extent_compatible::extent_compatible<C, Extent>
+    std::negation<is_span<Container>>,
+    has_std_size<Container>,
+    has_std_data_compatible<Target, Container>,
+    has_extent_compatible<Extent, Container>
 >;
 
-template <class T0, size_t E0, class T1, size_t E1>
+template <class T, size_t E, class OtherT, size_t OtherE>
 constexpr bool is_compatible_span2span_v = std::conjunction_v
 <
-    std::is_convertible<T1*, T0*>,
-    std::bool_constant<E0 == dynamic_extent || E0 == E1>
+    std::disjunction<std::negation<is_same_is_const<T, OtherT>>, is_nsame_size<E, OtherE> >,
+    is_const_convertible<OtherT, T>,
+    std::disjunction<is_same_size<E, dynamic_extent>, is_less_equal_size<E, OtherE> >
 >;
 
 
@@ -104,11 +109,9 @@ struct span_data_impl
 
     D_DEFAULT_ALL_CAEQ(span_data_impl);
 
-    constexpr span_data_impl(pointer data, [[maybe_unused]] size_t size) noexcept
+    constexpr span_data_impl(pointer data, size_t) noexcept
         : data_{ data }
-    {
-        D_ASSERT(size_ == size);
-    }
+    {}
 };
 
 template <class T>
@@ -136,9 +139,9 @@ class span : private span_data_impl<T, Extent>
 public:
     using value_type = T;
     using const_value_type = const value_type;
-    using pointer = T*;
+    using pointer = value_type*;
     using const_pointer = const_value_type*;
-    using reference = T&;
+    using reference = value_type&;
     using const_reference = const_value_type&;
     using iterator = pointer;
     using const_iterator = const_pointer;
@@ -146,13 +149,17 @@ public:
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using size_type = size_t;
     using difference_type = ptrdiff_t;
-    using view_type = span<const_value_type, Extent>;
+
+    using const_span_type = span<const_value_type, Extent>;
+    using dynamic_extent_span_type = span<value_type, dynamic_extent>;
+
+    using view_type = const_span_type;
     using null_type = nullmem_t;
 
     static constexpr size_type extent = Extent;
 
     template<class C>
-    static constexpr bool is_compatible_v = is_compatible2span_v<T, Extent, C>;
+    static constexpr bool is_compatible_v = is_compatible2span_v<T, Extent, std::remove_reference_t<C>>;
 
     template<class OtherT, size_t OtherE>
     static constexpr bool is_compatible_span_v = is_compatible_span2span_v<T, Extent, OtherT, OtherE>;
@@ -169,11 +176,17 @@ public:
 
     template<class OtherT, size_t OtherE, std::enable_if_t<is_compatible_span_v<OtherT, OtherE>, int> = 0>
     constexpr span(span<OtherT, OtherE> span) noexcept
-        : base_type{ static_cast<pointer>(span.data()), span.size() }
+        : base_type{ span.data(), span.size() }
     {}
 
-    template<class C, std::enable_if_t<is_compatible_v<std::remove_reference_t<C>>, int> = 0>
+    template<class C, std::enable_if_t<is_compatible_v<C>, int> = 0>
     constexpr span(C&& c) noexcept
+        : base_type{ std::data(c), narrow<size_type>(std::size(c)) }
+    {}
+
+
+    template<class C, std::enable_if_t<is_compatible_v<const C>, int> = 0>
+    constexpr span(const C& c) noexcept
         : base_type{ std::data(c), narrow<size_type>(std::size(c)) }
     {}
 
@@ -183,7 +196,14 @@ public:
     }
 
     template<class C>
-    constexpr std::enable_if_t<is_compatible_v<C>, span&> operator = (C& container) noexcept
+    constexpr std::enable_if_t<is_compatible_v<C>, span&> operator = (C&& container) noexcept
+    {
+        _base_ref() = base_type{ std::data(container), narrow<size_type>(std::size(container)) };
+        return *this;
+    }
+
+    template<class C>
+    constexpr std::enable_if_t<is_compatible_v<const C>, span&> operator = (const C& container) noexcept
     {
         _base_ref() = base_type{ std::data(container), narrow<size_type>(std::size(container)) };
         return *this;
@@ -211,19 +231,25 @@ public:
     [[nodiscard]]
     constexpr const_iterator cbegin() const noexcept
     {
-        return begin();
+        return cdata();
     }
 
     [[nodiscard]]
     constexpr const_iterator cend() const noexcept
     {
-        return end();
+        return cdata() + size_;
     }
 
     [[nodiscard]]
     constexpr size_type size() const noexcept
     {
         return size_;
+    }
+
+    [[nodiscard]]
+    constexpr const_pointer cdata() const noexcept
+    {
+        return data_;
     }
 
     [[nodiscard]]
@@ -235,54 +261,56 @@ public:
     [[nodiscard]]
     constexpr reference value(size_type index) const noexcept
     {
-        D_ASSERT(index < size_);
+        D_ASSERT_OR_ASSUME(index < size_);
         return data_[index];
     }
 
     [[nodiscard]]
     constexpr reference operator[](size_type index) const noexcept
     {
-        return data_[index];
+        return value(index);
     }
 
     [[nodiscard]]
     constexpr reference front() const noexcept
     {
-        return value(0u);
+        D_ASSERT_OR_ASSUME(0u < size_);
+        return *data_;
     }
 
     [[nodiscard]]
     constexpr reference back() const noexcept
     {
-        return value(size_ - 1u);
+        D_ASSERT_OR_ASSUME(0u < size_);
+        return data_[size_ - 1u];
     }
 
     [[nodiscard]]
-    constexpr span first(size_type size) const noexcept
+    constexpr dynamic_extent_span_type first(size_type size) const noexcept
     {
-        D_ASSERT(size <= size_);
+        D_ASSERT_OR_ASSUME(size <= size_);
         return { data_, size };
     }
 
     [[nodiscard]]
-    constexpr span subspan(size_type pos, size_type size) const noexcept
+    constexpr dynamic_extent_span_type subspan(size_type pos, size_type size) const noexcept
     {
-        D_ASSERT(pos <= size_);
-        D_ASSERT(size <= (size_ - pos));
+        D_ASSERT_OR_ASSUME(pos <= size_);
+        D_ASSERT_OR_ASSUME(size <= (size_ - pos));
         return { data_ + pos, size };
     }
 
     [[nodiscard]]
-    constexpr span subspan(size_type pos) const noexcept
+    constexpr dynamic_extent_span_type subspan(size_type pos) const noexcept
     {
-        D_ASSERT(pos <= size_);
+        D_ASSERT_OR_ASSUME(pos <= size_);
         return { data_ + pos, size_ - pos };
     }
 
     [[nodiscard]]
-    constexpr span last(size_type size) const noexcept
+    constexpr dynamic_extent_span_type last(size_type size) const noexcept
     {
-        D_ASSERT(size <= size_);
+        D_ASSERT_OR_ASSUME(size <= size_);
         return { data_ + size_ - size, size };
     }
 
@@ -295,7 +323,7 @@ private:
 };
 
 template <class Rng>
-span(Rng&) -> span<value_type_t<Rng>, extent_v<Rng>>;
+span(Rng&&) -> span<value_type_t<Rng>, extent_v<Rng>>;
 
 template <class Rng>
 span(const Rng&) -> span<const value_type_t<Rng>, extent_v<Rng>>;
@@ -303,27 +331,49 @@ span(const Rng&) -> span<const value_type_t<Rng>, extent_v<Rng>>;
 
 namespace private_detail_span
 {
-   namespace private_detail_make_span
-   {
-       template<class Rng>
-       struct make_span_type
-       {
-           using unref_rng = std::remove_reference_t<Rng>;
-           using type = span<
-               copy_const_t<unref_rng, value_type_t<unref_rng> >, 
-               extent_v<unref_rng>
-           >;
-       };
+    namespace private_detail_make_span
+    {
+        template<class Rng>
+        struct make_span_type_helper
+        {
+            using value_type = value_type_t<Rng>;
+            using const_value_type = std::add_const_t<value_type>;
+            static constexpr size_t extent = extent_v<Rng>;
+            using span_type = span<value_type, extent>;
+            using const_span_type = span<const_value_type, extent>;
+        };
 
-       template<class Rng>
-       using make_span_t = typename make_span_type<Rng>::type;
-   }
+        template<class Rng>
+        struct make_span_type
+        {
+            using type = typename make_span_type_helper<std::remove_reference_t<Rng>>::span_type;
+        };
+
+        template<class Rng>
+        struct make_cspan_type
+        {
+            using type = typename make_span_type_helper<std::remove_reference_t<Rng>>::const_span_type;
+        };
+
+        template<class Rng>
+        using make_span_t = typename make_span_type<Rng>::type;
+
+        template<class Rng>
+        using make_cspan_t = typename make_cspan_type<Rng>::type;
+    }
 }
 
 using private_detail_span::private_detail_make_span::make_span_t;
+using private_detail_span::private_detail_make_span::make_cspan_t;
 
 template<class Rng>
-[[nodiscard]] constexpr make_span_t<Rng> to_span(Rng&& rng) noexcept
+[[nodiscard]] constexpr make_span_t<Rng> make_span(Rng&& rng) noexcept
+{
+    return rng;
+}
+
+template<class Rng>
+[[nodiscard]] constexpr make_cspan_t<const Rng> make_cspan(const Rng& rng) noexcept
 {
     return rng;
 }
@@ -331,19 +381,34 @@ template<class Rng>
 template<class OutT, size_t Extent, class T>
 constexpr void fill(span<OutT, Extent> sp, const T& value) noexcept
 {
-    std::fill_n(sp.data(), sp.size(), value);
+    std::fill_n(sp.begin(), sp.size(), value);
+}
+
+template<class Rng, class T>
+constexpr auto fill(Rng&& rng, const T& value) noexcept -> decltype
+(
+    fill(make_span(std::forward<Rng>(rng)), value)
+)
+{
+    fill(make_span(std::forward<Rng>(rng)), value);
 }
 
 template<class InT, size_t Extent, class OutIt>
-constexpr OutIt copy(span<InT, Extent> sp, OutIt out) noexcept
+constexpr OutIt copy(span<const InT, Extent> sp, OutIt out) noexcept
 {
-    return std::copy_n(sp.data(), sp.size(), out);
+    return std::copy_n(sp.cbegin(), sp.size(), out);
+}
+
+template<class Rng, class OutIt>
+constexpr auto copy(const Rng& rng, OutIt out) noexcept -> decltype(copy(make_cspan(rng), out))
+{
+    return copy(make_cspan(rng), out);
 }
 
 template<class SpanValueT, size_t Extent, class T>
-[[nodiscard]] constexpr size_t find_n(span<SpanValueT, Extent> sp, const T& value, size_t pos = 0_uz) noexcept
+[[nodiscard]] constexpr size_t find_n(const span<const SpanValueT, Extent> sp, const T& value, size_t pos = 0u) noexcept
 {
-    D_ASSERT(pos <= sp.size());
+    D_ASSERT_OR_ASSUME(pos <= sp.size());
 
     for (; pos != sp.size(); ++pos)
     {
@@ -352,4 +417,13 @@ template<class SpanValueT, size_t Extent, class T>
     }
 
     return pos;
+}
+
+template<class Rng, class T>
+[[nodiscard]] constexpr auto find_n(const Rng& rng, const T& value, size_t pos = 0u) noexcept -> decltype
+(
+    find_n(make_cspan(rng), value, pos)
+)
+{
+    return find_n(make_cspan(rng), value, pos);
 }

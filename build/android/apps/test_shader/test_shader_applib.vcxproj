@@ -11,9 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\entry_point\entry_point_console\entry_point_console.vcxproj">
-      <Project>{89189ae4-8ecd-4bae-b09f-ce8c6b9f0246}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\gl_core\gl_core.vcxproj">
       <Project>{40eaf3cf-7215-4353-9a89-883b91118195}</Project>
     </ProjectReference>

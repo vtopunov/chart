@@ -68,10 +68,10 @@
     <ProjectReference Include="..\..\debug\debug.vcxproj">
       <Project>{6fcb1ca4-9a18-4ecf-a118-154ebf517d91}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\egl_ui\egl_ui.vcxproj">
+    <ProjectReference Include="..\..\egli\egli.vcxproj">
       <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\entry_point\entry_point\entry_point.vcxproj">
+    <ProjectReference Include="..\..\entry_point\entry_point.vcxproj">
       <Project>{8f08613c-d40b-4589-aa40-e4ec8f39632a}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\gl_core\gl_core.vcxproj">

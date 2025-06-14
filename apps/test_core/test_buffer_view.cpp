@@ -1,4 +1,5 @@
 #include <core/buffer_view.h>
+#include <core/span.h>
 
 #include <vector>
 #include <array>
@@ -7,44 +8,39 @@
 
 namespace
 {
-    template<bool immutable>
-    bool test_impl_impl(basic_buffer_view<immutable> b, const void* data, size_t size) noexcept
+    template<class ValueType>
+    bool test_impl_impl(basic_buffer_view<ValueType> b, const void* data, size_t size) noexcept
     {
-        using buffer_view_type = basic_buffer_view<immutable>;
+        using buffer_view_type = basic_buffer_view<ValueType>;
+        constexpr bool immutable = std::is_const_v<ValueType>;
+        static_assert(immutable == buffer_view_type::immutable);
+
         using byte_type = conditional_add_const_t<immutable, std::byte>;
         using void_type = conditional_add_const_t<immutable, void>;
         using word = uint16_t;
         using word_type = conditional_add_const_t<immutable, word>;
-        using void_ptr = void_type*;
-        using byte_ptr = byte_type*;
-        using byte_cptr = const byte_type*;
-        using byte_ref = byte_type&;
-        using byte_cref = const byte_type&;
-        using word_ptr = word_type*;
-        using word_cptr = const word_type*;
 
-        static_assert(std::is_same_v<typename buffer_view_type::element_type, byte_type>);
-        static_assert(std::is_same_v<typename buffer_view_type::value_type, std::byte>);
-        static_assert(std::is_same_v<typename buffer_view_type::data_pointer, void_ptr>);
-        static_assert(std::is_same_v<typename buffer_view_type::pointer, byte_ptr>);
-        static_assert(std::is_same_v<typename buffer_view_type::reference, byte_ref>);
-        static_assert(std::is_same_v<typename buffer_view_type::const_reference, byte_cref>);
-        static_assert(std::is_same_v<typename buffer_view_type::iterator, byte_ptr>);
-        static_assert(std::is_same_v<typename buffer_view_type::const_iterator, byte_cptr>);
+        static_assert(std::is_same_v<typename buffer_view_type::value_type, ValueType>);
+        static_assert(std::is_same_v<typename buffer_view_type::void_pointer, void_type*>);
+        static_assert(std::is_same_v<typename buffer_view_type::pointer, ValueType*>);
+        static_assert(std::is_same_v<typename buffer_view_type::reference, ValueType&>);
+        static_assert(std::is_same_v<typename buffer_view_type::const_reference, const ValueType&>);
+        static_assert(std::is_same_v<typename buffer_view_type::iterator, ValueType*>);
+        static_assert(std::is_same_v<typename buffer_view_type::const_iterator, const ValueType*>);
 
-        static_assert(std::is_same_v<decltype(b.data()), void_ptr>);
-        static_assert(std::is_same_v<decltype(as_span<std::byte>(b)), span<byte_type>>);
-        static_assert(std::is_same_v<decltype(as_span<word>(b)), span<word_type>>);
+        static_assert(std::is_same_v<decltype(b.void_data()), void_type*>);
+        static_assert(std::is_same_v<decltype(b.data()), ValueType*>);
+        static_assert(std::is_same_v<decltype(interpret<std::byte>(b)), basic_buffer_view<byte_type>>);
+        static_assert(std::is_same_v<decltype(interpret<word>(b)), basic_buffer_view<word_type>>);
 
-        const buffer_view_type right_b{ const_cast<void_ptr>(data), size };
-        const buffer_view_type right_data_b{ const_cast<void_ptr>(data), 0 };
-        const buffer_view_type right_size_b{ nullptr, size };
+        const auto test_size_bytes = sizeof(ValueType) * size;
+        const buffer_view_type right_b{ memory_construct, const_cast<void_type*>(data), test_size_bytes };
+        const buffer_view_type right_data_b{ memory_construct, const_cast<void_type*>(data), 0 };
+        const buffer_view_type right_size_b{ memory_construct, static_cast<void_type*>(nullptr), test_size_bytes };
         const auto bdata = b.data();
         const auto bsize = b.size();
-        const auto bytes = as_span<std::byte>(b);
-        const auto words = as_span<word>(b);
-        const auto test_pbytes = static_cast<byte_cptr>(data);
-        const auto test_pwords = static_cast<word_cptr>(data);
+        const auto bytes = interpret<std::byte>(b);
+        const auto words = interpret<word>(b);
 
         D_ASSERT(b == right_b);
         D_ASSERT(right_b == b);
@@ -61,22 +57,22 @@ namespace
 
         D_ASSERT(bdata == data);
         D_ASSERT(bsize == size);
-        D_ASSERT(bytes.data() == test_pbytes);
-        D_ASSERT(bytes.size() == size);
-        D_ASSERT(words.data() == test_pwords);
-        D_ASSERT(words.size() == size / sizeof(word));
+        D_ASSERT(bytes.data() == data);
+        D_ASSERT(bytes.size() == test_size_bytes);
+        D_ASSERT(words.data() == data);
+        D_ASSERT(words.size() == test_size_bytes / sizeof(word));
 
-        static_assert(std::is_same_v<decltype(b.front()), byte_ref>);
-        static_assert(std::is_same_v<decltype(b.cfront()), byte_cref>);
-        static_assert(std::is_same_v<decltype(b.back()), byte_ref>);
-        static_assert(std::is_same_v<decltype(b.cback()), byte_cref>);
-        static_assert(std::is_same_v<decltype(b[0_uz]), byte_ref>);
-        static_assert(std::is_same_v<decltype(b.begin()), byte_ptr>);
-        static_assert(std::is_same_v<decltype(b.cbegin()), byte_cptr>);
-        static_assert(std::is_same_v<decltype(b.end()), byte_ptr>);
-        static_assert(std::is_same_v<decltype(b.cend()), byte_cptr>);
-        static_assert(std::is_same_v<decltype(bytes.data()), byte_ptr>);
-        static_assert(std::is_same_v<decltype(words.data()), word_ptr>);
+        static_assert(std::is_same_v<decltype(b.front()), ValueType&>);
+        static_assert(std::is_same_v<decltype(b.cfront()), const ValueType&>);
+        static_assert(std::is_same_v<decltype(b.back()), ValueType&>);
+        static_assert(std::is_same_v<decltype(b.cback()), const ValueType&>);
+        static_assert(std::is_same_v<decltype(b[0u]), ValueType&>);
+        static_assert(std::is_same_v<decltype(b.begin()), ValueType*>);
+        static_assert(std::is_same_v<decltype(b.cbegin()), const ValueType*>);
+        static_assert(std::is_same_v<decltype(b.end()), ValueType*>);
+        static_assert(std::is_same_v<decltype(b.cend()), const ValueType*>);
+        static_assert(std::is_same_v<decltype(bytes.data()), byte_type*>);
+        static_assert(std::is_same_v<decltype(words.data()), word_type*>);
 
         auto& front = b.front();
         auto& cfront = b.cfront();
@@ -87,32 +83,35 @@ namespace
         const auto cbegin = b.cbegin();
         const auto end = b.end();
         const auto cend = b.cend();
-        const auto test_end = test_pbytes + size;
+        const auto test_cbegin = static_cast<const ValueType*>(data);
+        const auto test_cend = test_cbegin + size;
 
-        D_ASSERT(std::addressof(front) == test_pbytes);
-        D_ASSERT(std::addressof(cfront) == test_pbytes);
-        D_ASSERT(std::addressof(back) == std::prev(test_end));
-        D_ASSERT(std::addressof(cback) == std::prev(test_end));
-        D_ASSERT(std::addressof(mean) == test_pbytes + size / 2);
-        D_ASSERT(begin == test_pbytes);
-        D_ASSERT(cbegin == test_pbytes);
-        D_ASSERT(end == test_end);
-        D_ASSERT(cend == test_end);
+        D_ASSERT(std::addressof(front) == test_cbegin);
+        D_ASSERT(std::addressof(cfront) == test_cbegin);
+        D_ASSERT(std::addressof(back) == std::prev(test_cend));
+        D_ASSERT(std::addressof(cback) == std::prev(test_cend));
+        D_ASSERT(std::addressof(mean) == test_cbegin + size / 2);
+        D_ASSERT(begin == test_cbegin);
+        D_ASSERT(cbegin == test_cbegin);
+        D_ASSERT(end == test_cend);
+        D_ASSERT(cend == test_cend);
 
         return immutable;
     }
 
-    bool test_const_impl(const_buffer_view b, const void* data, size_t size) noexcept
+    bool test_const_impl(const_byte_buffer_view b, const void* data, size_t size) noexcept
     {
-        static_assert(std::is_same_v<decltype(b.data()), const void*>);
+        static_assert(std::is_same_v<decltype(b.data()), const std::byte*>);
+        static_assert(std::is_same_v<decltype(b.void_data()), const void*>);
         const auto immutable = test_impl_impl(b, data, size);
         D_ASSERT(immutable);
         return immutable;
     }
 
-    bool test_mut_impl(buffer_view b, const void* data, size_t size) noexcept
+    bool test_mut_impl(byte_buffer_view b, const void* data, size_t size) noexcept
     {
-        static_assert(std::is_same_v<decltype(b.data()), void*>);
+        static_assert(std::is_same_v<decltype(b.data()), std::byte*>);
+        static_assert(std::is_same_v<decltype(b.void_data()), void*>);
         const auto immutable_result = test_impl_impl(b, data, size);
         D_ASSERT(!immutable_result);
 
@@ -120,13 +119,13 @@ namespace
 
 
         {
-            buffer_view mb{};
+            byte_buffer_view mb{};
             mb = b;
             D_ASSERT(test_const_impl(mb, data, size));
         }
 
         {
-            const_buffer_view cb{};
+            const_byte_buffer_view cb{};
             cb = b;
             D_ASSERT(test_const_impl(cb, data, size));
         }
@@ -134,53 +133,67 @@ namespace
         return immutable_result;
     }
 
-    bool test_impl(const_buffer_view b, const void* data, size_t size) noexcept
+    bool test_impl(const_byte_buffer_view b, const void* data, size_t size) noexcept
     {
         return test_const_impl(b, data, size);
     }
 
-    bool test_impl(buffer_view b, const void* data, size_t size) noexcept
+    bool test_impl(byte_buffer_view b, const void* data, size_t size) noexcept
     {
         return test_mut_impl(b, data, size);
     }
 
+
     template<class T>
-    struct add_const_span
+    struct add_const_container_or_span
     {
         using type = std::add_const_t<T>;
     };
 
     template<class T, size_t N>
-    struct add_const_span<span<T, N>>
+    struct add_const_container_or_span<span<T, N>>
     {
         using type = const span<const T, N>;
     };
 
     template<class T>
-    struct add_const_span<const T> : add_const_span<T>
+    struct add_const_container_or_span<const T> : add_const_container_or_span<T>
     {};
 
     template<class T>
-    using add_const_span_t = typename add_const_span<T>::type;
+    using add_const_container_or_span_t = typename add_const_container_or_span<T>::type;
 
     template<class T>
-    struct remove_const_span
+    struct remove_const_container_or_span
     {
         using type = std::remove_const_t<T>;
     };
 
     template<class T, size_t N>
-    struct remove_const_span<span<T, N>>
+    struct remove_const_container_or_span<span<T, N>>
     {
         using type = span<std::remove_const_t<T>, N>;
     };
 
     template<class T>
-    struct remove_const_span<const T> : remove_const_span<T>
+    struct remove_const_container_or_span<const T> : remove_const_container_or_span<T>
     {};
 
     template<class T>
-    using remove_const_span_t = typename remove_const_span<T>::type;
+    using remove_const_container_or_span_t = typename remove_const_container_or_span<T>::type;
+
+
+
+    template<class C>
+    constexpr void test_static_asserts() noexcept
+    {
+        static_assert(!private_detail_buffer_view::has_void_data<C>::value);
+        static_assert(has_size_bytes_v<C>);
+        static_assert(has_std_data_void_compatible<false, remove_const_container_or_span_t<C>>::value);
+        static_assert(has_std_data_void_compatible<true, remove_const_container_or_span_t<C>>::value);
+        static_assert(!has_std_data_void_compatible<false, add_const_container_or_span_t<C>>::value);
+        static_assert(has_std_data_void_compatible<true, add_const_container_or_span_t<C>>::value);
+    }
 
     template<class C>
     constexpr size_t value_type_size_testimpl(const C& c) noexcept
@@ -188,23 +201,12 @@ namespace
         using decayed_value_type = std::decay_t<std::remove_pointer_t<std::decay_t<decltype(std::data(c))>>>;
         if constexpr (std::is_same_v<decayed_value_type, void>)
         {
-            return 1_uz;
+            return 1u;
         }
         else
         {
             return sizeof(decayed_value_type);
         }
-    }
-
-    template<class C>
-    constexpr void test_static_asserts() noexcept
-    {
-        static_assert(!is_buffer_view_v<C>);
-        static_assert(has_size_bytes_v<C>);
-        static_assert(is_std_data_convertible<remove_const_span_t<C>, void*>::value);
-        static_assert(is_std_data_convertible<remove_const_span_t<C>, const void*>::value);
-        static_assert(!is_std_data_convertible<add_const_span_t<C>, void*>::value);
-        static_assert(is_std_data_convertible<add_const_span_t<C>, const void*>::value);
     }
 
     template<class C>
@@ -227,7 +229,7 @@ namespace
         }
 
         {
-            const_buffer_view cb{};
+            const_byte_buffer_view cb{};
             cb = c;
             const auto immutable = test_impl(c, data, size);
             D_ASSERT(immutable);
@@ -249,14 +251,14 @@ namespace
         }
 
         {
-            buffer_view mb{};
+            byte_buffer_view mb{};
             mb = c;
             const auto immutable = test_impl(mb, data, size);
             D_ASSERT(!immutable);
         }
 
         {
-            const_buffer_view cb{};
+            const_byte_buffer_view cb{};
             cb = c;
             const auto immutable = test_impl(cb, data, size);
             D_ASSERT(immutable);
@@ -268,7 +270,7 @@ namespace
         }
         else
         {
-            add_const_span_t<C> const_c{ c };
+            add_const_container_or_span_t<C> const_c{ c };
             test(const_c);
         }
     }
@@ -319,45 +321,27 @@ namespace
 
 void test_buffer_view() noexcept
 {
-    static_assert(!std::is_same_v<buffer_view, const_buffer_view>);
-    static_assert(std::is_same_v<decl_view_type_t<buffer_view>, buffer_view::view_type>);
-    static_assert(std::is_same_v<decl_null_type_t<buffer_view>, buffer_view::null_type>);
-    static_assert(std::is_same_v<decl_null_type_t<buffer_view>, nullmem_t>);
+    static_assert(!std::is_same_v<byte_buffer_view, const_byte_buffer_view>);
+    static_assert(std::is_same_v<decl_view_type_t<byte_buffer_view>, byte_buffer_view::view_type>);
+    static_assert(std::is_same_v<decl_null_type_t<byte_buffer_view>, byte_buffer_view::null_type>);
+    static_assert(std::is_same_v<decl_null_type_t<byte_buffer_view>, nullmem_t>);
+    static_assert(std::is_trivially_copyable_v<byte_buffer_view>);
 
     {
-        using private_detail_size_bytes::size_of;
-
-        static_assert(1_uz == size_of<void>());
-        static_assert(1_uz == size_of<std::byte>());
-        static_assert(4_uz == size_of<std::int32_t>());
-    }
-
-    {
-        using private_detail_size_bytes::value_type_size;
-
-        static_assert(1_uz == value_type_size<my_buffer>());
-        static_assert(1_uz == value_type_size<const my_buffer>());
-        static_assert(1_uz == value_type_size<cmy_buffer>());
-        static_assert(1_uz == value_type_size<const cmy_buffer>());
-        static_assert(1_uz == value_type_size<std::vector<char>>());
-        static_assert(4_uz == value_type_size<std::vector<int32_t>>());
-        static_assert(4_uz == value_type_size<std::array<int32_t, 1_uz>>());
-        static_assert(4_uz == value_type_size<const std::array<int32_t, 1_uz>>());
-        static_assert(4_uz == value_type_size<std::array<const int32_t, 1_uz>>());
-        static_assert(4_uz == value_type_size<const std::array<const int32_t, 1_uz>>());
-        static_assert(sizeof(ptrdiff_t) == value_type_size<const std::array<const int32_t*, 1_uz>>());
-        static_assert(sizeof(ptrdiff_t) == value_type_size<const std::array<const int32_t* const, 1_uz>>());
+        static_assert(1_uz == sizeof_v<void>);
+        static_assert(1_uz == sizeof_v<std::byte>);
+        static_assert(4_uz == sizeof_v<std::int32_t>);
     }
 
     {
         struct sbv
         {
-            size_t size_bytes() const noexcept { return 321_uz; }
+            size_t size_bytes() const noexcept { return 321u; }
         };
 
         struct sv
         {
-            size_t size() const noexcept { return 123_uz; }
+            size_t size() const noexcept { return 123u; }
         };
 
         struct dv

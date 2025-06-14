@@ -46,7 +46,7 @@ namespace image
         return unique_png{ spng_ctx_new(to_underlying(flags)) };
     }
 
-    png_errno png_set_buffer(png_resource png, const_buffer_view buffer) noexcept
+    png_errno png_set_buffer(png_resource png, const_byte_buffer_view buffer) noexcept
     {
         return underlying_cast<png_errno>(spng_set_png_buffer(png, buffer.data(), buffer.size()));
     }
@@ -103,12 +103,12 @@ namespace image
         return underlying_cast<png_errno>(spng_decoded_image_size(png, to_underlying(format), size));
     }
 
-    png_errno png_decode_image(png_resource png, png_format format, buffer_view out) noexcept
+    png_errno png_decode_image(png_resource png, png_format format, byte_buffer_view out) noexcept
     {
         return underlying_cast<png_errno>(spng_decode_image(png, out.data(), out.size(), to_underlying(format), 0));
     }
 
-    rgba_pixview_result png_decode_to_rgba(const_buffer_view image, byte_buffer& temp) noexcept
+    rgba_pixview_result png_decode_to_rgba(const_byte_buffer_view image, byte_buffer& temp) noexcept
     {
         constexpr auto png_format = png_format::RGBA8;
 
@@ -145,7 +145,7 @@ namespace image
             return png_errno::PNG_SIZE;
         }
 
-        const rgba_pixspace space{ png_header.sizes() };
+        const rgba_pixview_result::space_type space{ png_header.sizes() };
         if (space.size_bytes() != size) [[unlikely]]
         {
             return png_errno::PNG_SIZE;
@@ -163,7 +163,7 @@ namespace image
 
         return 
         { 
-            std::as_const(temp).as_span<const rgba_pixview_result::pixel_type>().data(),
+            static_cast<const rgba_pixview_result::pixel_type*>(temp.cvoid_data()),
             space
         };
     }

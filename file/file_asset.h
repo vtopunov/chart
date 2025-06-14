@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/buffer_view.h>
 #include <core/resource.h>
 
 #include <file/path.h>
@@ -30,7 +29,7 @@ namespace file
                         nullptr,
 #endif
                         nullptr,
-                        0_uz
+                        0u
                     };
                 }
             };
@@ -56,7 +55,7 @@ namespace file
 
 
         static_assert(std::is_same_v<decl_null_type_t<asset_mmap_resource>, asset_mmap_resource::null_type>);
-        static_assert(std::is_same_v<view_t<asset_mmap_resource>, const const_buffer_view>);
+        static_assert(std::is_same_v<view_t<asset_mmap_resource>, const const_byte_buffer_view>);
 
 #if defined(D_OS_ANDROID)
         struct asset_mmap_resource_deleter

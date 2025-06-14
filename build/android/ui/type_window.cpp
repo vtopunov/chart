@@ -1,57 +1,64 @@
 #include <ui/type_window.h>
-#include <ui/app.h>
+#include <ui/debug.h>
+
+#include <android/sensor.h>
 
 #include <entry_point/android_native_app_glue.h>
+#include <common/app.h>
 
 
 namespace ui
 {
     namespace
     {
-        void receive_quit(os::module_handle_t app) noexcept
+        void _quit(const android_app* const app) noexcept
         {
-            constexpr size_t max_number_of_checks{ 255 };
-            constexpr int retry_check_timeout_ms{ 500 };
-
-            app->onInputEvent = nullptr;
-            app->onAppCmd = nullptr;
-
-            for (size_t loop_limit{ max_number_of_checks }; loop_limit && !(app->destroyRequested); --loop_limit)
+            if (!app->destroyRequested)
             {
-                int events{};
-                android_poll_source* source{ nullptr };
-                if (const auto ident = ALooper_pollAll(retry_check_timeout_ms, nullptr, &events, (void**)&source); ident >= 0)
+                if (app->activity)
                 {
-                    if (source && source->process)
-                    {
-                        source->process(app, source);
-                    }
+                    ANativeActivity_finish(app->activity);
                 }
             }
-
-            D_ASSERT(app->destroyRequested);
         }
 
-        void collect(module_handle_t app) noexcept
+        void receive_quit(android_app* const app) noexcept
         {
             if (app)
             {
-                quit(app);
-                receive_quit(app);
-                set_cmd_callback(app, nullptr);
-                set_input_event_callback(app, nullptr);
-                set_user_data(app, nullptr);
+                constexpr size_t max_number_of_checks{ 255 };
+                constexpr int retry_check_timeout_ms{ 500 };
+
+                app->onAppCmd = nullptr;
+                app->onInputEvent = nullptr;
+                app->userData = nullptr;
+
+                _quit(app);
+
+                for (size_t loop_limit{ max_number_of_checks }; loop_limit && !(app->destroyRequested); --loop_limit)
+                {
+                    int events{};
+                    android_poll_source* source{ nullptr };
+                    if (const auto ident = ALooper_pollAll(retry_check_timeout_ms, nullptr, &events, (void**)&source); ident >= 0)
+                    {
+                        if (source && source->process)
+                        {
+                            source->process(app, source);
+                        }
+                    }
+                }
+
+                D_ASSERT(app->destroyRequested);
             }
         }
     }
 
     void window_type_resource_deleter::operator()(type_window_resource type) const noexcept
     {
-        collect(type.module);
-
+        if (type)
         {
-            constexpr sensor_event_queue_resource_collector collect{};
-            collect(type.handle);
+            receive_quit(common::app_own::release());
+            ASensorManager_destroyEventQueue(type.sensor_manager, type.sensor_event_queue);
         }
     }
 
@@ -65,12 +72,6 @@ namespace ui
 
     type_window_builder& type_window_builder::style(uint_t) noexcept
     {
-        return *this;
-    }
-
-    type_window_builder& type_window_builder::module(module_handle_t module) noexcept
-    {
-        module_ = module;
         return *this;
     }
 
@@ -94,27 +95,46 @@ namespace ui
         return {};
     }
 
-    module_handle_t type_window_builder::module() const noexcept
-    {
-        return module_;
-    }
-
     const_brush_handle_t type_window_builder::background() const noexcept
     {
         return {};
     }
 
-    unique_type_window type_window_builder::build(wzstring_view) noexcept
-    {
-        return build();
-    }
-
     unique_type_window type_window_builder::build() noexcept
     {
-        return unique_type_window
+        unique_type_window result{};
+        auto& r = as_mutable(result.r());
+
+        r.sensor_manager = ASensorManager_getInstance();
+        if (r.sensor_manager) [[likely]]
         {
-            create_sensor_event_queue(module_).release(),
-            module_
-        };
+            if (const auto app = common::app(); app && app->looper) [[likely]]
+            {
+                r.sensor_event_queue = ASensorManager_createEventQueue
+                (
+                    r.sensor_manager,
+                    app->looper,
+                    LOOPER_ID_USER,
+                    nullptr,
+                    nullptr
+                );
+            }
+        }
+
+        return result;
+    }
+    
+    [[nodiscard]]
+    error_code_t error_code() noexcept
+    {
+        return errno;
+    }
+
+    void quit() noexcept
+    {
+        if (const auto app = common::app())
+        {
+            _quit(app);
+        }
     }
 }

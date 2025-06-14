@@ -17,7 +17,6 @@ namespace ui
     struct window_parameters
     {
         mutable type_window_builder type_builder{};
-        mutable shared_type_window cached_type{};
 
 #ifdef D_OS_WINDOWS
         title_string_t title{};
@@ -26,53 +25,27 @@ namespace ui
 #endif
     };
 
-    inline void prepare(const window_parameters& params) noexcept
-    {
-        if (params.cached_type)
-        {
-            if (!params.type_builder.module())
-            {
-                params.type_builder.module(params.cached_type.r().module);
-            }
-        }
-        else
-        {
-            params.cached_type = params.type_builder.build();
-        }
-
-        D_ASSERT(!params.cached_type || (params.cached_type.r().module == params.type_builder.module()));
-    }
-
     template<class Builder, class Params>
     class window_gatherer
     {
     public:
         static_assert(std::disjunction_v<std::is_same<window_parameters, Params>, std::is_base_of<window_parameters, Params>>);
 
-        Builder& type(unique_type_window type) noexcept
-        {
-            params_.cached_type = std::move(type);
-            return _builder();
-        }
-
         Builder& background(stock_brush brush) noexcept
         {
             params_.type_builder.background(brush);
-            params_.cached_type.deattach_and_reset();
             return _builder();
         }
 
         Builder& background(unique_brush brush) noexcept
         {
             params_.type_builder.background(std::move(brush));
-            params_.cached_type.deattach_and_reset();
             return _builder();
         }
 
         Builder& window_procedure(wndproc_t proc) noexcept
         {
             params_.type_builder.window_procedure(proc);
-            params_.cached_type.deattach_and_reset();
             return _builder();
         }
 
@@ -119,16 +92,6 @@ namespace ui
         constexpr Builder& geometry(const pxrectangle& rc) noexcept
         {
             D_OS_WINDOWS_OR(params_.geometry = rc, D_UNUSED(rc));
-            return _builder();
-        }
-
-        Builder& module(module_handle_t module) noexcept
-        {
-            params_.type_builder.module(module);
-            if(params_.cached_type.r().module != module)
-            {
-                params_.cached_type.deattach_and_reset();
-            }
             return _builder();
         }
 
@@ -280,13 +243,8 @@ namespace ui
 
     struct window
     {
-        shared_type_window type{};
+        unique_type_window type{};
         window_handle_t handle{ nullptr };
-
-        constexpr operator const_module_handle_t () const noexcept
-        {
-            return type.r().module;
-        }
 
         constexpr operator window_handle_t () const noexcept
         {
@@ -295,7 +253,7 @@ namespace ui
 
         constexpr explicit operator bool () const noexcept
         {
-            return type && handle;
+            return !!handle;
         }
     };
 

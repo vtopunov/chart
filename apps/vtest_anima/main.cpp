@@ -4,7 +4,7 @@
 
 #include <gl_core/draw.h>
 
-#include <egl_ui/egl_ui_owner.h>
+#include <egli/egli_owner.h>
 
 using namespace std::chrono;
 using namespace std::chrono_literals;
@@ -122,7 +122,7 @@ namespace
 
     struct main_processor
     {
-        egl_ui_owner egl;
+        egli_owner egl;
         anima_timer timer;
         rgbaf_color color{ to_colorf(anima_start_color) };
         bool force_redraw{ true };
@@ -165,16 +165,16 @@ namespace
     };
 }
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
     main_processor processor
     {
-        .egl{ create_egl_ui(app) }
+        .egl{ egli_builder{}.build() }
     };
 
     if (!processor.egl)
     {
-        e_debug("create window error: {}", egl_ui::error_code());
+        e_debug("create window error: {}", egli::error_code());
         return EXIT_FAILURE;
     }
 

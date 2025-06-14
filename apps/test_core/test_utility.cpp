@@ -15,6 +15,7 @@ namespace
             static_assert(std::is_same_v<decl_value_type_t<my_vector0>, typename my_vector0::value_type>);
             static_assert(is_detected_v<value_type_t, my_vector0>);
             static_assert(std::is_same_v<value_type_t<my_vector0>, typename my_vector0::value_type>);
+            static_assert(std::is_same_v<value_type_t<const my_vector0>, const typename my_vector0::value_type>);
             static_assert(!has_std_data_pointer<my_vector0>::value);
             static_assert(!has_std_data_pointer<const my_vector0&>::value);
         }
@@ -85,10 +86,9 @@ namespace
 
             static_assert(std::is_same_v<decl_std_data_pointer_t<my_vector3>, typename my_vector3::data_value_type*>);
             static_assert(std::is_same_v<decl_std_data_pointer_t<const my_vector3>, const typename my_vector3::data_value_type*>);
-            static_assert(std::is_same_v<typename std_data_value_type_type<my_vector3>::type, typename my_vector3::data_value_type>);
             static_assert(is_detected_v<value_type_t, my_vector3>);
-            static_assert(std::is_same_v<value_type_t<my_vector3>, typename my_vector3::value_type>);
-            static_assert(std::is_same_v<value_type_t<const my_vector3>, typename my_vector3::value_type>);
+            static_assert(std::is_same_v<value_type_t<my_vector3>, typename my_vector3::data_value_type>);
+            static_assert(std::is_same_v<value_type_t<const my_vector3>, const typename my_vector3::data_value_type>);
             static_assert(has_std_data_pointer<my_vector3>::value);
             static_assert(has_std_data_pointer<const my_vector3&>::value);
         }
@@ -138,7 +138,7 @@ namespace
             {
                 const auto next_aligned = aligned + aling;
 
-                for (size_t unaligned = aligned + 1_uz; unaligned <= next_aligned; ++unaligned)
+                for (size_t unaligned = aligned + 1u; unaligned <= next_aligned; ++unaligned)
                 {
                     D_ASSERT(size_align<aling>(unaligned) == next_aligned);
                 }
@@ -241,6 +241,122 @@ namespace
 
         D_ASSERT(!errno);
     }
+
+    namespace private_detail_test_test_no_unique_address
+    {
+        struct OverAlign
+        {
+            void* data;
+            dummy test;
+        };
+
+        struct OverAlignSmall
+        {
+            void* data;
+            D_NO_UNIQUE_ADDRESS dummy test;
+        };
+    }
+
+    void test_test_no_unique_address() noexcept
+    {
+        using namespace private_detail_test_test_no_unique_address;
+
+        static_assert(sizeof(OverAlignSmall) < sizeof(OverAlign));
+        static_assert(test_no_unique_address(&OverAlignSmall::test));
+        static_assert(!test_no_unique_address(&OverAlign::test));
+
+        D_ASSERT(sizeof(OverAlignSmall) < sizeof(OverAlign));
+        D_ASSERT(test_no_unique_address(&OverAlignSmall::test));
+        D_ASSERT(!test_no_unique_address(&OverAlign::test));
+
+        D_ASSERT(!errno);
+    }
+
+    void test_ceil_div() noexcept
+    {
+        const errno_holder hold_errno{};
+
+        for (size_t num = 0; num < 100; ++num)
+        {
+            const double numf = static_cast<double>(num);
+
+            for (size_t den = 1; den < 100; ++den)
+            {
+                const auto divi = ceil_div(num, den);
+                const auto divf = std::ceil(numf / den);
+                const auto divfi = static_cast<decltype(divf)>(divi);
+                D_ASSERT(is_eqfp(divfi, divf));
+            }
+        }
+    }
+
+    namespace private_detail_test_test_cdata
+    {
+        namespace id_data
+        {
+            constexpr char cdatac[] = "cdatac";
+            constexpr char cdata[] = "cdata";
+            constexpr char datac[] = "datac";
+            constexpr char data[] = "data";
+        }
+
+        struct vector0
+        {
+            const char* data() const noexcept
+            {
+                return id_data::datac;
+            }
+
+            const char* data() noexcept
+            {
+                return id_data::data;
+            }
+        };
+
+        struct vector1
+        {
+            const char* cdata() const noexcept
+            {
+                return id_data::cdatac;
+            }
+
+            const char* cdata() noexcept
+            {
+                return id_data::cdata;
+            }
+
+            const char* data() const noexcept
+            {
+                return id_data::datac;
+            }
+
+            const char* data() noexcept
+            {
+                return id_data::data;
+            }
+        };
+    }
+
+    void test_cdata() noexcept
+    {
+        using namespace private_detail_test_test_cdata;
+
+        char mut_data[sizeof(id_data::cdatac)];
+        memcpy(mut_data, id_data::cdatac, sizeof(mut_data));
+       
+        static_assert(std::is_same_v<const char, std::remove_pointer_t<decltype(cdata(mut_data))> > );
+        D_ASSERT(mut_data == cdata(mut_data));
+
+        vector0 v0;
+        const vector0 cv0;
+        vector1 v1;
+        const vector1 cv1;
+
+        D_ASSERT(id_data::datac == cdata(v0));
+        D_ASSERT(id_data::datac == cdata(cv0));
+        D_ASSERT(id_data::cdatac == cdata(v1));
+        D_ASSERT(id_data::cdatac == cdata(cv1));
+    }
 }
 
 void test_utility() noexcept
@@ -249,4 +365,7 @@ void test_utility() noexcept
     test_size_type();
     test_u_swap();
     test_u_minmax();
+    test_test_no_unique_address();
+    test_ceil_div();
+    test_cdata();
 }

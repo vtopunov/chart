@@ -83,13 +83,13 @@ namespace chart
                             store(*this, new_width);
                         }
 
-                        void begin(px::real_vec2 new_begin) const noexcept
+                        void begin(vec2re new_begin) const noexcept
                         {
                             constexpr auto store = import(ex_exports::begin);
                             store(*this, new_begin);
                         }
 
-                        void repeat(px::real_vec2 new_repeat) const noexcept
+                        void repeat(vec2re new_repeat) const noexcept
                         {
                             constexpr auto store = import(ex_exports::repeat);
                             store(*this, new_repeat);

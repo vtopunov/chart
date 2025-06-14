@@ -17,7 +17,7 @@ namespace file
         }
     }
 
-    void file_mmap_resource_deleter::operator()(file_mmap_resource resource) const noexcept
+    void file_mmap_resource::deleter_type::operator()(file_mmap_resource resource) const noexcept
     {
         const auto& p = resource.private_detail_;
 
@@ -26,7 +26,7 @@ namespace file
             ::munmap(const_cast<void*>(p.data_), p.size_);
         }
 
-        constexpr file_resource_deleter close{};
+        constexpr file_resource::deleter_type close{};
         close(p.file_);
     }
 

@@ -1,23 +1,22 @@
 #pragma once
 
-#include <egl_ui/fwd.h>
+#include <egli/fwd.h>
 
 
 namespace widget
 {
-    using egl_ui::const_module_handle_t;
-
     using stretchable_pxrectangle = ::rectangle<npx_t, pxoff_t>;
 
     class window;
+    class temp_byte_buffer;
     using windowrefwrap_t = optional_reference_wrapper<const window>;
 
     struct ex_context_enumerator
     {
         template<class... Args>
-        constexpr noapply_t operator () (const Args&...) const noexcept
+        constexpr dummy operator () (const Args&...) const noexcept
         {
-            return noapply;
+            return dummy_v;
         }
     };
 
@@ -31,10 +30,10 @@ namespace widget
     class basic_widget_event;
 
     template<class EventBase, class... Args>
-    using widget_event = basic_widget_event<EventBase, windowrefwrap_t, Args...>;
+    using widget_event = basic_widget_event<EventBase, const window, Args...>;
 
     template<class T>
-    using decl_contexts_t = typename T::contexts_t;
+    using decl_context_t = typename T::context_ttypes;
 
 
     namespace event_declaration
@@ -65,7 +64,7 @@ namespace widget
         using basic_mouse_double_click_event = basic_widget_event<ui::mouse_double_click_event, Args...>;
 
         template<class... Args>
-        using basic_gesture_event = basic_mouse_move_event<ui::gesture, Args...>;
+        using basic_gesture_event = basic_mouse_move_event<const ui::gesture, Args...>;
 
         template<class... Args>
         using initialization_event = widget_event<initialization_event_base, Args...>;
@@ -89,7 +88,7 @@ namespace widget
         using mouse_double_click_event = widget_event<ui::mouse_double_click_event, Args...>;
 
         template<class... Args>
-        using gesture_event = mouse_move_event<ui::gesture, Args...>;
+        using gesture_event = mouse_move_event<const ui::gesture, Args...>;
     }
 
     using namespace event_declaration;

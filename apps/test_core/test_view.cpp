@@ -1,4 +1,4 @@
-#include "core/view.h"
+#include <core/view.h>
 
 
 namespace
@@ -118,7 +118,7 @@ namespace
         is_view_by_copy<T>,
         std::is_same<view_by_copy_t<T>, std::add_const_t<T>>,
         std::negation<is_detected<decl_view_type_t, T>>,
-        std::is_same<view_t<T>, std::add_const_t<const_buffer_view> >
+        std::is_same<view_t<T>, std::add_const_t<const_byte_buffer_view> >
     >;
 }
 
@@ -151,6 +151,14 @@ void test_view() noexcept
         static_assert(is_view_by_copy_v<long double>);
         static_assert(is_view_by_copy_v<intmax_t>);
         static_assert(is_view_by_copy_v<uintmax_t>);
+        static_assert(is_view_by_copy_v<byte_buffer_view>);
+        static_assert(is_view_by_copy_v<const_byte_buffer_view>);
+        static_assert(is_view_by_copy_v<span<std::byte>>);
+        static_assert(is_view_by_copy_v<span<const std::byte>>);
+        static_assert(is_view_by_copy_v<const byte_buffer_view>);
+        static_assert(is_view_by_copy_v<const const_byte_buffer_view>);
+        static_assert(is_view_by_copy_v<const span<std::byte>>);
+        static_assert(is_view_by_copy_v<const span<const std::byte>>);
 
         static_assert(is_view_by_copy_v<bytes_array<small_size_mini - 1u>>);
         static_assert(is_view_by_copy_v<bytes_array<small_size_mini>>);

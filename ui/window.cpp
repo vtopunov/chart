@@ -2,8 +2,8 @@
 
 #include <os/os.h>
 
+#include <ui/debug.h>
 #include <ui/event_processors_storage.h>
-#include <ui/app.h>
 
 
 namespace ui
@@ -75,7 +75,7 @@ namespace ui
 
             constexpr auto side_length = [] (auto p0, auto p1) noexcept
             {
-                D_ASSERT(p1 >= p0);
+                D_ASSERT_OR_ASSUME(p1 >= p0);
                 return narrow<npx_t>(p1 - p0);
             };
 
@@ -261,8 +261,7 @@ namespace ui
 
         window result{};
 
-        prepare(params);
-        if (params.cached_type) [[likely]]
+        if (auto type = params.type_builder.build()) [[likely]]
         {
             {
                 const auto style = (params.parent) ? child_window_style : parent_window_style;
@@ -272,7 +271,7 @@ namespace ui
                     CreateWindowExW
                     (
                         0u,
-                        params.cached_type.r().handle,
+                        type.r().handle,
                         params.title.c_str(),
                         style,
                         px_to_native(params.geometry.x()),
@@ -281,7 +280,7 @@ namespace ui
                         px_to_native(params.geometry.height()),
                         params.parent,
                         nullptr,
-                        params.cached_type.r().module,
+                        nullptr,
                         nullptr
                     )
                 };
@@ -296,7 +295,7 @@ namespace ui
                     std::upper_bound(window_set.cbegin(), window_set.cend(), by_parent{ params.parent }),
                     view(result),
                     params.parent,
-                    params.cached_type
+                    type
                 );
 
                 D_ASSERT(ok);

@@ -52,6 +52,7 @@ public:
                 if (is_unused())
                 {
                     ref_count_ = cache.unused_time_++;
+                    D_ASSERT_OR_ASSUME(is_unused());
                 }
             }
         }
@@ -119,24 +120,23 @@ public:
     [[nodiscard]]
     constexpr size_t index(const_pointer p) const noexcept
     {
-        const auto id = narrow<size_t>(p - storage_.data());
-        D_ASSERT(id < storage_.size());
+        const auto id = u_distance(storage_.cdata(), p);
+        D_ASSERT_OR_ASSUME(id < storage_.size());
         return id;
     }
 
     [[nodiscard]]
     constexpr reference value(size_t index) const noexcept
     {
-        D_ASSERT(index < storage_.size());
-        return const_cast<reference>(storage_[index]);
+        return const_cast<reference>(storage_.value(index));
     }
 
     template<class F>
     [[nodiscard]] pointer select(const F& filter) const noexcept
     {
-        const auto end = storage_.end();
-        const auto result = std::find_if(storage_.begin(), storage_.end(), filter);
-        return (result != end) ? const_cast<pointer>(result) : nullptr;
+        const auto storage_cend = storage_.cend();
+        const auto result = std::find_if(storage_.cbegin(), storage_cend, filter);
+        return (result != storage_cend) ? const_cast<pointer>(result) : nullptr;
     }
 
     struct identical_or_garbage

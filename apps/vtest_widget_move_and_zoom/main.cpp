@@ -72,9 +72,9 @@ namespace
     };
 }
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
-    return widget::run<main_widget>(app);
+    return widget::run<main_widget>();
 }
 
 

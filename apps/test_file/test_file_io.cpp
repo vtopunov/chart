@@ -42,7 +42,7 @@ namespace
         const auto wof = file::wo_open(file_name, mode);
         D_ASSERT(wof);
 
-        for ( size_t i = 0_uz; i < n_blocks; ++i )
+        for ( size_t i = 0u; i < n_blocks; ++i )
         {
             check_block_size(write(wof, test_data.data(), block_size));
         }
@@ -53,7 +53,7 @@ namespace
         const auto rof = file::ro_open(path);
         D_ASSERT(rof);
 
-        for (size_t i = 0_uz; i < n_blocks; ++i)
+        for (size_t i = 0u; i < n_blocks; ++i)
         {
             char buffer[block_size]{};
             check_block_size(read(rof, buffer, block_size));
@@ -74,16 +74,16 @@ namespace
 
     void test_write_mode() noexcept
     {
-        test_write(3_uz, file::w_open_mode::truncate);
-        test_read(3_uz);
-        test_write(4_uz, file::w_open_mode::rewrite);
-        test_read(4_uz);
-        test_write(2_uz, file::w_open_mode::append);
-        test_read(6_uz);
-        test_write(5_uz, file::w_open_mode::rewrite);
-        test_read(6_uz);
-        test_write(0_uz, file::w_open_mode::truncate);
-        test_read(0_uz);
+        test_write(3u, file::w_open_mode::truncate);
+        test_read(3u);
+        test_write(4u, file::w_open_mode::rewrite);
+        test_read(4u);
+        test_write(2u, file::w_open_mode::append);
+        test_read(6u);
+        test_write(5u, file::w_open_mode::rewrite);
+        test_read(6u);
+        test_write(0u, file::w_open_mode::truncate);
+        test_read(0u);
 
         D_ASSERT(try_open());
         D_ASSERT(try_remove());

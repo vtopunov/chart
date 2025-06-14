@@ -41,10 +41,5 @@
   <ItemGroup>
     <ClCompile Include="$(RepoAppsDir)\vtest_entry_point\main.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\entry_point\entry_point\entry_point.vcxproj">
-      <Project>{8f08613c-d40b-4589-aa40-e4ec8f39632a}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

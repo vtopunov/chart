@@ -6,6 +6,8 @@
 
 namespace
 {
+    constexpr auto invalid_index = numeric_max_v<size_t>;
+
     struct i_node : basic_intrusive_node<i_node>
     {
         using node_type = basic_intrusive_node<i_node>;
@@ -72,7 +74,7 @@ namespace
                     const auto array_it_ptr = iter_ptr(array_it);
                     D_ASSERT(array_it_ptr > root);
                     D_ASSERT(array_it_ptr < end);
-                    if (size_maxi != array_it_ptr->index)
+                    if (invalid_index != array_it_ptr->index)
                     {
                         break;
                     }
@@ -84,7 +86,7 @@ namespace
             D_ASSERT(it == iter_ptr(array_it));
         }
 
-        while (size_maxi == array_it->index)
+        while (invalid_index == array_it->index)
         {
             {
                 const auto array_it_ptr = iter_ptr(array_it);
@@ -279,7 +281,7 @@ void test_intrusive() noexcept
                 const auto random_index = index_distribution(random_engine);
                 const auto p_node = p_nodes[random_index];
                 intrusive_unlink(*p_node);
-                p_node->index = size_maxi;
+                p_node->index = invalid_index;
                 p_nodes.erase(std::next(p_nodes.cbegin(), random_index));
             };
 

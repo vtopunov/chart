@@ -23,7 +23,7 @@ namespace widget
         pxrectangle geometry{};
         std::u8string text{};
         std::function<void()> clicked{};
-        font_cache::face font{};
+        font_cache::cached_face font{ font_cache::default_font() };
         text_cache text_cache{};
         button_state state{ button_state::free };
 
@@ -32,8 +32,6 @@ namespace widget
             text = std::move(new_text);
             text_cache.clear();
         }
-
-        [[nodiscard]] bool operator () (widget::basic_initialization_event<>) noexcept;
 
         [[nodiscard]] event_result operator () (const ui::mouse_down_event& e) noexcept;
         [[nodiscard]] event_result operator () (const ui::mouse_up_event& e) noexcept;
@@ -44,9 +42,9 @@ namespace widget
 #endif       
 
         using redraw_event_type = basic_redraw_event<
-            shader_embed::luminance_texture,
-            shader_embed::colored_rectangle,
-            buffer_view
+            const shader_embed::luminance_texture,
+            const shader_embed::colored_rectangle,
+            temp_byte_buffer
         >;
 
         void operator () (redraw_event_type e) noexcept;

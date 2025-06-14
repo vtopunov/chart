@@ -1,8 +1,94 @@
 #include <array>
+#include <random>
 
 #include <core/buffer.h>
-#include <core/buffer_view.h>
 
+
+namespace
+{
+    template<size_t Size0, size_t Size1>
+    void test_interpret() noexcept
+    {
+        enum class byte0 : uint8_t {};
+        enum class byte1 : uint8_t {};
+        static_assert(1_uz == sizeof(byte0));
+        static_assert(1_uz == sizeof(byte1));
+
+        using mbyte0_t = std::array<byte0, Size0>;
+        using mbyte_t = std::array<byte1, Size1>;
+        using buffer_type = buffer<mbyte0_t>;
+        static_assert(std::is_same_v<decl_value_type_t<buffer_type>, typename buffer_type::value_type>);
+        static_assert(std::is_same_v<decl_value_type_t<buffer_type>, mbyte0_t>);
+
+        std::random_device entropy{};
+        std::mt19937_64 random_engine_64{ entropy() };
+        buffer_type b{ std::uniform_int_distribution<size_t>{ 3_uz * Size0, 7_uz * Size0 }(random_engine_64) };
+
+        {
+            const auto end = static_cast<const std::byte*>(b.cvoid_data()) + size_bytes(b);
+            for (size_t i = 0; i < 3; ++i )
+            {
+                zero_memory(b);
+                for (auto it = static_cast<std::byte*>(b.void_data()); it != end; )
+                {
+                    const auto nbytes = narrow<size_t>(end - it);
+                    const auto random_value = random_engine_64();
+                    const auto nwbytes = std::min(sizeof(random_value), nbytes);
+
+                    {
+                        constexpr std::remove_reference_t<decltype(random_value)> zeros{};
+                        D_ASSERT(!memcmp(it, std::addressof(zeros), nwbytes));
+                    }
+
+                    memcpy(it, std::addressof(random_value), nwbytes);
+                    it += nwbytes;
+                }
+            }
+        }
+
+        using mbview_t = basic_buffer_view<mbyte_t>;
+        using cmbview_t = basic_buffer_view<const mbyte_t>;
+        D_ASSERT(sizeof(mbyte0_t) * b.size() == size_bytes(b));
+        const mbview_t sp{ memory_construct, b.void_data(), size_bytes(b) };
+        const cmbview_t csp{ sp };
+
+        {
+            const auto bsp = interpret<mbyte_t>(view(b));
+            static_assert(std::is_same_v<decltype(sp), decltype(bsp)>);
+            D_ASSERT(sp == bsp);
+        }
+
+        {
+            const auto bsp = interpret<mbyte_t>(view(std::as_const(b)));
+            static_assert(std::is_same_v<decltype(sp), decltype(bsp)>);
+            D_ASSERT(sp == bsp);
+        }
+
+        {
+            const auto bsp = interpret<mbyte_t>(cview(b));
+            static_assert(std::is_same_v<decltype(csp), decltype(bsp)>);
+            D_ASSERT(csp == bsp);
+        }
+
+        {
+            const auto bsp = interpret<const mbyte_t>(view(b));
+            static_assert(std::is_same_v<decltype(csp), decltype(bsp)>);
+            D_ASSERT(csp == bsp);
+        }
+
+        {
+            const auto bsp = interpret<mbyte_t>(view(b).as_const());
+            static_assert(std::is_same_v<decltype(csp), decltype(bsp)>);
+            D_ASSERT(csp == bsp);
+        }
+
+        {
+            const auto bsp = interpret<const mbyte_t>(cview(std::as_const(b)).as_const());
+            static_assert(std::is_same_v<decltype(csp), decltype(bsp)>);
+            D_ASSERT(csp == bsp);
+        }
+    }
+}
 
 void test_buffer() noexcept
 {
@@ -34,7 +120,7 @@ void test_buffer() noexcept
     }
 
     D_ASSERT(size <= b.size());
-    D_ASSERT(b.size() * sizeof(type_t) == b.size_bytes());
+    D_ASSERT(b.size() * sizeof(type_t) == size_bytes(b));
 
     static_assert(std::is_same_v<decltype(b.void_data()), void*>);
     static_assert(std::is_same_v<decltype(b.cvoid_data()), const void*>);
@@ -117,159 +203,70 @@ void test_buffer() noexcept
     }
 
     {
-        buffer_view bv{ b };
+        byte_buffer_view bv{ b };
         D_ASSERT(bv.data());
-        D_ASSERT(bv.data() == b.data());
+        D_ASSERT(bv.void_data() == b.void_data());
+        D_ASSERT(bv.void_data() == b.cvoid_data());
+        D_ASSERT(bv.cvoid_data() == b.cvoid_data());
+        D_ASSERT(b.data() == static_cast<const type_t*>(b.cvoid_data()));
+        D_ASSERT(bv.data() == static_cast<const std::byte*>(b.cvoid_data()));
+        D_ASSERT(b.cdata() == static_cast<const type_t*>(b.cvoid_data()));
+        D_ASSERT(bv.cdata() == static_cast<const std::byte*>(b.cvoid_data()));
+
         D_ASSERT(bv.size());
-        D_ASSERT(bv.size() == b.size_bytes());
+        D_ASSERT(bv.size() == size_bytes(b));
         bv = {};
         D_ASSERT(!bv.data());
         D_ASSERT(!bv.size());
         bv = b;
         D_ASSERT(bv.data());
-        D_ASSERT(bv.data() == b.data());
+        D_ASSERT(bv.cvoid_data() == b.void_data());
         D_ASSERT(bv.size());
-        D_ASSERT(bv.size() == b.size_bytes());
+        D_ASSERT(bv.size() == size_bytes(b));
     }
 
     {
-        const_buffer_view bv{ b };
+        const_byte_buffer_view bv{ b };
         D_ASSERT(bv.data());
-        D_ASSERT(bv.data() == b.data());
+        D_ASSERT(bv.cvoid_data() == b.cvoid_data());
         D_ASSERT(bv.size());
-        D_ASSERT(bv.size() == b.size_bytes());
+        D_ASSERT(bv.size() == size_bytes(b));
         bv = {};
         D_ASSERT(!bv.data());
         D_ASSERT(!bv.size());
         bv = b;
         D_ASSERT(bv.data());
-        D_ASSERT(bv.data() == b.data());
+        D_ASSERT(bv.cvoid_data() == b.cvoid_data());
         D_ASSERT(bv.size());
-        D_ASSERT(bv.size() == b.size_bytes());
+        D_ASSERT(bv.size() == size_bytes(b));
     }
+
 
     {
-        {
-            using span_t = span<type_t>;
-            using cspan_t = span<const type_t>;
-            static_assert(!std::is_same_v<span_t, cspan_t>);
-            const span_t sp{ b };
-            const cspan_t csp{ sp };
-            const auto bsp = b.as_span();
-            const auto cbsp = std::as_const(b).as_span();
-            const auto bcsp = b.as_cspan();
-            const auto cbcsp = std::as_const(b).as_cspan();
-            static_assert(std::is_same_v<decltype(sp), decltype(bsp)>);
-            static_assert(std::is_same_v<decltype(sp), decltype(cbsp)>);
-            static_assert(std::is_same_v<decltype(csp), decltype(bcsp)>);
-            static_assert(std::is_same_v<decltype(csp), decltype(cbcsp)>);
-            D_ASSERT(sp == bsp);
-            D_ASSERT(sp == cbsp);
-            D_ASSERT(csp == bcsp);
-            D_ASSERT(csp == cbcsp);
-        }
-
-        {
-            using mbyte_t = std::array<std::byte, sizeof(type_t)>;
-            static_assert(!std::is_same_v<type_t, mbyte_t>);
-            static_assert(sizeof(type_t) == sizeof(mbyte_t));
-            using mbspan_t = span<mbyte_t>;
-            using cmbspan_t = span<const mbyte_t>;
-            const mbspan_t mbsp{ static_cast<mbyte_t*>(b.void_data()), b.size() };
-            const cmbspan_t cmbsp{ mbsp };
-            const auto bmbsp = b.as_span<mbyte_t>();
-            const auto bcmbsp = b.as_span<const mbyte_t>();
-            const auto cbmbsp = std::as_const(b).as_span<mbyte_t>();
-            const auto cbcmbsp = std::as_const(b).as_span<const mbyte_t>();
-
-            static_assert(std::is_same_v<decltype(mbsp), decltype(bmbsp)>);
-            static_assert(std::is_same_v<decltype(mbsp), decltype(cbmbsp)>);
-            static_assert(std::is_same_v<decltype(cmbsp), decltype(cbcmbsp)>);
-            static_assert(std::is_same_v<decltype(cmbsp), decltype(bcmbsp)>);
-            D_ASSERT(mbsp == bmbsp);
-            D_ASSERT(cmbsp == bcmbsp);
-            D_ASSERT(mbsp == cbmbsp);
-            D_ASSERT(cmbsp == cbcmbsp);
-        }
-
-        {
-            using mbyte_t = std::array<std::byte, sizeof(type_t) / 2u>;
-            static_assert(!std::is_same_v<type_t, mbyte_t>);
-            static_assert(1u < sizeof(mbyte_t));
-            static_assert(sizeof(type_t) == sizeof(mbyte_t) * 2u);
-
-            using mbspan_t = span<mbyte_t>;
-            using cmbspan_t = span<const mbyte_t>;
-            const mbspan_t mbsp{ static_cast<mbyte_t*>(b.void_data()), 2u * b.size() };
-            const cmbspan_t cmbsp{ mbsp };
-            const auto bmbsp = b.as_span<mbyte_t>();
-            const auto bcmbsp = b.as_span<const mbyte_t>();
-            const auto cbmbsp = std::as_const(b).as_span<mbyte_t>();
-            const auto cbcmbsp = std::as_const(b).as_span<const mbyte_t>();
-
-            static_assert(std::is_same_v<decltype(mbsp), decltype(bmbsp)>);
-            static_assert(std::is_same_v<decltype(mbsp), decltype(cbmbsp)>);
-            static_assert(std::is_same_v<decltype(cmbsp), decltype(cbcmbsp)>);
-            static_assert(std::is_same_v<decltype(cmbsp), decltype(bcmbsp)>);
-            D_ASSERT(mbsp == bmbsp);
-            D_ASSERT(cmbsp == bcmbsp);
-            D_ASSERT(mbsp == cbmbsp);
-            D_ASSERT(cmbsp == cbcmbsp);
-        }
-
-        {
-            constexpr auto mb_number_of_values = 2_uz;
-            using mbyte_t = std::array<std::byte, mb_number_of_values * sizeof(type_t)>;
-            static_assert(!std::is_same_v<type_t, mbyte_t>);
-
-            {
-                constexpr auto size_bytes = size_mul<sizeof(type_t)>(size);
-                static_assert(size_bytes > sizeof(mbyte_t));
-                static_assert(!(size_bytes % sizeof(mbyte_t)));
-            }
-
-            using mbspan_t = span<mbyte_t>;
-            using cmbspan_t = span<const mbyte_t>;
-            const auto mb_size = b.size() / mb_number_of_values;
-            const auto mb_size_bytes = size_mul<sizeof(mbyte_t)>(mb_size);
-            const mbspan_t mbsp{ static_cast<mbyte_t*>(b.void_data()), mb_size };
-            const cmbspan_t cmbsp{ mbsp };
-
-            const auto bmbsp = b.as_span<mbyte_t>();
-            const auto bcmbsp = b.as_span<const mbyte_t>();
-            const auto cbmbsp = std::as_const(b).as_span<mbyte_t>();
-            const auto cbcmbsp = std::as_const(b).as_span<const mbyte_t>();
-
-            static_assert(std::is_same_v<decltype(mbsp), decltype(bmbsp)>);
-            static_assert(std::is_same_v<decltype(mbsp), decltype(cbmbsp)>);
-            static_assert(std::is_same_v<decltype(cmbsp), decltype(cbcmbsp)>);
-            static_assert(std::is_same_v<decltype(cmbsp), decltype(bcmbsp)>);
-            D_ASSERT(mbsp == bmbsp);
-            D_ASSERT(cmbsp == bcmbsp);
-            D_ASSERT(mbsp == cbmbsp);
-            D_ASSERT(cmbsp == cbcmbsp);
-            D_ASSERT(mb_size_bytes == ::size_bytes(mbsp));
-            D_ASSERT(mb_size_bytes == ::size_bytes(cmbsp));
-        }
+        using span_t = basic_buffer_view<type_t>;
+        using cspan_t = basic_buffer_view<const type_t>;
+        static_assert(!std::is_same_v<span_t, cspan_t>);
+        const span_t sp{ b };
+        const cspan_t csp{ sp };
+        const auto bsp = view(b);
+        const auto cbsp = view(std::as_const(b));
+        const auto bcsp = cview(b);
+        const auto cbcsp = cview(std::as_const(b));
+        static_assert(std::is_same_v<decltype(sp), decltype(bsp)>);
+        static_assert(std::is_same_v<decltype(sp), decltype(cbsp)>);
+        static_assert(std::is_same_v<decltype(csp), decltype(bcsp)>);
+        static_assert(std::is_same_v<decltype(csp), decltype(cbcsp)>);
+        D_ASSERT(sp == bsp);
+        D_ASSERT(sp == cbsp);
+        D_ASSERT(csp == bcsp);
+        D_ASSERT(csp == cbcsp);
     }
 
-    {
-        using bytes_t = span<std::byte>;
-        using cbytes_t = span<const std::byte>;
-
-        const bytes_t bsp{ static_cast<std::byte*>(b.void_data()), b.size_bytes() };
-        const cbytes_t cbsp{ bsp };
-        const auto bbsp = b.as_span<std::byte>();
-        const auto cbbsp = std::as_const(b).as_span<std::byte>();
-         const auto bcbsp = b.as_span<const std::byte>();
-        const auto cbcbsp = std::as_const(b).as_span<const std::byte>();
-        static_assert(std::is_same_v<decltype(bsp), decltype(bbsp)>);
-        static_assert(std::is_same_v<decltype(bsp), decltype(cbbsp)>);
-        static_assert(std::is_same_v<decltype(cbsp), decltype(bcbsp)>);
-        static_assert(std::is_same_v<decltype(cbsp), decltype(cbcbsp)>);
-        D_ASSERT(bsp == bbsp);
-        D_ASSERT(bsp == cbbsp);
-        D_ASSERT(cbsp == bcbsp);
-        D_ASSERT(cbsp == cbcbsp);
-    }
+    test_interpret<4_uz, 4_uz>();
+    test_interpret<8_uz, 4_uz>();
+    test_interpret<4_uz, 8_uz>();
+    test_interpret<4_uz, 1_uz>();
+    test_interpret<1_uz, 4_uz>();
+    test_interpret<5_uz, 11_uz>();
+    test_interpret<11_uz, 5_uz>();
 }

@@ -17,14 +17,14 @@ namespace private_detail_decode_utf
         if (code0 < 0x80u)
         {
             write(code0);
-            return 1_uz;
+            return 1u;
         }
 
         if constexpr (OctetCount > 1_uz)
         {
             if (code0 < 0xC2u)
             {
-                return 1_uz;
+                return 1u;
             }
 
             constexpr auto offset1 = [](uint8_t code) noexcept
@@ -42,12 +42,12 @@ namespace private_detail_decode_utf
                 const auto code1 = *++in;
                 if ((code1 & 0xC0) != 0x80u)
                 {
-                    return 1_uz;
+                    return 1u;
                 }
 
                 constexpr uint16_t mark16{ 0x3080u };
                 write(offset1(code0) + code1 - mark16);
-                return 2_uz;
+                return 2u;
             }
 
             if constexpr (OctetCount > 2_uz)
@@ -62,23 +62,23 @@ namespace private_detail_decode_utf
                     const auto code1 = *++in;
                     if ((code1 & 0xC0) != 0x80u)
                     {
-                        return 1_uz;
+                        return 1u;
                     }
 
                     if (code0 == 0xE0u && code1 < 0xA0u)
                     {
-                        return 1_uz;
+                        return 1u;
                     }
 
                     const auto code2 = *++in;
                     if ((code2 & 0xC0u) != 0x80u)
                     {
-                        return 1_uz;
+                        return 1u;
                     }
 
                     constexpr uint32_t mark24{ 0xE2080ul };
                     write(offset2(code0) + offset1(code1) + code2 - mark24);
-                    return 3_uz;
+                    return 3u;
                 }
 
                 if constexpr (OctetCount > 3_uz)
@@ -93,40 +93,40 @@ namespace private_detail_decode_utf
                         const auto code1 = *++in;
                         if ((code1 & 0xC0u) != 0x80u)
                         {
-                            return 1_uz;
+                            return 1u;
                         }
 
                         if (code0 == 0xF0u && code1 < 0x90u)
                         {
-                            return 1_uz;
+                            return 1u;
                         }
 
                         if (code0 == 0xF4u && code1 >= 0x90u)
                         {
-                            return 1_uz;
+                            return 1u;
                         }
 
                         const auto code2 = *++in;
                         if ((code2 & 0xC0u) != 0x80u)
                         {
-                            return 1_uz;
+                            return 1u;
                         }
 
                         const auto code3 = *++in;
                         if ((code3 & 0xC0u) != 0x80u)
                         {
-                            return 1_uz;
+                            return 1u;
                         }
 
                         constexpr uint32_t mark32{ 0x3C82080ul };
                         write(offset3(code0) + offset2(code1) + offset1(code2) + code3 - mark32);
-                        return 4_uz;
+                        return 4u;
                     }
                 }
             }
         }
 
-        return 1_uz;
+        return 1u;
     }
 
     template<size_t Size, class FirstIt, class LastIt>

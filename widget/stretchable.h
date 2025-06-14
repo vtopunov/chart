@@ -56,7 +56,7 @@ namespace widget
 
     template<class Pos, class Sz, class Bound>
     [[nodiscard]] constexpr auto stretchable_geometry(const rectangle<Pos, Sz>& r, const Bound& b) noexcept 
-        -> rectangle<Pos, value_type_t<decltype(stretchable_sizes(r, b))> >
+        -> rectangle<Pos, decl_value_type_t<decltype(stretchable_sizes(r, b))> >
     {
         return 
         {

@@ -200,7 +200,7 @@ constexpr rgba_color argb_to_color(argb_t argb) noexcept
 [[nodiscard]]
 constexpr rgba_color rgb_to_color(argb_t rgb) noexcept
 {
-    D_ASSERT(!a_argb(rgb));
+    D_ASSERT_OR_ASSUME(!a_argb(rgb));
     return make_rgb
     (
         r_argb(rgb),
@@ -305,10 +305,10 @@ template<class Target, class Source>
         {
             return
             {
-                .r{ to_target_luminance(src[0_uz]) },
-                .g{ to_target_luminance(src[1_uz]) },
-                .b{ to_target_luminance(src[2_uz]) },
-                .a{ to_target_luminance(src[3_uz]) }
+                .r{ to_target_luminance(src[0u]) },
+                .g{ to_target_luminance(src[1u]) },
+                .b{ to_target_luminance(src[2u]) },
+                .a{ to_target_luminance(src[3u]) }
             };
         }
         else
@@ -373,6 +373,9 @@ namespace private_detail_argb_color
     template<class L, class R>
     using common_signed_t = std::common_type_t<signed_t<L>, signed_t<R>>;
 
+    template<class T>
+    using add_rational_t = rational<T>;
+
     template<class L, class R>
     struct common_rational_deductor
     {
@@ -381,8 +384,8 @@ namespace private_detail_argb_color
         using removed_rational_L = typename RDL::removed_rational_type;
         using removed_rational_R = typename RDR::removed_rational_type;
         using common_type = common_signed_t<removed_rational_L, removed_rational_R>;
-        using L_type = conditional_op_t<RDL::value, rational, common_type>;
-        using R_type = conditional_op_t<RDR::value, rational, common_type>;
+        using L_type = conditional_op_t<RDL::value, add_rational_t, common_type>;
+        using R_type = conditional_op_t<RDR::value, add_rational_t, common_type>;
     };
 
     template<class T, class A>
@@ -420,7 +423,7 @@ namespace private_detail_argb_color
     {
         if constexpr (is_rgba_color_v<R>)
         {
-            D_ASSERT(left.a == right.a);
+            D_ASSERT_OR_ASSUME(left.a == right.a);
 
             return make_rgba_color
             (
@@ -530,37 +533,37 @@ template<class L, class R, std::enable_if_t<std::disjunction_v<std::is_arithmeti
 namespace color_literals
 {
     [[nodiscard]]
-    constexpr luminance_t operator "" _lum(unsigned long long value) noexcept
+    constexpr luminance_t operator ""_lum(unsigned long long value) noexcept
     {
         return narrow<luminance_t>(value);
     }
 
     [[nodiscard]]
-    constexpr luminancef_t operator "" _lum(long double value) noexcept
+    constexpr luminancef_t operator ""_lum(long double value) noexcept
     {
         return static_cast<luminancef_t>(value);
     }
 
     [[nodiscard]]
-    constexpr rgba_color operator "" _rgb(unsigned long long rgb) noexcept
+    constexpr rgba_color operator ""_rgb(unsigned long long rgb) noexcept
     {
         return rgb_to_color(narrow<argb_t>(rgb));
     }
 
     [[nodiscard]]
-    constexpr rgba_color operator "" _argb(unsigned long long argb) noexcept
+    constexpr rgba_color operator ""_argb(unsigned long long argb) noexcept
     {
         return argb_to_color(narrow<argb_t>(argb));
     }
 
     [[nodiscard]]
-    constexpr rgbaf_color operator "" _rgbf(unsigned long long rgb) noexcept
+    constexpr rgbaf_color operator ""_rgbf(unsigned long long rgb) noexcept
     {
         return to_colorf(rgb_to_color(narrow<argb_t>(rgb)));
     }
 
     [[nodiscard]]
-    constexpr rgbaf_color operator "" _argbf(unsigned long long argb) noexcept
+    constexpr rgbaf_color operator ""_argbf(unsigned long long argb) noexcept
     {
         return to_colorf(argb_to_color(narrow<argb_t>(argb)));
     }

@@ -21,7 +21,7 @@ namespace file
 
             struct asset_resource
             {
-                os::module_handle_t module;
+                HMODULE module;
                 HRSRC resource_info;
 
                 constexpr explicit operator bool() const noexcept
@@ -50,7 +50,7 @@ namespace file
             [[nodiscard]]
             asset_resource find_asset(path_zstring_view path) noexcept
             {
-                const auto module = GetModuleHandleW(nullptr);
+                const auto module = os::current_module();
 
                 return
                 {

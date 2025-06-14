@@ -32,7 +32,7 @@
     <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\build\core_static_library.props" />
+  <Import Project="..\build\static_library.props" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <ClCompile>
       <AdditionalOptions>-std=c++2a %(AdditionalOptions)</AdditionalOptions>

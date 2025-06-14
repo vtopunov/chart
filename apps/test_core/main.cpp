@@ -1,15 +1,18 @@
-
+extern void test_fwd() noexcept;
 extern void test_type_traits() noexcept;
+extern void test_math() noexcept;
 extern void test_intrusive() noexcept;
 extern void test_zero() noexcept;
 extern void test_tuple_algorithm() noexcept;
 extern void test_view() noexcept;
+extern void test_reference_wrapper() noexcept;
 extern void test_utility() noexcept;
 extern void test_clamp_cast() noexcept;
 extern void test_functional() noexcept;
 extern void test_round() noexcept;
 extern void test_narrow() noexcept;
 extern void test_span() noexcept;
+extern void test_memory() noexcept;
 extern void test_buffer_view() noexcept;
 extern void test_zstring_view() noexcept;
 extern void test_vec2() noexcept;
@@ -31,17 +34,21 @@ extern void test_utf() noexcept;
 
 int main() noexcept
 {
+    test_fwd();
     test_type_traits();
+    test_math();
     test_intrusive();
     test_zero();
     test_tuple_algorithm();
     test_view();
+    test_reference_wrapper();
     test_utility();
     test_clamp_cast();
     test_functional();
     test_round();
     test_narrow();
     test_span();
+    test_memory();
     test_buffer_view();
     test_zstring_view();
     test_vec2();

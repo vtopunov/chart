@@ -18,7 +18,6 @@
     <ClCompile Include="multiple_draw_buffers\MultipleDrawBuffers.cpp">
       <Filter>multiple_draw_buffers</Filter>
     </ClCompile>
-    <None Include="samples.gyp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="multiple_draw_buffers\multiple_draw_buffers_fs.glsl" />

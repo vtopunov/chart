@@ -10,11 +10,11 @@
 
 #define D_DISABLE_COPY_CA(Class) \
     Class(const Class &) = delete;\
-    Class &operator=(const Class &) = delete
+    void operator=(const Class &) = delete
 
 #define D_DISABLE_MOVE_CA(Class) \
     Class(Class &&) = delete; \
-    Class &operator=(Class &&) = delete
+    void operator=(Class &&) = delete
 
 #define D_DEFAULT_COPY_CA(Class) \
     constexpr Class(const Class &) noexcept = default;\
@@ -28,13 +28,17 @@
     D_DISABLE_COPY_CA(Class); \
     D_DISABLE_MOVE_CA(Class)
 
+#define D_DISABLE_ALL_CA(Class) \
+    constexpr Class() noexcept = delete;\
+    D_DISABLE_COPYMOVE_CA(Class)
+
 #define D_DEFAULT_ONLYMOVE_CA(Class) \
     D_DISABLE_COPY_CA(Class); \
     D_DEFAULT_MOVE_CA(Class)
 
 #define D_DEFAULT_COPYMOVE_CA(Class) \
     D_DEFAULT_COPY_CA(Class); \
-    D_DEFAULT_MOVE_CA(Class)   
+    D_DEFAULT_MOVE_CA(Class)
 
 #define D_DEFAULT_ALL_CA(Class) \
     constexpr Class() noexcept = default;\
@@ -50,6 +54,18 @@
 
 
 #define D_UNUSED(expression) ((void)(expression))
+#define D_ASSUME(expression) D_UNUSED(0)
+
+
+#ifdef _MSC_VER
+#define D_FORCEINLINE inline __forceinline
+#define D_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+#else
+
+#define D_FORCEINLINE inline __attribute__((always_inline))
+#define D_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#endif
+
 
 #ifdef NDEBUG
 #define D_IS_DEBUG 0
@@ -57,7 +73,7 @@
 #define D_DEBUG_OR(D, R) R 
 #define D_ASSERT(expression) D_UNUSED(0)
 #define D_ASSERT_OR_UNUSED(expression) D_UNUSED(expression)
-
+#define D_ASSERT_OR_ASSUME(expression) D_ASSUME(expression)
 
 #else
 #define D_IS_DEBUG 1
@@ -71,8 +87,11 @@
 #endif
 
 #define D_ASSERT_OR_UNUSED(expression) D_ASSERT(expression)
+#define D_ASSERT_OR_ASSUME(expression) D_ASSERT(expression)
 
 #endif
+
+#define D_CHECK(expression) D_ASSERT_OR_UNUSED(expression)
 
 
 #ifdef _MSC_VER
@@ -85,34 +104,43 @@
 
 
 using doublemax_t = long double;
+using float_real_t = float;
+using real_t = double;
 
 
-constexpr size_t operator "" _uz(unsigned long long value) noexcept
+constexpr size_t operator ""_uz(unsigned long long value) noexcept
 {
     return value;
 }
 
-constexpr ptrdiff_t operator "" _z(unsigned long long value) noexcept
+constexpr ptrdiff_t operator ""_z(unsigned long long value) noexcept
 {
     return value;
 }
 
 
-constexpr size_t size_maxi{ SIZE_MAX };
+using denomi_t = uintmax_t;
 
+constexpr denomi_t dynamic_denominator{ 0u };
+constexpr size_t dynamic_extent{ SIZE_MAX };
 constexpr size_t small_size_mini{ 4_uz * sizeof(size_t) };
-
-constexpr size_t dynamic_extent{ size_maxi };
 
 
 struct memory_construct_t
 {
-    static constexpr struct construct_tag_t {} tag;
-
-    constexpr explicit memory_construct_t(construct_tag_t) noexcept {}
+    static constexpr struct {} tag{};
+    constexpr explicit memory_construct_t(decltype(tag)) noexcept {}
 };
 
 constexpr memory_construct_t memory_construct{ memory_construct_t::tag };
+
+struct memory_overwrite_construct_t
+{
+    static constexpr struct {} tag{};
+    constexpr explicit memory_overwrite_construct_t(decltype(tag)) noexcept {}
+};
+
+constexpr memory_overwrite_construct_t memory_overwrite_construct{ memory_overwrite_construct_t::tag };
 
 struct nullmem_t
 {
@@ -123,60 +151,44 @@ struct nullmem_t
 constexpr nullmem_t nullmem{ memory_construct };
 
 
-template<class T>
-struct basic_intrusive_node;
-
-template<class T>
-struct intrusive_node_object;
-
-template<class T>
-class intrusive_list_ref;
-
-template<class T>
-class intrusive_list;
+template<class T> struct basic_intrusive_node;
+template<class T> struct intrusive_node_object;
+template<class T> class intrusive_list_ref;
+template<class T> class intrusive_list;
 
 
-template<class T>
+template <class T, denomi_t = dynamic_denominator>
 struct rational;
 
-
-template<class T>
-struct vec2;
-
-template<class T>
-struct point2d;
-
-template<class T>
-struct size2d;
+template<class T> struct vec2;
+template<class T> struct point2d;
+template<class T> struct size2d;
 
 template <class T, size_t = dynamic_extent>
 class span;
 
-template<class T>
-class buffer;
+using vec2re = vec2<real_t>;
+using point2re = point2d<real_t>;
+using size2re = size2d<real_t>;
+using point2re_cspan = span<const point2re>;
 
-static_assert(1_uz == sizeof(std::byte));
+
+template<class T> class basic_buffer_view;
+template<class T> class buffer;
+
+using byte_buffer_view = basic_buffer_view<std::byte>;
+using const_byte_buffer_view = basic_buffer_view<const std::byte>;
 using byte_buffer = buffer<std::byte>;
-
-template<bool immutable>
-class basic_buffer_view;
-
-using buffer_view = basic_buffer_view<false>;
-using const_buffer_view = basic_buffer_view<true>;
-
-template<class T>
-class optional_reference_wrapper;
+static_assert(1_uz == sizeof(std::byte));
 
 
 constexpr auto rgba_color_extent = 4_uz;
 
 using argb_t = uint32_t;
-static_assert(sizeof(argb_t) == rgba_color_extent);
-
 using luminance_t = uint8_t;
+using luminancef_t = float_real_t;
+static_assert(sizeof(argb_t) == rgba_color_extent);
 static_assert(sizeof(luminance_t) == 1_uz);
-
-using luminancef_t = float;
 static_assert(sizeof(luminancef_t) == 4_uz);
 
 template<class T>
@@ -198,15 +210,22 @@ template<class T>
 using decl_view_type_t = typename T::view_type;
 
 template<class T>
+using decl_const_view_type_t = typename T::const_view_type;
+
+template<class T>
 using decl_null_type_t = typename T::null_type;
 
+template<class T>
+using decl_deleter_type_t = typename T::deleter_type;
 
-template <class T, class D>
+template <class T, class D = decl_deleter_type_t<T> >
 class unique_resource;
 
-template<class T, class D>
+template<class T, class D = decl_deleter_type_t<T> >
 class shared_resource;
 
+template<class T>
+class optional_reference_wrapper;
 
 struct nothing
 {
@@ -215,23 +234,18 @@ struct nothing
     {}
 };
 
-struct dummy {};
-
 template<class...>
-struct types_pack
+struct ttypes
 {};
-
-template<class... Types>
-constexpr types_pack<Types...> types_pack_v{};
 
 template<template <class...> class...>
-struct tuples_pack
+struct ttuples
 {};
 
-template<template <class...> class Tuple>
-struct tuple_pack
-{};
+using dummy = ttypes<>;
 
-using noapply_t = types_pack<>;
+template<class... Types>
+constexpr ttypes<Types...> ttypes_v{};
 
-constexpr noapply_t noapply{};
+constexpr nothing nothing_v{};
+constexpr dummy dummy_v{};

@@ -16,9 +16,9 @@ namespace
     {
     public:
         [[nodiscard]]
-        bool initialize(os::module_handle_t app) noexcept
+        bool initialize() noexcept
         {
-            egl_ = create_egl_ui(app);
+            egl_ = egli_builder{}.build();
             if (!egl_)
             {
                 return false;
@@ -119,7 +119,7 @@ namespace
         }
 
     private:
-        egl_ui_owner egl_{};
+        egli_owner egl_{};
         shaders_lib shaders_{};
         gl::texture2d texture_{};
         ui::user_vpoint_cache user_vpoint_cache_{ ui::no_cached_user_vpoint };
@@ -128,13 +128,12 @@ namespace
     };
 }
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
     main_processor processor{};
-
-    if (!processor.initialize(app))
+    if (!processor.initialize())
     {
-        e_debug("create window error: {}", egl_ui::error_code());
+        e_debug("create window error: {}", egli::error_code());
         return EXIT_FAILURE;
     }
 

@@ -23,7 +23,7 @@ namespace chart
         };
 
         pxmargins margins{ default_margins };
-        font_cache::face font{};
+        font_cache::cached_face font{};
         gl::texture2d x_axis_texture_cache{};
         gl::texture2d y_axis_texture_cache{};
         real_t x_axis_offset_cache{ 0.0 };
@@ -37,7 +37,7 @@ namespace chart
             geometry.sizes.ref_height() -= (margins.top + margins.bottom);
         }
 
-        void operator () (const periodic_value_position&, buffer_view) noexcept
+        void operator () (const periodic_value_position&, temp_byte_buffer&, const pxrectangle&) noexcept
         {
             
         }

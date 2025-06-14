@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="bluetooth\debug.cpp">
+      <Filter>bluetooth</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="bluetooth">
+      <UniqueIdentifier>{7f239aa4-480f-4c00-9c34-eee4d6845a40}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="bluetooth\fwd.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\radio.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\device.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\debug.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="bluetooth\bluetooth.h">
+      <Filter>bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="iostream_ex.h" />
+  </ItemGroup>
+</Project>

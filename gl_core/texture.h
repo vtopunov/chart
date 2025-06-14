@@ -92,7 +92,7 @@ namespace gl
         {
             constexpr operator texture2d_resources () const noexcept
             {
-                return { static_cast<base_resource_type>(*this), px::no_sizes };
+                return { static_cast<base_resource_type>(*this), no_sizes };
             }
         };
 
@@ -117,7 +117,7 @@ namespace gl
 
         constexpr void hide() noexcept
         {
-            as_mutable(r().sizes) = px::no_sizes;
+            as_mutable(r().sizes) = no_sizes;
         }
 
         [[nodiscard]]
@@ -185,19 +185,19 @@ namespace gl
     template<class Image>
     [[nodiscard]] std::enable_if_t<texpix_enabled_v<Image>, texture2d> create_texture2d(const Image& img) noexcept
     {
-        return create_texture2d(::sizes(img), texpix_format_v<Image>, as_const_pointer(std::data(img)));
+        return create_texture2d(::sizes(img), texpix_format_v<Image>, ::cdata(img));
     }
 
     template<class Image>
     [[nodiscard]] std::enable_if_t<texpix_enabled_v<Image>, texture2d> image(texture2d texture, const Image& img) noexcept
     {
-        return image(std::move(texture), ::sizes(img), texpix_format_v<Image>, as_const_pointer(std::data(img)));
+        return image(std::move(texture), ::sizes(img), texpix_format_v<Image>, ::cdata(img));
     }
 
     template<class Image>
     std::enable_if_t<texpix_enabled_v<Image>, pxsizes> write(texture2d_resource texture, const Image& img) noexcept
     {
-        return write(texture, ::sizes(img), texpix_format_v<Image>, as_const_pointer(std::data(img)));
+        return write(texture, ::sizes(img), texpix_format_v<Image>, ::cdata(img));
     }
 
     template<class Image>

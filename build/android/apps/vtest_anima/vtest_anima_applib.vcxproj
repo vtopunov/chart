@@ -32,7 +32,7 @@
     <AndroidAPILevel>android-31</AndroidAPILevel>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <Import Project="..\..\build\egl_ui_app_library.props" />
+  <Import Project="..\..\build\egli_app_library.props" />
   <PropertyGroup>
     <AppName>$([System.String]::Copy('$(ProjectName)').Replace('_applib',''))</AppName>
   </PropertyGroup>

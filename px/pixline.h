@@ -21,7 +21,7 @@ namespace px
             , size_{ size }
             , width_{ width }
         {
-            D_ASSERT(width_ <= size_);
+            D_ASSERT_OR_ASSUME(width_ <= size_);
         }
 
         [[nodiscard]]

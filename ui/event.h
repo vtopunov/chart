@@ -87,13 +87,13 @@ namespace ui
         [[nodiscard]]
         constexpr size_t _index() const noexcept
         {
-            return 0_uz;
+            return 0u;
         }
 
         [[nodiscard]]
         constexpr size_t _size() const noexcept
         {
-            return 1_uz;
+            return 1u;
         }
 
     private:
@@ -423,7 +423,7 @@ namespace ui
     template<event_style style>
     [[nodiscard]] constexpr const specialized_event<style>& event_for(const event& e) noexcept
     {
-        D_ASSERT(style == e.style());
+        D_ASSERT_OR_ASSUME(style == e.style());
         return to_identical_derived<specialized_event<style>>(e);
     }
 
@@ -458,7 +458,7 @@ namespace ui
     template<cmd_event_style style>
     [[nodiscard]] constexpr const specialized_cmd_event<style>& cmd_event_for(const cmd_event& e) noexcept
     {
-        D_ASSERT(style == e.style());
+        D_ASSERT_OR_ASSUME(style == e.style());
         return static_cast<const specialized_cmd_event<style>&>(e);
     }
 

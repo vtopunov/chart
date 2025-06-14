@@ -11,6 +11,11 @@ D_WARNING_DISABLE_CLANG("-Wself-assign-overloaded");
 
 namespace
 {
+    using pvoid_default_resource_t = default_resource<void*>;
+    static_assert(std::is_same_v<pvoid_default_resource_t::view_type, void*>);
+    static_assert(std::is_same_v<pvoid_default_resource_t::view_type, decl_view_type_t<pvoid_default_resource_t> >);
+    static_assert(std::is_same_v<pvoid_default_resource_t::null_type, decl_null_type_t<pvoid_default_resource_t> >);
+
     template<class resource_type, class D>
     struct unsafe_resource
     {
@@ -172,9 +177,9 @@ namespace
         size_t size() const { return {}; }
     };
 
-    static_assert(std::is_same_v<view_t<test_buffer>, const const_buffer_view>);
-    static_assert(std::is_same_v<view_t<unique_resource<test_buffer, nothing>>, const const_buffer_view>);
-    static_assert(std::is_same_v<view_t<shared_resource<test_buffer, nothing>>, const const_buffer_view>);
+    static_assert(std::is_same_v<view_t<test_buffer>, const const_byte_buffer_view>);
+    static_assert(std::is_same_v<view_t<unique_resource<test_buffer, nothing>>, const const_byte_buffer_view>);
+    static_assert(std::is_same_v<view_t<shared_resource<test_buffer, nothing>>, const const_byte_buffer_view>);
 }
 
 

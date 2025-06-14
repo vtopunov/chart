@@ -21,12 +21,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -79,7 +79,7 @@
     <ClCompile Include="test_event_matching.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\egl_ui\egl_ui.vcxproj">
+    <ProjectReference Include="..\..\egli\egli.vcxproj">
       <Project>{c68c0dc6-5bbb-4620-9132-d734195ecaa5}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\gl_core\gl_core.vcxproj">

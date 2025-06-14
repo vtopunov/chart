@@ -181,30 +181,30 @@ namespace gl
             case glsl_typeid::vec2f:
             case glsl_typeid::vec2i:
             case glsl_typeid::vec2b:
-                return 2_uz;
+                return 2u;
 
             case glsl_typeid::vec3f:
             case glsl_typeid::vec3i:
             case glsl_typeid::vec3b:
-                return 3_uz;
+                return 3u;
 
             case glsl_typeid::vec4f:
             case glsl_typeid::vec4i:
             case glsl_typeid::vec4b:
             case glsl_typeid::mat2f:
-                return 4_uz;
+                return 4u;
 
             case glsl_typeid::mat3f:
-                return 3_uz * 3_uz;
+                return 3u * 3u;
 
             case glsl_typeid::mat4f:
-                return 4_uz * 4_uz;
+                return 4u * 4u;
 
             default:
                 break;
         }
 
-        return 1_uz;
+        return 1u;
     };
 
     template<glsl_typeid id>

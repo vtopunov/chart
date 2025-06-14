@@ -1,50 +1,47 @@
 #pragma once
 
+#include <core/rational.h>
 #include <core/resource.h>
-#include <core/buffer_view.h>
 #include <core/zstring_view.h>
 #include <core/utf.h>
 
 #include <px/pixspan.h>
 
-#include <font/fixed.h>
-
 
 namespace font
 {
-    struct s_face_descriptor;
+    struct _private_face;
 
-    using face_descriptor_t = s_face_descriptor*;
+    using face_resource = _private_face*;
 
     using charmax_t = char32_t;
-    using fixed_t = fixed<int64_t, 6_uz>;
+    using fixed_t = rational<int64_t, 64u>;
+    using point2fix = point2d<fixed_t>;
 
     struct face_deleter
     {
-        void operator () (face_descriptor_t face) const noexcept;
+        void operator () (face_resource face) const noexcept;
     };
 
-    using face = unique_resource<face_descriptor_t, face_deleter>;
+    using face = unique_resource<face_resource, face_deleter>;
 
     [[nodiscard]]
-    face create_face(const_buffer_view font_storage, pxsizes sizes) noexcept;
+    face create_face(const_byte_buffer_view font_storage, pxsizes sizes) noexcept;
 
     [[nodiscard]]
-    inline face create_face(const_buffer_view font_storage, npx_t size) noexcept
+    inline face create_face(const_byte_buffer_view font_storage, npx_t size) noexcept
     {
         return create_face(font_storage, size2d{ 0_npx, size });
     }
 
-    bool sizes(face_descriptor_t face, pxsizes sizes) noexcept;
+    bool sizes(face_resource face, pxsizes sizes) noexcept;
 
-    inline bool size(face_descriptor_t face, npx_t px) noexcept
+    inline bool size(face_resource face, npx_t px) noexcept
     {
         return sizes(face, size2d{ 0_npx, px });
     }
 
-    using fixed_point2d = point2d<fixed_t>;
-
-    struct cursor : fixed_point2d
+    struct cursor : point2fix
     {
         template<class X, class Y>
         [[nodiscard]] static constexpr cursor instance(X x, Y y) noexcept
@@ -66,10 +63,10 @@ namespace font
     constexpr auto invalid_position = fill_to<point2d>(numeric_max_v<npx_t>);
     constexpr auto invalid_cursor = cursor::instance(invalid_position);
 
-    cursor draw_char(lumpixspan image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept;
+    cursor draw_char(lumpixspan image, cursor cursor, face_resource face, charmax_t char_code) noexcept;
 
     template<class String>
-    cursor draw_text(lumpixspan image, cursor cursor, face_descriptor_t face, const String& text) noexcept
+    cursor draw_text(lumpixspan image, cursor cursor, face_resource face, const String& text) noexcept
     {
         const auto char_processor = [&cursor, image, face](charmax_t char_code) noexcept
         {
@@ -82,13 +79,13 @@ namespace font
     }
 
     template<class Px, class String>
-    cursor draw_text(lumpixspan image, vec2<Px> position, face_descriptor_t face, const String& text) noexcept
+    cursor draw_text(lumpixspan image, vec2<Px> position, face_resource face, const String& text) noexcept
     {
         return draw_text(image, cursor::instance(std::move(position)), face, text);
     }
 
     template<class X, class Y, class String>
-    cursor draw_text(lumpixspan image, X x, Y y, face_descriptor_t face, const String& text) noexcept
+    cursor draw_text(lumpixspan image, X x, Y y, face_resource face, const String& text) noexcept
     {
         return draw_text(image, cursor::instance(std::move(x), std::move(y)), face, text);
     }
@@ -102,7 +99,7 @@ namespace font
 
         constexpr void add(const metrics& glyph) noexcept
         {
-            D_ASSERT(success_bit);
+            D_ASSERT_OR_ASSUME(success_bit);
 
             if (glyph.success_bit) [[likely]]
             {
@@ -121,10 +118,10 @@ namespace font
     };
 
     [[nodiscard]]
-    metrics char_metrics(face_descriptor_t face, charmax_t char_code) noexcept;
+    metrics char_metrics(face_resource face, charmax_t char_code) noexcept;
 
     template<class String>
-    [[nodiscard]] metrics text_metrics(metrics tm, face_descriptor_t face, const String& text) noexcept
+    [[nodiscard]] metrics text_metrics(metrics tm, face_resource face, const String& text) noexcept
     {
         const auto processor = [&tm, face](charmax_t ch) noexcept
         {
@@ -148,7 +145,7 @@ namespace font
     };
 
     template<class String>
-    [[nodiscard]] metrics text_metrics(face_descriptor_t face, const String& text) noexcept
+    [[nodiscard]] metrics text_metrics(face_resource face, const String& text) noexcept
     {
         return text_metrics(initial_metrics, face, text);
     }

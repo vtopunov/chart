@@ -126,7 +126,7 @@ namespace image
     [[nodiscard]]
     unique_png png_instance(png_context_flags flags = png_context_flags::DEFAULT) noexcept;
 
-    png_errno png_set_buffer(png_resource png, const_buffer_view buffer) noexcept;
+    png_errno png_set_buffer(png_resource png, const_byte_buffer_view buffer) noexcept;
 
     enum class png_color_type : uint8_t
     {
@@ -191,7 +191,7 @@ namespace image
 
     png_errno png_decoded_image_size(png_resource png, png_format format, size_t* size) noexcept;
 
-    png_errno png_decode_image(png_resource png, png_format format, buffer_view out) noexcept;
+    png_errno png_decode_image(png_resource png, png_format format, byte_buffer_view out) noexcept;
 
     class rgba_pixview_result : public px::const_rgba_color_pixspan
     {
@@ -225,7 +225,7 @@ namespace image
         png_errno errno_{ png_errno::PNG_OK };
     };
 
-    rgba_pixview_result png_decode_to_rgba(const_buffer_view image, byte_buffer& temp) noexcept;
+    rgba_pixview_result png_decode_to_rgba(const_byte_buffer_view image, byte_buffer& temp) noexcept;
 
     class rgba_pixmap_result : public px::rgba_color_pixmap
     {
@@ -258,7 +258,7 @@ namespace image
         png_errno errno_{ png_errno::PNG_OK };
     };
 
-    inline rgba_pixmap_result png_decode_to_rgba(const_buffer_view image) noexcept
+    inline rgba_pixmap_result png_decode_to_rgba(const_byte_buffer_view image) noexcept
     {
         byte_buffer temp{};
 

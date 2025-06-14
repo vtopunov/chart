@@ -19,7 +19,7 @@ namespace
         using ex_type = redraw_event<
             shader<0>,
             shader<1>,
-            buffer_view
+            byte_buffer_view
         >;
 
         template<class Fn>
@@ -34,14 +34,14 @@ namespace
         using ex_type = redraw_event<
             shader<1>,
             shader<2>,
-            widget::temp_buffer
+            widget::temp_byte_buffer
         >;
 
         struct subwidget
         {
-            constexpr noapply_t apply(no_overload) const noexcept
+            constexpr dummy apply(no_overload) const noexcept
             {
-                return noapply;
+                return dummy_v;
             }
         };
 
@@ -68,8 +68,8 @@ namespace
     };
 
     template<class W>
-    using context_sample_t = repack_types_t<
-        transform_types_t<widget::context_unview_t, widget::decl_contexts_t<typename W::ex_type> >, 
+    using context_sample_t = ttypes_repack_t<
+        ttypes_transform_t<widget::context_unview_t, widget::decl_context_t<typename W::ex_type> >, 
         widget::context
     >;
 }
@@ -85,35 +85,35 @@ void test_context() noexcept
 
         {
             using main_widgets_t = widgets_t<main_widget>;
-            static_assert(4u == types_size_v<main_widgets_t>);
-            static_assert(types_has_type_v<main_widget, main_widgets_t>);
-            static_assert(types_has_type_v<widget0, main_widgets_t>);
-            static_assert(types_has_type_v<widget1, main_widgets_t>);
-            static_assert(types_has_type_v<widget1::subwidget, main_widgets_t>);
-            static_assert(types_template_is_v<main_widgets_t, types_pack>);
+            static_assert(4u == ttypes_size_v<main_widgets_t>);
+            static_assert(ttypes_has_type_v<main_widget, main_widgets_t>);
+            static_assert(ttypes_has_type_v<widget0, main_widgets_t>);
+            static_assert(ttypes_has_type_v<widget1, main_widgets_t>);
+            static_assert(ttypes_has_type_v<widget1::subwidget, main_widgets_t>);
+            static_assert(template_is_v<main_widgets_t, ttypes>);
         }
 
         {
             using context0_t = widget::context_t<widget0>;
-            static_assert(4u == types_size_v<context0_t>);
+            static_assert(4u == ttypes_size_v<context0_t>);
             
-            static_assert(types_has_type_v<widget::windowrefwrap_t, context0_t>);
-            static_assert(types_has_type_v<shader<0>, context0_t>);
-            static_assert(types_has_type_v<shader<1>, context0_t>);
-            static_assert(types_has_type_v<widget::temp_buffer, context0_t>);
-            static_assert(types_template_is_v<context0_t, widget::context>);
+            static_assert(ttypes_has_type_v<widget::windowrefwrap_t, context0_t>);
+            static_assert(ttypes_has_type_v<shader<0>, context0_t>);
+            static_assert(ttypes_has_type_v<shader<1>, context0_t>);
+            static_assert(ttypes_has_type_v<byte_buffer_view, context0_t>);
+            static_assert(template_is_v<context0_t, widget::context>);
 
             static_assert(std::is_same_v<context0_t, context_sample_t<widget0> > );
         }
 
         {
             using context1_t = widget::context_t<widget1>;
-            static_assert(4u == types_size_v<context1_t>);
-            static_assert(types_has_type_v<widget::windowrefwrap_t, context1_t>);
-            static_assert(types_has_type_v<shader<1>, context1_t>);
-            static_assert(types_has_type_v<shader<2>, context1_t>);
-            static_assert(types_has_type_v<widget::temp_buffer, context1_t>);
-            static_assert(types_template_is_v<context1_t, widget::context>);
+            static_assert(4u == ttypes_size_v<context1_t>);
+            static_assert(ttypes_has_type_v<widget::windowrefwrap_t, context1_t>);
+            static_assert(ttypes_has_type_v<shader<1>, context1_t>);
+            static_assert(ttypes_has_type_v<shader<2>, context1_t>);
+            static_assert(ttypes_has_type_v<widget::temp_byte_buffer, context1_t>);
+            static_assert(template_is_v<context1_t, widget::context>);
 
             static_assert(std::is_same_v<context1_t, context_sample_t<widget1> > );
         }
@@ -121,13 +121,14 @@ void test_context() noexcept
 
         {
             using context_t = widget::context_t<main_widget>;
-            static_assert(5u == types_size_v<context_t>);
-            static_assert(types_has_type_v<widget::windowrefwrap_t, context_t>);
-            static_assert(types_has_type_v<shader<0>, context_t>);
-            static_assert(types_has_type_v<shader<1>, context_t>);
-            static_assert(types_has_type_v<shader<2>, context_t>);
-            static_assert(types_has_type_v<widget::temp_buffer, context_t>);
-            static_assert(types_template_is_v<context_t, widget::context>);
+            static_assert(6u == ttypes_size_v<context_t>);
+            static_assert(ttypes_has_type_v<widget::windowrefwrap_t, context_t>);
+            static_assert(ttypes_has_type_v<shader<0>, context_t>);
+            static_assert(ttypes_has_type_v<shader<1>, context_t>);
+            static_assert(ttypes_has_type_v<shader<2>, context_t>);
+            static_assert(ttypes_has_type_v<byte_buffer_view, context_t>);
+            static_assert(ttypes_has_type_v<widget::temp_byte_buffer, context_t>);
+            static_assert(template_is_v<context_t, widget::context>);
 
             widget::window w{};
             context_t cc{ w };

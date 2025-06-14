@@ -15,7 +15,7 @@ namespace widget
     {
         pxpoint position{};
         std::u8string text{};
-        font_cache::face font{};
+        font_cache::cached_face font{ font_cache::default_font() };
         text_cache text_cache{};
 
         void set_text(std::u8string new_text) noexcept
@@ -24,11 +24,9 @@ namespace widget
             text_cache.clear();
         }
 
-        [[nodiscard]] bool operator () (widget::basic_initialization_event<>) noexcept;
-
         using redraw_event_type = basic_redraw_event<
-            shader_embed::luminance_texture,
-            buffer_view
+            const shader_embed::luminance_texture,
+            temp_byte_buffer
         >;
 
         void operator () (redraw_event_type e) noexcept;

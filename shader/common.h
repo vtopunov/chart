@@ -47,10 +47,10 @@ namespace shader_common
 
 
     template<class Exports>
-    using export_pack_variables_t = types_sol_t<transform_types_t<subtypes_t, Exports> >;
+    using export_pack_variables_t = types_sol_t<ttypes_transform_t<subtypes_t, Exports> >;
 
     template<template <class> class Pred, class Exports>
-    constexpr size_t count_of_for_v = types_count_if_v<Pred, export_pack_variables_t<Exports>>;
+    constexpr size_t count_of_for_v = ttypes_count_if_v<Pred, export_pack_variables_t<Exports>>;
 
     template<class Exports>
     constexpr size_t count_of_locations_v = count_of_for_v<shader_common::has_indexed_location, Exports>;
@@ -72,13 +72,13 @@ namespace shader_common
             template<class ExportsPack, size_t... Indices>
             [[nodiscard]] constexpr auto make_exports_tuple(std::index_sequence<Indices...>) noexcept
             {
-                return std::tuple_cat(types_pack_element_t<Indices, ExportsPack>::apply(forward_as_tuple_function_v)...);
+                return std::tuple_cat(ttypes_element_t<Indices, ExportsPack>::apply(forward_as_tuple_function_v)...);
             }
 
             template<class ExportsPack>
             [[nodiscard]] constexpr auto make_exports_tuple() noexcept
             {
-                return make_exports_tuple<ExportsPack>(std::make_index_sequence<types_size_v<ExportsPack>>{});
+                return make_exports_tuple<ExportsPack>(std::make_index_sequence<ttypes_size_v<ExportsPack>>{});
             }
 
             template<class ExportsPack>
@@ -153,8 +153,8 @@ namespace shader_common
                 static_assert(!is_empty_base_v<Lib>);
                 static_assert(std::is_base_of_v<Interface, Lib>);
                 static_assert(sizeof(Lib) >= sizeof(Interface));
-                static_assert(1_uz == types_size_v<Interface>);
-                static_assert(std::is_same_v<Lib, types_pack_element_t<0_uz, Interface> >);
+                static_assert(1_uz == ttypes_size_v<Interface>);
+                static_assert(std::is_same_v<Lib, ttypes_element_t<0_uz, Interface> >);
                 return static_cast<const Lib&>(lib_interface);
             }
         }
@@ -188,10 +188,10 @@ namespace shader_common
             {
                 static_assert(is_unqualified_class_v<Lib>);
                 using exports_pack_t = decl_exports_pack_t<Lib>;
-                constexpr auto uniform_span_v = to_span(uniforms_v<Pred, exports_pack_t>);
+                constexpr auto uniform_span_v = make_span(uniforms_v<Pred, exports_pack_t>);
 
                 const auto index = find_n(uniform_span_v, std::addressof(u));
-                D_ASSERT(index < uniform_span_v.size());
+                D_ASSERT_OR_ASSUME(index < uniform_span_v.size());
                 return index;
             }
 

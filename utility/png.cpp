@@ -9,7 +9,7 @@
 
 namespace
 {
-    gl::texture2d png_texture_from_bytes(const_buffer_view image, byte_buffer& temp) noexcept
+    gl::texture2d png_texture_from_bytes(const_byte_buffer_view image, byte_buffer& temp) noexcept
     {
         const auto result = image::png_decode_to_rgba(image, temp);
         if (!result) [[unlikely]]

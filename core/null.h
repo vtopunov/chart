@@ -9,6 +9,9 @@ namespace private_detail_null
     using decl_null_value_type_t = typename T::null_value_type;
 
     template<class T>
+    using decl_invalid_t = decltype(T::invalid);
+
+    template<class T>
     using remove_null_t = detected_or_t<T, decl_null_value_type_t, T>;
 
     template<class T>
@@ -19,35 +22,6 @@ namespace private_detail_null
 
     namespace private_detail_null_instance
     {
-        namespace private_detail_enum_instance
-        {
-            using namespace ordered_overload;
-
-            template<class T>
-            [[nodiscard]] constexpr T enum_instance_helper(_overload<T>, _order<_2>) noexcept
-            {
-                return {};
-            }
-
-            template<class T>
-            [[nodiscard]] constexpr auto enum_instance_helper(_overload<T>, _order<_1>) noexcept -> decltype(T::null)
-            {
-                return T::null;
-            }
-
-            template<class T>
-            [[nodiscard]] constexpr auto enum_instance_helper(_overload<T>, _order<_0>) noexcept -> decltype(T::invalid)
-            {
-                return T::invalid;
-            }
-
-            template<class T>
-            [[nodiscard]] constexpr T enum_instance() noexcept
-            {
-                return enum_instance_helper(_overload_v<T>, _start);
-            }
-        }
-
         template<class T, class = void>
         struct null_instance1
         {
@@ -65,13 +39,13 @@ namespace private_detail_null
         {};
 
         template<class T>
-        struct null_instance0<T, std::enable_if_t<std::is_enum_v<T> > >
+        struct null_instance0<T, std::void_t<decl_invalid_t<T>, std::enable_if_t<std::is_enum_v<T> > > >
         {
             using is_null_constructible_constant_type = std::true_type;
 
             constexpr operator T () const noexcept
             {
-                return private_detail_enum_instance::enum_instance<T>();
+                return T::invalid;
             }
         };
 
@@ -142,6 +116,9 @@ namespace private_detail_null
 
         template<class T>
         constexpr auto null_v = create_null_type(_overload_v<null_t<T>>, ordered_overload::_start);
+
+        template<class T>
+        constexpr T instance_for_null_v{ null_v<T> };
     }
 
 
@@ -292,6 +269,7 @@ namespace private_detail_null
 
 using private_detail_null::private_detail_null_type::null_t;
 using private_detail_null::private_detail_null_type::null_v;
+using private_detail_null::private_detail_null_type::instance_for_null_v;
 using private_detail_null::private_detail_has_value::has_value;
 using private_detail_null::private_detail_is_null::is_null;
 using private_detail_null::private_detail_nullable::is_nullable;

@@ -19,7 +19,7 @@ namespace chart
                 ._1{ diagonal._1 + half_d_d_diagonal }
             };
 
-            sizes_cache = px::no_sizes;
+            sizes_cache = no_sizes;
             D_UNUSED(space_cache.try_update(new_diagonal, geometry_cache.sizes));
             return event_result::redraw;
         }
@@ -43,7 +43,7 @@ namespace chart
                 {
                     const auto scale_to_chart = make_scale_transformation
                     (
-                        make_pxspace_diagonal(geometry_cache.sizes),
+                        make_space_diagonal(geometry_cache.sizes),
                         diagonal0
                     );
 
@@ -66,7 +66,7 @@ namespace chart
                     new_diagonal._1.ref_x() = new_diagonal._0.x() + d.x();
                 }
 
-                sizes_cache = px::no_sizes;
+                sizes_cache = no_sizes;
                 D_UNUSED(space_cache.try_update(new_diagonal, geometry_cache.sizes));
                 return event_result::redraw;
             }

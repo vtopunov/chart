@@ -1,10 +1,10 @@
 #pragma once
 
-#include <core/buffer_view.h>
-
 #include <gl_core/texture.h>
 
 #include <font/font.h>
+
+#include <widget/temp_buffer.h>
 
 
 namespace widget
@@ -14,9 +14,9 @@ namespace widget
         static constexpr auto invalid_y = font::invalid_cursor.y();
 
     public:
-        bool draw(buffer_view buffer, font::face_descriptor_t face, std::u8string_view text, pxsizes sizes) noexcept;
+        bool draw(temp_byte_buffer& buffer, font::face_resource face, std::u8string_view text, pxsizes sizes) noexcept;
 
-        inline bool draw(buffer_view buffer, font::face_descriptor_t face, std::u8string_view text) noexcept
+        inline bool draw(temp_byte_buffer& buffer, font::face_resource face, std::u8string_view text) noexcept
         {
             return draw(buffer, face, text, fill_to<size2d>(numeric_max_v<npx_t>));
         }
@@ -28,7 +28,7 @@ namespace widget
         }
 
         [[nodiscard]]
-        constexpr font::fixed_point2d center() const noexcept
+        constexpr font::point2fix center() const noexcept
         {
             return
             {

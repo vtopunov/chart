@@ -2,7 +2,8 @@
 
 #include <os/os.h>
 
-extern "C" int APIENTRY WinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
+
+extern "C" int APIENTRY WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 {
-    return app_main(instance);
+    return main();
 }

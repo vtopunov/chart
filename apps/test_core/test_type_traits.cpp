@@ -168,22 +168,22 @@ namespace
     {
         using namespace private_detail_test_member_detector;
 
-        static_assert(!std::is_convertible_v<nonesuch, nonesuch>);
-
         static_assert(is_detected_v<copy_assign_t, with_cp>);
         static_assert(!is_detected_v<copy_assign_t, without_cp>);
 
+        static_assert(std::is_same_v<dummy, detected_t<decl_difference_t, dummy> >);
+        static_assert(std::is_same_v<dummy, detected_t<decl_difference_t, ttypes<dummy> > >);
+        static_assert(std::is_same_v<ptrdiff_t, detected_t<decl_difference_t, with_decl_difference<ptrdiff_t>> >);
+        
         static_assert(is_detected_exact_v<with_cp&, copy_assign_t, with_cp>);
         static_assert(is_detected_exact_v<void, copy_assign_t, with_void_cp>);
         static_assert(is_detected_exact_v<with_cp, copy_assign_t, with_ex_cp<with_cp> >);
         static_assert(is_detected_exact_v<with_cp*, copy_assign_t, with_ex_cp<with_cp*> >);
         static_assert(is_detected_exact_v<dummy, std::type_identity_t, dummy>);
-        static_assert(is_detected_exact_v<nonesuch, std::type_identity_t, nonesuch>);
+        static_assert(is_detected_exact_v<ttypes<dummy>, std::type_identity_t, ttypes<dummy>>);
         static_assert(!is_detected_exact_v<dummy, decl_difference_t, dummy>);
-        static_assert(!is_detected_exact_v<nonesuch, decl_difference_t, nonesuch>);
-        static_assert(!is_detected_exact_v<std::type_identity<nonesuch>, decl_difference_t, nonesuch>);
-        static_assert(!is_detected_exact_v<std::type_identity<nonesuch>, decl_difference_t, std::type_identity<nonesuch> >);
-        static_assert(is_detected_exact_deprecated_v<nonesuch, decl_difference_t, nonesuch>);
+        static_assert(!is_detected_exact_v<ttypes<dummy>, decl_difference_t, ttypes<dummy>>);
+        static_assert(is_detected_exact_deprecated_v<dummy, decl_difference_t, dummy>);
 
         static_assert(std::is_same_v<int16_t, difference_t<with_decl_difference<int16_t>>>);
         static_assert(std::is_same_v<int32_t, difference_t<with_decl_difference<int32_t>>>);
@@ -291,6 +291,32 @@ namespace
         D_ASSERT(!errno);
     }
 
+    void test_copy_signed() noexcept
+    {
+        static_assert(std::is_same_v<copy_signed_t<int, int>, int>);
+        static_assert(std::is_same_v<copy_signed_t<int, const int>, const int>);
+        static_assert(std::is_same_v<copy_signed_t<const int, const int>, const int>);
+        static_assert(std::is_same_v<copy_signed_t<const int, int>, int>);
+
+        static_assert(std::is_same_v<copy_signed_t<unsigned int, int>, unsigned int>);
+        static_assert(std::is_same_v<copy_signed_t<unsigned int, const int>, const unsigned int>);
+        static_assert(std::is_same_v<copy_signed_t<const unsigned int, const int>, const unsigned int>);
+        static_assert(std::is_same_v<copy_signed_t<const unsigned int, int>, unsigned int>);
+
+        static_assert(std::is_same_v<copy_signed_t<unsigned int, unsigned int>, unsigned int>);
+        static_assert(std::is_same_v<copy_signed_t<unsigned int, const unsigned int>, const unsigned int>);
+        static_assert(std::is_same_v<copy_signed_t<const unsigned int, const unsigned int>, const unsigned int>);
+        static_assert(std::is_same_v<copy_signed_t<const unsigned int, unsigned int>, unsigned int>);
+
+        static_assert(std::is_same_v<copy_signed_t<int, unsigned int>, int>);
+        static_assert(std::is_same_v<copy_signed_t<int, const unsigned int>, const int>);
+        static_assert(std::is_same_v<copy_signed_t<const int, const unsigned int>, const int>);
+        static_assert(std::is_same_v<copy_signed_t<const int, unsigned int>, int>);
+
+        D_ASSERT(!errno);
+    }
+
+
     void test_replace_type() noexcept
     {
         static_assert(std::is_same_v<replace_t<int, unsigned, char>, int>);
@@ -394,6 +420,19 @@ namespace
         D_ASSERT(!errno);
     }
 
+    void test_is_same_size() noexcept
+    {
+        static_assert(is_same_size<2u, 2u>::value);
+        static_assert(!is_same_size<2u, 3u>::value);
+        static_assert(!is_same_size<3u, 2u>::value);
+        static_assert(is_same_size<3u, 3u>::value);
+        static_assert(!std::negation<is_same_size<2u, 2u>>::value);
+        static_assert(std::negation<is_same_size<2u, 3u>>::value);
+        static_assert(std::negation<is_same_size<3u, 2u>>::value);
+        static_assert(!std::negation<is_same_size<3u, 3u>>::value);
+        D_ASSERT(!errno);
+    }
+
     void test_is_sameuncvref() noexcept
     {
         static_assert(is_same_uncvref_v<const int&, int>);
@@ -464,6 +503,7 @@ void test_type_traits() noexcept
     test_conditional_add_pointer_all();
     test_copy_const();
     test_copy_pointer();
+    test_copy_signed();
     test_replace_type();
     test_remove_enum();
     test_unsigned_or();
@@ -471,6 +511,7 @@ void test_type_traits() noexcept
     test_has_qualifier();
     test_is_unqualified_class();
     test_is_const_convertible();
+    test_is_same_size();
     test_is_sameuncvref();
     test_has_assignment_op();
     test_call_is_detected();

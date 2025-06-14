@@ -45,13 +45,6 @@ Error::Error(egl::Error &&eglErr)
 {
 }
 
-Error::Error(egl::Error eglErr)
-    : mCode(GL_INVALID_OPERATION),
-      mID(0),
-      mMessage(std::move(eglErr.mMessage))
-{
-}
-
 Error &Error::operator=(const Error &other)
 {
     mCode = other.mCode;
@@ -126,15 +119,7 @@ Error::Error(Error &&other)
 {
 }
 
-// automatic error type conversion
-Error::Error(gl::Error &&glErr)
-    : mCode(EGL_BAD_ACCESS),
-      mID(0),
-      mMessage(std::move(glErr.mMessage))
-{
-}
-
-Error::Error(gl::Error glErr)
+Error::Error(gl::Error&& glErr)
     : mCode(EGL_BAD_ACCESS),
       mID(0),
       mMessage(std::move(glErr.mMessage))

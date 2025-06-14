@@ -2,8 +2,6 @@
 
 #include <core/buffer.h>
 
-#include <utility/px.h>
-
 using namespace std::string_view_literals;
 
 
@@ -11,7 +9,7 @@ namespace widget
 {
     namespace
     {
-        [[nodiscard]] font::metrics initial_tm(font::face_descriptor_t face) noexcept
+        [[nodiscard]] font::metrics initial_tm(font::face_resource face) noexcept
         {
             auto tm = font::text_metrics(face, u8"Ap"sv);
             tm.width = {};
@@ -19,7 +17,7 @@ namespace widget
         };
     }
 
-    bool text_cache::draw(buffer_view buffer, font::face_descriptor_t face, std::u8string_view text, pxsizes sizes) noexcept
+    bool text_cache::draw(temp_byte_buffer& buffer, font::face_resource face, std::u8string_view text, pxsizes sizes) noexcept
     {
         if (is_empty() && !text.empty())
         {
@@ -29,9 +27,8 @@ namespace widget
                 return false;
             }
 
-            const auto pixs = px::create_zeros_lumpixspan
+            const auto pixs = buffer.zimage
             (
-                buffer,
                 std::min(sizes.width(), ceil_to<npx_t>(tm.width)),
                 std::min(sizes.height(), ceil_to<npx_t>(tm.bottom - tm.top))
             );

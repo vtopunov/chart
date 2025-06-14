@@ -9,9 +9,9 @@ namespace
 
     struct dummy_exports
     {
-        static constexpr noapply_t apply(no_overload) noexcept
+        static constexpr dummy apply(no_overload) noexcept
         {
-            return noapply;
+            return dummy_v;
         }
 
         template<class>
@@ -20,9 +20,9 @@ namespace
 
     struct dummy_viewport_exports
     {
-        static constexpr noapply_t apply(no_overload) noexcept
+        static constexpr dummy apply(no_overload) noexcept
         {
-            return noapply;
+            return dummy_v;
         }
 
         template<class>
@@ -66,9 +66,9 @@ namespace
             ++n_calls;
         }
 
-        constexpr noapply_t apply(no_overload) const noexcept
+        constexpr dummy apply(no_overload) const noexcept
         {
-            return noapply;
+            return dummy_v;
         }
     };
 

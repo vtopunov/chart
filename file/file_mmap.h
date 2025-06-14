@@ -1,7 +1,5 @@
 #pragma once
 
-#include <core/buffer_view.h>
-
 #include <file/file.h>
 
 
@@ -37,18 +35,23 @@ namespace file
                         invalidfile,
                         nullptr,
                         nullptr,
-                        0_uz
+                        0u
                     }
 #else
                     _private_detail
                     {
                         nullptr,
-                        0_uz,
+                        0u,
                         invalidfile
                     }
 #endif
                 };
             }
+        };
+
+        struct deleter_type
+        {
+            void operator () (file_mmap_resource resource) const noexcept;
         };
 
         [[nodiscard]]
@@ -71,14 +74,9 @@ namespace file
     };
 
     static_assert(std::is_same_v<decl_null_type_t<file_mmap_resource>, file_mmap_resource::null_type>);
-    static_assert(std::is_same_v<view_t<file_mmap_resource>, const const_buffer_view>);
+    static_assert(std::is_same_v<view_t<file_mmap_resource>, const const_byte_buffer_view>);
 
-    struct file_mmap_resource_deleter
-    {
-        void operator () (file_mmap_resource resource) const noexcept;
-    };
-
-    using file_mmap = unique_resource<file_mmap_resource, file_mmap_resource_deleter>;
+    using file_mmap = unique_resource<file_mmap_resource>;
 
     [[nodiscard]]
     file_mmap mmap(path_zstring_view path) noexcept;

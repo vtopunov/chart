@@ -26,11 +26,8 @@ namespace gl
         return !is_correct();
     }
 
-
     enum class shader_resource : GLuint
-    {
-        null
-    };
+    {};
 
     void set_source(shader_resource shader, source_view source) noexcept;
 
@@ -63,9 +60,7 @@ namespace gl
     shader create_shader(shader_type type) noexcept;
 
     enum class program_resource : GLuint
-    {
-        null
-    };
+    {};
 
     void attach_shader(program_resource program, shader_resource shader) noexcept;
 
@@ -289,19 +284,19 @@ namespace gl
     namespace shader_literals
     {
         [[nodiscard]]
-        constexpr source_view operator"" _glsl(const char* source, size_t length) noexcept
+        constexpr source_view operator ""_glsl(const char* source, size_t length) noexcept
         {
             return { source, length };
         }
 
         [[nodiscard]]
-        constexpr vertex_source_view operator"" _vert_glsl(const char* source, size_t length) noexcept
+        constexpr vertex_source_view operator ""_vert_glsl(const char* source, size_t length) noexcept
         {
             return { .source{ source, length } };
         }
 
         [[nodiscard]]
-        constexpr fragment_source_view operator"" _frag_glsl(const char* source, size_t length) noexcept
+        constexpr fragment_source_view operator ""_frag_glsl(const char* source, size_t length) noexcept
         {
             return { .source{ source, length } };
         }

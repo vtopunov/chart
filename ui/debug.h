@@ -2,16 +2,22 @@
 
 #include <debug/debug.h>
 
-#include <ui/app.h>
+#include <ui/fwd.h>
+
 
 namespace ui
 {
+    void quit() noexcept;
+
+    [[nodiscard]]
+    error_code_t error_code() noexcept;
+
     template<class FormatString, class... Args>
-    void fatal(os::const_module_handle_t app, const FormatString& format_string, const Args&... args) noexcept
+    void ui_fatal_debug(const FormatString& format_string, const Args&... args) noexcept
     {
-        fatal_debug(format_string, args...);
-        ::ui::quit(app);
+        ::fatal_debug(format_string, args...);
+        quit();
     }
 }
 
-using ui::fatal;
+using ui::ui_fatal_debug;

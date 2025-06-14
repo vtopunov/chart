@@ -42,9 +42,9 @@ namespace
             lib_.draw();
         }
 
-        constexpr noapply_t apply(no_overload) const noexcept
+        constexpr dummy apply(no_overload) const noexcept
         {
-            return noapply;
+            return dummy_v;
         }
 
     private:
@@ -65,10 +65,9 @@ namespace
     };
 }
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
     auto window = widget::window_builder{}
-        .module(app)
         .sizes(ui::adjust_sizes(480_npx, 960_npx))
         .command_show(ui::show_command::normal)
         .build();

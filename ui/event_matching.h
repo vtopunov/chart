@@ -99,7 +99,7 @@ namespace ui
 
         event_result_opt_t operator () (const event& e) noexcept
         {
-            return do_event_match(unrefwrap(processor), e);
+            return do_event_match(unorefwrap(processor), e);
         }
     };
 

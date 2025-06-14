@@ -13,7 +13,7 @@ namespace gl
             return buffer{ d };
         }
 
-        void set_array(const_buffer_view data) noexcept
+        void set_array(const_byte_buffer_view data) noexcept
         {
             glBufferData
             (
@@ -33,7 +33,7 @@ namespace gl
         const void* p
     ) noexcept
     {
-        D_ASSERT(attributes.size() <= attribute_profiles.size());
+        D_ASSERT_OR_ASSUME(attributes.size() <= attribute_profiles.size());
 
         const auto i_stride_bytes = narrow<GLsizei>(stride);
 
@@ -61,7 +61,7 @@ namespace gl
 
     }
 
-    buffer create_buffer(const_buffer_view data) noexcept
+    buffer create_buffer(const_byte_buffer_view data) noexcept
     {
         if (auto gl_buffer = gen_buffer()) [[likely]]
         {

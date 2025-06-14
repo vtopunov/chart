@@ -13,15 +13,15 @@ namespace widget
         {
             if constexpr (std::is_same_v<ex_context_enumerator, std::remove_cvref_t<Fn>>)
             {
-                return types_pack_v<Types...>;
+                return ttypes_v<Types...>;
             }
-            else if constexpr (sizeof...(items))
+            else if constexpr (0_uz < (sizeof...(items)))
             {
                 return std::forward<Fn>(fn)(std::forward<Items>(items)...);
             }
             else
             {
-                return noapply;
+                return dummy_v;
             }
         }
     };

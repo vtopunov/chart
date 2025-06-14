@@ -18,8 +18,8 @@ namespace ui
         template<size_t N>
         size_t erase_for_window(small_vector<event_processor_note, N>& items, window_handle_t window, event_processor_note* first) noexcept
         {
-            D_ASSERT(first >= items.begin());
-            D_ASSERT(first <= items.end());
+            D_ASSERT_OR_ASSUME(first >= items.cbegin());
+            D_ASSERT_OR_ASSUME(first <= items.cend());
 
             return items.erase(std::remove_if(first, items.end(), by_window{ window }), items.cend());
         }
@@ -58,7 +58,7 @@ namespace ui
 
     bool event_processors_storage::destroy_processor(event_processor_resource processor) noexcept
     {
-        if (nulleventprocessor == processor)
+        if (is_null(processor))
         {
             return false;
         }
@@ -83,7 +83,7 @@ namespace ui
 
     size_t event_processors_storage::close_window(window_handle_t window) noexcept
     {
-        size_t count{ 0_uz };
+        size_t count{ 0u };
 
         if (lock_)
         {
@@ -120,9 +120,11 @@ namespace ui
 
     event_processor_resource event_processors_storage::create(window_handle_t window, event_callback_t callback) noexcept
     {
+        constexpr auto nulldesctiptor = instance_for_null_v<event_processor_resource>;
+
         if (event_processor_note::garbage_mark == window) [[unlikely]]
         {
-            return event_processor_resource::null;
+            return nulldesctiptor;
         }
 
         event_processor_note* item_opt{ nullptr };
@@ -133,7 +135,7 @@ namespace ui
             (
                 std::move(callback),
                 window,
-                event_processor_resource::null
+                nulldesctiptor
             );
         }
         else [[likely]]
@@ -142,13 +144,13 @@ namespace ui
             (
                 std::move(callback),
                 window,
-                event_processor_resource::null
+                nulldesctiptor
             );
         }
-        
+
         if (!item_opt) [[unlikely]]
         {
-            return event_processor_resource::null;
+            return nulldesctiptor;
         }
 
         const auto processor = desctiptor_generator_();
@@ -179,14 +181,14 @@ namespace ui
                     const auto require_capacity = items_.size() + back_size;
                     if (old_capacity < require_capacity)
                     {
-                         const auto new_capacity = std::max
-                         (
-                             require_capacity,
-                             optimal_memory_growth(old_capacity)
-                         );
+                        const auto new_capacity = std::max
+                        (
+                            require_capacity,
+                            optimal_memory_growth(old_capacity)
+                        );
 
-                         is_memory = items_.try_reserve(new_capacity);
-                         D_ASSERT(is_memory);
+                        is_memory = items_.try_reserve(new_capacity);
+                        D_ASSERT(is_memory);
                     }
                 }
 

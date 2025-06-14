@@ -7,70 +7,54 @@ namespace chart
 {
     namespace private_detail_space_diagonal_cache
     {
-        template<class T>
-        [[nodiscard]] std::enable_if_t<std::is_floating_point_v<T>, T> nextf(T value) noexcept
+        [[nodiscard]] constexpr auto inrange_neqfp(real_t value, real_t min_value, real_t max_value) noexcept
         {
-            return std::nextafter(value, std::numeric_limits<T>::infinity());
+            return is_less_neqfp(min_value, value)
+                && is_less_neqfp(value, max_value);
         }
 
-        template<class T>
-        [[nodiscard]] constexpr auto is_less_neq(T value, T max_value) noexcept -> decltype(nextf(value) < max_value)
+        [[nodiscard]] constexpr auto inrange_neqfp(const point2re& pt, const vec2<point2re>& range) noexcept
         {
-            return (value < max_value) && (nextf(value) < max_value);
+            return inrange_neqfp(pt.x(), range._0.x(), range._1.x())
+                && inrange_neqfp(pt.y(), range._0.y(), range._1.y());
         }
 
-        template<class T>
-        [[nodiscard]] constexpr auto inrange_neq(T value, T min_value, T max_value) noexcept -> decltype(is_less_neq(min_value, value))
+        struct diagonal_lenght_range
         {
-            return is_less_neq(min_value, value)
-                && is_less_neq(value, max_value);
-        }
-
-        template<class T>
-        [[nodiscard]] constexpr auto md_inrange_neq(const T& value, const T& min_value, const T& max_value) noexcept -> decltype(inrange_neq(value, min_value, max_value))
-        {
-            return inrange_neq(value, min_value, max_value);
-        }
-
-
-        template<class T>
-        [[nodiscard]] constexpr auto md_inrange_neq(const T& value, const T& min_value, const T& max_value) noexcept
-            -> decltype(md_inrange_neq(as_vec2(value)._0, min_value._0, max_value._0))
-        {
-            return md_inrange_neq(value._0, min_value._0, max_value._0)
-                && md_inrange_neq(value._1, min_value._1, max_value._1);
-        }
-
-        template<class T>
-        [[nodiscard]] constexpr bool md_inrange_neq(const T& value, const vec2<T>& range) noexcept
-        {
-            return md_inrange_neq(value, range._0, range._1);
-        }
-
-        [[nodiscard]] constexpr real_point2d calculate_dline_min(pxsizes sizes) noexcept
-        {
-            return { sizes * numeric_eps_v<real_t> };
-        }
-
-        [[nodiscard]] constexpr vec2<real_point2d> calculate_dline_range(real_point2d dline0, pxsizes sizes) noexcept
-        {
-            return
+            const pxsizes sizes;
+            
+            [[nodiscard]] 
+            constexpr point2re min() const noexcept
             {
-                calculate_dline_min(sizes),
-                dline0 * (0.5 * sizes)
-            };
-        }
+                return { sizes * numeric_eps_v<real_t> };
+            }
 
-        [[nodiscard]] constexpr vec2<real_point2d> calculate_dline0_range(pxsizes sizes) noexcept
-        {
-            constexpr auto real_sz_max = fill_to<size2d>(numeric_max_v<real_t>);
-            D_ASSERT(sizes.has_positive_square());
-            return
+            [[nodiscard]]
+            constexpr point2re max0() const noexcept
             {
-                calculate_dline_min(sizes),
-                real_sz_max / sizes
-            };
-        }
+                constexpr auto real_sz_max = fill_to<point2re>(numeric_max_v<>);
+                D_ASSERT_OR_ASSUME(sizes.has_positive_square());
+                return real_sz_max / sizes;
+            }
+
+            [[nodiscard]]
+            constexpr point2re max(const point2re& lenght0) const noexcept
+            {
+                return lenght0 * (0.5 * sizes);
+            }
+
+            [[nodiscard]] 
+            constexpr vec2<point2re> first() const noexcept
+            {
+                return { min(), max0() };
+            }
+
+            [[nodiscard]] 
+            constexpr vec2<point2re> for_update(const point2re& lenght0) const noexcept
+            {
+                return { min(), max(lenght0) };
+            }
+        };
     }
 
     class space_diagonal_cache
@@ -85,13 +69,13 @@ namespace chart
         [[nodiscard]]
         constexpr bool try_update(const space_diagonal& line, pxsizes pxsizes) noexcept
         {
-            using private_detail_space_diagonal_cache::md_inrange_neq;
-            using private_detail_space_diagonal_cache::calculate_dline_range;
-            D_ASSERT(dline_has_value(dline0_));
+            using private_detail_space_diagonal_cache::inrange_neqfp;
+            using private_detail_space_diagonal_cache::diagonal_lenght_range;
+            D_ASSERT_OR_ASSUME(has_value());
 
             if (const auto dline = line._1 - line._0; md_isnormal(dline))
             {
-                if (md_inrange_neq(dline, calculate_dline_range(dline0_, pxsizes)))
+                if (inrange_neqfp(dline, diagonal_lenght_range(pxsizes).for_update(dline0_)))
                 {
                     line_ = line;
                     return true;
@@ -104,13 +88,13 @@ namespace chart
         [[nodiscard]]
         constexpr bool try_first_update(const space_diagonal& line, pxsizes pxsizes) noexcept
         {
-            using private_detail_space_diagonal_cache::md_inrange_neq;
-            using private_detail_space_diagonal_cache::calculate_dline0_range;
-            D_ASSERT(!dline_has_value(dline0_));
+            using private_detail_space_diagonal_cache::inrange_neqfp;
+            using private_detail_space_diagonal_cache::diagonal_lenght_range;
+            D_ASSERT_OR_ASSUME(!has_value());
 
             if (const auto dline = line._1 - line._0; md_isnormal(dline))
             {
-                if (md_inrange_neq(dline, calculate_dline0_range(pxsizes)))
+                if (inrange_neqfp(dline, diagonal_lenght_range(pxsizes).first()))
                 {
                     line_ = line;
                     dline0_ = dline;
@@ -130,7 +114,7 @@ namespace chart
         [[nodiscard]]
         constexpr space_diagonal value() const noexcept
         {
-            D_ASSERT(has_value());
+            D_ASSERT_OR_ASSUME(has_value());
             return line_;
         }
 
@@ -140,19 +124,28 @@ namespace chart
             dline0_ = invalid_dline;
         }
 
-
     private:
         static constexpr real_t invalid_dvalue{ 0.0 };
         static constexpr auto invalid_dline = fill_to<point2d>(invalid_dvalue);
 
         [[nodiscard]]
-        static constexpr bool dline_has_value(const real_point2d& pt) noexcept
+        static constexpr bool dline_has_value(const point2re& pt) noexcept
         {
-            return invalid_dvalue != pt.y();
+            const auto has = has_dvalue(pt.y());
+            D_ASSERT_OR_ASSUME(has == has_dvalue(pt.x()));
+            return has;
+        }
+
+        [[nodiscard]]
+        static constexpr bool has_dvalue(real_t dvalue) noexcept
+        {
+            const auto has = (invalid_dvalue != dvalue);
+            D_ASSERT_OR_ASSUME(!has || std::isnormal(dvalue));
+            return has;
         }
 
     private:
         space_diagonal line_{ chart::space_diagonal_initializer };
-        real_point2d dline0_{ invalid_dline };
+        point2re dline0_{ invalid_dline };
     };
 }

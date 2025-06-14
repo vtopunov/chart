@@ -1,17 +1,13 @@
-#include <debug/debug.h>
 
 #include <ui/window.h>
 #include <ui/event_loop.h>
+#include <ui/debug.h>
 
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
     debug("create main window");
-    const auto mainwindow 
-        = ui::window_builder{}
-        .module(app)
-        .build();
-
+    const auto mainwindow  = ui::window_builder{}.build();
     if ( !mainwindow )
     {
         e_debug("create window error {}", ui::error_code());

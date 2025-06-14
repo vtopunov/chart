@@ -30,14 +30,14 @@ namespace private_detail_debug
     {
         constexpr char priority_tags[]{ 'U', 'D', 'V', 'D', 'I', 'W', 'E', 'F', 'S' };
         constexpr auto n_tags = std::size(priority_tags);
-        
+
         static_assert(!log_priority::LOG_UNKNOWN);
         static_assert(log_priority::LOG_SILENT == (n_tags - 1u));
-        const auto tag 
-            = (p >= log_priority::LOG_UNKNOWN && p <= log_priority::LOG_SILENT) 
+        const auto tag
+            = (p >= log_priority::LOG_UNKNOWN && p <= log_priority::LOG_SILENT)
             ? priority_tags[p] : '\0';
         D_ASSERT(tag);
-        
+
         return tag;
     }
 
@@ -59,7 +59,7 @@ namespace private_detail_debug
         }
 
         static constexpr void prefix_write(CharT* out, log_priority priority) noexcept
-        { 
+        {
             *out = priority_tag(priority);
             std::copy(std::cbegin(tagend), std::cend(tagend), ++out);
         }

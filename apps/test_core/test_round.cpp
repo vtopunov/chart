@@ -1,5 +1,6 @@
 #include <core/round.h>
 
+#include <random>
 #include <string>
 
 namespace
@@ -139,6 +140,21 @@ namespace
             static_assert(2 == round_to_near(2, 2));
             static_assert(2.0 == round_to_near(2, 2.1));
             static_assert(0u == round_to_near(-1, 2u));
+
+            {
+                std::mt19937_64 random_engine{ std::random_device{}() };
+                std::uniform_int_distribution<int32_t> uid{};
+                std::uniform_real_distribution<double> urd{};
+                for (size_t i = 0; i < 100; ++i)
+                {
+                    const auto i_rnd = uid(random_engine);
+                    const auto r_rnd = urd(random_engine);
+                    const auto i_rnd_d = static_cast<double>(i_rnd);
+                    const auto i_rnd_d_i = static_cast<int32_t>(i_rnd);
+                    D_ASSERT(i_rnd_d_i == i_rnd);
+                    D_ASSERT(i_rnd_d == round_to_near(i_rnd, r_rnd));
+                }
+            }
         }
     }
 }

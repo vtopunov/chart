@@ -7,4 +7,10 @@
       <AdditionalOptions>-u ANativeActivity_onCreate %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="$(AndroidRepoDir)\entry_point\entry_point.vcxproj">
+      <Project>{8f08613c-d40b-4589-aa40-e4ec8f39632a}</Project>
+    </ProjectReference>
+  </ItemGroup>
 </Project>

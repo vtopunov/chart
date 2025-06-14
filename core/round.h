@@ -1,6 +1,5 @@
 #pragma once
 
-#include <core/zero.h>
 #include <core/clamp_cast.h>
 
 

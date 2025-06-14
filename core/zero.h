@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/limits.h>
+#include <core/math.h>
 
 
 namespace private_detail_zero
@@ -292,6 +292,8 @@ using private_detail_zero::private_detail_zero_type::zero_v;
 using private_detail_zero::private_detail_is_eqz::is_eqz;
 using private_detail_zero::private_detail_is_neqz::is_neqz;
 
+template<class T>
+using tr_zero = std::integral_constant<T, zero_v<T> >;
 
 template<class T>
 [[nodiscard]] constexpr std::enable_if_t<is_zero_constructible_v<T>, decl_less_op_t<T>> is_positive(const T& value) noexcept

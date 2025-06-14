@@ -1,6 +1,6 @@
 #pragma once
 
-#include <debug/debug.h>
+#include <ui/debug.h>
 
 #include <gl_core/draw.h>
 
@@ -42,12 +42,11 @@ namespace widget
         {
         public:
             template<class... Args>
-            explicit processor(widget::window& window, Args&&... args) noexcept
+            explicit processor(const widget::window& window, Args&&... args) noexcept
                 : widget_{ std::forward<Args>(args)... }
                 , context_{ window }
             {}
 
-#ifdef D_OS_WINDOWS
             std::nullopt_t operator () (const ui::size_event& e) noexcept
             {
                 const auto new_size = e.sizes();
@@ -55,21 +54,20 @@ namespace widget
                 {
                     D_ASSERT(new_size.width() <= cref_window().viewport().width());
                     D_ASSERT(new_size.height() <= cref_window().viewport().height());
-                    ref_window().content_sizes(new_size);
+                    context_.ref_window().content_sizes(new_size);
                     _apply_event(e);
                 }
 
                 return std::nullopt;
             }
-#endif
 
             void operator () (ui::content_rect_changed_event) noexcept
             {
-                if (ref_window().update_viewport())
+                if (context_.ref_window().update_viewport())
                 {
                     if (!setup_viewport()) [[unlikely]]
                     {
-                        ui_fatal_debug(cref_window(), "update viewport error: ui: {}", egl_ui::error_code());
+                        ui_fatal_debug("update viewport error: egli: {}", egli::error_code());
                     }
                 }
             }
@@ -124,12 +122,6 @@ namespace widget
             }
 
             [[nodiscard]]
-            constexpr window& ref_window() noexcept
-            {
-                return context_.ref_window();
-            }
-
-            [[nodiscard]]
             bool initialize_widget() noexcept
             {
                 return _apply_initialization_event(initialization_event_base_v);
@@ -172,7 +164,8 @@ namespace widget
 
             void _draw() noexcept
             {
-                [[maybe_unused]] egl_painting_owner painting_owner{ cref_window() };
+                [[maybe_unused]]
+                const egl_painting_owner painting_owner{ cref_window() };
                 gl::clear();
 
                 const widget_event_factory e_cc{ redraw_event_base_v, context_ };
@@ -185,43 +178,49 @@ namespace widget
             D_ONLY_OS_WINDOWS(std::chrono::steady_clock::time_point redraw_time_cache{});
             event_result combined_event_result_{ event_result::redraw };
         };
-    }
 
-    template<class Widget, class... Args>
-    int run(widget::window& window, Args&&... args) noexcept
-    {
-        if (!window) [[unlikely]]
+        template<class Widget, class... Args>
+        int run_impl(const widget::window& window, Args&&... args) noexcept
         {
-            e_debug("create window error: {}", egl_ui::error_code());
-            return EXIT_FAILURE;
-        }
+            if (!window) [[unlikely]]
+            {
+                e_debug("create window error: {}", egli::error_code());
+                return EXIT_FAILURE;
+            }
 
             private_detail_run::processor<Widget> processor
-        {
-            window,
-            std::forward<Args>(args)...
-        };
+            {
+                window,
+                std::forward<Args>(args)...
+            };
 
-        if (!processor.initialize()) [[unlikely]]
-        {
-            e_debug
-            (
-                "main widget initialize error: {}",
-                egl_ui::error_code()
-            );
-            return EXIT_FAILURE;
+            if (!processor.initialize()) [[unlikely]]
+            {
+                e_debug
+                (
+                    "main widget initialize error: {}",
+                    egli::error_code()
+                );
+                return EXIT_FAILURE;
+            }
+
+            return ui::run_event_loop(processor.cref_window(), processor);
         }
-
-        return ui::run_event_loop(processor.cref_window(), processor);
     }
 
     template<class Widget, class... Args>
-    int run(os::module_handle_t app, Args&&... args) noexcept
+    int run(Args&&... args) noexcept
     {
-        auto window = widget::window_builder{}
-            .module(app)
-            .build();
-
-        return run<Widget>(window, std::forward<Args>(args)...);
+        if constexpr (std::is_convertible_v<types_front_or_t<dummy, Args...>, const widget::window&>)
+        {
+            return private_detail_run::run_impl<Widget>(std::forward<Args>(args)...);
+        }
+        else
+        {
+            return private_detail_run::run_impl<Widget>(
+                widget::window_builder{}.build(), 
+                std::forward<Args>(args)...
+            );
+        }
     }
 }

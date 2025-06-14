@@ -10,10 +10,10 @@ D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
 namespace private_detail_narrow
 {
     template<class Target, class Source>
-    constexpr bool is_narrowing_v = numeric_digits_v<Target> < numeric_digits_v<Source>;
+    using is_narrowing = is_less<tr_numeric_digits<Target>, tr_numeric_digits<Source> >;
 
     template<class Target, class Source>
-    using is_narrowing = std::bool_constant<is_narrowing_v<Target, Source>>;
+    constexpr bool is_narrowing_v = is_narrowing<Target, Source>::value;
 
     template<class Target, class Source>
     constexpr bool is_narrowing_or_same_v = !is_narrowing_v<Source, Target>;
@@ -163,7 +163,7 @@ namespace private_detail_narrow
         }
         else
         {
-            D_ASSERT(is_safe_narrowing_conversion<Target>(v));
+            D_ASSERT_OR_ASSUME(is_safe_narrowing_conversion<Target>(v));
             return static_cast<Target>(v);
         }
     }
@@ -220,6 +220,15 @@ namespace private_detail_narrow
         static_assert(std::is_arithmetic_v<T>);
         return narrow<remove_unsigned_t<T>>(value);
     }
+
+    template<class T>
+    constexpr auto u_distance(T first, T last) noexcept -> decltype(to_unsigned(last - first))
+    {
+        D_ASSERT_OR_ASSUME(last >= first);
+        return to_unsigned(last - first);
+    }
+
+    static_assert(std::is_same_v<size_t, decltype(u_distance(std::declval<const std::byte*>(), std::declval<const std::byte*>()))>);
 }
 
 using private_detail_narrow::is_narrowing_v;
@@ -233,6 +242,6 @@ using private_detail_narrow::narrow;
 using private_detail_narrow::numeric_cast;
 using private_detail_narrow::to_unsigned;
 using private_detail_narrow::to_signed;
-
+using private_detail_narrow::u_distance;
 
 D_WARNING_POP

@@ -34,13 +34,13 @@ namespace widget
     };
 
     template<>
-    struct event_result_processor<noapply_t>
+    struct event_result_processor<dummy>
     {
         constexpr event_result_processor(no_overload, no_overload) noexcept
         {}
     };
 
-    using no_event_result_processor_t = event_result_processor<noapply_t>;
+    using no_event_result_processor_t = event_result_processor<dummy>;
 
     constexpr no_event_result_processor_t no_event_result_processor{ nullptr, nullptr };
 
@@ -95,13 +95,13 @@ namespace widget
     }
 
     template<class ER>
-    [[nodiscard]] constexpr decltype(auto) operator | (event_result_processor<ER> left, noapply_t) noexcept
+    [[nodiscard]] constexpr decltype(auto) operator | (event_result_processor<ER> left, dummy) noexcept
     {
         return left;
     }
 
     template<class ER>
-    [[nodiscard]] constexpr decltype(auto) operator | (noapply_t, event_result_processor<ER> right) noexcept
+    [[nodiscard]] constexpr decltype(auto) operator | (dummy, event_result_processor<ER> right) noexcept
     {
         return right;
     }

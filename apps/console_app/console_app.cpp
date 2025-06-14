@@ -1,34 +1,23 @@
-﻿#include <mimalloc.h>
+﻿#include <execution>
+#include <algorithm>
+#include <bit>
 
-#include <any>
-#include <print>
 
-namespace
+int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) noexcept
 {
-    struct xz_struct
+    size_t args_len{};
+
+    const auto slrlen_acc = [&args_len] (const char* arg) noexcept 
     {
-        ~xz_struct() noexcept
-        {
-            std::print("xz_struct dtor");
-        }
+          args_len += strlen(arg);
     };
-}
 
-int main() noexcept 
-{
-    {
-        const xz_struct*const p_xz{ new xz_struct };
-        std::destroy_at(p_xz);
-        free(const_cast<void*>(static_cast<const void*>(p_xz)));
-    }
+    std::for_each
+    (
+        std::execution::unseq,
+        argv, argv + argc,
+        slrlen_acc
+    );
 
-    std::is_nothrow_constructible_v<std::any>;
-    std::any axz;
-    const auto xzg = mi_good_size(333333);
-    const auto xz = mi_malloc(333333);
-    const auto xzzz = mi_malloc_size(xz);
-    const auto xzz = mi_usable_size(xz);
-    mi_free(mi_realloc(xz,3333));
-    mi_free_size(mi_malloc(333), 333);
-    return !!xz + 0;
+    return std::popcount(args_len);
 }

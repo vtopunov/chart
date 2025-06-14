@@ -68,19 +68,11 @@ namespace px
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
-            D_ASSERT(space.size_bytes() <= buffer_.size());
+            D_ASSERT_OR_ASSUME(space.size_bytes() <= buffer_.size());
         }
 
         constexpr pixmap(memory_construct_t, byte_buffer&& buffer) noexcept
             : pixmap{ memory_construct, std::move(buffer), space_type{} }
-        {}
-
-        constexpr explicit pixmap(pxsizes sizes) noexcept
-            : pixmap{ space_type{ sizes } }
-        {}
-
-        constexpr pixmap(byte_buffer&& buffer, pxsizes sizes) noexcept
-            : pixmap{ std::move(buffer), space_type{ sizes } }
         {}
 
         constexpr pixmap(npx_t x, npx_t y) noexcept
@@ -152,7 +144,7 @@ namespace px
         }
 
         [[nodiscard]]
-        constexpr const_pointer cdata() const noexcept
+        constexpr const const_pointer cdata() const noexcept
         {
             return static_cast<const_pointer>(buffer_.cvoid_data());
         }

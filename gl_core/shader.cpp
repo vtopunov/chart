@@ -11,33 +11,55 @@ namespace gl
 {
     namespace
     {
+        template<class LocationType>
+        struct location_api;
+
+        template<>
+        struct location_api<attribute_location>
+        {
+            static constexpr auto getter = glGetAttribLocation;
+            static constexpr auto detail_getter = glGetActiveAttrib;
+        };
+
+        template<>
+        struct location_api<uniform_location>
+        {
+            static constexpr auto getter = glGetUniformLocation;
+            static constexpr auto detail_getter = glGetActiveUniform;
+        };
+
+        using location_detail_getter_t = decltype(glGetActiveAttrib);
+
+        template<class ResourceType>
+        struct resource_api;
+
+        template<>
+        struct resource_api<shader_resource>
+        {
+            static constexpr auto ivalue = glGetShaderiv;
+            static constexpr auto log = glGetShaderInfoLog;
+        };
+
+        template<>
+        struct resource_api<program_resource>
+        {
+            static constexpr auto ivalue = glGetProgramiv;
+            static constexpr auto log = glGetProgramInfoLog;
+        };
+
         namespace resource
         {
-            [[nodiscard]]
-            GLint ivalue(shader_resource r, GLenum e, GLint defValue = {}) noexcept
+            template<class R>
+            [[nodiscard]] GLint ivalue(const R r, GLenum e, GLint defValue = {}) noexcept
             {
-                glGetShaderiv(to_underlying(r), e, std::addressof(defValue));
+                resource_api<R>::ivalue(to_underlying(r), e, std::addressof(defValue));
                 return defValue;
             }
 
-            [[nodiscard]]
-            GLint ivalue(program_resource r, GLenum e, GLint defValue = {}) noexcept
+            template<class R>
+            [[nodiscard]] GLsizei log(const R r, GLsizei size, char* s) noexcept
             {
-                glGetProgramiv(to_underlying(r), e, std::addressof(defValue));
-                return defValue;
-            }
-
-            [[nodiscard]]
-            GLsizei log(shader_resource r, GLsizei size, char* s) noexcept
-            {
-                glGetShaderInfoLog(to_underlying(r), size, &size, s);
-                return size;
-            }
-
-            [[nodiscard]]
-            GLsizei log(program_resource r, GLsizei size, char* s) noexcept
-            {
-                glGetProgramInfoLog(to_underlying(r), size, &size, s);
+                resource_api<R>::log(to_underlying(r), size, &size, s);
                 return size;
             }
         }
@@ -46,20 +68,6 @@ namespace gl
         [[nodiscard]] size_t size_log(const R r) noexcept
         {
             return narrow<size_t>(resource::ivalue(r, GL_INFO_LOG_LENGTH));
-        }
-
-        template<class R>
-        size_t log(const R r, span<char> chars) noexcept
-        {
-            return narrow<size_t>(resource::log(r, narrow<GLsizei>(chars.size()), chars.data()));
-        }
-
-        template<class R>
-        [[nodiscard]] std::string log(const R r) noexcept
-        {
-            std::string log_string(size_log(r), '\0');
-            log_string.erase(log(r, log_string));
-            return log_string;
         }
 
         [[nodiscard]]
@@ -74,8 +82,29 @@ namespace gl
             return !!resource::ivalue(program, GL_LINK_STATUS);
         }
 
-        using location_detail_getter_t = decltype(glGetActiveAttrib);
-        static_assert(std::is_same_v<location_detail_getter_t, decltype(glGetActiveUniform)>);
+        template<class R>
+        [[nodiscard]] void gl_error_debug(const char* format, const R& resource_ref) noexcept
+        {
+            const auto resource_view = view(resource_ref);
+
+            const small_vector<char> log_string
+            {
+                memory_overwrite_construct,
+                size_log(resource_view),
+                [resource_view] (char* buf, size_t buf_size) noexcept
+                {
+                    return narrow<size_t>(resource::log
+                    (
+                        resource_view,
+                        narrow<GLsizei>(buf_size),
+                        buf
+                    ));
+                },
+                small_vector_exceptions::accept_and_write_bad_alloc
+            };
+            const std::string_view log_string_view{ log_string };
+            e_debug(format, log_string_view);
+        }
 
         [[nodiscard]]
         bool test_location
@@ -90,7 +119,7 @@ namespace gl
             constexpr size_t name_buffer_static_size{ 4 * sizeof(size_t) };
 
             small_vector<char, name_buffer_static_size> name_buffer{};
-            name_buffer.reserve(test_name.size() + 2_uz);
+            name_buffer.reserve(test_name.size() + 2u);
 
             GLsizei name_size{ 0 };
             GLenum type_id{ 0 };
@@ -113,36 +142,12 @@ namespace gl
                 narrow<size_t>(name_size)
             };
 
-            const auto test0 = (size == 1_uz);
+            const auto test0 = (size == 1u);
             const auto test1 = test0 && (type_id == to_underlying(test_typeid));
             const auto test2 = test1 && (name == test_name);
 
             return test2;
         }
-
-
-        template<class LocationType>
-        struct location_traits;
-
-        template<>
-        struct location_traits<attribute_location>
-        {
-            static constexpr auto getter = glGetAttribLocation;
-            static constexpr auto detail_getter = glGetActiveAttrib;
-        };
-
-        template<>
-        struct location_traits<uniform_location>
-        {
-            static constexpr auto getter = glGetUniformLocation;
-            static constexpr auto detail_getter = glGetActiveUniform;
-        };
-
-        template <class LocationType>
-        constexpr auto location_getter_v = location_traits<LocationType>::getter;
-
-        template <class LocationType>
-        constexpr auto location_detail_getter_v = location_traits<LocationType>::detail_getter;
 
         template <class LocationType>
         [[nodiscard]] bool test_location
@@ -155,7 +160,7 @@ namespace gl
         {
             return test_location
             (
-                location_detail_getter_v<LocationType>,
+                location_api<LocationType>::detail_getter,
                 program,
                 to_underlying(location),
                 test_typeid,
@@ -166,7 +171,7 @@ namespace gl
         template<class LocationType>
         [[nodiscard]] LocationType get_location(program_resource program, zstring_view name) noexcept
         {
-            const auto location = location_getter_v<LocationType>(to_underlying(program), name.c_str());
+            const auto location = location_api<LocationType>::getter(to_underlying(program), name.c_str());
             static_assert(is_same_uncv_v<std::make_unsigned_t<decltype(location)>, std::underlying_type_t<LocationType>>);
             return narrow<LocationType>(location);
         }
@@ -213,7 +218,7 @@ namespace gl
             }
             else
             {
-                e_debug("GLSL: {}", log(view(shader)));
+                gl_error_debug("GLSL: {}", shader);
             }
         }
 
@@ -228,9 +233,8 @@ namespace gl
 
     program_resource current_program() noexcept
     {
-        using programi_t = std::make_signed_t<std::underlying_type_t<program_resource>>;
-        constexpr auto null_programi = static_cast<programi_t>(program_resource::null);
-        programi_t programi{ null_programi };
+        constexpr auto null_programi = as_signed(to_underlying(instance_for_null_v<program_resource>));
+        auto programi = null_programi;
         glGetIntegerv(GL_CURRENT_PROGRAM, std::addressof(programi));
         return static_cast<program_resource>(programi);
     }
@@ -258,7 +262,7 @@ namespace gl
 
             if (!ok) [[unlikely]]
             {
-                e_debug("GL program: {}", log(view(program)));
+                gl_error_debug("GL program: {}", program);
                 program.reset();
             }
         }

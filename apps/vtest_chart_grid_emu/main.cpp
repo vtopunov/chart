@@ -133,7 +133,7 @@ namespace
                 image = { image.release_buffer(), new_sizes };
                 if (!image)
                 {
-                    ui_fatal_debug(e.window(), "grid emu: out of memory");
+                    ui_fatal_debug("grid emu: out of memory");
                     return;
                 }
 
@@ -144,18 +144,17 @@ namespace
             shaders.draw();
         }
 
-        constexpr noapply_t apply(no_overload) const noexcept
+        constexpr dummy apply(no_overload) const noexcept
         {
-            return noapply;
+            return dummy_v;
         }
     };
 
 }
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
     auto window = widget::window_builder{}
-        .module(app)
         .sizes(ui::adjust_sizes(480_npx, 960_npx))
         .command_show(ui::show_command::normal)
         .build();

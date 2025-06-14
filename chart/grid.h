@@ -15,7 +15,7 @@ namespace chart
         const auto max_increment = pow(10, ceil_cast<int64_t>(log10(min_distance)));
         const auto half_increment = 0.5 * max_increment;
         const auto result_increment = (min_distance <= half_increment) ? half_increment : max_increment;
-        D_ASSERT(min_distance <= result_increment);
+        D_ASSERT_OR_ASSUME(min_distance <= result_increment);
         return result_increment;
     }
 
@@ -23,8 +23,8 @@ namespace chart
     [[nodiscard]] constexpr T grid_begin(T begin, T increment) noexcept
     {
         const auto result = increment * std::ceil(begin / increment);
-        D_ASSERT(begin <= result);
-        D_ASSERT(result <= (begin + increment));
+        D_ASSERT_OR_ASSUME(begin <= result);
+        D_ASSERT_OR_ASSUME(result <= (begin + increment));
         return result;
     }
 
@@ -34,13 +34,14 @@ namespace chart
         const auto last = (end - begin) / increment;
 
         {
-            [[maybe_unused]] constexpr T sizef_mini{ -1 };
-            [[maybe_unused]] constexpr auto sizef_maxi = clamp_cast<T>(size_maxi);
-            D_ASSERT(last > sizef_mini);
-            D_ASSERT(last < sizef_maxi);
+            [[maybe_unused]] constexpr auto index_epsf = numeric_eps_v<T>;
+            [[maybe_unused]] constexpr auto index_minf = clamp_cast<T>(-1) + index_epsf;
+            [[maybe_unused]] constexpr auto index_maxf = clamp_cast<T>(size_overflow_maxi) - index_epsf;
+            D_ASSERT_OR_ASSUME(last >= index_minf);
+            D_ASSERT_OR_ASSUME(last <= index_maxf);
         }
 
-        return 1_uz + static_cast<size_t>(last);
+        return 1u + static_cast<size_t>(last);
     }
 
     template<class T>
@@ -154,7 +155,7 @@ namespace chart
         {
             const auto row_index = position.px.begin.y() + i * position.px.repeat.y();
             px::draw_hline(pixs, row_index, grid.widths.y());
-        }
+        } 
 
         for (size_t i = 0; i != position.count.x(); ++i )
         {

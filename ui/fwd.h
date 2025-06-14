@@ -8,11 +8,7 @@
 
 namespace ui
 {
-    using px::no_sizes;
-
     using os::window_handle_t;
-    using os::module_handle_t;
-    using os::const_module_handle_t;
     using os::uint_t;
     using os::dword_t;
     using os::word_t;
@@ -41,6 +37,7 @@ namespace ui
     class pointer_event;
     class mouse_event;
 
+    using error_code_t = D_OS_WINDOWS_OR(dword_t, int);
     using event_result_t = ptrdiff_t;
     using event_result_opt_t = D_OS_WINDOWS_OR(std::optional<event_result_t>, std::nullopt_t);
 

@@ -15,7 +15,7 @@ namespace
     constexpr auto abscissa = [] () noexcept
     {
         constexpr auto pi = 3.141592653589793238462643383279502884L;
-        constexpr auto abscissa_max = static_cast<px::real_t>(7.0 * pi);
+        constexpr auto abscissa_max = static_cast<real_t>(7.0 * pi);
         return lerp
         (
             0_uz, n_points - 1_uz,
@@ -58,7 +58,8 @@ namespace
         widget::button b_exit
         {
             .geometry{ button_boundaries_v<2u> },
-            .text{ u8"Выход" }
+            .text{ u8"Выход" },
+            .clicked{ ui::quit }
         };
 
         struct chart_widget
@@ -74,7 +75,7 @@ namespace
                 .geometry{ chart_boundaries },
             };
 
-            static constexpr chart::background background{ .brush{ colors::yellow_f.with_blue(0.93f) }};
+            static constexpr chart::background background{ .brush{ colors::yellow_f.with_blue(0.93f) } };
             static constexpr chart::grid grid{};
 
             // chart::px_grid grid{};
@@ -82,7 +83,7 @@ namespace
 
             struct polyline : chart::polyspanline
             {
-                chart::real_vpoint2d points;
+                chart::vpoint2re points;
 
                 void setup_model() noexcept
                 {
@@ -97,7 +98,7 @@ namespace
             {
                 if (polyline0.points.try_reserve(n_points) && polyline1.points.try_reserve(n_points)) [[likely]]
                 {
-                    for (size_t i = 0_uz; i < n_points; ++i)
+                    for (size_t i = 0u; i < n_points; ++i)
                     {
                         const auto x = abscissa(i);
                         const auto y = sin(x);
@@ -137,8 +138,7 @@ namespace
 
         chart_widget chart{};
 
-
-        bool operator () (widget::initialization_event<> e) noexcept
+        main_widget() noexcept
         {
             b_plot.clicked = [this] () noexcept
             {
@@ -149,13 +149,6 @@ namespace
             {
                 chart.clear();
             };
-
-            b_exit.clicked = [app = e.app()] () noexcept
-            {
-                ui::quit(app);
-            };
-
-            return true;
         }
 
         template<class Fn>
@@ -167,7 +160,7 @@ namespace
 }
 
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
-    return widget::run<main_widget>(app);
+    return widget::run<main_widget>();
 }

@@ -4,25 +4,25 @@
 
 namespace
 {
-    #include <ft2build.h>
-    #include FT_FREETYPE_H
+#   include <ft2build.h>
+#   include FT_FREETYPE_H
 }
 
 
 namespace font
 {
-    struct s_face_descriptor : FT_FaceRec_
+    struct _private_face : FT_FaceRec_
     {};
 
     namespace
     {
-        template<class T, size_t FractBits>
-        [[nodiscard]] constexpr pxpoint as_pxposition(const point2d<fixed<T, FractBits>>& p) noexcept
+        template<class T, uintmax_t UDen>
+        [[nodiscard]] constexpr pxpoint as_pxposition(const point2d<rational<T, UDen>>& p) noexcept
         {
             return
             {
-                trunc_to<npx_t>(p.x()),
-                trunc_to<npx_t>(p.y())
+                floor_to<npx_t>(p.x()),
+                floor_to<npx_t>(p.y())
             };
         }
 
@@ -40,9 +40,9 @@ namespace font
         {
             e_debug
             (
-                "FT error: {}: {}:{}", 
-                string, 
-                static_cast<int>(errc), 
+                "FT error: {}: {}:{}",
+                string,
+                static_cast<int>(errc),
                 error_string(errc)
             );
         }
@@ -84,8 +84,7 @@ namespace font
 
             enum class dtor_state
             {
-                null,
-                disabled = null,
+                disabled = 0,
                 enabled
             };
 
@@ -179,13 +178,13 @@ namespace font
         };
     }
 
-    void face_deleter::operator()(face_descriptor_t face) const noexcept
+    void face_deleter::operator()(face_resource face) const noexcept
     {
         constexpr ft_face_deleter ft_deleter{};
         ft_deleter(face);
     }
 
-    face create_face(const_buffer_view font_storage, pxsizes sizes) noexcept
+    face create_face(const_byte_buffer_view font_storage, pxsizes sizes) noexcept
     {
         auto lib = library::instance();
 
@@ -193,25 +192,28 @@ namespace font
 
         if (lib) [[likely]]
         {
-            constexpr FT_Long face_index{ 0 };
-            const auto ft_font_storage = font_storage.as_span<const FT_Byte>();
+            constexpr FT_Long zero_face_index{ 0 };
+            const auto ft_font_storage = interpret<FT_Byte>(font_storage);
             unique_resource<FT_Face, ft_face_deleter> ft_face{};
 
-            if (const auto errc
-                = FT_New_Memory_Face
+            {
+                const auto errc = FT_New_Memory_Face
                 (
                     lib,
                     ft_font_storage.data(),
-                    narrow<FT_Long>(ft_font_storage.size()),
-                    face_index,
+                    narrow<FT_Long>(size_bytes(ft_font_storage)),
+                    zero_face_index,
                     std::addressof(as_mutable(ft_face.r()))
-                ); errc != FT_Err_Ok) [[unlikely]]
-            {
-                ft_face.reset();
-                e_debug_ft("FT_New_Memory_Face", errc);
+                );
+
+                if (errc != FT_Err_Ok) [[unlikely]]
+                {
+                    ft_face.reset();
+                    e_debug_ft("FT_New_Memory_Face", errc);
+                }
             }
 
-            result_face = face{ static_cast<face_descriptor_t>(ft_face.release()) };
+            result_face = face{ static_cast<face_resource>(ft_face.release()) };
         }
 
         if (result_face) [[likely]]
@@ -230,24 +232,27 @@ namespace font
         return result_face;
     }
 
-    bool sizes(face_descriptor_t face, pxsizes sizes) noexcept
+    bool sizes(face_resource face, pxsizes sizes) noexcept
     {
-        if (const auto errc
-            = FT_Set_Pixel_Sizes
+        {
+            const auto errc = FT_Set_Pixel_Sizes
             (
                 face,
                 narrow<FT_UInt>(sizes.width()),
                 narrow<FT_UInt>(sizes.height())
-            ); errc != FT_Err_Ok) [[unlikely]]
-        {
-            e_debug_ft("FT_Set_Pixel_Sizes", errc);
-            return false;
+            );
+
+            if (errc != FT_Err_Ok) [[unlikely]]
+            {
+                e_debug_ft("FT_Set_Pixel_Sizes", errc);
+                return false;
+            }
         }
 
         return true;
     }
 
-    cursor draw_char(lumpixspan image, cursor cursor, face_descriptor_t face, charmax_t char_code) noexcept
+    cursor draw_char(lumpixspan image, cursor cursor, face_resource face, charmax_t char_code) noexcept
     {
         if (const auto end_x = cursor::value_type::instance(image.width()); cursor.x() >= end_x) [[unlikely]]
         {
@@ -259,16 +264,19 @@ namespace font
             return invalid_cursor;
         }
 
-        if (const auto errc 
-            = FT_Load_Char
-            (
-                face, 
-                numeric_cast<FT_ULong>(char_code), 
-                FT_LOAD_RENDER
-            ); FT_Err_Ok != errc) [[unlikely]]
         {
-            e_debug_ft("FT_Load_Char FT_LOAD_RENDER", errc);
-            return invalid_cursor;
+            const auto errc = FT_Load_Char
+            (
+                face,
+                numeric_cast<FT_ULong>(char_code),
+                FT_LOAD_RENDER
+            );
+
+            if (FT_Err_Ok != errc) [[unlikely]]
+            {
+                e_debug_ft("FT_Load_Char FT_LOAD_RENDER", errc);
+                return invalid_cursor;
+            }
         }
 
         const auto glyph = face->glyph;
@@ -287,7 +295,7 @@ namespace font
 
         const auto& bitmap = glyph->bitmap;
 
-        if (bitmap.width && bitmap.rows) [[likely]]
+        if (is_positive(bitmap.width) && is_positive(bitmap.rows)) [[likely]]
         {
             if (!bitmap.buffer) [[unlikely]]
             {
@@ -344,7 +352,7 @@ namespace font
         return cursor;
     }
 
-    metrics char_metrics(face_descriptor_t face, charmax_t char_code) noexcept
+    metrics char_metrics(face_resource face, charmax_t char_code) noexcept
     {
         constexpr metrics invalid_metrics{};
 
@@ -353,16 +361,19 @@ namespace font
             return invalid_metrics;
         }
 
-        if (const auto errc 
-            = FT_Load_Char
-            (
-                face, 
-                numeric_cast<FT_ULong>(char_code), 
-                FT_LOAD_DEFAULT
-            ); FT_Err_Ok != errc) [[unlikely]]
         {
-            e_debug_ft("FT_Load_Char FT_LOAD_DEFAULT", errc);
-            return invalid_metrics;
+            const auto errc = FT_Load_Char
+            (
+                face,
+                numeric_cast<FT_ULong>(char_code),
+                FT_LOAD_DEFAULT
+            );
+
+            if (FT_Err_Ok != errc) [[unlikely]]
+            {
+                e_debug_ft("FT_Load_Char FT_LOAD_DEFAULT", errc);
+                return invalid_metrics;
+            }
         }
 
         const auto glyph = face->glyph;

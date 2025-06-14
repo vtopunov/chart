@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">  
+  <Import Project="app_library.props" />
+  
+  <ItemDefinitionGroup>
+    <Link>
+      <LibraryDependencies>GLESv2;EGL;%(LibraryDependencies)</LibraryDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  
+  <ItemGroup>    
+    <ProjectReference Include="$(AndroidRepoDir)\egli\egli.vcxproj">
+      <Project>{c0808f2e-6821-487f-b347-6ae09a529f59}</Project>
+    </ProjectReference>
+    
+    <ProjectReference Include="$(AndroidRepoDir)\gl_core\gl_core.vcxproj">
+      <Project>{40eaf3cf-7215-4353-9a89-883b91118195}</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

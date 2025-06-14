@@ -66,6 +66,24 @@ namespace private_detail_numeric_limits
             return std::numeric_limits<T>::infinity();
         }
     };
+
+    template<template<class> class Gen, class T>
+    struct numeric_munis
+    {
+        [[nodiscard]]
+        static constexpr T create() noexcept
+        {
+            return -(Gen<T>::create());
+        }
+    };
+
+    template<class T>
+    struct numeric_lowest_inf_factory : numeric_munis<numeric_inf_factory, T>
+    {};
+
+    template<class T>
+    struct numeric_lowest_eps_factory : numeric_munis<numeric_eps_factory, T>
+    {};
 }
 
 template<template<class> class Gen, class T>
@@ -99,10 +117,13 @@ template<class T = void>
 constexpr auto numeric_min_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_min_factory, T>::create();
 
 template<class T = void>
+constexpr auto numeric_lowest_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_lowest_factory, T>::create();
+
+template<class T = void>
 constexpr auto numeric_eps_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_eps_factory, T>::create();
 
 template<class T = void>
-constexpr auto numeric_lowest_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_lowest_factory, T>::create();
+constexpr auto numeric_lowest_eps_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_lowest_eps_factory, T>::create();
 
 template<class T = void>
 constexpr auto numeric_nan_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_nan_factory, T>::create();
@@ -110,5 +131,15 @@ constexpr auto numeric_nan_v = numeric_deduction_factory<private_detail_numeric_
 template<class T = void>
 constexpr auto numeric_inf_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_inf_factory, T>::create();
 
+template<class T = void>
+constexpr auto numeric_lowest_inf_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_lowest_inf_factory, T>::create();
+
 template<class T>
 constexpr auto numeric_digits_v = std::numeric_limits<T>::digits;
+
+
+template<class T>
+using tr_numeric_digits = std::integral_constant<
+    std::decay_t<decltype(numeric_digits_v<T>)>, 
+    numeric_digits_v<T>
+>;

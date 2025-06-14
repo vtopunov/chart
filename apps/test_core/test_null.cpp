@@ -135,28 +135,17 @@ void test_null() noexcept
     }
 
     {
-        enum class e_invalid_null
-        {
-            null = 0x12341234,
-            invalid = 0x12344321
-        };
-
         enum class e_null
-        {
-            null = 0x43211234
-        };
+        {};
 
         enum class e_invalid
         {
             invalid = 0x43214321
         };
 
-        static_assert(e_invalid_null::null != e_invalid_null::invalid);
-        static_assert(null_v<e_invalid_null> == e_invalid_null::invalid);
-        static_assert(null_v<e_null> == e_null::null);
+        static_assert(null_v<e_null> == e_null{});
         static_assert(null_v<e_invalid> == e_invalid::invalid);
 
-        static_assert(is_nullable_v<e_invalid_null>);
         static_assert(is_nullable_v<e_null>);
         static_assert(is_nullable_v<e_invalid>);
     }

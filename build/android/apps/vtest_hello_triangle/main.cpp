@@ -2,14 +2,14 @@
 
 #include <gl_core/draw.h>
 
-#include <egl_ui/egl_ui_owner.h>
+#include <egli/egli_owner.h>
 
 
 namespace
 {
     struct engine
     {
-        egl_ui_owner egl;
+        egli_owner egl;
         bool need_redraw{ true };
 
         constexpr explicit operator bool() const noexcept
@@ -84,9 +84,9 @@ namespace
     };
 }
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
-    engine engine{ .egl{ create_egl_ui(app) } };
+    engine engine{ .egl{ egli_builder{}.build() } };
     if (!engine)
     {
         return EXIT_FAILURE;

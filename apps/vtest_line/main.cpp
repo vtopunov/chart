@@ -3,7 +3,7 @@
 #include <px/algorithm.h>
 #include <px/pixmap.h>
 
-#include <egl_ui/egl_ui_owner.h>
+#include <egli/egli_owner.h>
 
 #ifdef D_OS_WINDOWS
 #include <file/file_mmap.h>
@@ -99,12 +99,12 @@ namespace
 }
 
 
-int app_main(os::module_handle_t app) noexcept
+int main() noexcept
 {
-    const auto egl = create_egl_ui(app);
+    const auto egl = egli_builder{}.build();
     if (!egl)
     {
-        e_debug("create window error: {}", egl_ui::error_code());
+        e_debug("create window error: {}", egli::error_code());
         return EXIT_FAILURE;
     }
 

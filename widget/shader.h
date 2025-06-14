@@ -8,7 +8,7 @@
 namespace widget
 {
     template<class T>
-    using decl_store_viewport_t = decltype(std::declval<const T&>().viewport(px::no_sizes));
+    using decl_store_viewport_t = decltype(std::declval<const T&>().viewport(no_sizes));
 
 
     template<class VS, class FS>
@@ -17,6 +17,10 @@ namespace widget
         using base_type = shader_library<VS, FS>;
 
     public:
+        constexpr widget_shader_library() noexcept = default;
+
+        D_DISABLE_COPYMOVE_CA(widget_shader_library);
+
         [[nodiscard]] bool operator()(basic_initialization_event<>) noexcept
         {
             return this->load();
@@ -31,9 +35,9 @@ namespace widget
             }
         }
 
-        constexpr noapply_t apply(no_overload) const noexcept
+        constexpr dummy apply(no_overload) const noexcept
         {
-            return noapply;
+            return dummy_v;
         }
     };
 }

@@ -10,17 +10,10 @@ namespace ui
         namespace
         {
             [[nodiscard]]
-            constexpr real_t inner_product(real_point2d v0, real_point2d v1) noexcept
+            constexpr real_t inner_product(point2re v0, point2re v1) noexcept
             {
                 return v0.x() * v1.x() + v0.y() * v1.y();
             };
-
-            template<class T>
-            [[nodiscard]] constexpr bool is_positive_or_near_zero(T value) noexcept
-            {
-                constexpr auto near_zero_min = -numeric_eps_v<T>;
-                return value >= near_zero_min;
-            }
 
             [[nodiscard]]
             constexpr bool cache_has_value(real_t value) noexcept
@@ -76,7 +69,7 @@ namespace ui
             };
 
             [[nodiscard]]
-            constexpr orientation locating_orientation(real_point2d abs_dp) noexcept
+            constexpr orientation locating_orientation(point2re abs_dp) noexcept
             {
                 constexpr real_t threshold{ 100.0 };
 
@@ -103,7 +96,7 @@ namespace ui
 
                 {
                     const auto along_x = abs_dp.y() < abs_dp.x();
-                    const auto is_codirectional = is_positive_or_near_zero((along_x) ? dp.x() : dp.y());
+                    const auto is_codirectional = is_positive_or_epsfp((along_x) ? dp.x() : dp.y());
                     v = (is_codirectional) ? v : inverse(v);
                 }
 
@@ -116,7 +109,7 @@ namespace ui
                 const auto dp = (v._1 - v._0);
 
                 {
-                    const auto is_codirectional = is_positive_or_near_zero(inner_product(dp, order._1 - order._0));
+                    const auto is_codirectional = is_positive_or_epsfp(inner_product(dp, order._1 - order._0));
                     v = (is_codirectional) ? v : inverse(v);
                 }
 
@@ -166,7 +159,7 @@ namespace ui
             }
 
             [[nodiscard]]
-            constexpr gesture make_gesture(real_point2d p0, real_point2d p1) noexcept
+            constexpr gesture make_gesture(point2re p0, point2re p1) noexcept
             {
                 return
                 {
@@ -193,7 +186,7 @@ namespace ui
             }
 
             [[nodiscard]]
-            constexpr gesture make_gesture_opt(const vpoint_cache& v, real_point2d p) noexcept
+            constexpr gesture make_gesture_opt(const vpoint_cache& v, point2re p) noexcept
             {
                 return (1u == size(v)) ? make_gesture(v._0, p) : no_gesture;
             }
@@ -205,7 +198,7 @@ namespace ui
             }
 
             [[nodiscard]]
-            constexpr gesture new_manipulation(vpoint_cache& cached_p, real_point2d new_p) noexcept
+            constexpr gesture new_manipulation(vpoint_cache& cached_p, point2re new_p) noexcept
             {
                 return make_gesture_opt
                 (
@@ -215,7 +208,7 @@ namespace ui
             }
 
             [[nodiscard]]
-            constexpr real_point2d to_cached_point(const ui::pointer_event::point2d_type& p) noexcept
+            constexpr point2re to_cached_point(const ui::pointer_event::point2d_type& p) noexcept
             {
                 return
                 {
@@ -238,8 +231,8 @@ namespace ui
                         cached_p,
                         vpoint_cache
                         {
-                            to_cached_point(e.pointer(0_uz)),
-                            to_cached_point(e.pointer(1_uz))
+                            to_cached_point(e.pointer(0u)),
+                            to_cached_point(e.pointer(1u))
                         }
                     );
 

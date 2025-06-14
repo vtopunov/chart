@@ -58,8 +58,8 @@ namespace private_detail_shader_library
         [[nodiscard]] constexpr gl::uniform_location uniform_location(size_t index) const noexcept
         {
             D_ASSERT(in_use());
-            D_ASSERT(index < std::size(locations_));
-            D_ASSERT(gl::uniform_location::invalid != locations_[index]);
+            D_ASSERT_OR_ASSUME(index < std::size(locations_));
+            D_ASSERT_OR_ASSUME(gl::uniform_location::invalid != locations_[index]);
             D_ONLY_DEBUG(debug_location_in_use_.set(index));
             return locations_[index];
         }
@@ -116,7 +116,7 @@ namespace private_detail_shader_library
     {
     public:
         using exports_pack_type = ExportsPack;
-        static_assert(0_uz < types_size_v<exports_pack_type>);
+        static_assert(0_uz < ttypes_size_v<exports_pack_type>);
 
     protected:
         [[nodiscard]] bool _load(gl::vertex_source_view vs, gl::fragment_source_view fs) noexcept
@@ -134,10 +134,10 @@ namespace private_detail_shader_library
     private:
         constexpr void _load_impl() noexcept
         {
-            using unique_export_variables_t = types_unique_t<shader_common::export_pack_variables_t<ExportsPack> >;
-            constexpr auto has_indexed_location_uniform = types_has_v<shader_common::has_indexed_location, unique_export_variables_t>;
-            constexpr auto has_sampler = types_has_v<shader_common::is_sampler, unique_export_variables_t>;
-            constexpr auto has_non_uniform = types_has_v<shader_common::is_not_uniform, unique_export_variables_t>;
+            using unique_export_variables_t = ttypes_unique_t<shader_common::export_pack_variables_t<ExportsPack> >;
+            constexpr auto has_indexed_location_uniform = ttypes_has_v<shader_common::has_indexed_location, unique_export_variables_t>;
+            constexpr auto has_sampler = ttypes_has_v<shader_common::is_sampler, unique_export_variables_t>;
+            constexpr auto has_non_uniform = ttypes_has_v<shader_common::is_not_uniform, unique_export_variables_t>;
 
             if constexpr (has_indexed_location_uniform)
             {
@@ -187,11 +187,11 @@ namespace private_detail_shader_library
     template<class ExportsPack, class Interfaces>
     struct program_exports :
         program_exports_base<ExportsPack>,
-        repack_types_t<Interfaces, root_interface>
+        ttypes_repack_t<Interfaces, root_interface>
     {};
 
     template<class... Shaders>
-    using exports_t = types_unique_t<types_cat_t<shader_common::decl_exports_t<Shaders>...>>;
+    using exports_t = ttypes_unique_t<types_cat_t<shader_common::decl_exports_t<Shaders>...>>;
 
     namespace private_detail_interfaces
     {
@@ -199,9 +199,9 @@ namespace private_detail_shader_library
         struct interfaces_helper;
 
         template<class Lib, class... Exports>
-        struct interfaces_helper<Lib, types_pack<Exports...>, std::void_t<shader_common::decl_interface_t<Exports, Lib>...> >
+        struct interfaces_helper<Lib, ttypes<Exports...>, std::void_t<shader_common::decl_interface_t<Exports, Lib>...> >
         {
-            using type = types_unique_insert_back_t<types_pack<>, shader_common::decl_interface_t<Exports, Lib>...>;
+            using type = ttypes_unique_insert_back_t<ttypes<>, shader_common::decl_interface_t<Exports, Lib>...>;
         };
 
         template<class Lib, class Exports>

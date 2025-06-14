@@ -87,7 +87,7 @@ namespace file
         }
     }
 
-    void file_resource_deleter::operator()(file_resource file) const noexcept
+    void file_resource::deleter_type::operator()(file_resource file) const noexcept
     {
         if (invalidfile != file)
         {

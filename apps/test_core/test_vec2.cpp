@@ -123,7 +123,7 @@ void test_vec2() noexcept
         test_view(vec_ptrdiff);
 
         const auto stdvec = md_narrow<std::vector<int>>(vec_ptrdiff);
-        D_ASSERT(stdvec.size() == 2_uz);
+        D_ASSERT(stdvec.size() == 2u);
         D_ASSERT(stdvec[0] == 3);
         D_ASSERT(stdvec[1] == 4);
     }
@@ -265,19 +265,7 @@ void test_vec2() noexcept
     }
 
     {
-        const struct errno_restorer
-        {
-            int errvalue;
-
-            errno_restorer() noexcept
-                : errvalue{ errno }
-            {}
-
-            ~errno_restorer() noexcept
-            {
-                errno = errvalue;
-            }
-        } hold_errno;
+        const errno_holder hold_errno{};
 
         constexpr vec2 vvv0
         {

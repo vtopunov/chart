@@ -73,21 +73,20 @@ namespace widget
         }
 
         [[nodiscard]]
-        constexpr font::fixed_point2d center(const pxrectangle& r) noexcept
+        constexpr font::point2fix center(const pxrectangle& r) noexcept
         {
             return font::cursor::instance(r.position) + font::cursor::instance(r.sizes) / 2;
         }
 
         [[nodiscard]]
-        constexpr pxpoint ft_to_pxpoint(const vec2<font::fixed_t>& v) noexcept
+        constexpr pxpoint ft_ceil(const font::point2fix& v) noexcept
         {
             return
             {
-                font::ceil_to<npx_t>(v._0),
-                font::ceil_to<npx_t>(v._1)
+                ceil_to<npx_t>(v._0),
+                ceil_to<npx_t>(v._1)
             };
         }
-
         constexpr bool update_state(button_state& state, const button_state new_state) noexcept
         {
             const auto is_update = new_state != state;
@@ -98,16 +97,6 @@ namespace widget
 
             return is_update;
         }
-    }
-
-    bool button::operator()(widget::basic_initialization_event<>) noexcept
-    {
-        if (!font)
-        {
-            font = font_cache::default_font();
-        }
-
-        return !!font;
     }
 
     event_result button::operator () (const ui::mouse_down_event& e) noexcept
@@ -177,14 +166,14 @@ namespace widget
             s.draw();
         }
 
-        if (text_cache.draw(e.get<buffer_view>(), font, text, client_rc.sizes)) [[likely]]
+        if (text_cache.draw(e.get<temp_byte_buffer>(), font, text, client_rc.sizes)) [[likely]]
         {
             const auto ft_position = center(client_rc) - text_cache.center();
 
             const auto& s = e.get<shader_embed::luminance_texture>();
 
             s.use();
-            s.position(ft_to_pxpoint(ft_position));
+            s.position(ft_ceil(ft_position));
             s.color(colors::black_f);
             s.texture(text_cache.texture());
             s.draw();

@@ -6,7 +6,7 @@
 namespace
 {
     template<class T>
-    void test_convert_to_pixspan(pixmap<T>& map, pixspan<T> span) noexcept
+    void test_convert_to_pixspan(pixmap<T>& map, pixspan<T> mapspan) noexcept
     {
         using pixmap_type = pixmap<T>;
         using pixspan_type = pixspan<T>;
@@ -14,17 +14,17 @@ namespace
         static_assert(std::is_same_v<typename pixmap_type::pixel_type, typename pixspan_type::pixel_type>);
         static_assert(pixmap_type::alignment == pixspan_type::alignment);
         static_assert(std::is_same_v<typename pixmap_type::space_type, typename pixspan_type::space_type>);
-        static_assert(std::is_same_v<decltype(map.data()), decltype(span.data())>);
-        static_assert(std::is_same_v<decltype(map.sizes()), decltype(span.sizes())>);
+        static_assert(std::is_same_v<decltype(map.data()), decltype(mapspan.data())>);
+        static_assert(std::is_same_v<decltype(map.sizes()), decltype(mapspan.sizes())>);
 
-        D_ASSERT(map.data() == span.data());
-        D_ASSERT(map.sizes() == span.sizes());
+        D_ASSERT(map.data() == mapspan.data());
+        D_ASSERT(map.sizes() == mapspan.sizes());
     }
 
     template<class T>
-    void test_convert_to_pixspan(const pixmap<T>& map, pixspan<const T> span) noexcept
+    void test_convert_to_pixspan(const pixmap<T>& map, pixspan<const T> mapspan) noexcept
     {
-        pixspan<T> mutable_span{ const_cast<T*>(std::data(span)), px::space(span) };
+        pixspan<T> mutable_span{ const_cast<T*>(std::data(mapspan)), px::space(mapspan) };
         test_convert_to_pixspan(as_mutable(map), mutable_span);
     }
 
@@ -38,8 +38,8 @@ namespace
     constexpr bool test_types_v = std::conjunction_v<
         has_pixel_type<T>,
         has_space_type<T>,
-        px::has_space_alignment<T>, 
-        is_std_data_convertible<T, TestPx*>,
+        px::has_space_alignment<T>,
+        has_std_data_compatible<TestPx, T>,
         px::is_pixcontainer_space_convertible<T, TestSpace>,
         std::is_same<px::decl_pixel_type_t<T>, TestPx>,
         std::is_same<px::decl_space_t<T>, TestSpace>,
@@ -56,6 +56,8 @@ namespace
 
 void test_pixmap() noexcept
 {
+    const errno_holder hold_errno{};
+
     static_assert(test_rgba_color_types_v<rgba_color_pixspan>);
     static_assert(test_const_rgba_color_types_v<const_rgba_color_pixspan>);
     static_assert(test_rgba_color_types_v<rgba_color_pixmap>);
@@ -77,13 +79,10 @@ void test_pixmap() noexcept
         test_convert_to_pixspan(m, mspan);
     }
 
-
     {
         const rgba_color_pixmap m{ 3_npx, 5_npx };
         pixspan mspan{ m };
         static_assert(std::is_same_v<decltype(mspan), const_rgba_color_pixspan>);
         test_convert_to_pixspan(m, mspan);
     }
-
-    D_ASSERT(!errno);
 }

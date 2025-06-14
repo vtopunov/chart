@@ -26,7 +26,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Label="Locals">
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
@@ -656,6 +656,11 @@
     <ClCompile Include="libANGLE\renderer\null\TextureNULL.cpp" />
     <ClCompile Include="libANGLE\renderer\null\TransformFeedbackNULL.cpp" />
     <ClCompile Include="libANGLE\renderer\null\VertexArrayNULL.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="angle_common.vcxproj">
+      <Project>{7ab4b0c9-d974-3a65-ed87-61816b6917cb}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />

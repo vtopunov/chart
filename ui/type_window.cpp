@@ -83,14 +83,55 @@ namespace ui
 
         constexpr type_window_parameters& operator = (const type_window_parameters&) = default;
 
-        shared_resource<HBRUSH, gdi_object_deleter> background_brush{};
+        struct cache_type
+        {
+            shared_type_window type{};
+            shared_resource<HBRUSH, gdi_object_deleter> background_brush{};
+        };
+
+        cache_type cache{};
+
+        constexpr void clear_cache() noexcept
+        {
+            cache.background_brush.deattach_and_reset();
+            cache.type.deattach_and_reset();
+        }
+
+        void rebuild(wzstring_view name) noexcept
+        {
+            lpszClassName = name.c_str();
+            D_ASSERT(!is_null_or_zfront(lpszClassName));
+
+            if (!hInstance)
+            {
+                hInstance = os::current_module();
+                D_ASSERT(hInstance);
+            }
+
+            if (!hCursor)
+            {
+                hCursor = LoadCursorW(nullptr, idc_arrow_w());
+                D_ASSERT(hCursor);
+            }
+
+            if (!hbrBackground)
+            {
+                hbrBackground = stock(stock_brush::white);
+                D_ASSERT(hbrBackground);
+            }
+
+            cache.type = unique_resource<type_window_resource, window_type_resource_deleter>
+            {
+                MAKEINTATOMW(RegisterClassExW(as_const_pointer(this)))
+            };
+        }
     };
 
     void window_type_resource_deleter::operator()(type_window_resource type) const noexcept
     {
         if (type)
         {
-            D_ASSERT_OR_UNUSED(UnregisterClassW(type.handle, type.module));
+            D_ASSERT_OR_UNUSED(UnregisterClassW(type.handle, os::current_module()));
         }
     }
 
@@ -115,42 +156,17 @@ namespace ui
         return *this;
     }
 
-    unique_type_window type_window_builder::build(wzstring_view name) noexcept
+    shared_type_window type_window_builder::build() noexcept
     {
         const auto p_impl = _p_impl();
-        p_impl->lpszClassName = name.c_str();
-        D_ASSERT(!is_null_or_zterm(p_impl->lpszClassName));
-
-        if (!p_impl->hInstance)
+        if (!(p_impl->cache.type))
         {
-            p_impl->hInstance = GetModuleHandleW(nullptr);
-            D_ASSERT(p_impl->hInstance);
+            using unique_id_t = uint16_t;
+            WCHAR buffer_for_unique_name[unqiue_name_max_size_v<unique_id_t>];
+            p_impl->rebuild(unique_name(generate_unique_window_type_id_as<unique_id_t>(), buffer_for_unique_name));
         }
 
-        if (!p_impl->hCursor)
-        {
-            p_impl->hCursor = LoadCursorW(nullptr, idc_arrow_w());
-            D_ASSERT(p_impl->hCursor);
-        }
-
-        if (!p_impl->hbrBackground)
-        {
-            p_impl->hbrBackground = stock(stock_brush::white);
-            D_ASSERT(p_impl->hbrBackground);
-        }
-
-        return unique_type_window
-        {
-            MAKEINTATOMW(RegisterClassExW(as_const_pointer(p_impl))),
-            p_impl->hInstance
-        };
-    }
-
-    unique_type_window type_window_builder::build() noexcept
-    {
-        using unique_id_t = uint16_t;
-        WCHAR buffer_for_unique_name[unqiue_name_max_size_v<unique_id_t>];
-        return build(unique_name(generate_unique_window_type_id_as<unique_id_t>(), buffer_for_unique_name));
+        return p_impl->cache.type;
     }
 
     type_window_parameters* type_window_builder::_p_impl() noexcept
@@ -167,19 +183,17 @@ namespace ui
 
     type_window_builder& type_window_builder::style(uint_t style) noexcept
     {
-        _p_impl()->style = style;
-        return *this;
-    }
-
-    type_window_builder& type_window_builder::module(module_handle_t module) noexcept
-    {
-        _p_impl()->hInstance = module;
+        const auto p_impl = _p_impl();
+        p_impl->style = style;
+        p_impl->clear_cache();
         return *this;
     }
 
     type_window_builder& type_window_builder::background(stock_brush brush) noexcept
     {
-        _p_impl()->hbrBackground = stock(brush);
+        const auto p_impl = _p_impl();
+        p_impl->hbrBackground = stock(brush);
+        p_impl->clear_cache();
         return *this;
     }
 
@@ -187,24 +201,22 @@ namespace ui
     {
         const auto p_impl = _p_impl();
         p_impl->hbrBackground = brush;
-        p_impl->background_brush = std::move(brush);
+        p_impl->cache.background_brush = std::move(brush);
+        p_impl->cache.type.deattach_and_reset();
         return *this;
     }
 
     type_window_builder& type_window_builder::window_procedure(wndproc_t proc) noexcept
     {
-        _p_impl()->lpfnWndProc = proc;
+        const auto p_impl = _p_impl();
+        p_impl->lpfnWndProc = proc;
+        p_impl->clear_cache();
         return *this;
     }
 
     uint_t type_window_builder::style() const noexcept
     {
         return _c_p_impl()->style;
-    }
-
-    module_handle_t type_window_builder::module() const noexcept
-    {
-        return _c_p_impl()->hInstance;
     }
 
     const_brush_handle_t type_window_builder::background() const noexcept

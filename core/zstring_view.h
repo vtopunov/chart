@@ -89,7 +89,7 @@ using u8zstring_view = basic_zstring_view<char8_t>;
 using u16zstring_view = basic_zstring_view<char16_t>;
 using u32zstring_view = basic_zstring_view<char32_t>;
 
-constexpr zstring_view operator"" _zsv(const char* source, size_t) noexcept
+constexpr zstring_view operator ""_zsv(const char* source, size_t) noexcept
 {
     return source;
 }

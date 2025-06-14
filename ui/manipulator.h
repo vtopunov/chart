@@ -9,10 +9,6 @@ namespace ui
 {
     namespace manipulator
     {
-        using px::real_t;
-        using px::real_point2d;
-        using px::real_size2d;
-
         struct gesture
         {
             static constexpr real_t no_transformation_scale{ 1.0 };
@@ -35,13 +31,13 @@ namespace ui
             transformation_type transformation;
 
             [[nodiscard]]
-            constexpr real_point2d shift() const noexcept
+            constexpr point2re shift() const noexcept
             {
                 return transformation.shift();
             }
 
             [[nodiscard]]
-            constexpr real_size2d scale() const noexcept
+            constexpr size2re scale() const noexcept
             {
                 return transformation.scale();
             }
@@ -55,10 +51,10 @@ namespace ui
 
         constexpr gesture no_gesture{ gesture::no_transformation };
 
-        using vpoint_cache = vec2<real_point2d>;
+        using vpoint_cache = vec2<point2re>;
 
         constexpr auto no_cached_value = numeric_inf_v<real_t>;
-        constexpr auto no_cached_point = fill_to<real_point2d>(no_cached_value);
+        constexpr auto no_cached_point = fill_to<point2re>(no_cached_value);
         constexpr auto no_cached_vpoint = fill_to<vpoint_cache>(no_cached_point);
 
         [[nodiscard]]
