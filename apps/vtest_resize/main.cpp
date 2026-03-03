@@ -41,15 +41,6 @@ namespace
             lib_.draw();
         }
 
-#ifdef TEST_EGL_UI
-        ui::milliseconds operator () (ui::idle_event) const noexcept
-        {
-            draw();
-            return ui::infinite;
-        }
-
-#endif
-
 #ifdef TEST_WIDGET
         bool operator () (widget::viewport_event<> e) noexcept
         {
@@ -97,10 +88,9 @@ namespace
             return widget.initialize(egl.viewport());
         }
 
-        std::nullopt_t operator () (const ui::size_event& e) noexcept
+        void operator () (const ui::size_event& e) noexcept
         {
             widget.update_content_sizes(e.sizes());
-            return std::nullopt;
         }
 
         ui::milliseconds operator () (ui::idle_event) const noexcept

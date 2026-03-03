@@ -90,14 +90,12 @@ public:
     template<class... Args>
     [[nodiscard]] pointer try_emplace(Args&&... args) noexcept
     {
-        static_assert(std::is_nothrow_constructible_v<value_type, Args...>);
-
         if (size() == capacity())
         {
             if (const auto garbage_for_rewrite = garbage())
             {
-                std::destroy_at(garbage_for_rewrite);
-                new (garbage_for_rewrite) value_type{ std::forward<Args>(args)... };
+                ::destroy_at(garbage_for_rewrite);
+                ::construct_at(garbage_for_rewrite, std::forward<Args>(args)...);
                 return garbage_for_rewrite;
             }
         }

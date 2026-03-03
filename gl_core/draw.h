@@ -1,14 +1,20 @@
 #pragma once
 
 #include <core/color.h>
-#include <core/buffer_view.h>
 
 #include <gl_core/shader.h>
-#include <gl_core/vertex.h>
 
 
 namespace gl
 {
+    template<class... Types>
+    struct vertex : tuple<Types...>
+    {
+        constexpr vertex(Types... values) noexcept 
+            : tuple<Types...>(std::move(values)...)
+        {}
+    };
+
     inline void viewport(pxsizes sizes) noexcept
     {
         glViewport
@@ -112,10 +118,10 @@ namespace gl
         using const_vertex_pointer = const_vertex_type*;
 
         static constexpr auto attribute_index = AttributeIndex;
-        static constexpr const_vertex_pointer vertex_nullptr{ nullptr };
+        static constexpr const_vertex_pointer dummy_vertex_ptr{ nullptr };
 
         static constexpr auto typed_offset_method(const_vertex_pointer ptr) noexcept
-            -> decltype(get_ptr<attribute_index>(vertex_nullptr))
+            -> decltype(get_ptr<attribute_index>(dummy_vertex_ptr))
         {
             return get_ptr<attribute_index>(ptr);
         }
@@ -125,7 +131,7 @@ namespace gl
             return typed_offset_method(static_cast<const Vertex*>(p));
         }
 
-        using attribute_pointer = std::decay_t<decltype(typed_offset_method(vertex_nullptr))>;
+        using attribute_pointer = std::decay_t<decltype(typed_offset_method(dummy_vertex_ptr))>;
         using attribute_type = std::decay_t<std::remove_pointer_t<attribute_pointer>>;
 
         static constexpr vertex_attribute_profile profile
@@ -166,28 +172,30 @@ namespace gl
         : indexed_vertex_selector<vertex<Attributes...>, std::index_sequence_for<Attributes...>>
     {};
 
+    using attribute_location_cspan = span<const attribute_location>;
+    using vertex_attribute_profile_cspan = span<const vertex_attribute_profile>;
+
     void set_vertex_pointer
     (
-        span<const attribute_location> attributes,
-        span<const vertex_attribute_profile> attribute_profiles,
+        attribute_location_cspan attributes,
+        vertex_attribute_profile_cspan attribute_profiles,
         size_t stride,
         const void* p
     ) noexcept;
 
     template<class Vertex>
-    constexpr auto& vertex_profiles_v = vertex_selector<std::decay_t<Vertex>>::profiles;
+    constexpr vertex_attribute_profile_cspan vertex_profiles_v{ vertex_selector<std::decay_t<Vertex>>::profiles };
 
     template<class Vertex>
-    void set_vertex_pointer(span<const attribute_location> attributes, const Vertex* data) noexcept
+    void set_vertex_pointer(attribute_location_cspan attributes, const Vertex* data) noexcept
     {
-        constexpr auto& profiles = vertex_profiles_v<Vertex>;
-        set_vertex_pointer(attributes, profiles, sizeof(Vertex), data);
+        set_vertex_pointer(attributes, vertex_profiles_v<Vertex>, sizeof(Vertex), data);
     }
 
     template<class Vertex>
     void set_vertex_pointer(attribute_location attribute, const Vertex* data) noexcept
     {
-        set_vertex_pointer(span<attribute_location>{std::addressof(attribute), 1u}, data);
+        set_vertex_pointer(attribute_location_cspan{std::addressof(attribute), 1u}, data);
     }
 
     using buffer_descriptor_t = GLuint;
@@ -237,7 +245,7 @@ namespace gl
     buffer create_buffer(const_byte_buffer_view data) noexcept;
 
     template<class Vertex>
-    void set_vertex_buffer(span<const attribute_location> attributes, array_buffer_resource buffer) noexcept
+    void set_vertex_buffer(attribute_location_cspan attributes, array_buffer_resource buffer) noexcept
     {
         bind(buffer);
         gl::set_vertex_pointer<Vertex>(attributes, nullptr);
@@ -300,7 +308,7 @@ namespace gl
             return size_;
         }
 
-        vertex_buffer_user bind(span<const attribute_location> attributes) const noexcept
+        vertex_buffer_user bind(attribute_location_cspan attributes) const noexcept
         {
             gl::set_vertex_buffer<Vertex>(attributes, bo_);
             return { size_ };

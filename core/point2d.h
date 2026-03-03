@@ -7,31 +7,33 @@ template<class T>
 struct point2d : vec2<T>
 {
     using vec2_type = vec2<T>;
+    using typename vec2_type::value_type;
+    using typename vec2_type::reference;
+    using typename vec2_type::const_reference;
     using vec2_type::_0;
     using vec2_type::_1;
-    using reference = T&;
-    using const_reference = const T&;
+
 
     [[nodiscard]]
-    constexpr T x() const noexcept
+    constexpr value_type x() const noexcept
     {
         return cref_x();
     }
 
     [[nodiscard]]
-    constexpr T y() const noexcept
+    constexpr value_type y() const noexcept
     {
         return cref_y();
     }
 
     [[nodiscard]]
-    constexpr point2d with_x(T x) const noexcept
+    constexpr point2d with_x(value_type x) const noexcept
     {
         return { std::move(x), _1 };
     }
 
     [[nodiscard]]
-    constexpr point2d with_y(T y) const noexcept
+    constexpr point2d with_y(value_type y) const noexcept
     {
         return { _0, std::move(y) };
     }

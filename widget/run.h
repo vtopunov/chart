@@ -47,18 +47,16 @@ namespace widget
                 , context_{ window }
             {}
 
-            std::nullopt_t operator () (const ui::size_event& e) noexcept
+            void operator () (const ui::size_event& e) noexcept
             {
                 const auto new_size = e.sizes();
                 if (new_size.width() > 0_npx && new_size.height() > 0_npx) [[likely]]
                 {
-                    D_ASSERT(new_size.width() <= cref_window().viewport().width());
-                    D_ASSERT(new_size.height() <= cref_window().viewport().height());
+                    D_ASSERT_OR_ASSUME(new_size.width() <= cref_window().viewport().width());
+                    D_ASSERT_OR_ASSUME(new_size.height() <= cref_window().viewport().height());
                     context_.ref_window().content_sizes(new_size);
                     _apply_event(e);
                 }
-
-                return std::nullopt;
             }
 
             void operator () (ui::content_rect_changed_event) noexcept
@@ -78,10 +76,9 @@ namespace widget
             }
 
             template<ui::event_style Style>
-            std::nullopt_t operator () (const ui::specialized_event<Style>& e) noexcept
+            void operator () (const ui::specialized_event<Style>& e) noexcept
             {
                 _apply_event(e);
-                return std::nullopt;
             }
 
             ui::milliseconds operator () (ui::idle_event) noexcept
@@ -158,8 +155,8 @@ namespace widget
             void _apply_event(const Event& e) noexcept
             {
                 const widget_event_factory e_cc{ e, context_ };
-                combine_event_result(combined_event_result_, apply_event(context_, e_cc));
-                combine_event_result(combined_event_result_, apply_event(widget_, e_cc));
+                combine_event_result(combined_event_result_, ::widget::apply_event(context_, e_cc));
+                combine_event_result(combined_event_result_, ::widget::apply_event(widget_, e_cc));
             }
 
             void _draw() noexcept
@@ -169,7 +166,7 @@ namespace widget
                 gl::clear();
 
                 const widget_event_factory e_cc{ redraw_event_base_v, context_ };
-                D_UNUSED(apply_event(widget_, e_cc));
+                D_UNUSED(::widget::apply_event(widget_, e_cc));
             }
 
         private:

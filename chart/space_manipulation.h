@@ -29,8 +29,8 @@ namespace chart
 
         return
         {
-            { zero_re, space_y },
-            { space_x, zero_re },
+            point2re{ zero_re, space_y },
+            point2re{ space_x, zero_re },
         };
     }
 }

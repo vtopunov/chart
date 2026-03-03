@@ -35,9 +35,20 @@ void test_pixspan() noexcept
     static_assert(line_size == image_span.line_size());
 
     {
+        size_t index_line{ 0u };
+        for (const auto line : image_span)
+        {
+            const auto test_line_data = image + size_mul<line_size>(index_line);
+            D_ASSERT(test_line_data == line.data());
+            D_ASSERT(image_sizes.width() == line.size());
+            ++index_line;
+        }
+    }
+
+    {
         uint8_t temp_image[std::size(image)]{};
         lumpixspan temp_image_span{ std::data(temp_image), image_sizes };
-        static_assert(px::is_compatible_for_write_v<decltype(image_span), luminance_t>); 
+        static_assert(px::is_compatible_for_write_v<decltype(image_span), luminance_t>);
         D_ASSERT(image_sizes == temp_image_span.store(image_span));
         D_ASSERT(!memcmp(temp_image, image, sizeof(image)));
     }
@@ -89,6 +100,17 @@ void test_pixspan() noexcept
             D_ASSERT(std::data(unalign_temp_image_span) == std::data(temp_image_span));
             D_ASSERT(unalign_temp_image_span.sizes() == temp_image_span.sizes());
             D_ASSERT(unalign_temp_image_span.line_size() == temp_image_span.line_size());
+
+            {
+                size_t index_line{ 0u };
+                for (const auto line : unalign_temp_image_span)
+                {
+                    const auto test_line_data = temp_image + size_mul<line_size>(index_line);
+                    D_ASSERT(test_line_data == line.data());
+                    D_ASSERT(image_sizes.width() == line.size());
+                    ++index_line;
+                }
+            }
         }
     }
 }

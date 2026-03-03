@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core/buffer.h>
-#include <core/buffer_view.h>
 
 #include <px/pixspan.h>
 

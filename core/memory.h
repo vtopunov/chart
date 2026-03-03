@@ -25,15 +25,43 @@ template<class T>
 template<class T>
 [[nodiscard]] constexpr bool is_newmem(const T* newmem, const T* oldmem, size_t size) noexcept
 {
-    return (newmem >= u_nextmem(oldmem, size))
-        || (oldmem >= u_nextmem(newmem, size));
+    if constexpr (std::is_void_v<T>)
+    {
+        return is_newmem
+        (
+            static_cast<const std::byte*>(newmem),
+            static_cast<const std::byte*>(oldmem),
+            size
+        );
+    }
+    else
+    {
+        D_ASSERT_OR_ASSUME(((nullptr != newmem) && (nullptr != oldmem)) || (0u == size));
+
+        return (newmem >= u_nextmem(oldmem, size))
+            || (oldmem >= u_nextmem(newmem, size));
+    }
 }
 
 template<class T>
 [[nodiscard]] constexpr bool is_newmem(const T* newmem, const T* oldmem, const T* oldmem_end) noexcept
 {
-    return (newmem >= oldmem_end)
-        || (oldmem >= u_nextmem(newmem, u_distance(oldmem, oldmem_end)));
+    if constexpr (std::is_void_v<T>)
+    {
+        return is_newmem
+        (
+            static_cast<const std::byte*>(newmem),
+            static_cast<const std::byte*>(oldmem),
+            static_cast<const std::byte*>(oldmem_end)
+        );
+    }
+    else
+    {
+        D_ASSERT_OR_ASSUME(((nullptr != newmem) && (nullptr != oldmem)) || (oldmem_end == oldmem));
+
+        return (newmem >= oldmem_end)
+            || (oldmem >= u_nextmem(newmem, u_distance(oldmem, oldmem_end)));
+    }
 }
 
 template<class T, size_t Extent>

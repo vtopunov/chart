@@ -103,7 +103,7 @@ namespace ui
         gdi_rect_t gdi_geometry(window_handle_t window) noexcept
         {
             gdi_rect_t rect{};
-            D_ASSERT_OR_UNUSED(GetClientRect(window, &rect));
+            D_CHECK(GetClientRect(window, &rect));
             return rect;
         }
 
@@ -193,7 +193,7 @@ namespace ui
     pxsizes adjust_sizes(pxsizes sizes) noexcept
     {
         auto rect = pxsizes_to_gdi(sizes);
-        D_ASSERT_OR_UNUSED(AdjustWindowRect(std::addressof(rect), parent_window_style, FALSE));
+        D_CHECK(AdjustWindowRect(std::addressof(rect), parent_window_style, FALSE));
         return gdi_to_pxsizes(rect);
     }
 

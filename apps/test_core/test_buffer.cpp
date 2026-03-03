@@ -2,7 +2,7 @@
 #include <random>
 
 #include <core/buffer.h>
-
+#include <core/view.h>
 
 namespace
 {

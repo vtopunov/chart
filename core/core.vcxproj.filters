@@ -29,7 +29,6 @@
     <ClInclude Include="round.h" />
     <ClInclude Include="static_vector.h" />
     <ClInclude Include="types_algorithm.h" />
-    <ClInclude Include="functional.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="transformation.h" />
     <ClInclude Include="margins.h" />
@@ -37,5 +36,9 @@
     <ClInclude Include="reference_wrapper.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="math.h" />
+    <ClInclude Include="tuple.h" />
+    <ClInclude Include="unique_function.h" />
+    <ClInclude Include="invoke.h" />
+    <ClInclude Include="function_view.h" />
   </ItemGroup>
 </Project>

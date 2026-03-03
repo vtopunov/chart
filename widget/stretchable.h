@@ -20,24 +20,28 @@ namespace widget
         {
             len -= position;
             if (len < 0LL) [[unlikely]]
+            {
                 return 0_npx;
+            }
 
-                if (fixlen <= 0LL)
+            if (fixlen <= 0LL)
+            {
+                len += fixlen;
+
+                if (len < 0LL) [[unlikely]]
                 {
-                    len += fixlen;
-
-                    if (len < 0LL) [[unlikely]]
-                        return 0_npx;
+                    return 0_npx;
                 }
-                else
+            }
+            else
+            {
+                if (fixlen < len)
                 {
-                    if (fixlen < len)
-                    {
-                        len = fixlen;
-                    }
+                    len = fixlen;
                 }
+            }
 
-                return narrow<npx_t>(len);
+            return narrow<npx_t>(len);
         };
 
         return
@@ -55,10 +59,10 @@ namespace widget
     }
 
     template<class Pos, class Sz, class Bound>
-    [[nodiscard]] constexpr auto stretchable_geometry(const rectangle<Pos, Sz>& r, const Bound& b) noexcept 
+    [[nodiscard]] constexpr auto stretchable_geometry(const rectangle<Pos, Sz>& r, const Bound& b) noexcept
         -> rectangle<Pos, decl_value_type_t<decltype(stretchable_sizes(r, b))> >
     {
-        return 
+        return
         {
             r.position,
             stretchable_sizes(r, b)

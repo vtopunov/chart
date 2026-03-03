@@ -2,7 +2,7 @@
 
 #include <core/small_vector.h>
 
-#include <ui/event_processor_fwd.h>
+#include <ui/event_processor.h>
 
 
 namespace ui
@@ -12,7 +12,7 @@ namespace ui
         static constexpr window_handle_t garbage_mark{ nullptr };
 
         [[nodiscard]]
-        std::optional<event_result_t> operator () (const event& e) const noexcept
+        event_result_opt_t operator () (const event& e) const noexcept
         {
             return callback(e);
         }
@@ -137,7 +137,7 @@ namespace ui
             }
 
         private:
-            static constexpr auto nulldesctiptor_ = to_underlying(instance_for_null_v<event_processor_resource>);
+            static constexpr auto nulldesctiptor_ = to_underlying(instance_for_null<event_processor_resource>());
             std::underlying_type_t<event_processor_resource> current_{ nulldesctiptor_ };
         };
 

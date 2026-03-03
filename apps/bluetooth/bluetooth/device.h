@@ -53,7 +53,7 @@ namespace bluetooth
                 {
                     if (hFindDevice)
                     {
-                        D_ASSERT_OR_UNUSED(BluetoothFindDeviceClose(hFindDevice));
+                        D_CHECK(BluetoothFindDeviceClose(hFindDevice));
                     }
                 }
             };

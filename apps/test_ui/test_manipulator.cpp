@@ -55,14 +55,14 @@ void test_manipulator() noexcept
 
     const user_motion um0
     {
-        { {65,512}, {412,207} },
-        { {65,531}, {412,199} }
+        vpoint_cache{ point2re{65,512}, point2re{412,207} },
+        vpoint_cache{ point2re{65,531}, point2re{412,199} }
     };
 
     const user_motion um1
     {
         um0.v1,
-        { {412,191}, {65,542} }
+        vpoint_cache{ point2re{412,191}, point2re{65,542} }
     };
 
     {

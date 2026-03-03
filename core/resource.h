@@ -13,12 +13,15 @@ class unique_resource
 public:
     using resource_type = T;
     using view_type = view_t<resource_type>;
-    using null_type = null_t<resource_type>;
+    using resource_null_type = null_t<resource_type>;
+    using null_type = std::conditional_t<
+        has_no_unique_address_v<resource_null_type>, resource_null_type, nullresource_t
+    >;
     using deleter_type = D;
-    static constexpr auto null = null_v<resource_type>;
+    static constexpr auto resource_null_value = null_v<resource_type>;
 
     constexpr unique_resource() noexcept
-        : resource_(null)
+        : resource_(resource_null_value)
     {}
 
     constexpr unique_resource(null_type) noexcept
@@ -88,7 +91,7 @@ public:
     [[nodiscard]]
     constexpr resource_type release() noexcept
     {
-        return release(null);
+        return release(resource_null_value);
     }
 
     template<class U>
@@ -118,13 +121,16 @@ class shared_resource
 public:
     using resource_type = T;
     using view_type = view_t<resource_type>;
-    using null_type = null_t<resource_type>;
+    using resource_null_type = null_t<resource_type>;
+    using null_type = std::conditional_t<
+        is_same_or_v<resource_null_type, resource_type, view_type>, nullresource_t, resource_null_type
+    >;
     using deleter_type = D;
     using unique_resource_type = unique_resource<resource_type, deleter_type>;
-    static constexpr auto null = null_v<resource_type>;
+    static constexpr auto resource_null_value = null_v<resource_type>;
 
     constexpr shared_resource() noexcept
-        : resource_(null)
+        : resource_(resource_null_value)
         , copies_{ make_intrusive_cyclic_node(std::addressof(copies_)) }
     {}
 
@@ -223,7 +229,7 @@ public:
 
     constexpr void deattach_and_reset() noexcept
     {
-        deattach_and_reset(null);
+        deattach_and_reset(resource_null_value);
     }
 
 private:

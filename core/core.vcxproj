@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="function_view.h" />
+    <ClInclude Include="invoke.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="reference_wrapper.h" />
@@ -18,7 +20,6 @@
     <ClInclude Include="clamp_cast.h" />
     <ClInclude Include="fwd.h" />
     <ClInclude Include="fmt.h" />
-    <ClInclude Include="functional.h" />
     <ClInclude Include="limits.h" />
     <ClInclude Include="margins.h" />
     <ClInclude Include="null.h" />
@@ -29,9 +30,11 @@
     <ClInclude Include="span.h" />
     <ClInclude Include="static_vector.h" />
     <ClInclude Include="transformation.h" />
+    <ClInclude Include="tuple.h" />
     <ClInclude Include="types_algorithm.h" />
     <ClInclude Include="type_traits.h" />
     <ClInclude Include="underlying.h" />
+    <ClInclude Include="unique_function.h" />
     <ClInclude Include="utf.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="intrusive.h" />

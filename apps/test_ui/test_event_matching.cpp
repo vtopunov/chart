@@ -21,6 +21,41 @@ namespace
         }
     };
 
+    struct const_event_processor
+    {
+        mutable size_t const_count_call{ 0 };
+        size_t mutable_count_call{ 0 };
+
+        void operator () (const ui::size_event&) const noexcept
+        {
+            ++const_count_call;
+        }
+
+        void operator () (const ui::event&) noexcept
+        {
+            ++mutable_count_call;
+        }
+    };
+
+    template<class Result>
+    struct event_result_processor
+    {
+        using result_or_dummy_type = std::conditional_t<std::is_void_v<Result>, dummy, Result>;
+
+        size_t count_call{ 0 };
+        D_NO_UNIQUE_ADDRESS result_or_dummy_type result{};
+
+        Result operator () (const ui::size_event&) noexcept
+        {
+            ++count_call;
+
+            if constexpr (!std::is_void_v<Result>)
+            {
+                return result;
+            }
+        }
+    };
+
     struct event_size_event_processor
     {
         ui::event_result_opt_t result{};
@@ -126,38 +161,100 @@ void test_event_matching() noexcept
 
     {
         no_processor noproc{};
-        static_assert(std::is_same_v<decltype(ui::call_event(noproc, se12)), std::nullopt_t>);
+        static_assert(std::is_same_v<decltype(ui::invoke_event(noproc, se12)), std::nullopt_t>);
+    }
+
+    {
+        const_event_processor cproc{};
+        const auto r = ui::invoke_event(cproc, se12);
+        D_ASSERT(1u == cproc.const_count_call);
+        D_ASSERT(0u == cproc.mutable_count_call);
+    }
+
+    {
+        {
+            constexpr ui::event_result_t test_r{ 123 };
+            event_result_processor<ui::event_result_t> erproc{ .result{ test_r } };
+            const auto r = ui::invoke_event(erproc, se12);
+            static_assert(std::is_same_v<decltype(r), const ui::event_result_opt_t>);
+            D_ASSERT(r.has_value() && (test_r == *r) && (test_r == erproc.result));
+            D_ASSERT(1u == erproc.count_call);
+        }
+
+        {
+            constexpr char test_r{ 123 };
+            event_result_processor<char> erproc{ .result{ test_r } };
+            const auto r = ui::invoke_event(erproc, se12);
+            static_assert(std::is_same_v<decltype(r), const ui::event_result_opt_t>);
+            D_ASSERT(r.has_value() && (test_r == *r) && (test_r == erproc.result));
+            D_ASSERT(1u == erproc.count_call);
+        }
+
+        {
+            static constexpr ui::event_result_t dummy_mem_r{ 123 };
+            constexpr const ui::event_result_t*const test_r = &dummy_mem_r;
+            event_result_processor<ui::event_result_t*> erproc{ .result{ as_mutable_pointer(test_r) } };
+            const auto r = ui::invoke_event(erproc, se12);
+            static_assert(std::is_same_v<decltype(r), const no_convertible_t>);
+            D_ASSERT(1u == erproc.count_call);
+        }
+
+        {
+            event_result_processor<std::nullopt_t> erproc{ .result{ std::nullopt } };
+            const auto r = ui::invoke_event(erproc, se12);
+            static_assert(std::is_same_v<decltype(r), const ui::event_result_opt_t>);
+            D_ASSERT(!r.has_value() && r == erproc.result && std::nullopt == r);
+            D_ASSERT(1u == erproc.count_call);
+        }
+
+        {
+            constexpr ui::event_result_t test_r{ 123 };
+            event_result_processor<ui::event_result_opt_t> erproc{ .result{ test_r } };
+            const auto r = ui::invoke_event(erproc, se12);
+            static_assert(std::is_same_v<decltype(r), const ui::event_result_opt_t>);
+            D_ASSERT(r.has_value() && (test_r == *r) && (test_r == erproc.result));
+            D_ASSERT(1u == erproc.count_call);
+        }
+
+        {
+            constexpr ui::event_result_t test_r{ 123 };
+            event_result_processor<ui::event_result_opt_t> erproc{ .result{ test_r } };
+            const auto r = ui::invoke_event(erproc, static_cast<const ui::event&>(se12));
+            static_assert(std::is_same_v<decltype(r), const std::nullopt_t>);
+            D_ASSERT(erproc.result.has_value() && (r != erproc.result) && (test_r == erproc.result));
+            D_ASSERT(0u == erproc.count_call);
+        }
     }
 
     {
         size_event_processor sproc{};
-        const auto r = ui::call_event(sproc, se12);
+        const auto r = ui::invoke_event(sproc, se12);
         static_assert(std::is_same_v<decltype(r), const ui::event_result_opt_t>);
         D_ASSERT(std::nullopt == r);
         D_ASSERT(1u == sproc.count_call);
-        D_ASSERT(sproc.last_se.has_value() && se12.sizes() == sproc.last_se->sizes());
+        D_ASSERT(sproc.last_se.has_value() && (se12.sizes() == sproc.last_se->sizes()));
     }
 
     {
         constexpr ui::event_result_t test_r{ 123 };
         size_event_processor sproc{ .result{ test_r } };
-        const auto r = ui::call_event(sproc, se23);
+        const auto r = ui::invoke_event(sproc, se23);
         static_assert(std::is_same_v<decltype(r), const ui::event_result_opt_t>);
         D_ASSERT(r == sproc.result && r.has_value() && test_r == *r);
         D_ASSERT(1u == sproc.count_call);
-        D_ASSERT(sproc.last_se.has_value() && se23.sizes() == sproc.last_se->sizes());
+        D_ASSERT(sproc.last_se.has_value() && (se23.sizes() == sproc.last_se->sizes()));
     }
 
 
     {
         constexpr ui::event_result_t test_r{ 234 };
         event_size_event_processor esproc{ .result{ test_r } };
-        const auto r = ui::call_event(esproc, se23);
+        const auto r = ui::invoke_event(esproc, se23);
         static_assert(std::is_same_v<decltype(r), const ui::event_result_opt_t>);
         D_ASSERT(r == esproc.result && r.has_value() && test_r == *r);
         D_ASSERT(0u == esproc.count_event_call);
         D_ASSERT(1u == esproc.count_size_event_call);
-        D_ASSERT(esproc.last_se.has_value() && se23.sizes() == esproc.last_se->sizes());
+        D_ASSERT(esproc.last_se.has_value() && (se23.sizes() == esproc.last_se->sizes()));
     }
 
     {

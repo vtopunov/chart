@@ -100,7 +100,7 @@ namespace widget
         template <class Fn, size_t... Indices>
         constexpr decltype(auto) apply_impl(Fn& fn, std::index_sequence<Indices...>) noexcept
         {
-            return fn(unorefwrap(std::get<Indices>(tuple_))...);
+            return fn(::unrefwrap(std::get<Indices>(tuple_))...);
         }
 
     private:
@@ -110,7 +110,7 @@ namespace widget
     template<class... ETypes, class EventBase, class... Types>
     [[nodiscard]] constexpr basic_widget_event<EventBase, ETypes...> make_widget_event(const EventBase& base, context<Types...>& cc) noexcept
     {
-        return basic_widget_event<EventBase, ETypes...>{ base, unorefwrap(cc.template get<context_unview_t<ETypes>>())... };
+        return basic_widget_event<EventBase, ETypes...>{ base, ::unrefwrap(cc.template get<context_unview_t<ETypes>>())... };
     }
 
     template<class Event, class CommonContext>

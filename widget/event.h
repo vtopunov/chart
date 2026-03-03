@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core/types_algorithm.h>
-#include <core/reference_wrapper.h>
 
 #include <ui/event.h>
 #include <ui/manipulator.h>
@@ -11,11 +10,17 @@
 
 namespace widget
 {
+    namespace event_context_extension
+    {
+        template<class T>
+        using refwrap_if_byref_t = std::conditional_t<::is_view_by_copy_v<T>, T, ::reference_wrapper<T>>;
+    }
+
     template<class EventBase, class... Args>
     class widget_event_base : public EventBase
     {
     public:
-        using stdtuple = std::tuple<ref_wrap_if_need_t<Args>...>;
+        using stdtuple = std::tuple<event_context_extension::refwrap_if_byref_t<Args>...>;
         using decay_ttypes = ttypes<std::decay_t<Args>...>;
 
         template<class T>
@@ -24,14 +29,14 @@ namespace widget
         using context_ttypes = decay_ttypes;
 
         template<class... ContextArgs>
-        constexpr explicit widget_event_base(const EventBase& e, ref_wrap_if_need_t<Args>... args) noexcept
+        constexpr explicit widget_event_base(const EventBase& e, event_context_extension::refwrap_if_byref_t<Args>... args) noexcept
             : EventBase{ e }
             , tuple_{ args... }
         {}
 
         template<class T>
         [[nodiscard]] constexpr auto get() const noexcept -> 
-            decltype(unorefwrap(std::get<index_element_v<T>>(std::declval<stdtuple&>())))
+            decltype(::unrefwrap(std::get<index_element_v<T>>(std::declval<stdtuple&>())))
         {
             return std::get<index_element_v<T>>(tuple_);
         }

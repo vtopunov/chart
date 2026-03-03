@@ -17,7 +17,6 @@
     <ClInclude Include="texture.h" />
     <ClInclude Include="glsl_typeid.h" />
     <ClInclude Include="draw.h" />
-    <ClInclude Include="vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="draw.cpp" />

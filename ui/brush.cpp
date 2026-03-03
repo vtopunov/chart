@@ -9,7 +9,7 @@ namespace ui
     {
         if (o)
         {
-            D_ASSERT_OR_UNUSED(DeleteObject(o));
+            D_CHECK(DeleteObject(o));
         }
     }
 

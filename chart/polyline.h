@@ -68,7 +68,11 @@ namespace chart
         {
             zero_memory(pixs);
             px::draw_polyline(pixs, model, make_transformation(sys));
-            D_ASSERT_OR_UNUSED(gl::update(texture_cache, pixs));
+            
+            {
+                const auto result = gl::update(texture_cache, pixs);
+                D_ASSERT_OR_ASSUME(result);
+            }
         }
 
         void operator()(const shader_embed::luminance_texture& shdr) const noexcept

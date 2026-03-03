@@ -110,7 +110,7 @@ namespace ui
             return create_event_processor
             (
                 window,
-                event_match{ oref(target) }
+                event_match{ ::ref(target) }
             );
         }
 
@@ -121,10 +121,9 @@ namespace ui
     int run_event_loop(const EventSource& source, EventTarget&& target) noexcept
     {
         using event_source_binder_type = event_binder_type_t<std::remove_cvref_t<EventSource>>;
-        auto& target_ref = as_reference(target);
-        const auto event_bind_holder = event_source_binder_type{ source }.bind(target_ref);
+        const auto event_bind_holder = event_source_binder_type{ source }.bind(target);
         private_detail_event_loop::sizes_initialization();
-        return private_detail_event_loop::run_event_loop_impl(target_ref);
+        return private_detail_event_loop::run_event_loop_impl(target);
     }
 
 #elif defined(D_OS_ANDROID)
@@ -194,7 +193,7 @@ namespace ui
         };
 
         template<class Processor>
-        int run_event_loop(Processor& processor) noexcept
+        int run_event_loop(Processor&& processor) noexcept
         {
             {
                 using processor_callbacks_type = processor_callbacks<std::remove_reference_t<Processor>>;
@@ -217,7 +216,7 @@ namespace ui
     template<class T>
     int run_event_loop(const no_overload, T&& target) noexcept
     {
-        return private_detail_event_loop::run_event_loop(as_reference(target));
+        return private_detail_event_loop::run_event_loop(std::forward<T>(target));
     }
 
 #endif

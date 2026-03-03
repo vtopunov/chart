@@ -1,6 +1,33 @@
 #pragma once
 
-#include <core/utility.h>
+#include <core/invoke.h>
+
+
+
+namespace private_detail_types_algorithm
+{
+    namespace private_detail_ttypes_function
+    {
+        template<class T>
+        struct ttypes_function_helper;
+
+
+        template<class R, class... Args>
+        struct ttypes_function_helper<function_pointer_t<R, Args...>>
+        {
+            using type = ttypes<R, Args...>;
+        };
+
+        template<class T>
+        using ttypes_function = ttypes_function_helper<remove_noexcept_t<std::decay_t<T> > >;
+
+        template<class T>
+        using ttypes_function_t = typename ttypes_function<T>::type;
+    }
+}
+
+using private_detail_types_algorithm::private_detail_ttypes_function::ttypes_function;
+using private_detail_types_algorithm::private_detail_ttypes_function::ttypes_function_t;
 
 
 template<class T>
@@ -74,7 +101,7 @@ template <class T, class Tuple>
 using ttypes_has_type = ttypes_has<std::is_same, Tuple, T>;
 
 template <class Tuple, class... Args>
-using ttypes_has_call = ttypes_has<call_is_detected, Tuple, Args...>;
+using ttypes_has_invoke = ttypes_has<is_invocable, Tuple, Args...>;
 
 template<template <class...> class Pred, class Tuple, class... Args>
 constexpr bool ttypes_has_v = ttypes_has<Pred, Tuple, Args...>::value;
@@ -83,7 +110,7 @@ template <class T, class Tuple>
 constexpr bool ttypes_has_type_v = ttypes_has_type<T, Tuple>::value;
 
 template <class Tuple, class... Args>
-constexpr bool ttypes_has_call_v = ttypes_has_call<Tuple, Args...>::value;
+constexpr bool ttypes_has_invoke_v = ttypes_has_invoke<Tuple, Args...>::value;
 
 
 namespace private_detail_types_algorithm
@@ -706,16 +733,16 @@ using sort_ttypes_t = ttypes_reorder_t<Tuple, sort_ttypes_indices_t<Cmp, Tuple>>
 
 
 template <class T, class U>
-constexpr bool less_sizeof_v = (sizeof(T) < sizeof(U));
+constexpr bool less_sizeof_v = less_op(sizeof(T), sizeof(U));
 
 template <class T, class U>
-constexpr bool greater_sizeof_v = (sizeof(T) > sizeof(U));
+constexpr bool greater_sizeof_v = less_sizeof_v<U, T>;
 
 template <class T, class U>
-constexpr bool less_eq_sizeof_v = (sizeof(T) <= sizeof(U));
+constexpr bool less_eq_sizeof_v = !less_sizeof_v<U, T>;
 
 template <class T, class U>
-constexpr bool greater_eq_sizeof_v = (sizeof(T) >= sizeof(U));
+constexpr bool greater_eq_sizeof_v = !less_sizeof_v<T, U>;
 
 template <class T, class U>
 using less_sizeof = std::bool_constant<less_sizeof_v<T, U>>;

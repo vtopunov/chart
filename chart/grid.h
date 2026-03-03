@@ -163,7 +163,10 @@ namespace chart
             px::draw_vline(pixs, column_index, grid.widths.x());
         }
 
-        D_ASSERT_OR_UNUSED(gl::update(as_mutable(grid.cache.texture), pixs));
+        {
+            const auto result = gl::update(as_mutable(grid.cache.texture), pixs);
+            D_ASSERT_OR_ASSUME(result);
+        }
     }
 
     inline void px_grid_drawer::draw(const basic_grid<px_grid_drawer>& grid, const shader_embed::luminance_texture& shdr) noexcept

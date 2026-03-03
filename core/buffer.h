@@ -2,7 +2,7 @@
 
 #include <mimalloc.h>
 
-#include <core/view.h>
+#include <core/buffer_view.h>
 
 
 class buffer_void
@@ -169,7 +169,7 @@ public:
 
     constexpr void reserve(size_type new_count) noexcept
     {
-        D_ASSERT_OR_UNUSED(try_reserve(new_count));
+        D_CHECK(try_reserve(new_count));
     }
 
     [[nodiscard]]

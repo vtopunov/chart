@@ -56,8 +56,6 @@ namespace private_detail_span
 using private_detail_span::private_detail_extent_constant::extent_constant_for;
 using private_detail_span::private_detail_extent_constant::extent_v;
 
-template<size_t Extent, size_t TestExtent>
-using is_compatible_extent = std::negation< is_less_size<TestExtent, Extent> >;
 
 namespace private_detail_span
 {

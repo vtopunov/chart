@@ -26,6 +26,8 @@ namespace
 
         ui::event_result_t operator () (const ui::size_event& e) const noexcept
         {
+            debug("resize: {}x{}", e.width(), e.height());
+
             const auto rc = subwindow_geometry(e.sizes());
 
             for ( const auto& children : ui::childrens(e.window()) )

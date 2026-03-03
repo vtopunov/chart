@@ -15,7 +15,7 @@ namespace
     gl::texture2d lines_rendering(const lumpixspan image, const pxoffs d) noexcept
     {
         {
-            const auto dd = md_narrow<px::point2re>(d);
+            const auto dd = md_narrow<point2re>(d);
             for (const auto& line : vtest_line_figure::figure)
             {
                 draw_antialiasing_line
@@ -85,18 +85,17 @@ namespace
             return true;
         }
 
-        std::nullopt_t operator () (const ui::mouse_double_click_event&) noexcept
+        void operator () (const ui::mouse_double_click_event&) noexcept
         {
-            D_ASSERT_OR_UNUSED(lines_rendering_by_default());
-            return std::nullopt;
+            D_CHECK(lines_rendering_by_default());
         }
 
-        std::nullopt_t operator () (const ui::mouse_move_event& e) noexcept
+        void operator () (const ui::mouse_move_event& e) noexcept
         {
             if (!e.keys().is_left())
             {
                 mouse_trace_finish();
-                return std::nullopt;
+                return;
             }
 
             if (1u == e.size())
@@ -108,18 +107,15 @@ namespace
 
                     if (invalid_mouse_pos != old_pos)
                     {
-                        D_ASSERT_OR_UNUSED(lines_rendering(position_ + md_trunc_cast<pxoffs>(as_signed(new_pos - old_pos))));
+                        D_CHECK(lines_rendering(position_ + md_trunc_cast<pxoffs>(as_signed(new_pos - old_pos))));
                     }
                 }
             }
-
-            return std::nullopt;
         }
 
-        std::nullopt_t operator () (const ui::mouse_up_event&) noexcept
+        void operator () (const ui::mouse_up_event&) noexcept
         {
             mouse_trace_finish();
-            return std::nullopt;
         }
 
         ui::milliseconds operator () (ui::idle_event) noexcept

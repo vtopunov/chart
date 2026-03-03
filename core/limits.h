@@ -93,7 +93,7 @@ struct numeric_deduction_factory : Gen<T>
 template<template<class> class C>
 struct numeric_deduction_factory<C, void>
 {
-    struct value_type
+    struct deduction_value_type
     {
         template<class T, std::enable_if_t<std::negation_v<std::is_reference<T>>, int> = 0>
         constexpr operator T () const noexcept
@@ -103,7 +103,7 @@ struct numeric_deduction_factory<C, void>
     };
 
     [[nodiscard]]
-    static constexpr value_type create() noexcept
+    static constexpr deduction_value_type create() noexcept
     {
         return {};
     }

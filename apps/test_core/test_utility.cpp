@@ -1,5 +1,6 @@
 #include <core/utility.h>
 
+#include <array>
 
 namespace
 {
@@ -264,10 +265,14 @@ namespace
         static_assert(sizeof(OverAlignSmall) < sizeof(OverAlign));
         static_assert(test_no_unique_address(&OverAlignSmall::test));
         static_assert(!test_no_unique_address(&OverAlign::test));
+       
+        static_assert(has_no_unique_address_v<dummy>);
+        static_assert(!has_no_unique_address_v<errno_holder>);
 
         D_ASSERT(sizeof(OverAlignSmall) < sizeof(OverAlign));
         D_ASSERT(test_no_unique_address(&OverAlignSmall::test));
         D_ASSERT(!test_no_unique_address(&OverAlign::test));
+        
 
         D_ASSERT(!errno);
     }
@@ -357,6 +362,39 @@ namespace
         D_ASSERT(id_data::cdatac == cdata(v1));
         D_ASSERT(id_data::cdatac == cdata(cv1));
     }
+
+    void test_construct_at() noexcept
+    {
+        std::array<int, 2u> arr{};
+        int value{};
+        D_ASSERT(0 == arr[0]);
+        ::construct_at(std::addressof(arr), 123);
+        D_ASSERT(123 == arr[0]);
+        D_ASSERT(0 == arr[1]);
+        D_ASSERT(0 == value);
+        ::construct_at(std::addressof(value), 123.33);
+        D_ASSERT(123 == value);
+    }
+
+    void test_errno_holder_and_destroy() noexcept
+    {
+        const errno_holder hold_errno{};
+
+        {
+            errno = 32;
+            errno_holder test_hold_errno{};
+
+            errno = 33;
+            D_ASSERT(33 == errno);
+            destroy(test_hold_errno);
+            D_ASSERT(32 == errno);
+
+            errno = 33;
+            D_ASSERT(33 == errno);
+            destroy_at(std::addressof(test_hold_errno));
+            D_ASSERT(32 == errno);
+        }
+    }
 }
 
 void test_utility() noexcept
@@ -368,4 +406,6 @@ void test_utility() noexcept
     test_test_no_unique_address();
     test_ceil_div();
     test_cdata();
+    test_construct_at();
+    test_errno_holder_and_destroy();
 }

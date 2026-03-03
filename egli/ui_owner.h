@@ -21,7 +21,7 @@ namespace egli
             {
                 if (EventStyleSelector == e.style())
                 {
-                    return ui::call_event(unorefwrap(processor), ui::event_for<EventStyleSelector>(e));
+                    return ui::invoke_event(::unrefwrap(processor), ui::event_for<EventStyleSelector>(e));
                 }
 
                 return std::nullopt;
@@ -49,7 +49,7 @@ namespace egli
             {
                 using private_detail_ui_owner::event_match_one;
 
-                auto target_ref = oref(target);
+                auto target_ref = ::ref(target);
 
                 return
                 {

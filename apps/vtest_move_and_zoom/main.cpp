@@ -46,25 +46,23 @@ namespace
             return true;
         }
 
-        std::nullopt_t operator () (const ui::mouse_wheel_event& e) noexcept
+        void operator () (const ui::mouse_wheel_event& e) noexcept
         {
             need_redraw_ = apply_nzoom(area_, e.rot());
-            return std::nullopt;
         }
 
-        std::nullopt_t operator () (const ui::mouse_double_click_event&) noexcept
+        void operator () (const ui::mouse_double_click_event&) noexcept
         {
             area_ = default_area(egl_.viewport());
             need_redraw_ = true;
-            return std::nullopt;
         }
 
-        std::nullopt_t operator () (const ui::mouse_move_event& e) noexcept
+        void operator () (const ui::mouse_move_event& e) noexcept
         {
             if (!e.keys().is_left())
             {
                 user_vpoint_cache_ = ui::no_cached_user_vpoint;
-                return std::nullopt;
+                return;
             }
 
             need_redraw_ = px::update_pxf
@@ -72,14 +70,11 @@ namespace
                 area_, 
                 new_manipulation(user_vpoint_cache_, e).transformation_as(area_)
             );
-
-            return std::nullopt;
         }
 
-        std::nullopt_t operator () (const ui::mouse_up_event&) noexcept
+        void operator () (const ui::mouse_up_event&) noexcept
         {
             user_vpoint_cache_ = ui::no_cached_user_vpoint;
-            return std::nullopt;
         }
 
         void operator () (ui::content_rect_changed_event)

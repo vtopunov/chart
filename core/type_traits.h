@@ -8,6 +8,7 @@
 static_assert(std::is_same_v<std::make_signed_t<size_t>, ptrdiff_t>);
 static_assert(std::is_same_v<size_t, std::make_unsigned_t<ptrdiff_t>>);
 
+
 namespace ordered_overload
 {
     struct _3
@@ -34,42 +35,11 @@ namespace ordered_overload
     constexpr _order<_0> _start{ nullptr };
 }
 
-struct no_overload
-{
-    template<class T>
-    constexpr no_overload(const T&) noexcept
-    {}
-};
-
-template<class T>
-struct no_overload_for
-{
-    constexpr no_overload_for(const T&) noexcept
-    {}
-};
-
-struct any_overload
-{
-    template<class T>
-    constexpr operator T () const noexcept;
-};
-
-
-template<class Fn, class... Args>
-constexpr auto call_if_exist(Fn&& fn, Args&&... args) noexcept -> decltype(std::forward<Fn>(fn)(std::forward<Args>(args)...))
-{
-    return std::forward<Fn>(fn)(std::forward<Args>(args)...);
-}
-
-template <class... Args>
-constexpr auto call_if_exist(no_overload, const Args&... args) noexcept -> decltype((no_overload(args), ..., no_overload(0)))
-{
-    return 0;
-}
-
-
 template<class T, class... Args>
 using subapply_result_t = std::remove_cvref_t<decltype(std::declval<T&>().apply(std::declval<Args>()...))>;
+
+template<class T>
+using const_lvalue_reference_t = std::add_lvalue_reference_t<std::add_const_t<std::remove_reference_t<T>>>;
 
 
 namespace private_detail_type_traits
@@ -150,26 +120,11 @@ template<size_t Value>
 constexpr index_constant<Value> index_constant_v{};
 
 
-template<class T>
-struct tr_sizeof : index_constant<sizeof(T)>
-{};
-
-template<>
-struct tr_sizeof<void> : index_constant<1_uz>
-{};
-
-template<>
-struct tr_sizeof<const void> : index_constant<1_uz>
-{};
-
-template<class T>
-constexpr size_t sizeof_v = tr_sizeof<T>::value;
-
 struct less_fn
 {
     template <class L, class R>
-    [[nodiscard]] constexpr auto operator()(const L& left, const R& right) const noexcept 
-        -> decltype(left < right) 
+    [[nodiscard]] constexpr auto operator()(const L& left, const R& right) const noexcept
+        -> decltype(left < right)
     {
         return left < right;
     }
@@ -184,23 +139,11 @@ template<class L, class R>
 constexpr bool is_less_v = is_less<L, R>::value;
 
 
-template<class Fn, class... Args>
-using decl_call_t = decltype(std::declval<Fn>()(std::declval<Args>()...));
+template<class L, class... OrR>
+using is_same_or = std::disjunction<std::is_same<L, OrR>...>;
 
-template<class Default, class Fn, class... Args>
-using call_result_or_t = detected_or_t<Default, decl_call_t, Fn, Args...>;
-
-template<class Fn, class... Args>
-using call_is_detected = is_detected<decl_call_t, Fn, Args...>;
-
-template<class Fn, class... Args>
-using call_without_result_is_detected = std::is_void<call_result_or_t<dummy, Fn, Args...>>;
-
-template<class Fn, class... Args>
-using call_with_result_is_detected = std::negation<std::is_void<call_result_or_t<void, Fn, Args...>>>;
-
-template<class Fn, class... Args>
-constexpr bool call_is_detected_v = call_is_detected<Fn, Args...>::value;
+template<class L, class... OrR>
+constexpr bool is_same_or_v = is_same_or<L, OrR...>::value;
 
 
 template<bool test, template<class...> class Op0, template<class...> class Op1, class... Args>
@@ -277,17 +220,14 @@ using copy_signed_t = typename copy_signed_type<S, D>::type;
 
 
 template<class Value, class Old, class New>
-using replace_type = std::conditional<std::is_same_v<Value, Old>, New, Value>;
+using replace_t = std::conditional_t<std::is_same_v<Value, Old>, New, Value>;
 
-template<class Value, class Old, class New>
-using replace_t = typename replace_type<Value, Old, New>::type;
+template<class Value, class New>
+using replace_void_t = std::conditional_t<std::is_void_v<Value>, New, Value>;
 
-
-template <class T>
-using remove_enum = conditional_op<std::is_enum_v<T>, std::underlying_type_t, T>;
 
 template <class T>
-using remove_enum_t = typename remove_enum<T>::type;
+using remove_enum_t = conditional_op_t<std::is_enum_v<T>, std::underlying_type_t, T>;
 
 template<class T>
 using remove_cve_t = std::remove_cv_t<remove_enum_t<T>>;
@@ -300,6 +240,22 @@ using unsigned_or_t = conditional_op_t<std::is_integral_v<T>, std::make_unsigned
 
 template<class T>
 using remove_unsigned_t = conditional_op_t<std::is_unsigned_v<T>, std::make_signed_t, T>;
+
+template<class T>
+struct remove_noexcept
+{
+    using type = T;
+};
+
+template<class R, class... Args>
+struct remove_noexcept<noexcept_function_pointer_t<R, Args...>>
+{
+    using type = function_pointer_t<R, Args...>;
+};
+
+template<class T>
+using remove_noexcept_t = typename remove_noexcept<T>::type;
+
 
 template<class T>
 struct add_const_pointer;
@@ -319,20 +275,81 @@ struct add_const_pointer<T* const>
 template<class T>
 using add_const_pointer_t = typename add_const_pointer<T>::type;
 
+template<class T>
+struct add_noexcept
+{
+    using type = T;
+};
+
+template<class R, class... Args>
+struct add_noexcept<function_pointer_t<R, Args...>>
+{
+    using type = noexcept_function_pointer_t<R, Args...>;
+};
+
+template<class T>
+using add_noexcept_t = typename add_noexcept<T>::type;
+
+namespace private_detail_type_traits
+{
+    namespace private_detail_has_no_unique_address
+    {
+        template<class Align, class T>
+        struct use_no_unique_address
+        {
+            Align padding;
+            D_NO_UNIQUE_ADDRESS T value;
+        };
+
+        template<class Align, class T>
+        using test_use_no_unique_address = std::bool_constant<sizeof(use_no_unique_address<Align, T>) == sizeof(Align)>;
+
+        template<class T>
+        using has_no_unique_address_helper = std::conjunction<test_use_no_unique_address<void*, T>, test_use_no_unique_address<max_align_t, T> >;
+
+        template<class T>
+        using has_no_unique_address = conditional_op_or_t<std::is_class_v<T>, std::false_type, has_no_unique_address_helper, T>;
+
+        template<class T>
+        constexpr bool has_no_unique_address_v = has_no_unique_address<T>::value;
+    }
+}
+
+using private_detail_type_traits::private_detail_has_no_unique_address::has_no_unique_address;
+using private_detail_type_traits::private_detail_has_no_unique_address::has_no_unique_address_v;
+
+
+namespace private_detail_type_traits
+{
+    namespace private_detail_is_address
+    {
+        template<class T>
+        using is_address_helper = std::disjunction<
+            std::is_function<T>,
+            std::is_pointer<T>,
+            std::is_member_pointer<T>,
+            std::is_null_pointer<T>
+        >;
+    }
+}
+
+template<class T>
+using is_address = private_detail_type_traits::private_detail_is_address::is_address_helper<std::remove_reference_t<T>>;
+
+template<class T>
+constexpr bool is_address_v = is_address<T>::value;
 
 template<class T>
 using has_qualifier = std::disjunction<
     std::is_const<T>,
     std::is_volatile<T>,
     std::is_reference<T>,
-    std::is_pointer<T>,
-    std::is_array<T>,
-    std::is_null_pointer<T>
+    is_address<T>,
+    std::is_array<T>
 >;
 
 template<class T>
 constexpr bool has_qualifier_v = has_qualifier<T>::value;
-
 
 template<class T>
 using is_unqualified_class = std::conjunction<
@@ -359,6 +376,16 @@ struct is_const_convertible<T, const T> : std::true_type
 
 template<class From, class To>
 constexpr bool is_const_convertible_v = is_const_convertible<From, To>::value;
+
+
+template<class T>
+using add_sizeof_t = index_constant<sizeof(T)>;
+
+template<class T>
+using tr_sizeof = add_sizeof_t<replace_void_t<T, std::byte> >;
+
+template<class T>
+constexpr size_t sizeof_v = tr_sizeof<T>::value;
 
 
 template<class T, T L, T R>
@@ -501,6 +528,17 @@ template<class Derived, class Base>
 
 template<class T>
 constexpr bool is_pointer_or_nullptr_v = std::disjunction_v<std::is_pointer<T>, std::is_null_pointer<T>>;
+
+
+template<class T, class... Args>
+using decl_brace_construct_t = decltype(new (std::declval<T*>()) T{ std::declval<Args>()... });
+
+template<class T, class... Args>
+using is_brace_constructible = is_detected<decl_brace_construct_t, T, Args...>;
+
+template<class T, class... Args>
+constexpr bool is_brace_constructible_v = is_brace_constructible<T, Args...>::value;
+
 
 template<class T>
 using decl_unary_munis_op_t = decltype(-std::declval<const T&>());

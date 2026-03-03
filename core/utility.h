@@ -28,12 +28,6 @@ template<class T>
 }
 
 template <class T>
-[[nodiscard]] constexpr T& as_reference(T& value) noexcept
-{
-    return value;
-}
-
-template <class T>
 [[nodiscard]] constexpr T& as_mutable(const T& value) noexcept
 {
     D_WARNING_PUSH;
@@ -42,6 +36,47 @@ template <class T>
     D_WARNING_POP;
 }
 
+template <class T>
+[[nodiscard]] constexpr std::add_lvalue_reference_t<T> as_lref(T&& value) noexcept
+{
+    return value;
+}
+
+
+template <class T, class... Args>
+constexpr void construct_at(T* const location, Args&&... args) noexcept
+{
+    D_ASSERT_OR_ASSUME(nullptr != location);
+
+    if constexpr (is_brace_constructible_v<T, Args...>)
+    {
+        new (location) T{ std::forward<Args>(args)... };
+    }
+    else
+    {
+        new (location) T(std::forward<Args>(args)...);
+    }
+}
+
+template <class T, class... Args>
+constexpr void move_construct_at(T* const location, T&& value) noexcept
+{
+    D_ASSERT_OR_ASSUME(nullptr != location);
+    D_ASSERT_OR_ASSUME(location != std::addressof(value));
+    new (location) T(std::move(value));
+}
+
+template <class T>
+constexpr void destroy_at(const T* const location) noexcept 
+{
+    location->~T();
+}
+
+template <class T>
+constexpr void destroy(const T& value) noexcept
+{
+    value.~T();
+}
 
 namespace private_detail_utility
 {
@@ -253,6 +288,7 @@ template<size_t mul>
 template<size_t add>
 [[nodiscard]] constexpr bool has_size_add(const size_t size) noexcept
 {
+    static_assert(add <= size_overflow_maxi);
     constexpr auto overflow = size_overflow_maxi - add;
     return size <= overflow;
 }
@@ -309,7 +345,7 @@ template<size_t align>
     static_assert((align & rem) == 0_uz);
 
     constexpr auto mask = ~rem;
-    return (size + rem) & mask;
+    return size_add<rem>(size) & mask;
 }
 
 template<class M, class T>
@@ -318,7 +354,6 @@ template<class M, class T>
     constexpr union { char ini; M m; T o; } test{ '\0' };
     return std::addressof(test.m) == std::addressof(test.o.*m);
 }
-
 
 template<class L, class R>
 [[nodiscard]] constexpr enable_if_detected_and_t<std::common_type_t<L, R>, decl_less_op_t, R, L> u_min

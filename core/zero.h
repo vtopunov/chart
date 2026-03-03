@@ -32,7 +32,7 @@ namespace private_detail_zero
 
             constexpr operator T () const noexcept
             {
-                return {};
+                return T{};
             }
         };
 

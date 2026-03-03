@@ -167,7 +167,7 @@ namespace
     void reconstuct(T& ref, Args&&... args) noexcept
     {
         const auto pref = std::addressof(ref);
-        std::destroy_at(pref);
+        ::destroy_at(pref);
         new (pref) T(std::forward<Args>(args)...);
     }
 

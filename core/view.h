@@ -2,6 +2,7 @@
 
 #include <core/buffer_view.h>
 #include <core/span.h>
+#include <core/reference_wrapper.h>
 
 
 namespace private_detail_view
@@ -16,12 +17,17 @@ namespace private_detail_view
     >;
 
     template<class T>
-    using view_by_copy0_t = std::conditional_t<is_view_by_copy_v<T>, T, std::add_lvalue_reference_t<std::add_const_t<T>>>;
+    using view_by_copy0_t = std::conditional_t<is_view_by_copy_v<T>, T, reference_wrapper<std::add_const_t<T>> >;
 
     template<class T, class = void>
-    struct view_type1
+    struct view_type1 
     {
-        using type = view_by_copy0_t<T>;
+        using type = conditional_op_or_t<
+            std::negation_v<std::is_constructible<const_byte_buffer_view, T>>,
+            const_byte_buffer_view,
+            view_by_copy0_t,
+            T
+        >;
     };
 
     template<class T>
@@ -44,14 +50,12 @@ namespace private_detail_view
     };
 
     template <class T>
-    using view_t = std::add_const_t<typename view_type0<std::remove_cvref_t<T>>::type>;
+    using view_t = std::add_const_t<typename view_type0<remove_reference_wrapper_t<T>>::type>;
 
 
     template<class T, class = void>
-    struct cview_type0
-    {
-        using type = view_t<view_type0<T>>;
-    };
+    struct cview_type0 : view_type0<T>
+    {};
 
     template<class T>
     struct cview_type0<T, std::void_t<decl_const_view_type_t<T>>>
@@ -60,10 +64,10 @@ namespace private_detail_view
     };
 
     template <class T>
-    using cview_t = std::add_const_t<typename cview_type0<std::remove_cvref_t<T>>::type>;
+    using cview_t = std::add_const_t<typename cview_type0<remove_reference_wrapper_t<T>>::type>;
 
     template<class T>
-    using view_by_copy_t = std::add_const_t<view_by_copy0_t<std::remove_cvref_t<T>>>;
+    using view_by_copy_t = std::add_const_t<view_by_copy0_t<remove_reference_wrapper_t<T>>>;
 }
 
 using private_detail_view::view_t;

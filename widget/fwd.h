@@ -9,7 +9,7 @@ namespace widget
 
     class window;
     class temp_byte_buffer;
-    using windowrefwrap_t = optional_reference_wrapper<const window>;
+    using windowrefwrap_t = ::reference_wrapper<const window>;
 
     struct ex_context_enumerator
     {

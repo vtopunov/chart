@@ -72,8 +72,8 @@ namespace
     constexpr auto test_view_by_cref_v = std::conjunction_v<
         std::negation<is_qualified<T>>,
         std::negation<is_view_by_copy<T>>,
-        std::is_same<view_by_copy_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>,
-        std::is_same<view_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>
+        std::is_same<view_by_copy_t<T>, const reference_wrapper<std::add_const_t<T>>>,
+        std::is_same<view_t<T>, const reference_wrapper<std::add_const_t<T>>>
     >;
 
     template<class T>
@@ -89,7 +89,7 @@ namespace
     constexpr auto test_view_with_cref_v = std::conjunction_v<
         std::negation<is_qualified<T>>,
         std::negation<is_view_by_copy<T>>,
-        std::is_same<view_by_copy_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>,
+        std::is_same<view_by_copy_t<T>, const reference_wrapper<std::add_const_t<T>>>,
         std::is_same<decl_view_type_t<T>, typename T::view_type>,
         std::is_same<view_t<T>, std::add_const_t<typename T::view_type>>
     >;
@@ -107,7 +107,7 @@ namespace
     constexpr auto test_spanview_with_cref_v = std::conjunction_v<
         std::negation<is_qualified<T>>,
         std::negation<is_view_by_copy<T>>,
-        std::is_same<view_by_copy_t<T>, std::add_lvalue_reference_t<std::add_const_t<T>>>,
+        std::is_same<view_by_copy_t<T>, const reference_wrapper<std::add_const_t<T>>>,
         std::negation<is_detected<decl_view_type_t, T>>,
         std::is_same<view_t<T>, std::add_const_t<span<std::add_const_t<value_type_t<T>>, extent_v<T>> > >
     >;

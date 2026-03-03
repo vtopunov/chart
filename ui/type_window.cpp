@@ -131,7 +131,7 @@ namespace ui
     {
         if (type)
         {
-            D_ASSERT_OR_UNUSED(UnregisterClassW(type.handle, os::current_module()));
+            D_CHECK(UnregisterClassW(type.handle, os::current_module()));
         }
     }
 

@@ -15,8 +15,8 @@ namespace chart
 
             const space_diagonal new_diagonal
             {
-                ._0{ diagonal._0 - half_d_d_diagonal },
-                ._1{ diagonal._1 + half_d_d_diagonal }
+                diagonal._0 - half_d_d_diagonal,
+                diagonal._1 + half_d_d_diagonal
             };
 
             sizes_cache = no_sizes;

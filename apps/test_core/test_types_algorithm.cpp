@@ -121,6 +121,15 @@ void test_tuple_algorithm() noexcept
     using unique_resource10 = unique_resource<test_self_call<1>, test_self_call<0>>;
     using unique_resource01 = unique_resource<test_self_call<0>, test_self_call<1>>;
 
+    static_assert(std::is_same_v<ttypes<float, float>, ttypes_function_t<decltype(std::sinf)> >);
+    static_assert(std::is_same_v<ttypes<void>, ttypes_function_t<void()> >);
+    static_assert(std::is_same_v<ttypes<int>, ttypes_function_t<int()> >);
+    static_assert(std::is_same_v<ttypes<int>, ttypes_function_t<int() noexcept> >);
+    static_assert(std::is_same_v<ttypes<int>, ttypes_function_t<int(*)() noexcept> >);
+    static_assert(std::is_same_v<ttypes<int>, ttypes_function_t<int(*const)() noexcept> >);
+    static_assert(std::is_same_v<ttypes<int, ttypes<> >, ttypes_function_t<int(* const)(ttypes<>) noexcept> >);
+    static_assert(std::is_same_v<ttypes<char, int, long, short>, ttypes_function_t<char(int, long, short)> >);
+
     static_assert(is_same_template_v<unique_resource, unique_resource>);
     static_assert(is_same_template_v<shared_resource, shared_resource>);
     static_assert(!is_same_template_v<unique_resource, shared_resource>);
@@ -228,10 +237,10 @@ void test_tuple_algorithm() noexcept
     static_assert(!ttypes_has_type_v<std::tuple<>, std::tuple<>>);
     static_assert(ttypes_has_type_v<std::tuple<>, std::tuple<std::tuple<>>>);
 
-    static_assert(ttypes_has_call_v<std::tuple<test_call_type<0>>, test_type<0>>);
-    static_assert(!ttypes_has_call_v<std::tuple<test_call_type<0>>, test_type<1>>);
-    static_assert(ttypes_has_call_v<std::tuple<test_call_type<0>, test_call_type<1>>, test_type<1>>);
-    static_assert(ttypes_has_call_v<std::tuple<test_call_type<0>, test_call_type<0, 1>>, test_type<0>, test_type<1>>);
+    static_assert(ttypes_has_invoke_v<std::tuple<test_call_type<0>>, test_type<0>>);
+    static_assert(!ttypes_has_invoke_v<std::tuple<test_call_type<0>>, test_type<1>>);
+    static_assert(ttypes_has_invoke_v<std::tuple<test_call_type<0>, test_call_type<1>>, test_type<1>>);
+    static_assert(ttypes_has_invoke_v<std::tuple<test_call_type<0>, test_call_type<0, 1>>, test_type<0>, test_type<1>>);
 
     static_assert(std::is_same_v<char, types_element_t<0u, char>>);
     static_assert(std::is_same_v<char, types_element_t<0u, char, int>>);

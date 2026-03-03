@@ -54,48 +54,46 @@ namespace chart
     {
         namespace private_detail_call_items
         {
-            template<size_t... Indices, class... Types, class Value>
-            [[nodiscard]] constexpr auto reftuple_push_back(std::index_sequence<Indices...>, std::tuple<Types&&...>&& tuple, Value&& value) noexcept
+            template<size_t... Indices, class Tuple, class Value>
+            [[nodiscard]] constexpr auto reftuple_push_back(std::index_sequence<Indices...>, Tuple&& tuple, Value&& value) noexcept
             {
-                return std::forward_as_tuple(std::forward<Types>(std::get<Indices>(std::move(tuple)))..., std::forward<Value>(value));
+                return std::forward_as_tuple(std::move(std::get<Indices>(std::forward<Tuple>(tuple)))..., std::forward<Value>(value));
             }
 
             template<size_t Index, class... Results, class TupleItems, class... Args>
             [[nodiscard]] constexpr auto call_items_impl(
-                [[maybe_unused]] std::tuple<Results&&...>&& results,
+                [[maybe_unused]] std::tuple<Results&&...>&& result_tuple,
                 [[maybe_unused]] TupleItems&& items,
                 [[maybe_unused]] Args&&... args
             ) noexcept
             {
                 if constexpr (Index < std::tuple_size_v<std::remove_cvref_t<TupleItems>>)
                 {
-                    using result_t = std::remove_cvref_t<decltype(call_if_exist(std::get<Index>(std::forward<TupleItems>(items)), std::forward<Args>(args)...))>;
+                    auto&& item = std::get<Index>(std::forward<TupleItems>(items));
+                    using result_t = decltype(::invoke_if_exist(std::move(item), std::forward<Args>(args)...));
 
                     constexpr auto call_is_void = std::is_void_v<result_t>;
-                    constexpr auto call_is_not_exist = std::is_same_v<result_t, no_overload>;
+                    constexpr auto call_is_not_exist = is_invalid_invoke_result_v<result_t>;
 
                     if constexpr (call_is_void || call_is_not_exist)
                     {
                         if constexpr (call_is_void)
                         {
-                            call_if_exist(
-                                std::get<Index>(std::forward<TupleItems>(items)),
-                                std::forward<Args>(args)...
-                            );
+                            ::invoke_if_exist(std::move(item), std::forward<Args>(args)...);
                         }
 
                         return call_items_impl<Index + 1u>(
-                            std::move(results),
+                            std::move(result_tuple),
                             std::forward<TupleItems>(items),
                             std::forward<Args>(args)...
                         );
                     }
                     else
                     {
-                        auto&& result = call_if_exist(std::get<Index>(std::forward<TupleItems>(items)), std::forward<Args>(args)...);
+                        auto&& result = ::invoke_if_exist(std::move(item), std::forward<Args>(args)...);
 
                         return call_items_impl<Index + 1u>(
-                            reftuple_push_back(std::make_index_sequence<sizeof...(Results)>{}, std::move(results), std::move(result)),
+                            reftuple_push_back(std::make_index_sequence<sizeof...(Results)>{}, std::move(result_tuple), std::move(result)),
                             std::forward<TupleItems>(items),
                             std::forward<Args>(args)...
                         );
@@ -103,7 +101,7 @@ namespace chart
                 }
                 else
                 {
-                    return std::make_from_tuple<std::tuple<std::remove_cvref_t<Results>...>>(std::move(results));
+                    return std::make_from_tuple<std::tuple<std::remove_cvref_t<Results>...>>(std::move(result_tuple));
                 }
             }
 
@@ -204,7 +202,7 @@ namespace chart
             using items_ref_tuple = std::tuple<Items&...>;
 
             template<class... Args>
-            using items_has_call = ttypes_has_call<items_ref_tuple, Args...>;
+            using items_has_call = ttypes_has_invoke<items_ref_tuple, Args...>;
 
             template<class... Args>
             using items_has_cref_call = items_has_call<const Args&...>;

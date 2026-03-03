@@ -2,17 +2,23 @@
 
 #include <algorithm>
 
+#include <core/tuple.h>
 #include <core/round.h>
 
 
 template<class T>
-struct vec2
+struct vec2 : tuple<T, T>
 {
-    static constexpr size_t extent{ 2u };
-    using value_type = T;
+    static constexpr size_t extent{ has_no_unique_address_v<T> ? 1u : 2u };
 
-    T _0;
-    T _1;
+    using value_type = T;
+    using reference = T&;
+    using const_reference = const T&;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using tuple_type = tuple<T, T>;
+    using tuple_type::_0;
+    using tuple_type::_1;
 
     [[nodiscard]]
     constexpr size_t size() const noexcept
@@ -21,7 +27,7 @@ struct vec2
     }
 
     [[nodiscard]]
-    constexpr const T* data() const noexcept
+    constexpr const_pointer data() const noexcept
     {
         return std::addressof(_0);
     }
@@ -93,26 +99,6 @@ using is_base_of_vec2 = typename private_detail_is_base_of_vec2::is_base_of_vec2
 template<class T>
 constexpr auto is_base_of_vec2_v = is_base_of_vec2<T>::value;
 
-
-template<size_t Index, class T>
-[[nodiscard]] constexpr const T& get(const vec2<T>& v) noexcept
-{
-    if constexpr (0_uz == Index)
-    {
-        return v._0;
-    }
-    else
-    {
-        static_assert(1_uz == Index);
-        return v._1;
-    }
-}
-
-template<size_t Index, class T>
-[[nodiscard]] constexpr T& get(vec2<T>& v) noexcept
-{
-    return as_mutable(get<Index>(std::as_const(v)));
-}
 
 template<class T>
 [[nodiscard]] constexpr const vec2<T>& as_vec2(const vec2<T>& vec) noexcept

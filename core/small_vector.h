@@ -71,7 +71,7 @@ namespace private_detail_small_vector
         {
             D_ASSERT_OR_ASSUME(0u < free_capacity());
             const auto result = end_of_array_;
-            new (result) value_type{ std::forward<Args>(args)... };
+            ::construct_at(result, std::forward<Args>(args)...);
             ++end_of_array_;
             return result;
         }
@@ -465,14 +465,14 @@ public:
                 {
                     {
                         const auto p_back = std::prev(last);
-                        new (last) value_type(std::move(*p_back));
+                        ::move_construct_at(last, std::move(*p_back));
                         back_move(mut_postion, p_back);
                     }
-                    std::destroy_at(mut_postion);
+                    ::destroy_at(mut_postion);
                 }
             }
 
-            new (mut_postion) value_type{ std::forward<Args>(args)... };
+            ::construct_at(mut_postion, std::forward<Args>(args)...);
             size_ = new_size;
             return position;
         }
@@ -567,7 +567,7 @@ public:
         if (size < old_capacity) [[likely]]
         {
             const auto last = data_ + size;
-            new (last) value_type{ std::forward<Args>(args)... };
+            ::construct_at(last, std::forward<Args>(args)...);
             size_ = new_size;
             return last;
         }
@@ -575,7 +575,7 @@ public:
         if (buffer_type temp{ optimal_memory_growth(old_capacity) }) [[likely]]
         {
             const auto new_last = attach_buffer(std::move(temp));
-            new (new_last) value_type{ std::forward<Args>(args)... };
+            ::construct_at(new_last, std::forward<Args>(args)...);
             size_ = new_size;
             return new_last;
         }
@@ -594,7 +594,7 @@ public:
     void pop_back() noexcept
     {
         D_ASSERT_OR_ASSUME(0u < size_);
-        std::destroy_at(--size_ + data_);
+        ::destroy_at(--size_ + data_);
         _collect();
     }
 
@@ -802,7 +802,7 @@ private:
     {
         D_ASSERT_OR_ASSUME(_buffer_is_valid(mem));
         D_ASSERT_OR_ASSUME(is_static());
-        new (std::addressof(dynamic_)) buffer_type(std::move(mem));
+        ::move_construct_at(std::addressof(dynamic_), std::move(mem));
     }
 
     constexpr void _assignment_buffer(buffer_type&& mem) noexcept
@@ -907,7 +907,7 @@ private:
 
     constexpr void _collect(size_type expected_capacity) noexcept
     {
-        D_ASSERT_OR_UNUSED(_try_collect(expected_capacity));
+        D_CHECK(_try_collect(expected_capacity));
     }
 
     constexpr void _collect() noexcept
@@ -927,7 +927,7 @@ private:
 
     constexpr void _destroy_dynamic() const noexcept
     {
-        std::destroy_at(std::addressof(dynamic_));
+        ::destroy(dynamic_);
     }
 
     static constexpr bool _buffer_size_is_valid(const buffer_type& mem) noexcept
@@ -960,6 +960,7 @@ private:
     size_type size_;
 };
 
-static_assert(sizeof(small_vector<char>) == small_size_mini);
+static_assert(small_size_mini == sizeof(small_vector<char>));
+static_assert(small_size_mini == sizeof(small_vector<std::pair<void*, void*> >));
 
 D_WARNING_POP

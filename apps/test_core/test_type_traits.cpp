@@ -2,127 +2,11 @@
 
 #include <vector>
 #include <span>
+#include <array>
 
 
 namespace
 {
-    namespace private_detail_test_ordered_overload
-    {
-        struct with_method
-        {
-            constexpr void method() const noexcept
-            {}
-        };
-
-        struct without_method {};
-
-        template<class T>
-        constexpr auto call_method_if_exist(T& tested) noexcept -> decltype((std::declval<T&>().method(), true))
-        {
-            tested.method();
-            return true;
-        }
-
-        constexpr bool call_method_if_exist(no_overload) noexcept
-        {
-            return false;
-        }
-    }
-
-    void test_ordered_overload() noexcept
-    {
-        using namespace private_detail_test_ordered_overload;
-
-        constexpr with_method swt{};
-        constexpr without_method swot{};
-
-        static_assert(call_method_if_exist(swt));
-        static_assert(!call_method_if_exist(swot));
-
-        D_ASSERT(!errno);
-    }
-
-    namespace private_detail_call_if_exist
-    {
-        template<int>
-        struct S { int i; };
-
-        template<int i>
-        constexpr S<i> S_v{};
-
-        struct
-        {
-            int ncall_0{ 0 };
-            int ncall_1{ 0 };
-
-            S<2> operator () (S<0>) noexcept { return { ++ncall_0 }; };
-            S<3> operator () (S<1>) noexcept { return { ++ncall_1 }; };
-        } f0{};
-
-        int ncall_f1{ 0 };
-        int ncall_f2{ 0 };
-
-        S<4> f1(S<0>) noexcept { return { ++ncall_f1 }; };
-        S<5> f2(S<1>) noexcept { return { ++ncall_f2 }; };
-    }
-
-    void test_call_if_exist() noexcept
-    {
-        using namespace private_detail_call_if_exist;
-        using private_detail_call_if_exist::S;
-
-        {
-            D_ASSERT(0 == f0.ncall_0 && 0 == f0.ncall_1);
-            const auto r_f0_0 = call_if_exist(f0, S_v<0>);
-            static_assert(std::is_same_v<decltype(r_f0_0), const S<2>>);
-            D_ASSERT(1 == f0.ncall_0 && 0 == f0.ncall_1);
-            D_ASSERT(r_f0_0.i == 1);
-
-            const auto r_f0_0_next = call_if_exist(f0, S_v<0>);
-            D_ASSERT(2 == f0.ncall_0 && 0 == f0.ncall_1);
-            D_ASSERT(r_f0_0_next.i == 2);
-
-            const auto r_f0_1 = call_if_exist(f0, S_v<1>);
-            static_assert(std::is_same_v<decltype(r_f0_1), const S<3>>);
-            D_ASSERT(2 == f0.ncall_0 && 1 == f0.ncall_1);
-            D_ASSERT(r_f0_1.i == 1);
-
-            const auto r_f0_2 = call_if_exist(f0, S_v<2>);
-            static_assert(std::is_same_v<decltype(r_f0_2), const no_overload>);
-            D_ASSERT(2 == f0.ncall_0 && 1 == f0.ncall_1);
-
-            const auto r_f0_01 = call_if_exist(f0, S_v<0>, S_v<1>);
-            static_assert(std::is_same_v<decltype(r_f0_01), const no_overload>);
-            D_ASSERT(2 == f0.ncall_0 && 1 == f0.ncall_1);
-        }
-
-        {
-            D_ASSERT(0 == ncall_f1);
-            const auto r_f1_0 = call_if_exist(f1, S_v<0>);
-            static_assert(std::is_same_v<decltype(r_f1_0), const S<4>>);
-            D_ASSERT(1 == ncall_f1);
-            D_ASSERT(r_f1_0.i == 1);
-
-            const auto r_f1_1 = call_if_exist(f1, S_v<1>);
-            static_assert(std::is_same_v<decltype(r_f1_1), const no_overload>);
-            D_ASSERT(1 == ncall_f1);
-        }
-
-        {
-            D_ASSERT(0 == ncall_f2);
-            const auto r_f2_1 = call_if_exist(f2, S_v<1>);
-            static_assert(std::is_same_v<decltype(r_f2_1), const S<5>>);
-            D_ASSERT(1 == ncall_f1);
-            D_ASSERT(1 == ncall_f2);
-            D_ASSERT(r_f2_1.i == 1);
-
-            const auto r_f2_0 = call_if_exist(f2, S_v<0>);
-            static_assert(std::is_same_v<decltype(r_f2_0), const no_overload>);
-            D_ASSERT(1 == ncall_f1);
-            D_ASSERT(1 == ncall_f2);
-        }
-    }
-
     namespace private_detail_test_member_detector
     {
         template<class T>
@@ -190,6 +74,17 @@ namespace
         static_assert(std::is_same_v<int64_t, difference_t<with_decl_difference<int64_t>>>);
         static_assert(std::is_same_v<ptrdiff_t, difference_t<with_decl_difference<ptrdiff_t>>>);
         static_assert(std::is_same_v<ptrdiff_t, difference_t<without_decl_difference>>);
+
+        D_ASSERT(!errno);
+    }
+
+    void test_is_same_or() noexcept
+    {
+        static_assert(is_same_or_v<char, int, char>);
+        static_assert(!is_same_or_v<const char, int, char>);
+        static_assert(is_same_or_v<int, int, char>);
+        static_assert(!is_same_or_v<const int, int, char>);
+        static_assert(is_same_or_v<const int, int, char, const int>);
 
         D_ASSERT(!errno);
     }
@@ -364,6 +259,51 @@ namespace
         D_ASSERT(!errno);
     }
 
+    void test_has_no_unique_address() noexcept
+    {
+        static_assert(has_no_unique_address_v<dummy>);
+        static_assert(has_no_unique_address_v<ttypes<char, long, int>>);
+        static_assert(has_no_unique_address_v<std::true_type>);
+        static_assert(!has_no_unique_address_v<bool>);
+        static_assert(!has_no_unique_address_v<char>);
+        static_assert(!has_no_unique_address_v<void*>);
+        static_assert(!has_no_unique_address_v<int>);
+        D_ASSERT(!errno);
+    }
+
+    void test_is_address() noexcept
+    {
+        struct A
+        {
+            int m;
+            void f() {}
+        };
+
+        int A::* mem_data_ptr = &A::m;
+        void (A::* mem_fun_ptr)() = &A::f;
+
+        static_assert(is_address_v<int*>);
+        static_assert(is_address_v<int*&>);
+        static_assert(is_address_v<int*&&>);
+        static_assert(is_address_v<const int*>);
+        static_assert(is_address_v<const int* &>);
+        static_assert(is_address_v<const int* &&>);
+        static_assert(is_address_v<const int* const>);
+        static_assert(is_address_v<const int* const>);
+        static_assert(is_address_v<const int* const &>);
+        static_assert(is_address_v<const int* const &&>);
+        static_assert(is_address_v<void ()>);
+        static_assert(is_address_v<void (*)>);
+        static_assert(is_address_v<void (*const)>);
+        static_assert(is_address_v<decltype(mem_data_ptr)>);
+        static_assert(is_address_v<decltype(mem_fun_ptr)>);
+        static_assert(is_address_v<std::nullptr_t>);
+        static_assert(!is_address_v<A>);
+        static_assert(is_address_v<A*>);
+        static_assert(is_address_v<void*>);
+        static_assert(is_address_v<const void*>);
+    }
+
     void test_has_qualifier() noexcept
     {
         enum class test_enum
@@ -457,32 +397,6 @@ namespace
         D_ASSERT(!errno);
     }
 
-    namespace private_detail_test_call_is_detected
-    {
-        template<int>
-        struct arg {};
-
-        template<int... ids>
-        struct functor_for
-        {
-            constexpr void operator () (arg<ids>...) const noexcept
-            {}
-        };
-    }
-
-    void test_call_is_detected() noexcept
-    {
-        using namespace private_detail_test_call_is_detected;
-
-        static_assert(call_is_detected_v<functor_for<0>, arg<0>>);
-        static_assert(!call_is_detected_v<functor_for<0>, arg<1>>);
-        static_assert(call_is_detected_v<functor_for<0, 1>, arg<0>, arg<1>>);
-        static_assert(!call_is_detected_v<functor_for<0, 1>, arg<0>, arg<0>>);
-        static_assert(!call_is_detected_v<functor_for<0, 1>, arg<1>, arg<0>>);
-        static_assert(!call_is_detected_v<functor_for<0, 1>, arg<1>, arg<1>>);
-        D_ASSERT(!errno);
-    }
-
     void test_u_prev_next() noexcept
     {
         static_assert(1.0 == u_next(0.0));
@@ -491,13 +405,70 @@ namespace
         static_assert(-1 == u_prev(0));
         D_ASSERT(!errno);
     }
+
+    namespace private_detail_test_noexcept
+    {
+        void with_except()
+        {
+            delete new char;
+        }
+    }
+
+    void test_remove_noexcept() noexcept
+    {
+        using namespace private_detail_test_noexcept;
+
+        using fn_noexept_t = std::decay_t<decltype(test_remove_noexcept)>;
+        using fn_exept_t = std::decay_t<decltype(with_except)>;
+
+        static_assert(!std::is_same_v<fn_noexept_t, fn_exept_t>);
+        static_assert(std::is_same_v<remove_noexcept_t<fn_noexept_t>, fn_exept_t>);
+        static_assert(std::is_same_v<remove_noexcept_t<fn_exept_t>, fn_exept_t>);
+        D_ASSERT(!errno);
+    }
+
+    void test_add_noexcept() noexcept
+    {
+        using namespace private_detail_test_noexcept;
+
+        using fn_noexept_t = std::decay_t<decltype(test_remove_noexcept)>;
+        using fn_exept_t = std::decay_t<decltype(with_except)>;
+
+        static_assert(!std::is_same_v<fn_noexept_t, fn_exept_t>);
+        static_assert(std::is_same_v<add_noexcept_t<fn_exept_t>, fn_noexept_t>);
+        static_assert(std::is_same_v<add_noexcept_t<fn_noexept_t>, fn_noexept_t>);
+        D_ASSERT(!errno);
+    }
+
+    void test_brace_constructible() noexcept
+    {
+        static_assert(is_brace_constructible_v<int, int>);
+        static_assert(!is_brace_constructible_v<int, double>);
+
+        struct test_brace_t
+        {
+            int i;
+            double d;
+            const char* s;
+        };
+
+        static_assert(is_brace_constructible_v<test_brace_t, int>);
+        static_assert(is_brace_constructible_v<test_brace_t, int, double>);
+        static_assert(is_brace_constructible_v<test_brace_t, int, double, const char*>);
+        static_assert(!is_brace_constructible_v<test_brace_t, const char*>);
+
+        using iarr2_t = std::array<int, 2u>;
+        static_assert(is_brace_constructible_v<iarr2_t, int>);
+        static_assert(is_brace_constructible_v<iarr2_t, int, int>);
+        static_assert(!is_brace_constructible_v<iarr2_t, int, int, int>);
+        D_ASSERT(!errno);
+    }
 }
 
 void test_type_traits() noexcept
 {
-    test_ordered_overload();
-    test_call_if_exist();
     test_member_detector();
+    test_is_same_or();
     test_conditional_op();
     test_conditional_add_const_all();
     test_conditional_add_pointer_all();
@@ -508,12 +479,16 @@ void test_type_traits() noexcept
     test_remove_enum();
     test_unsigned_or();
     test_add_const_pointer();
+    test_has_no_unique_address();
+    test_is_address();
     test_has_qualifier();
     test_is_unqualified_class();
     test_is_const_convertible();
     test_is_same_size();
     test_is_sameuncvref();
     test_has_assignment_op();
-    test_call_is_detected();
     test_u_prev_next();
+    test_remove_noexcept();
+    test_add_noexcept();
+    test_brace_constructible();
 }

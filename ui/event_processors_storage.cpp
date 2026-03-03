@@ -120,7 +120,7 @@ namespace ui
 
     event_processor_resource event_processors_storage::create(window_handle_t window, event_callback_t callback) noexcept
     {
-        constexpr auto nulldesctiptor = instance_for_null_v<event_processor_resource>;
+        constexpr auto nulldesctiptor = instance_for_null<event_processor_resource>();
 
         if (event_processor_note::garbage_mark == window) [[unlikely]]
         {

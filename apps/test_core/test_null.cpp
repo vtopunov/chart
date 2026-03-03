@@ -4,6 +4,7 @@
 
 #include <core/resource.h>
 
+
 namespace
 {
     struct test_struct
@@ -46,7 +47,7 @@ namespace
 void test_null() noexcept
 {
     static_assert(std::is_trivial_v<test_struct> && std::is_standard_layout_v<test_struct>);
-
+    
     static_assert(std::is_same_v<null_t<void*>, std::nullptr_t>);
     static_assert(std::is_same_v<null_t<void* const>, std::nullptr_t>);
     static_assert(std::is_same_v<null_t<const void*>, std::nullptr_t>);
@@ -61,6 +62,21 @@ void test_null() noexcept
     static_assert(std::is_same_v<null_t<const test_struct* const>, std::nullptr_t>);
     static_assert(std::is_same_v<null_t<std::nullptr_t>, std::nullptr_t>);
     static_assert(std::is_same_v<null_t<const std::nullptr_t>, std::nullptr_t>);
+    static_assert(std::is_same_v<null_t<std::nullopt_t>, std::nullopt_t>);
+    static_assert(std::is_same_v<null_t<const std::nullopt_t>, std::nullopt_t>);
+    static_assert(std::is_same_v<null_t<::std::optional<int>>, std::nullopt_t>);
+    static_assert(std::is_same_v<null_t<const ::std::optional<int>>, std::nullopt_t>);
+    static_assert(std::is_same_v<null_t<nullmem_t>, nullmem_t>);
+    static_assert(std::is_same_v<null_t<const nullmem_t>, nullmem_t>);
+    static_assert(std::is_same_v<null_t<nullref_t>, nullref_t>);
+    static_assert(std::is_constructible_v<std::nullptr_t, decltype(null_v<std::nullptr_t>)>);
+    static_assert(std::is_constructible_v<std::nullopt_t, decltype(null_v<std::nullopt_t>)>);
+    static_assert(std::is_constructible_v<nullmem_t, decltype(null_v<nullmem_t>)>);
+    static_assert(std::is_constructible_v<nullmem_t, decltype(null_v<nulltype_construct_t>)>);
+    static_assert(std::is_convertible_v<decltype(null_v<std::nullptr_t>), std::nullptr_t>);
+    static_assert(std::is_convertible_v<decltype(null_v<std::nullopt_t>), std::nullopt_t>);
+    static_assert(std::is_convertible_v<decltype(null_v<nullmem_t>), nullmem_t>);
+    static_assert(std::is_convertible_v<decltype(null_v<nullmem_t>), nullmem_t>);
 
     {
         using nullint_t = null_t<int>;

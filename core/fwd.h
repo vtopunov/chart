@@ -103,11 +103,6 @@
 #endif
 
 
-using doublemax_t = long double;
-using float_real_t = float;
-using real_t = double;
-
-
 constexpr size_t operator ""_uz(unsigned long long value) noexcept
 {
     return value;
@@ -119,12 +114,32 @@ constexpr ptrdiff_t operator ""_z(unsigned long long value) noexcept
 }
 
 
+template<class R, class... Args>
+using function_pointer_t = R(*) (Args...);
+
+template<class R, class... Args>
+using noexcept_function_pointer_t = R(*) (Args...) noexcept;
+
+
+using doublemax_t = long double;
+using float_real_t = float;
+using real_t = double;
 using denomi_t = uintmax_t;
+
+constexpr size_t nbyte_arch{ sizeof(void*) };
+static_assert(nbyte_arch == sizeof(size_t));
+static_assert(nbyte_arch == sizeof(ptrdiff_t));
 
 constexpr denomi_t dynamic_denominator{ 0u };
 constexpr size_t dynamic_extent{ SIZE_MAX };
-constexpr size_t small_size_mini{ 4_uz * sizeof(size_t) };
+constexpr size_t small_size_mini{ 4u * nbyte_arch };
 
+
+struct uninitialized_t
+{
+    static constexpr struct {} tag{};
+    constexpr explicit uninitialized_t(decltype(tag)) noexcept {}
+};
 
 struct memory_construct_t
 {
@@ -132,23 +147,46 @@ struct memory_construct_t
     constexpr explicit memory_construct_t(decltype(tag)) noexcept {}
 };
 
-constexpr memory_construct_t memory_construct{ memory_construct_t::tag };
-
 struct memory_overwrite_construct_t
 {
     static constexpr struct {} tag{};
     constexpr explicit memory_overwrite_construct_t(decltype(tag)) noexcept {}
 };
 
-constexpr memory_overwrite_construct_t memory_overwrite_construct{ memory_overwrite_construct_t::tag };
+struct nulltype_construct_t
+{
+    static constexpr struct {} tag{};
+    constexpr explicit nulltype_construct_t(decltype(tag)) noexcept {}
+};
 
 struct nullmem_t
 {
-    constexpr explicit nullmem_t(memory_construct_t) noexcept
-    {}
+    constexpr explicit nullmem_t(nulltype_construct_t) noexcept {}
 };
 
-constexpr nullmem_t nullmem{ memory_construct };
+struct nullref_t
+{
+    constexpr explicit nullref_t(nulltype_construct_t) noexcept {}
+};
+
+struct nullresource_t
+{
+    constexpr explicit nullresource_t(nulltype_construct_t) noexcept {}
+};
+
+struct nullfunction_t
+{
+    constexpr explicit nullfunction_t(nulltype_construct_t) noexcept {}
+};
+
+constexpr uninitialized_t uninitialized_v{ uninitialized_t::tag };
+constexpr memory_construct_t memory_construct{ memory_construct_t::tag };
+constexpr memory_overwrite_construct_t memory_overwrite_construct{ memory_overwrite_construct_t::tag };
+constexpr nulltype_construct_t nulltype_construct{ nulltype_construct_t::tag };
+constexpr nullmem_t nullmem{ nulltype_construct };
+constexpr nullref_t nullref{ nulltype_construct };
+constexpr nullref_t nullresource{ nulltype_construct };
+constexpr nullfunction_t nullfunction{ nulltype_construct };
 
 
 template<class T> struct basic_intrusive_node;
@@ -160,11 +198,13 @@ template<class T> class intrusive_list;
 template <class T, denomi_t = dynamic_denominator>
 struct rational;
 
+
+template<class... Ts> struct tuple;
 template<class T> struct vec2;
 template<class T> struct point2d;
 template<class T> struct size2d;
 
-template <class T, size_t = dynamic_extent>
+template <class T, size_t E = dynamic_extent>
 class span;
 
 using vec2re = vec2<real_t>;
@@ -203,20 +243,12 @@ using rgba_color = basic_rgba_color<luminance_t>;
 using rgbaf_color = basic_rgba_color<luminancef_t>;
 
 
-template<class C>
-using decl_value_type_t = typename C::value_type;
+template<class T> using decl_value_type_t = typename T::value_type;
+template<class T> using decl_view_type_t = typename T::view_type;
+template<class T> using decl_const_view_type_t = typename T::const_view_type;
+template<class T> using decl_null_type_t = typename T::null_type;
+template<class T> using decl_deleter_type_t = typename T::deleter_type;
 
-template<class T>
-using decl_view_type_t = typename T::view_type;
-
-template<class T>
-using decl_const_view_type_t = typename T::const_view_type;
-
-template<class T>
-using decl_null_type_t = typename T::null_type;
-
-template<class T>
-using decl_deleter_type_t = typename T::deleter_type;
 
 template <class T, class D = decl_deleter_type_t<T> >
 class unique_resource;
@@ -224,25 +256,38 @@ class unique_resource;
 template<class T, class D = decl_deleter_type_t<T> >
 class shared_resource;
 
-template<class T>
-class optional_reference_wrapper;
 
 struct nothing
 {
     template<class... Args>
-    constexpr void operator () (const Args&...) const noexcept
-    {}
+    constexpr void operator () (const Args&...) const noexcept {}
 };
 
 template<class...>
-struct ttypes
-{};
+struct ttypes {};
 
 template<template <class...> class...>
-struct ttuples
-{};
+struct ttuples {};
 
 using dummy = ttypes<>;
+
+struct no_overload
+{
+    template<class T>
+    constexpr no_overload(const T&) noexcept {}
+};
+
+template<class T>
+struct no_overload_for
+{
+    constexpr no_overload_for(const T&) noexcept {}
+};
+
+struct any_overload
+{
+    template<class T>
+    constexpr operator T () const noexcept;
+};
 
 template<class... Types>
 constexpr ttypes<Types...> ttypes_v{};

@@ -8,19 +8,20 @@ template<class T>
 struct size2d : vec2<T>
 {
     using vec2_type = vec2<T>;
+    using typename vec2_type::value_type;
+    using typename vec2_type::reference;
+    using typename vec2_type::const_reference;
     using vec2_type::_0;
     using vec2_type::_1;
-    using reference = T&;
-    using const_reference = const T&;
 
     [[nodiscard]]
-    constexpr T width() const noexcept
+    constexpr value_type width() const noexcept
     {
         return cref_width();
     }
 
     [[nodiscard]]
-    constexpr T height() const noexcept
+    constexpr value_type height() const noexcept
     {
         return cref_height();
     }
@@ -62,13 +63,13 @@ struct size2d : vec2<T>
     }
 
     [[nodiscard]]
-    constexpr size2d with_width(T value) const noexcept
+    constexpr size2d with_width(value_type value) const noexcept
     {
         return { std::move(value), _1 };
     }
 
     [[nodiscard]]
-    constexpr size2d with_height(T value) const noexcept
+    constexpr size2d with_height(value_type value) const noexcept
     {
         return { _0, std::move(value) };
     }

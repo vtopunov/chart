@@ -15,7 +15,7 @@ namespace bluetooth
             {
                 if (radio)
                 {
-                    D_ASSERT_OR_UNUSED(CloseHandle(radio));
+                    D_CHECK(CloseHandle(radio));
                 }
             }
         };
@@ -28,7 +28,7 @@ namespace bluetooth
         radio_info(radio_resource radio) noexcept
             : BLUETOOTH_RADIO_INFO{ .dwSize{ sizeof(BLUETOOTH_RADIO_INFO) } }
         {
-            D_ASSERT_OR_UNUSED(ERROR_SUCCESS == BluetoothGetRadioInfo(radio, this));
+            D_CHECK(ERROR_SUCCESS == BluetoothGetRadioInfo(radio, this));
         }
     };
 
@@ -44,7 +44,7 @@ namespace bluetooth
                     {
                         if (radios)
                         {
-                            D_ASSERT_OR_UNUSED(BluetoothFindRadioClose(radios));
+                            D_CHECK(BluetoothFindRadioClose(radios));
                         }
                     }
                 };

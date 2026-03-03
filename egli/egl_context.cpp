@@ -227,15 +227,15 @@ namespace egli
 
             if (r.context)
             {
-                D_ASSERT_OR_UNUSED(destroy_context(r.display, r.context));
+                D_CHECK(destroy_context(r.display, r.context));
             }
 
             if (r.surface)
             {
-                D_ASSERT_OR_UNUSED(destroy_surface(r.display, r.surface));
+                D_CHECK(destroy_surface(r.display, r.surface));
             }
 
-            D_ASSERT_OR_UNUSED(egl_terminate(r.display));
+            D_CHECK(egl_terminate(r.display));
         }
     }
 

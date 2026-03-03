@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="test_invoke.cpp" />
     <ClCompile Include="test_memory.cpp" />
     <ClCompile Include="test_math.cpp" />
     <ClCompile Include="test_reference_wrapper.cpp" />
@@ -25,7 +26,6 @@
     <ClCompile Include="test_lerp_color.cpp" />
     <ClCompile Include="test_narrow.cpp" />
     <ClCompile Include="test_null.cpp" />
-    <ClCompile Include="test_functional.cpp" />
     <ClCompile Include="test_point2d.cpp" />
     <ClCompile Include="test_rational.cpp" />
     <ClCompile Include="test_rectangle.cpp" />
@@ -36,10 +36,18 @@
     <ClCompile Include="test_span.cpp" />
     <ClCompile Include="test_static_vector.cpp" />
     <ClCompile Include="test_transformation.cpp" />
+    <ClCompile Include="test_tuple.cpp" />
     <ClCompile Include="test_types_algorithm.cpp" />
     <ClCompile Include="test_type_traits.cpp" />
+    <ClCompile Include="test_function.cpp">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">26800;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">26800;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="test_utf.cpp" />
-    <ClCompile Include="test_utility.cpp" />
+    <ClCompile Include="test_utility.cpp">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="test_vec2.cpp" />
     <ClCompile Include="test_view.cpp" />
     <ClCompile Include="test_zero.cpp" />

@@ -459,7 +459,7 @@ namespace ui
     [[nodiscard]] constexpr const specialized_cmd_event<style>& cmd_event_for(const cmd_event& e) noexcept
     {
         D_ASSERT_OR_ASSUME(style == e.style());
-        return static_cast<const specialized_cmd_event<style>&>(e);
+        return to_identical_derived<specialized_cmd_event<style>>(e);
     }
 
 }

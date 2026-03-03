@@ -1,6 +1,7 @@
 #include <string_view>
 
 #include <core/static_vector.h>
+#include <core/view.h>
 
 
 void test_static_vector() noexcept

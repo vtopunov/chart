@@ -5,7 +5,18 @@ void test_memory() noexcept
 {
     static constexpr char ma[8][8]{};
     constexpr auto ma_line_size = std::size(ma[0]);
-    constexpr span<const char> p_first_ma{ std::data(ma[0]), sizeof(ma) - ma_line_size };
+    constexpr auto p_ma = std::data(ma[0]);
+    constexpr auto p_ma_pp = std::next(p_ma);
+
+    constexpr span<const char> p_first_ma{ p_ma, sizeof(ma) - ma_line_size };
+    static_assert(is_newmem(p_ma, p_ma, 0u));
+    static_assert(!is_newmem(p_ma, p_ma, 1u));
+    static_assert(is_newmem(p_ma_pp, p_ma_pp, 0u));
+    static_assert(!is_newmem(p_ma_pp, p_ma_pp, 1u));
+    static_assert(is_newmem(p_ma, p_ma_pp, 1u));
+    static_assert(is_newmem(p_ma_pp, p_ma, 1u));
+    static_assert(is_newmem(p_ma_pp, std::prev(p_ma_pp), 1u));
+    static_assert(is_newmem(std::prev(p_ma_pp), p_ma_pp, 1u));
 
     for (const auto& line : ma)
     {
@@ -17,7 +28,7 @@ void test_memory() noexcept
         {
             const auto p_first = std::addressof(value);
             const auto p_last = p_first + ma_line_size;
-            D_ASSERT(p_last <= (std::data(ma[0]) + sizeof(ma)));
+            D_ASSERT(p_last <= (p_ma + sizeof(ma)));
 
             const auto in_newmem_left = (p_last <= cbegin_line);
             const auto in_newmem_right = (p_first >= cend_line);
@@ -27,6 +38,4 @@ void test_memory() noexcept
             D_ASSERT(in_newmem == is_newmem(p_first, cbegin_line, ma_line_size));
         }
     }
-
-
 }

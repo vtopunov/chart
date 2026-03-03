@@ -1,5 +1,7 @@
 #pragma once
 
+#include <core/unique_function.h>
+
 #include <shader/library.h>
 
 #include <utility/font_cache.h>
@@ -22,7 +24,7 @@ namespace widget
     {
         pxrectangle geometry{};
         std::u8string text{};
-        std::function<void()> clicked{};
+        unique_function<void()> clicked{};
         font_cache::cached_face font{ font_cache::default_font() };
         text_cache text_cache{};
         button_state state{ button_state::free };

@@ -116,7 +116,7 @@ namespace gl
             std::string_view test_name
         ) noexcept
         {
-            constexpr size_t name_buffer_static_size{ 4 * sizeof(size_t) };
+            constexpr size_t name_buffer_static_size{ 4u * nbyte_arch };
 
             small_vector<char, name_buffer_static_size> name_buffer{};
             name_buffer.reserve(test_name.size() + 2u);
@@ -233,7 +233,7 @@ namespace gl
 
     program_resource current_program() noexcept
     {
-        constexpr auto null_programi = as_signed(to_underlying(instance_for_null_v<program_resource>));
+        constexpr auto null_programi = as_signed(to_underlying(instance_for_null<program_resource>()));
         auto programi = null_programi;
         glGetIntegerv(GL_CURRENT_PROGRAM, std::addressof(programi));
         return static_cast<program_resource>(programi);
