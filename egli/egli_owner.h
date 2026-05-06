@@ -18,7 +18,9 @@ namespace egli
 
         constexpr explicit operator bool() const noexcept
         {
-            return !!egl_;
+            const auto result = !!egl_;
+            D_ASSERT(result == !!static_cast<const ui_owner&>(*this));
+            return result;
         }
 
         constexpr operator display_surface () const noexcept

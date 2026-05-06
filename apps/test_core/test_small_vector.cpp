@@ -323,7 +323,7 @@ namespace
             {
                 const auto value = generate_unique();
 
-                D_ASSERT(small_v_.try_emplace_back(value));
+                small_v_.emplace_back(value);
                 test_.emplace_back(value);
             }
 
@@ -341,7 +341,7 @@ namespace
             {
                 const auto value = generate_unique();
 
-                const auto& small_value_ref = *small_v_.try_emplace_back(value);
+                const auto& small_value_ref = small_v_.emplace_back(value);
                 const auto& big_value_ref = test_.emplace_back(value);
 
                 D_ASSERT(small_value_ref == big_value_ref);

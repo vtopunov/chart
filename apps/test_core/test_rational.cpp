@@ -137,8 +137,9 @@ void test_rational() noexcept
 
                 const auto ceil_ff = std::ceil(ff);
                 const auto floor_ff = std::floor(ff);
-                D_ASSERT(is_eqfp<double>(ceil_ff, ceil_to<int>(fx)));
-                D_ASSERT(is_eqfp<double>(floor_ff, floor_to<int>(fx)));
+                
+                D_ASSERT(::is_eqfp(ceil_ff, ceil_to<int>(fx)));
+                D_ASSERT(::is_eqfp(floor_ff, floor_to<int>(fx)));
             }
         }
     }

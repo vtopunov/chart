@@ -58,8 +58,8 @@ namespace private_detail_shader_library
         [[nodiscard]] constexpr gl::uniform_location uniform_location(size_t index) const noexcept
         {
             D_ASSERT(in_use());
-            D_ASSERT_OR_ASSUME(index < std::size(locations_));
-            D_ASSERT_OR_ASSUME(gl::uniform_location::invalid != locations_[index]);
+            D_ASSERT(index < std::size(locations_));
+            D_ASSERT(gl::uniform_location::invalid != locations_[index]);
             D_ONLY_DEBUG(debug_location_in_use_.set(index));
             return locations_[index];
         }

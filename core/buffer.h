@@ -87,7 +87,7 @@ protected:
     constexpr explicit buffer_void(memory_location mem) noexcept
         : mem_{ mem }
     {
-        D_ASSERT_OR_ASSUME(!(mem.data) == !(mem.count));
+        D_ASSERT(!(mem.data) == !(mem.count));
     }
 
     [[nodiscard]]
@@ -178,7 +178,7 @@ public:
         if (has_size_mul<element_size>(size)) [[likely]]
         {
             const auto good_size = mi_good_size(element_size * size) / element_size;
-            D_ASSERT_OR_ASSUME(size <= good_size);
+            D_ASSERT(size <= good_size);
             return size;
         }
 
@@ -194,7 +194,7 @@ private:
             if (const auto data = mi_malloc(element_size * count)) [[likely]]
             {
                 const auto usable_count = mi_usable_size(data) / element_size;
-                D_ASSERT_OR_ASSUME(count <= usable_count);
+                D_ASSERT(count <= usable_count);
                 return { .data{ data }, .count{ usable_count } };
             }
         }
@@ -279,14 +279,14 @@ public:
     [[nodiscard]]
     constexpr const_reference cfront() const noexcept
     {
-        D_ASSERT_OR_ASSUME(0u < size());
+        D_ASSERT(0u < size());
         return *cdata();
     }
 
     [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
-        D_ASSERT_OR_ASSUME(0u < size());
+        D_ASSERT(0u < size());
         return cdata()[size() - 1u];
     }
 
@@ -311,7 +311,7 @@ public:
     [[nodiscard]]
     constexpr const_reference cvalue(size_type index) const noexcept
     {
-        D_ASSERT_OR_ASSUME(index < size());
+        D_ASSERT(index < size());
         return cdata()[index];
     }
 

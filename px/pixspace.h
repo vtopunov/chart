@@ -124,7 +124,7 @@ namespace px
             : line_size_type{ line_size }
             , sizes_{ sizes }
         {
-            D_ASSERT_OR_ASSUME(pixspace::width() <= pixspace::line_size());
+            D_ASSERT(pixspace::width() <= pixspace::line_size());
         }
 
         constexpr pixspace(pxsizes sizes) noexcept

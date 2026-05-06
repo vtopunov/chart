@@ -31,28 +31,40 @@ namespace private_detail_function
             const Vtbl trivial_alloc;
         };
 
+        constexpr auto no_destructor = [] (void*) noexcept
+        {};
+
+        constexpr auto no_move_constructor = [] (void*, void* right) noexcept
+        {
+            return right;
+        };
+
+        constexpr auto trivial_small_move_constructor = [] (void* small, void* right) noexcept
+        {
+            D_ASSERT(is_newmem(small, right, nbyte_arch));
+            memcpy(small, right, nbyte_arch);
+            return small;
+        };
+
+        
+
         constexpr default_memory_vtbl<unique_memory_vtbl> default_unique_memory_vtbl
         {
             .no_memory
             {
-                [](void*) noexcept {},
-                [] (void*, void* right) noexcept { return right; }
+                no_destructor,
+                no_move_constructor
             },
             .trivial_small
             {
                 default_unique_memory_vtbl.no_memory.destructor,
-                [] (void* small, void* right) noexcept
-                {
-                    D_ASSERT_OR_ASSUME(is_newmem(small, right, nbyte_arch));
-                    memcpy(small, right, nbyte_arch);
-                    return small;
-                }
+                trivial_small_move_constructor
             },
             .trivial_alloc
             {
                 [](void* left) noexcept
                 {
-                    D_ASSERT_OR_ASSUME(nullptr != left);
+                    D_ASSERT(nullptr != left);
                     ::mi_free(left);
                 },
                 default_unique_memory_vtbl.no_memory.move_constructor
@@ -151,6 +163,8 @@ namespace private_detail_function
     namespace private_detail_unique_function
     {
         using namespace private_detail_unique_memory::unique_memory_public_namespace;
+        using private_detail_basic_function_view::basic_function_view;
+        using private_detail_decl_function::decl_function_t;
 
         template<class Fn>
         using is_no_memory_fn = std::disjunction<

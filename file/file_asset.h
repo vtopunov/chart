@@ -37,7 +37,9 @@ namespace file
             [[nodiscard]]
             constexpr explicit operator bool() const noexcept
             {
-                return !!size_;
+                const auto result = !!size_;
+                D_ASSERT(result == !!data_);
+                return result;
             }
 
             [[nodiscard]]

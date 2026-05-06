@@ -15,30 +15,32 @@ namespace chart
         const auto max_increment = pow(10, ceil_cast<int64_t>(log10(min_distance)));
         const auto half_increment = 0.5 * max_increment;
         const auto result_increment = (min_distance <= half_increment) ? half_increment : max_increment;
-        D_ASSERT_OR_ASSUME(min_distance <= result_increment);
+        D_ASSERT(min_distance <= result_increment);
         return result_increment;
     }
 
     template<class T>
     [[nodiscard]] constexpr T grid_begin(T begin, T increment) noexcept
     {
+        D_ASSERT(::is_neqnz(increment));
         const auto result = increment * std::ceil(begin / increment);
-        D_ASSERT_OR_ASSUME(begin <= result);
-        D_ASSERT_OR_ASSUME(result <= (begin + increment));
+        D_ASSERT(begin <= result);
+        D_ASSERT((result - begin) <= increment);
         return result;
     }
 
     template<class T>
     [[nodiscard]] constexpr size_t periodic_count(T begin, T increment, T end) noexcept
     {
+        D_ASSERT(::is_neqnz(increment));
         const auto last = (end - begin) / increment;
 
         {
             [[maybe_unused]] constexpr auto index_epsf = numeric_eps_v<T>;
             [[maybe_unused]] constexpr auto index_minf = clamp_cast<T>(-1) + index_epsf;
             [[maybe_unused]] constexpr auto index_maxf = clamp_cast<T>(size_overflow_maxi) - index_epsf;
-            D_ASSERT_OR_ASSUME(last >= index_minf);
-            D_ASSERT_OR_ASSUME(last <= index_maxf);
+            D_ASSERT(last >= index_minf);
+            D_ASSERT(last <= index_maxf);
         }
 
         return 1u + static_cast<size_t>(last);
@@ -88,7 +90,7 @@ namespace chart
     {
         struct cache_type
         {
-            gl::unique_texture2d_resource texture{};
+            gl::texture2d_owner texture{};
         };
 
         inline static void draw(const basic_grid<px_grid_drawer>& grid, const periodic_value_position& position, const lumpixspan pixs) noexcept;
@@ -101,31 +103,27 @@ namespace chart
     {
         using cache_type = typename Drawer::cache_type;
 
-        static constexpr auto default_color = ::colors::green_f;
-        static constexpr auto default_widths = fill_to<point2d>(1_npx);
-        static constexpr point2d default_min_distances{ 50_npx, 30_npx };
-
-        rgbaf_color color{ default_color };
-        pxpoint widths{ default_widths };
-        pxpoint min_distances{ default_min_distances };
+        static constexpr auto color = ::colors::green_f;
+        static constexpr auto widths = fill_to<point2d>(1_npx);
+        static constexpr point2d min_distances{ 50_npx, 30_npx };
         D_NO_UNIQUE_ADDRESS cache_type cache{};
-
 
         [[nodiscard]]
         constexpr periodic_value_position operator () (const space_manipulation& sys) const noexcept
         {
             const auto abs_scale_to_px = md_abs(make_scale_transformation(sys).scale());
+            D_ASSERT(md_is_positiven(abs_scale_to_px));
             const auto math_repeat = md_grid_increment(min_distances / abs_scale_to_px);
             const auto math_begin = md_grid_begin(sys._0._0, math_repeat);
+            const auto px_begin = abs_scale_to_px * (math_begin - sys._0._0);
+            const auto px_repeat = abs_scale_to_px * math_repeat;
+            D_ASSERT(!md_is_negativen(px_begin));
+            D_ASSERT(md_is_positiven(px_repeat));
 
             return
             {
-                .value{.begin{ math_begin }, .repeat{ math_repeat } },
-                .px
-                {
-                    .begin{ abs_scale_to_px * (math_begin - sys._0._0) },
-                    .repeat{ abs_scale_to_px * math_repeat }
-                },
+                .value{ .begin{ math_begin }, .repeat{ math_repeat } },
+                .px{ .begin{ px_begin }, .repeat{ px_repeat } },
                 .count{ md_periodic_count(math_begin, math_repeat, sys._0._1) }
             };
         }
@@ -149,24 +147,24 @@ namespace chart
 
     inline void px_grid_drawer::draw(const basic_grid<px_grid_drawer>& grid, const periodic_value_position& position, const lumpixspan pixs) noexcept
     {
-        zero_memory(pixs);
+        ::zero_memory(pixs);
 
-        for (size_t i = 0; i != position.count.y(); ++i )
         {
-            const auto row_index = position.px.begin.y() + i * position.px.repeat.y();
-            px::draw_hline(pixs, row_index, grid.widths.y());
-        } 
-
-        for (size_t i = 0; i != position.count.x(); ++i )
-        {
-            const auto column_index = position.px.begin.x() + i * position.px.repeat.x();
-            px::draw_vline(pixs, column_index, grid.widths.x());
+            const auto hline_position0 = pixs.height() - position.px.begin.y();
+            for (size_t i = 0; i != position.count.y(); ++i)
+            {
+                const auto hline_position = hline_position0 - i * position.px.repeat.y();
+                px::draw_hline(pixs, hline_position, grid.widths.y());
+            }
         }
 
+        for (size_t i = 0; i != position.count.x(); ++i)
         {
-            const auto result = gl::update(as_mutable(grid.cache.texture), pixs);
-            D_ASSERT_OR_ASSUME(result);
+            const auto vline_position = position.px.begin.x() + i * position.px.repeat.x();
+            px::draw_vline(pixs, vline_position, grid.widths.x());
         }
+
+        D_CHECK(gl::update(as_mutable(grid.cache.texture), pixs));
     }
 
     inline void px_grid_drawer::draw(const basic_grid<px_grid_drawer>& grid, const shader_embed::luminance_texture& shdr) noexcept

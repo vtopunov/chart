@@ -112,25 +112,11 @@ template<class T>
     return vec;
 }
 
-template<template<class> class Vec, class T>
-[[nodiscard]] constexpr auto as_signed(const Vec<T>& v) noexcept -> Vec<decltype(as_signed(as_vec2(v)._0))>
-{
-    return 
-    { 
-        as_signed(v._0), 
-        as_signed(v._1)
-    };
-}
+template<class T>
+using decl_as_vec2_t = decltype(as_vec2(std::declval<T&>()));
 
-template<template<class> class Vec, class T>
-[[nodiscard]] constexpr auto as_unsigned(const Vec<T>& v) noexcept -> Vec<decltype(as_unsigned(as_vec2(v)._0))>
-{
-    return 
-    { 
-        as_unsigned(v._0), 
-        as_unsigned(v._1) 
-    };
-}
+template<class T>
+using is_detected_as_vec2 = is_detected<decl_as_vec2_t, const T>;
 
 template<template<class> class Vec, class T>
 [[nodiscard]] constexpr std::enable_if_t<
@@ -172,6 +158,38 @@ template<template<class> class Vec, class T>
 }
 
 template<class T>
+[[nodiscard]] constexpr auto md_as_signed(const T& v) noexcept -> decltype(as_signed(v))
+{
+    return as_signed(v);
+}
+
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr auto md_as_signed(const Vec<T>& v) noexcept -> Vec<decltype(md_as_signed(as_vec2(v)._0))>
+{
+    return
+    {
+        md_as_signed(v._0),
+        md_as_signed(v._1)
+    };
+}
+
+template<class T>
+[[nodiscard]] constexpr auto md_as_unsigned(const T& v) noexcept -> decltype(as_unsigned(v))
+{
+    return as_unsigned(v);
+}
+
+template<template<class> class Vec, class T>
+[[nodiscard]] constexpr auto md_as_unsigned(const Vec<T>& v) noexcept -> Vec<decltype(md_as_unsigned(as_vec2(v)._0))>
+{
+    return
+    {
+        md_as_unsigned(v._0),
+        md_as_unsigned(v._1)
+    };
+}
+
+template<class T>
 [[nodiscard]] constexpr auto md_abs(const T& v) noexcept -> decltype(u_abs(v))
 {
     return u_abs(v);
@@ -180,11 +198,18 @@ template<class T>
 template<template<class> class Vec, class T>
 [[nodiscard]] constexpr auto md_abs(const Vec<T>& v) noexcept -> Vec<decltype(md_abs(as_vec2(v)._0))>
 {
-    return { md_abs(v._0), md_abs(v._1) };
+    return 
+    { 
+        md_abs(v._0), 
+        md_abs(v._1)
+    };
 }
 
 template<class T>
-[[nodiscard]] constexpr auto md_round(const T& v) noexcept -> decltype(std::round(v))
+[[nodiscard]] constexpr auto md_round(const T& v) noexcept -> std::enable_if_t<
+    std::is_arithmetic_v<T>, 
+    decltype(std::round(v))
+>
 {
     return std::round(v);
 }
@@ -192,18 +217,10 @@ template<class T>
 template<template<class> class Vec, class T>
 [[nodiscard]] constexpr auto md_round(const Vec<T>& v) noexcept -> Vec<decltype(md_round(as_vec2(v)._0))>
 {
-    return { md_round(v._0), md_round(v._1) };
-}
-
-template<template<class> class Vec, class T>
-[[nodiscard]] constexpr std::enable_if_t<
-    std::is_base_of_v<vec2<T>, Vec<T>>, Vec<T>
-> md_clamp(const Vec<T>& v, const vec2<T>& v0, const vec2<T>& v1) noexcept
-{
-    return
-    {
-        std::clamp(v._0, v0._0, v1._0),
-        std::clamp(v._1, v0._1, v1._1),
+    return 
+    { 
+        md_round(v._0), 
+        md_round(v._1)
     };
 }
 
@@ -276,12 +293,13 @@ template<class T>
 template<class T>
 [[nodiscard]] auto md_isfinite(const T& v) noexcept -> decltype(md_isfinite(as_vec2(v)._0))
 {
-    return md_isfinite(v._0) && md_isfinite(v._1);
+    return md_isfinite(v._0) 
+        && md_isfinite(v._1);
 }
 
 template<class T>
 [[nodiscard]] constexpr auto md_isnormal(const T& v) noexcept -> std::enable_if_t<
-    std::negation_v<is_base_of_vec2<T>>,
+    std::negation_v<is_detected_as_vec2<T>>,
     decltype(u_isnormal(v))
 > 
 {
@@ -293,6 +311,64 @@ template<class T>
 {
     return md_isnormal(v._0) 
         && md_isnormal(v._1);
+}
+
+template<class T>
+[[nodiscard]] constexpr auto md_is_neqnz(const T& v) noexcept -> std::enable_if_t<
+    std::negation_v<is_detected_as_vec2<T>>,
+    decltype(is_neqnz(v))
+>
+{
+    return is_neqnz(v);
+}
+
+template<class T>
+[[nodiscard]] constexpr auto md_is_neqnz(const T& v) noexcept -> decltype(md_is_neqnz(as_vec2(v)._0))
+{
+    return md_is_neqnz(v._0)
+        && md_is_neqnz(v._1);
+}
+
+template<class T>
+[[nodiscard]] constexpr auto md_is_eqnz(const T& v) noexcept -> std::enable_if_t<
+    std::negation_v<is_detected_as_vec2<T>>,
+    decltype(is_eqnz(v))
+>
+{
+    return is_eqnz(v);
+}
+
+template<class T>
+[[nodiscard]] constexpr auto md_is_eqnz(const T& v) noexcept -> decltype(md_is_eqnz(as_vec2(v)._0))
+{
+    return md_is_eqnz(v._0)
+        && md_is_eqnz(v._1);
+}
+
+template<class T>
+[[nodiscard]] constexpr auto md_is_positiven(const T& v) noexcept -> decltype(is_positiven(v))
+{
+    return is_positiven(v);
+}
+
+template<class T>
+[[nodiscard]] constexpr auto md_is_positiven(const T& v) noexcept -> decltype(md_is_positiven(as_vec2(v)._0))
+{
+    return md_is_positiven(v._0)
+        && md_is_positiven(v._1);
+}
+
+template<class T>
+[[nodiscard]] constexpr auto md_is_negativen(const T& v) noexcept -> decltype(is_negativen(v))
+{
+    return is_negativen(v);
+}
+
+template<class T>
+[[nodiscard]] constexpr auto md_is_negativen(const T& v) noexcept -> decltype(md_is_negativen(as_vec2(v)._0))
+{
+    return md_is_negativen(v._0)
+        && md_is_negativen(v._1);
 }
 
 template<class R, class T>
@@ -509,7 +585,7 @@ template<class R, class T0, class T1>
     return
     {
         md_clamp_cast<value_t>(v0),
-        md_clamp_castt<value_t>(v1)
+        md_clamp_cast<value_t>(v1)
     };
 }
 

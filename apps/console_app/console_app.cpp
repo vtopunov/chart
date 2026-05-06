@@ -6,117 +6,39 @@
 #include <memory>
 #include <optional>
 #include <functional>
+#include <map>
+#include <print>
 
-#include <core/fwd.h>
 #include <core/unique_function.h>
-
 
 namespace
 {
-    struct test_defecon
+    struct xzs
     {
-        constexpr explicit test_defecon() noexcept = default;
-    };
-    constexpr test_defecon test_defecon_v{};
-
-    void fn(test_defecon value) noexcept
-    {}
-
-    struct test_defecon2
-    {
-        constexpr explicit test_defecon2(test_defecon) noexcept
-        {}
-
-        D_DISABLE_COPYMOVE_CA(test_defecon2);
+        D_DEFAULT_ALL_CA(xzs);
     };
 
-    constexpr test_defecon2 get_test_defecon2() noexcept
+    struct xzs2
     {
-        return test_defecon2(test_defecon_v);
-    }
-
-    constexpr test_defecon get_test_defecon1() noexcept
-    {
-        return test_defecon{};
-    }
-
-    struct BA {};
-    struct B : BA {};
-
-    struct A
-    {
-        int value{ 1 };
-
-        void operator () (B) const
-        {
-            D_ASSERT(!errno && value);
-            D_ASSERT(!errno);
-            D_ASSERT(!errno);
-        }
-
-        void operator () (BA)
-        {
-            D_ASSERT(!errno && value);
-            D_ASSERT(!errno);
-            D_ASSERT(!errno);
-        }
+        xzs xz;
+        D_DEFAULT_ALL_CAEQ(xzs2);
     };
 }
 
+
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) noexcept
 {
-    A lol;
-    //const A clol;
-    //std::move_only_function<void(B)> fn = lol; fn(B{}); // error // lol clol std::move(lol)
-    //std::function<void(B)> fn2 = lol; fn2(B{}); // error // lol clol std::move(lol)
-    ::function_view<void(B)> fn3 = lol; fn3(B{});
-    ::unique_function<void(B)> fn4 = std::move(lol); fn3(B{});
-    ::invoke_if_exist(A{}, B{});
-    static_assert(is_invocable_v<A, B>);
-    static_assert(!std::is_invocable_v<A, B>);
-    static_assert(std::is_invocable_v<const A, B>);
-    
+    xzs2 xz;
+    enum xzxx
     {
-        A lol2;
-        std::as_const(lol2)(B{});
-    }
-
-    {
-        const A lol3;
-        lol3(B{});
-    }
-
-    size_t args_len{};
-
-    std::add_lvalue_reference_t<int&>;
-
-    test_defecon2 value = get_test_defecon2();
-    test_defecon2 value2 = test_defecon2(test_defecon2(test_defecon_v));
-
-    std::unique_ptr<size_t> ptr{};
-
-    const auto slrlen_acc = [&args_len] (const char* arg) noexcept 
-    {
-          args_len += strlen(arg);
+        lol
     };
 
-    std::is_function_v<decltype([] () {}) > ;
+    std::is_integral_v<xzxx>;
 
-    std::optional<int> opt;
-    opt.has_value();
-    
-    std::add_const_t<int&> x = *opt;
+    double x = 0.1 + 0.2;
+    char buf[100];
+    std::to_chars(buf, buf + 100, x);
 
-    std::for_each
-    (
-        std::execution::unseq,
-        argv, argv + argc,
-        slrlen_acc
-    );
-
-    std::is_convertible_v<void, void>;
-
-    std::nullopt_t;
-
-    return std::popcount(args_len);
+    return 0;
 }

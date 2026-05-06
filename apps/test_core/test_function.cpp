@@ -853,6 +853,7 @@ namespace
 
         ::invoke_if_exist(A{}, B{});
         static_assert(::is_invocable_v<A, B>);
+        static_assert(!::is_invocable_v<A, A>);
         static_assert(!std::is_invocable_v<A, B>);
         static_assert(std::is_invocable_v<const A, B>);
 
@@ -870,7 +871,10 @@ namespace
     }
 
     template<class Signature>
-    using basic_unique_function_for_t = decl_function_t<private_detail_function::private_detail_unique_function::basic_unique_function, Signature>;
+    using basic_unique_function_for_t = private_detail_function::private_detail_decl_function::decl_function_t<
+        private_detail_function::private_detail_unique_function::basic_unique_function, 
+        Signature
+    >;
 }
 
 

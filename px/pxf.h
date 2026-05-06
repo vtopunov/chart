@@ -93,7 +93,7 @@ namespace px
     {
         D_WARNING_PUSH;
         D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast);
-        D_ASSERT_OR_ASSUME(is_safe_conversion_pxf(value));
+        D_ASSERT(is_safe_conversion_pxf(value));
         return static_cast<npxf_t>(value);
         D_WARNING_POP;
     }

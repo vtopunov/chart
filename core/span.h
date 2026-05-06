@@ -259,7 +259,7 @@ public:
     [[nodiscard]]
     constexpr reference value(size_type index) const noexcept
     {
-        D_ASSERT_OR_ASSUME(index < size_);
+        D_ASSERT(index < size_);
         return data_[index];
     }
 
@@ -272,43 +272,43 @@ public:
     [[nodiscard]]
     constexpr reference front() const noexcept
     {
-        D_ASSERT_OR_ASSUME(0u < size_);
+        D_ASSERT(0u < size_);
         return *data_;
     }
 
     [[nodiscard]]
     constexpr reference back() const noexcept
     {
-        D_ASSERT_OR_ASSUME(0u < size_);
+        D_ASSERT(0u < size_);
         return data_[size_ - 1u];
     }
 
     [[nodiscard]]
     constexpr dynamic_extent_span_type first(size_type size) const noexcept
     {
-        D_ASSERT_OR_ASSUME(size <= size_);
+        D_ASSERT(size <= size_);
         return { data_, size };
     }
 
     [[nodiscard]]
     constexpr dynamic_extent_span_type subspan(size_type pos, size_type size) const noexcept
     {
-        D_ASSERT_OR_ASSUME(pos <= size_);
-        D_ASSERT_OR_ASSUME(size <= (size_ - pos));
+        D_ASSERT(pos <= size_);
+        D_ASSERT(size <= (size_ - pos));
         return { data_ + pos, size };
     }
 
     [[nodiscard]]
     constexpr dynamic_extent_span_type subspan(size_type pos) const noexcept
     {
-        D_ASSERT_OR_ASSUME(pos <= size_);
+        D_ASSERT(pos <= size_);
         return { data_ + pos, size_ - pos };
     }
 
     [[nodiscard]]
     constexpr dynamic_extent_span_type last(size_type size) const noexcept
     {
-        D_ASSERT_OR_ASSUME(size <= size_);
+        D_ASSERT(size <= size_);
         return { data_ + size_ - size, size };
     }
 
@@ -406,7 +406,7 @@ constexpr auto copy(const Rng& rng, OutIt out) noexcept -> decltype(copy(make_cs
 template<class SpanValueT, size_t Extent, class T>
 [[nodiscard]] constexpr size_t find_n(const span<const SpanValueT, Extent> sp, const T& value, size_t pos = 0u) noexcept
 {
-    D_ASSERT_OR_ASSUME(pos <= sp.size());
+    D_ASSERT(pos <= sp.size());
 
     for (; pos != sp.size(); ++pos)
     {

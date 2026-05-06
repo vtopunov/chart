@@ -5,7 +5,7 @@
 
 
 using npx_t = uint32_t;
-using npxf_t = float_real_t;
+using npxf_t = realf_t;
 using pxoff_t = int32_t;
 static_assert(sizeof(pxoff_t) >= sizeof(npx_t));
 static_assert(sizeof(npxf_t) >= sizeof(npx_t));
@@ -31,5 +31,5 @@ constexpr pxoff_t operator ""_pxoff(unsigned long long side) noexcept
 }
 
 constexpr pxsizes no_sizes{ 0_npx, 0_npx };
-static_assert(!no_sizes.has_positive_mark());
-static_assert(!no_sizes.has_positive_square());
+static_assert(md_is_eqnz(no_sizes));
+static_assert(!no_sizes.has_positiven_mark());

@@ -40,6 +40,9 @@ namespace widget
             return zimage(luminance_pixspace{ w, h });
         }
 
+        [[nodiscard]]
+        basic_buffer_view<luminance_t> try_get_reserve(size_t size_bytes) noexcept;
+
         constexpr dummy apply(no_overload) const noexcept
         {
             return dummy_v;

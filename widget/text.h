@@ -11,8 +11,6 @@ namespace widget
 {
     struct text_cache
     {
-        static constexpr auto invalid_y = font::invalid_cursor.y();
-
     public:
         bool draw(temp_byte_buffer& buffer, font::face_resource face, std::u8string_view text, pxsizes sizes) noexcept;
 
@@ -51,18 +49,18 @@ namespace widget
         [[nodiscard]]
         constexpr bool is_empty() const noexcept
         {
-            return invalid_y == y_;
+            return font::cursor::invalid_npxf == y_;
         }
 
         void clear() noexcept
         {
             texture_.hide();
-            y_ = invalid_y;
+            y_ = font::cursor::invalid_npxf;
         }
 
 
     private:
         gl::texture2d texture_{};
-        font::fixed_t y_{ invalid_y };
+        font::fixed_t y_{ font::cursor::invalid_npxf };
     };
 }

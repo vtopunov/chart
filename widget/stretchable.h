@@ -18,20 +18,12 @@ namespace widget
 
         constexpr auto clamp_len = [] (overpxoff_t position, overpxoff_t fixlen, overpxoff_t len) noexcept
         {
+            constexpr overpxoff_t minlen{ 3 };
             len -= position;
-            if (len < 0LL) [[unlikely]]
-            {
-                return 0_npx;
-            }
 
             if (fixlen <= 0LL)
             {
                 len += fixlen;
-
-                if (len < 0LL) [[unlikely]]
-                {
-                    return 0_npx;
-                }
             }
             else
             {
@@ -39,6 +31,11 @@ namespace widget
                 {
                     len = fixlen;
                 }
+            }
+
+            if (len < minlen) [[unlikely]]
+            {
+                len = minlen;
             }
 
             return narrow<npx_t>(len);

@@ -5,7 +5,7 @@ namespace chart
 {
     event_result space::process(const mouse_wheel_event<>& e)  noexcept
     {
-        if (has_space(e))
+        if (has_space(e)) [[likely]]
         {
             constexpr double zoom_factor = 1.1;
             const auto nzoom = pow(zoom_factor, e.rot());
@@ -19,9 +19,11 @@ namespace chart
                 diagonal._1 + half_d_d_diagonal
             };
 
-            sizes_cache = no_sizes;
-            D_UNUSED(space_cache.try_update(new_diagonal, geometry_cache.sizes));
-            return event_result::redraw;
+            if (space_cache.try_update(new_diagonal, geometry_cache.sizes))
+            {
+                sizes_cache = no_sizes;
+                return event_result::redraw;
+            }
         }
 
         return event_result::idle;
@@ -29,9 +31,9 @@ namespace chart
 
     event_result space::process(const gesture_event<>& e) noexcept
     {
-        if (has_space(e))
+        if (has_space(e)) [[likely]]
         {
-            const auto has_shift = (zero_v<> != md_trunc_cast<pxoffs>(e.shift()));
+            const auto has_shift = md_is_neqnz(md_trunc_cast<pxoffs>(e.shift()));
             const auto has_scale = (geometry_cache.sizes != e.transformation_as(geometry_cache.sizes));
 
             if (has_shift || has_scale)

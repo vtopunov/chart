@@ -43,7 +43,7 @@ namespace chart
 
         model_type model{};
         pen_type pen{ default_pen };
-        gl::unique_texture2d_resource texture_cache{};
+        gl::texture2d_owner texture_cache{};
 
 
         template<class M, std::enable_if_t<has_assignment_op_v<model_type, M>, int> = 0>
@@ -55,8 +55,7 @@ namespace chart
 
         void reset_model() noexcept
         {
-            model = null_v<model_type>;
-            texture_cache.reset();
+            set_model(null_v<model_type>);
         }
 
         void operator () (space_diagonal& diagonal) const noexcept
@@ -68,11 +67,7 @@ namespace chart
         {
             zero_memory(pixs);
             px::draw_polyline(pixs, model, make_transformation(sys));
-            
-            {
-                const auto result = gl::update(texture_cache, pixs);
-                D_ASSERT_OR_ASSUME(result);
-            }
+            D_CHECK(gl::update(texture_cache, pixs));
         }
 
         void operator()(const shader_embed::luminance_texture& shdr) const noexcept

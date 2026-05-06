@@ -235,8 +235,17 @@ using remove_cve_t = std::remove_cv_t<remove_enum_t<T>>;
 template<class T>
 using remove_cveref_t = std::remove_cvref_t<remove_enum_t<T>>;
 
+template <class T>
+constexpr bool is_nonbool_integral_v = std::conjunction_v<
+    std::is_integral<T>,
+    std::negation<std::is_same<std::remove_cv_t<T>, bool> >
+>;
+
 template<class T>
-using unsigned_or_t = conditional_op_t<std::is_integral_v<T>, std::make_unsigned_t, T>;
+using unsigned_or_t = conditional_op_t<::is_nonbool_integral_v<T>, std::make_unsigned_t, T>;
+
+template<class T>
+using enable_if_make_unsigned_t = typename conditional_op_or_t<::is_nonbool_integral_v<T>, dummy, std::make_unsigned, T>::type;
 
 template<class T>
 using remove_unsigned_t = conditional_op_t<std::is_unsigned_v<T>, std::make_signed_t, T>;
@@ -478,9 +487,9 @@ constexpr bool has_type_decay_v = has_type_decay<T, Types...>::value;
 
 
 template<class T>
-[[nodiscard]] constexpr decltype(auto) as_unsigned(const T& value) noexcept
+[[nodiscard]] constexpr enable_if_make_unsigned_t<T> as_unsigned(const T& value) noexcept
 {
-    return static_cast<std::make_unsigned_t<T>>(value);
+    return value;
 }
 
 template<class T>
@@ -541,7 +550,7 @@ constexpr bool is_brace_constructible_v = is_brace_constructible<T, Args...>::va
 
 
 template<class T>
-using decl_unary_munis_op_t = decltype(-std::declval<const T&>());
+using decl_unary_munis_result_t = decltype(-std::declval<const T&>());
 
 template<class T>
 using decl_pre_inc_op_t = decltype(++std::declval<T&>());
@@ -556,7 +565,7 @@ template<class T>
 using decl_post_dec_op_t = decltype(std::declval<T&>()--);
 
 template<class T>
-using has_unary_munis_op = is_detected<decl_unary_munis_op_t, T>;
+using has_unary_munis_op = is_detected<decl_unary_munis_result_t, T>;
 
 template<class T>
 using has_pre_inc_op = is_detected<decl_pre_inc_op_t, T>;
@@ -600,6 +609,12 @@ using decl_eq_op_t = decltype(std::declval<const L&>() == std::declval<const R&>
 
 template<class L, class R = L>
 using decl_neq_op_t = decltype(std::declval<const L&>() != std::declval<const R&>());
+
+template<class L, class R = L>
+using decl_n_op_eq_op_t = decltype(!(std::declval<const L&>() == std::declval<const R&>()));
+
+template<class L, class R = L>
+using decl_n_op_neq_op_t = decltype(!(std::declval<const L&>() != std::declval<const R&>()));
 
 template<class L, class R = L>
 using decl_less_op_t = decltype(less_op(std::declval<const L&>(), std::declval<const R&>()));

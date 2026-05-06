@@ -62,7 +62,7 @@ namespace
             (
                 image,
                 (image.width() - tm.width) / 2u,
-                (image.height() + tm.bottom - tm.top) / 2u,
+                (image.height() + (tm.bottom - tm.top)) / 2u,
                 face,
                 zsv_text
             );

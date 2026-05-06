@@ -163,7 +163,7 @@ namespace private_detail_narrow
         }
         else
         {
-            D_ASSERT_OR_ASSUME(is_safe_narrowing_conversion<Target>(v));
+            D_ASSERT(is_safe_narrowing_conversion<Target>(v));
             return static_cast<Target>(v);
         }
     }
@@ -224,7 +224,7 @@ namespace private_detail_narrow
     template<class T>
     constexpr auto u_distance(T first, T last) noexcept -> decltype(to_unsigned(last - first))
     {
-        D_ASSERT_OR_ASSUME(last >= first);
+        D_ASSERT(last >= first);
         return to_unsigned(last - first);
     }
 

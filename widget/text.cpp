@@ -33,8 +33,8 @@ namespace widget
                 std::min(sizes.height(), ceil_to<npx_t>(tm.bottom - tm.top))
             );
 
-            const auto y_cursor = font::draw_text(pixs, 0_npx, -tm.top, face, text).y();
-            if (invalid_y == y_cursor) [[unlikely]]
+            const auto cursor = font::draw_text(pixs, 0_npx, -tm.top, face, text);
+            if (!cursor) [[unlikely]]
             {
                 return false;
             }
@@ -45,7 +45,7 @@ namespace widget
             }
 
             const auto height = font::fixed_t::instance(pixs.height());
-            y_ = std::clamp(y_cursor, {}, height) / 2;
+            y_ = std::clamp(cursor.cref_y(), {}, height) / 2;
         }
 
         return true;

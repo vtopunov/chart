@@ -205,7 +205,7 @@ namespace ui
 
     bool show(window_handle_t window, int cmd) noexcept;
 
-    bool close(window_handle_t window) noexcept;
+    void close(window_handle_t window) noexcept;
 
     bool window_text(window_handle_t window, wzstring_view text) noexcept;
 

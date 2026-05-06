@@ -171,14 +171,8 @@ void test_size2d() noexcept
     static_assert(zsz == size2d{ 0, 0 });
     static_assert(zsz == zero_v<>);
     static_assert(zsz == zero_v<size2d<int>>);
-    static_assert(!zsz.has_positive_mark());
-    static_assert(!zsz.has_positive_square());
-    static_assert(!zsz.with_width(5).has_positive_mark());
-    static_assert(!zsz.with_width(5).has_positive_square());
-    static_assert(zsz.with_height(6).has_positive_mark());
-    static_assert(!zsz.with_height(6).has_positive_square());
-    static_assert(zsz.with_width(5).with_height(6).has_positive_mark());
-    static_assert(zsz.with_width(5).with_height(6).has_positive_square());
+    static_assert(!zsz.has_positiven_mark());
+    static_assert(zsz.with_width(5).with_height(6).has_positiven_mark());
 
     test_sizes();
 }

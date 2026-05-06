@@ -100,7 +100,6 @@ template<class T>
     return p;
 }
 
-
 template<class T>
 [[nodiscard]] constexpr point2d<T> to_point2d(const vec2<T>& v) noexcept
 {

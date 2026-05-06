@@ -74,14 +74,11 @@ struct size2d : vec2<T>
         return { _0, std::move(value) };
     }
 
-    [[nodiscard]] constexpr bool has_positive_square() const noexcept
+    [[nodiscard]] constexpr bool has_positiven_mark() const noexcept
     {
-        return is_positive(_0) && is_positive(_1);
-    }
-
-    [[nodiscard]] constexpr bool has_positive_mark() const noexcept
-    {
-        return is_positive(_1);
+        const auto result = ::is_positiven(_1);
+        D_ASSERT(result == ::is_positiven(_0));
+        return result;
     }
 
     [[nodiscard]]

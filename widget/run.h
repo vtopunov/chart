@@ -52,8 +52,8 @@ namespace widget
                 const auto new_size = e.sizes();
                 if (new_size.width() > 0_npx && new_size.height() > 0_npx) [[likely]]
                 {
-                    D_ASSERT_OR_ASSUME(new_size.width() <= cref_window().viewport().width());
-                    D_ASSERT_OR_ASSUME(new_size.height() <= cref_window().viewport().height());
+                    D_ASSERT(new_size.width() <= cref_window().viewport().width());
+                    D_ASSERT(new_size.height() <= cref_window().viewport().height());
                     context_.ref_window().content_sizes(new_size);
                     _apply_event(e);
                 }
@@ -127,10 +127,13 @@ namespace widget
             [[nodiscard]]
             bool setup_viewport() noexcept
             {
-                if (_apply_initialization_event(viewport_event_base_v)) [[likely]]
+                if (cref_window().viewport().has_positiven_mark()) [[likely]]
                 {
-                    gl::viewport(cref_window().viewport());
-                    return true;
+                    if (_apply_initialization_event(viewport_event_base_v)) [[likely]]
+                    {
+                        gl::viewport(cref_window().viewport());
+                        return true;
+                    }
                 }
 
                 return false;

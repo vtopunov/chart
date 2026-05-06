@@ -40,7 +40,7 @@ namespace ui
         using vector_type = small_vector<event_processor_note, static_size>;
         using back_vector_type = small_vector<event_processor_note>;
 
-        bool destroy_processor(event_processor_resource processor) noexcept;
+        void destroy_processor(event_processor_resource processor) noexcept;
 
         size_t close_window(window_handle_t window) noexcept;
 

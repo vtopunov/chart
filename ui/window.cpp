@@ -46,7 +46,7 @@ namespace ui
 
             return
             {
-                narrow<size_t>(std::lower_bound(first, c.cend(), by_parent{ parent }) - first),
+                u_distance(first, std::lower_bound(first, c.cend(), by_parent{ parent })),
                 std::addressof(c),
                 parent
             };
@@ -71,12 +71,10 @@ namespace ui
         [[nodiscard]]
         constexpr pxsizes gdi_to_pxsizes(const gdi_rect_t& rect) noexcept
         {
-            static_assert(std::is_unsigned_v<npx_t>);
-
             constexpr auto side_length = [] (auto p0, auto p1) noexcept
             {
-                D_ASSERT_OR_ASSUME(p1 >= p0);
-                return narrow<npx_t>(p1 - p0);
+                static_assert(std::is_unsigned_v<npx_t>);
+                return narrow<npx_t>(u_distance(p0, p1));
             };
 
             pxsizes result{ side_length(rect.left, rect.right), 0_npx };
@@ -107,10 +105,11 @@ namespace ui
             return rect;
         }
 
-        bool close(window_set& windows, window_handle_t window) noexcept
+        void close(window_set& windows, window_handle_t window) noexcept
         {
             static window_handle_t in_process_of_destruction{ nullptr };
 
+            D_ASSERT(window);
             if (window != in_process_of_destruction) [[likely]]
             {
                 event_processors_global().close_window(window);
@@ -120,7 +119,7 @@ namespace ui
                     close(windows, *children_opt);
                 }
 
-                if (const auto it = std::find(windows.cbegin(), windows.cend(), window); it != windows.cend())
+                if (const auto it = std::find(windows.cbegin(), windows.cend(), window); it != windows.cend()) [[likely]]
                 {
                     class destruction_locker
                     {
@@ -146,18 +145,14 @@ namespace ui
 
                     windows.erase(it);
 
-                    if (!windows.size())
+                    if (!windows.size()) [[unlikely]]
                     {
                         quit();
                     }
 
-                    const auto ok = !!DestroyWindow(window);
-                    D_ASSERT(ok);
-                    return ok;
+                    D_CHECK(DestroyWindow(window));
                 }
             }
-
-            return false;
         }
 
 #if D_IS_DEBUG
@@ -215,9 +210,12 @@ namespace ui
         return sizes;
     }
 
-    bool close(window_handle_t window) noexcept
+    void close(window_handle_t window) noexcept
     {
-        return window && close(windows_global(), window);
+        if (window)
+        {
+            close(windows_global(), window);
+        }
     }
 
     bool window_text(window_handle_t window, wzstring_view text) noexcept
@@ -298,7 +296,6 @@ namespace ui
                     type
                 );
 
-                D_ASSERT(ok);
                 if (!ok) [[unlikely]]
                 {
                     result.reset();

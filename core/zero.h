@@ -125,22 +125,22 @@ namespace private_detail_zero
         using namespace private_detail_compare;
 
         template<class T, template<class, class> class Op>
-        using op_result_t = typename std::enable_if_t<std::conjunction_v<std::negation<is_zero_type<T>>, is_zero_constructible<T>>, enable_if_detected<Op, T, T>>::type;
+        using zero_op_result_t = typename std::enable_if_t<std::conjunction_v<std::negation<is_zero_type<T>>, is_zero_constructible<T>>, enable_if_detected<Op, T, T>>::type;
 
         template<class T>
-        using eq_op_result_t = op_result_t<T, decl_eq_op_t>;
+        using zero_eq_op_result_t = zero_op_result_t<T, decl_eq_op_t>;
 
         template<class T>
-        using neq_op_result_t = op_result_t<T, decl_neq_op_t>;
+        using zero_neq_op_result_t = zero_op_result_t<T, decl_neq_op_t>;
 
         template<class T>
-        [[nodiscard]] constexpr eq_op_result_t<T> eqz(const T& value) noexcept
+        [[nodiscard]] constexpr zero_eq_op_result_t<T> eqz(const T& value) noexcept
         {
             return eq_op<T>(value, zero_v<T>);
         }
 
         template<class T>
-        [[nodiscard]] constexpr neq_op_result_t<T> neqz(const T& value) noexcept
+        [[nodiscard]] constexpr zero_neq_op_result_t<T> neqz(const T& value) noexcept
         {
             return neq_op<T>(value, zero_v<T>);
         }
@@ -149,8 +149,7 @@ namespace private_detail_zero
     namespace private_detail_is_eqz
     {
         using namespace ordered_overload;
-        using private_detail_cmp_zero::eqz;
-        using private_detail_cmp_zero::neqz;
+        using namespace private_detail_cmp_zero;
 
         template<class T>
         [[nodiscard]] constexpr auto is_eqz_helper(const T& value, _order<_2>) noexcept
@@ -179,13 +178,26 @@ namespace private_detail_zero
         {
             return is_eqz_helper(value, _start);
         }
+
+        template<class T>
+        [[nodiscard]] constexpr auto is_eqnz(const T& value) noexcept
+            -> decltype(is_eqz(value))
+        {
+            if constexpr (std::is_floating_point_v<T>)
+            {
+                return is_eqfp<T, T>(value, zero_v<T>);
+            }
+            else
+            {
+                return is_eqz(value);
+            }
+        }
     }
 
     namespace private_detail_is_neqz
     {
         using namespace ordered_overload;
-        using private_detail_cmp_zero::eqz;
-        using private_detail_cmp_zero::neqz;
+        using namespace private_detail_cmp_zero;
 
         template<class T>
         [[nodiscard]] constexpr auto is_neqz_helper(const T& value, _order<_2>) noexcept
@@ -213,6 +225,21 @@ namespace private_detail_zero
             -> decltype(is_neqz_helper(value, _start))
         {
             return is_neqz_helper(value, _start);
+        }
+
+
+        template<class T>
+        [[nodiscard]] constexpr auto is_neqnz(const T& value) noexcept
+            -> decltype(is_neqz(value))
+        {
+            if constexpr (std::is_floating_point_v<T>)
+            {
+                return is_neqfp<T, T>(value, zero_v<T>);
+            }
+            else
+            {
+                return is_neqz(value);
+            }
         }
     }
 
@@ -290,7 +317,9 @@ using private_detail_zero::private_detail_zero_type::is_zero_constructible_v;
 using private_detail_zero::private_detail_zero_type::zero_t;
 using private_detail_zero::private_detail_zero_type::zero_v;
 using private_detail_zero::private_detail_is_eqz::is_eqz;
+using private_detail_zero::private_detail_is_eqz::is_eqnz;
 using private_detail_zero::private_detail_is_neqz::is_neqz;
+using private_detail_zero::private_detail_is_neqz::is_neqnz;
 
 template<class T>
 using tr_zero = std::integral_constant<T, zero_v<T> >;
@@ -322,6 +351,32 @@ template<class T>
 }
 
 template<class T>
+[[nodiscard]] constexpr std::enable_if_t<is_zero_constructible_v<T>, decl_less_op_t<T>> is_positiven(const T& value) noexcept
+{
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        return ::is_less_neqfp<T, T>(zero_v<T>, value);
+    }
+    else
+    {
+        return ::is_positive(value);
+    }
+}
+
+template<class T>
+[[nodiscard]] constexpr std::enable_if_t<is_zero_constructible_v<T>, decl_less_op_t<T>> is_negativen(const T& value) noexcept
+{
+    if constexpr (std::is_floating_point_v<T>)
+    {
+        return ::is_less_neqfp<T, T>(value, zero_v<T>);
+    }
+    else
+    {
+        return ::is_negative(value);
+    }
+}
+
+template<class T>
 using decl_is_positive_t = decltype(is_positive(std::declval<const T&>()));
 
 template<class T>
@@ -343,8 +398,8 @@ constexpr bool has_negative_comparison_v = has_negative_comparison<T>::value;
 template<class T>
 [[nodiscard]] constexpr std::enable_if_t
 <
-    std::conjunction_v<has_negative_comparison<T>, has_unary_munis_op<T>>,
-    T
+    has_negative_comparison_v<T>,
+    std::common_type_t<T, decl_unary_munis_result_t<T> >
 > u_abs(const T& value) noexcept
 {
     if constexpr (std::is_unsigned_v<T>)

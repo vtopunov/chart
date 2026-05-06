@@ -99,15 +99,10 @@ namespace egli
         [[nodiscard]]
         bool update_viewport() noexcept
         {
-            if (const auto new_viewport = ui::sizes(viewing_window()); new_viewport.has_positive_mark()) [[likely]]
-            {
-                const auto is_new_viewport = new_viewport != viewport_;
-                viewport_ = new_viewport;
-                return is_new_viewport;
-            }
-
-            D_ASSERT(!"invalid viewport");
-            return false;
+            const auto new_viewport = ui::sizes(viewing_window());
+            const auto is_new_viewport = (new_viewport != viewport_);
+            viewport_ = new_viewport;
+            return is_new_viewport;
         }
 
         [[nodiscard]]
@@ -129,7 +124,9 @@ namespace egli
 
         constexpr explicit operator bool() const noexcept
         {
-            return viewport_.has_positive_mark();
+            const auto result = viewport_.has_positiven_mark();
+            D_ASSERT(result == !!window_);
+            return result;
         }
 
     private:
@@ -175,7 +172,7 @@ namespace egli
         if (temp_main_window) [[likely]]
         {
 #ifdef D_OS_WINDOWS
-            if (const auto viewing_sizes = ui::desktop_sizes(); viewing_sizes.has_positive_mark()) [[likely]]
+            if (const auto viewing_sizes = ui::desktop_sizes(); viewing_sizes.has_positiven_mark()) [[likely]]
             {
                 {
                     auto viewing_window_params = params;
@@ -197,7 +194,7 @@ namespace egli
 
 #endif
 
-            if (viewport_sizes.has_positive_mark()) [[likely]]
+            if (viewport_sizes.has_positiven_mark()) [[likely]]
             {
                 ui::show(temp_main_window, params.command_show);
             }

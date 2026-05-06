@@ -8,9 +8,9 @@
 template<class T>
 [[nodiscard]] constexpr const T* u_nextmem(const T* mem, size_t size) noexcept
 {
-    D_ASSERT_OR_ASSUME(is_safe_narrowing_conversion<ptrdiff_t>(size));
+    D_ASSERT(is_safe_narrowing_conversion<ptrdiff_t>(size));
     const auto result = mem + size;
-    D_ASSERT_OR_ASSUME(result >= mem);
+    D_ASSERT(result >= mem);
     return result;
 }
 
@@ -18,7 +18,7 @@ template<class T>
 [[nodiscard]] constexpr const T* u_prevmem(const T* mem, size_t size) noexcept
 {
     const auto result = mem - narrow<ptrdiff_t>(size);
-    D_ASSERT_OR_ASSUME(result <= mem);
+    D_ASSERT(result <= mem);
     return result;
 }
 
@@ -36,7 +36,7 @@ template<class T>
     }
     else
     {
-        D_ASSERT_OR_ASSUME(((nullptr != newmem) && (nullptr != oldmem)) || (0u == size));
+        D_ASSERT(((nullptr != newmem) && (nullptr != oldmem)) || (0u == size));
 
         return (newmem >= u_nextmem(oldmem, size))
             || (oldmem >= u_nextmem(newmem, size));
@@ -57,7 +57,7 @@ template<class T>
     }
     else
     {
-        D_ASSERT_OR_ASSUME(((nullptr != newmem) && (nullptr != oldmem)) || (oldmem_end == oldmem));
+        D_ASSERT(((nullptr != newmem) && (nullptr != oldmem)) || (oldmem_end == oldmem));
 
         return (newmem >= oldmem_end)
             || (oldmem >= u_nextmem(newmem, u_distance(oldmem, oldmem_end)));
@@ -67,20 +67,20 @@ template<class T>
 template<class T, size_t Extent>
 T* copynew(span<const T, Extent> sp, T* out) noexcept
 {
-    D_ASSERT_OR_ASSUME(is_newmem(out, ::cdata(sp), std::size(sp)));
+    D_ASSERT(is_newmem(out, ::cdata(sp), std::size(sp)));
     return std::uninitialized_copy_n(::cdata(sp), std::size(sp), out);
 }
 
 template<class T, size_t Extent>
 T* movenew(span<T, Extent> sp, T* out) noexcept
 {
-    D_ASSERT_OR_ASSUME(is_newmem(out, ::cdata(sp), std::size(sp)));
+    D_ASSERT(is_newmem(out, ::cdata(sp), std::size(sp)));
     return std::uninitialized_move_n(std::data(sp), std::size(sp), out).second;
 }
 
 template<class T>
 T* movenew(T* first, T* last, T* out) noexcept
 {
-    D_ASSERT_OR_ASSUME(is_newmem(out, first, last));
+    D_ASSERT(is_newmem(out, first, last));
     return std::uninitialized_move(first, last, out);
 }

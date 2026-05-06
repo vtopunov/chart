@@ -26,7 +26,13 @@ namespace font
             };
         }
 
-        static_assert(as_pxposition(invalid_cursor) == invalid_position);
+        constexpr cursor invalid_cursor
+        {
+            cursor::invalid_npxf,
+            cursor::invalid_npxf
+        };
+
+        static_assert(as_pxposition(invalid_cursor) == fill_to<point2d>(cursor::invalid_npx));
 
         using library_descriptor_t = FT_Library;
 

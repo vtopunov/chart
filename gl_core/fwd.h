@@ -8,7 +8,7 @@
 namespace gl
 {
     static_assert(std::is_same_v<char, GLchar>);
-    static_assert(std::is_same_v<float_real_t, GLfloat>);
+    static_assert(std::is_same_v<realf_t, GLfloat>);
     static_assert(std::is_same_v<luminancef_t, GLfloat>);
 
     using vec2i = vec2<GLint>;

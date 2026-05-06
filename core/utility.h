@@ -46,7 +46,7 @@ template <class T>
 template <class T, class... Args>
 constexpr void construct_at(T* const location, Args&&... args) noexcept
 {
-    D_ASSERT_OR_ASSUME(nullptr != location);
+    D_ASSERT(nullptr != location);
 
     if constexpr (is_brace_constructible_v<T, Args...>)
     {
@@ -61,8 +61,8 @@ constexpr void construct_at(T* const location, Args&&... args) noexcept
 template <class T, class... Args>
 constexpr void move_construct_at(T* const location, T&& value) noexcept
 {
-    D_ASSERT_OR_ASSUME(nullptr != location);
-    D_ASSERT_OR_ASSUME(location != std::addressof(value));
+    D_ASSERT(nullptr != location);
+    D_ASSERT(location != std::addressof(value));
     new (location) T(std::move(value));
 }
 
@@ -297,14 +297,14 @@ template<size_t mul>
 [[nodiscard]] constexpr size_t size_mul(const size_t size) noexcept
 {
     static_assert(mul > 0_uz);
-    D_ASSERT_OR_ASSUME(has_size_mul<mul>(size));
+    D_ASSERT(has_size_mul<mul>(size));
     return size * mul;
 }
 
 template<size_t add>
 [[nodiscard]] constexpr size_t size_add(const size_t size) noexcept
 {
-    D_ASSERT_OR_ASSUME(has_size_add<add>(size));
+    D_ASSERT(has_size_add<add>(size));
     return size + add;
 }
 
@@ -470,25 +470,25 @@ struct dummy_end
 {};
 
 template<class T>
-constexpr auto operator == (const T& value, dummy_end<T>) noexcept -> decltype(!value)
+[[nodiscard]] constexpr auto operator == (const T& value, dummy_end<T>) noexcept -> decltype(!value)
 {
     return !value;
 }
 
 template<class T>
-constexpr auto operator != (const T& value, dummy_end<T>) noexcept -> decltype(!!value)
+[[nodiscard]] constexpr auto operator != (const T& value, dummy_end<T>) noexcept -> decltype(!!value)
 {
     return !!value;
 }
 
 template<class T>
-constexpr auto operator == (dummy_end<T>, const T& value) noexcept -> decltype(!value)
+[[nodiscard]] constexpr auto operator == (dummy_end<T>, const T& value) noexcept -> decltype(!value)
 {
     return !value;
 }
 
 template<class T>
-constexpr auto operator != (dummy_end<T>, const T& value) noexcept -> decltype(!!value)
+[[nodiscard]] constexpr auto operator != (dummy_end<T>, const T& value) noexcept -> decltype(!!value)
 {
     return !!value;
 }

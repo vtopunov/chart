@@ -128,6 +128,7 @@ void test_vec2() noexcept
         D_ASSERT(stdvec[1] == 4);
     }
 
+
     {
         constexpr vec2 vvv0
         {
@@ -135,10 +136,15 @@ void test_vec2() noexcept
             vec2{ vec2{ 4, 5 }, vec2{ 6, 7 } },
         };
 
-        constexpr auto vvv0u = as_unsigned(vvv0);
-        static_assert(vvv0 == as_signed(vvv0));
+        static_assert(md_is_positiven(vvv0));
+        static_assert(!md_is_negativen(vvv0));
+
+        constexpr auto vvv0u = md_as_unsigned(vvv0);
+        static_assert(vvv0 == md_as_signed(vvv0));
 
         constexpr auto mvvv0 = -vvv0;
+        static_assert(!md_is_positiven(mvvv0));
+        static_assert(md_is_negativen(mvvv0));
         static_assert(vvv0 == md_abs(mvvv0));
 
         {
@@ -231,7 +237,11 @@ void test_vec2() noexcept
             static_assert(vvv0_d == -(vvvz_d - vvv0));
             static_assert(vvv0_d._1._1._0 == 1.0 * vvv0._1._1._0);
             static_assert(vvv0_d + vvve_d == vvv0_p1_d);
-
+            static_assert(md_is_eqnz(vvvz_d));
+            static_assert(!md_is_neqnz(vvvz_d));
+            static_assert(!md_is_neqnz(vec2{ 0.0, 1.0 }));
+            static_assert(md_is_neqnz(vec2{ 1.0, 1.0 }));
+            
             constexpr auto inc_0_9 = fill_vec2(fill_vec2(fill_vec2(0.9)));
             constexpr auto inc_0_1 = fill_vec2(fill_vec2(fill_vec2(0.1)));
 
@@ -272,6 +282,11 @@ void test_vec2() noexcept
             vec2{ vec2{ 1., 2. }, vec2{ 2., 3. } },
             vec2{ vec2{ 4., 5. }, vec2{ 6., 7. } },
         };
+
+        static_assert(md_is_positiven(vvv0));
+        static_assert(!md_is_negativen(vvv0));
+        static_assert(!md_is_positiven(-vvv0));
+        static_assert(md_is_negativen(-vvv0));
 
         auto inf_vvv0 = vvv0;
         inf_vvv0._1._1._1 = numeric_inf_v<>;

@@ -33,7 +33,7 @@ namespace chart
             constexpr point2re max0() const noexcept
             {
                 constexpr auto real_sz_max = fill_to<point2re>(numeric_max_v<>);
-                D_ASSERT_OR_ASSUME(sizes.has_positive_square());
+                D_ASSERT(md_is_positiven(sizes));
                 return real_sz_max / sizes;
             }
 
@@ -71,7 +71,7 @@ namespace chart
         {
             using private_detail_space_diagonal_cache::inrange_neqfp;
             using private_detail_space_diagonal_cache::diagonal_lenght_range;
-            D_ASSERT_OR_ASSUME(has_value());
+            D_ASSERT(has_value());
 
             if (const auto dline = line._1 - line._0; md_isnormal(dline))
             {
@@ -90,7 +90,7 @@ namespace chart
         {
             using private_detail_space_diagonal_cache::inrange_neqfp;
             using private_detail_space_diagonal_cache::diagonal_lenght_range;
-            D_ASSERT_OR_ASSUME(!has_value());
+            D_ASSERT(!has_value());
 
             if (const auto dline = line._1 - line._0; md_isnormal(dline))
             {
@@ -114,7 +114,7 @@ namespace chart
         [[nodiscard]]
         constexpr space_diagonal value() const noexcept
         {
-            D_ASSERT_OR_ASSUME(has_value());
+            D_ASSERT(has_value());
             return line_;
         }
 
@@ -132,7 +132,7 @@ namespace chart
         static constexpr bool dline_has_value(const point2re& pt) noexcept
         {
             const auto has = has_dvalue(pt.y());
-            D_ASSERT_OR_ASSUME(has == has_dvalue(pt.x()));
+            D_ASSERT(has == has_dvalue(pt.x()));
             return has;
         }
 
@@ -140,7 +140,7 @@ namespace chart
         static constexpr bool has_dvalue(real_t dvalue) noexcept
         {
             const auto has = (invalid_dvalue != dvalue);
-            D_ASSERT_OR_ASSUME(!has || std::isnormal(dvalue));
+            D_ASSERT(!has || std::isnormal(dvalue));
             return has;
         }
 

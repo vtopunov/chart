@@ -29,7 +29,7 @@ namespace
         static constexpr auto button_width = 120_npx;
 
         template<size_t n>
-        static constexpr rectangle button_boundaries_v
+        static constexpr rectangle button_geometry
         {
             point2d
             {
@@ -45,40 +45,39 @@ namespace
 
         widget::button b_plot
         {
-            .geometry{ button_boundaries_v<0u> },
+            .geometry{ button_geometry<0u> },
             .text{ u8"Построить" }
         };
 
         widget::button b_clear
         {
-            .geometry{ button_boundaries_v<1u> },
+            .geometry{ button_geometry<1u> },
             .text{ u8"Очистить" }
         };
 
         widget::button b_exit
         {
-            .geometry{ button_boundaries_v<2u> },
-            .text{ u8"Выход" },
-            .clicked{ ui::quit }
+            .geometry{ button_geometry<2u> },
+            .text{ u8"Выход" }
         };
 
         struct chart_widget
         {
-            static constexpr rectangle chart_boundaries
+            static constexpr rectangle chart_geometry
             {
-                button_boundaries_v<0>.p01() + point2d{0_npx, 15_npx},
+                point2d{ 8_npx, button_geometry<0>.y1() + 15_npx },
                 size2d{ -20_pxoff, -20_pxoff }
             };
 
             chart::space space
             {
-                .geometry{ chart_boundaries },
+                .geometry{ chart_geometry },
             };
 
             static constexpr chart::background background{ .brush{ colors::yellow_f.with_blue(0.93f) } };
             static constexpr chart::grid grid{};
 
-            // chart::px_grid grid{};
+            //chart::px_grid px_grid{};
             chart::value_labels labels{};
 
             struct polyline : chart::polyspanline
@@ -148,6 +147,11 @@ namespace
             b_clear.clicked = [this] () noexcept
             {
                 chart.clear();
+            };
+
+            b_exit.clicked = [] () noexcept
+            {
+                ui::quit();
             };
         }
 

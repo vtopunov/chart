@@ -23,7 +23,7 @@ namespace chart
     {
         constexpr real_t zero_re{ zero_v<> };
         constexpr auto back = fill_to<size2d>(1_npx);
-        D_ASSERT_OR_ASSUME(sizes.has_positive_square());
+        D_ASSERT(md_is_positiven(sizes));
 
         const auto [space_x, space_y] = md_narrow<point2re>(sizes - back);
 

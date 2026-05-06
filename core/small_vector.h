@@ -45,7 +45,7 @@ namespace private_detail_small_vector
             : buffer_{ std::move(buffer) }
             , end_of_array_{ std::data(buffer_) + size }
         {
-            D_ASSERT_OR_ASSUME(size <= std::size(buffer_));
+            D_ASSERT(size <= std::size(buffer_));
         }
 
         constexpr explicit temp_vector(size_type max_size) noexcept
@@ -62,14 +62,14 @@ namespace private_detail_small_vector
 
         constexpr void emplace_push_range(pointer first, pointer last) noexcept
         {
-            D_ASSERT_OR_ASSUME(u_distance(first, last) <= free_capacity());
+            D_ASSERT(u_distance(first, last) <= free_capacity());
             end_of_array_ = movenew(first, last, end_of_array_);
         }
 
         template<class... Args>
         constexpr pointer emplace_push(Args&&... args) noexcept
         {
-            D_ASSERT_OR_ASSUME(0u < free_capacity());
+            D_ASSERT(0u < free_capacity());
             const auto result = end_of_array_;
             ::construct_at(result, std::forward<Args>(args)...);
             ++end_of_array_;
@@ -153,7 +153,7 @@ namespace small_vector_exceptions
 
 [[nodiscard]] constexpr size_t optimal_memory_growth(size_t value) noexcept
 {
-    D_ASSERT_OR_ASSUME(0u < value);
+    D_ASSERT(0u < value);
     return size_mul_or_max<3_uz>(value);
 }
 
@@ -165,7 +165,7 @@ namespace small_vector_exceptions
     constexpr auto overflow = size_overflow_maxi / mul;
     static_assert(add <= (size_overflow_maxi - overflow * mul));
 
-    D_ASSERT_OR_ASSUME(0u < value);
+    D_ASSERT(0u < value);
     if (value <= overflow) [[likely]]
     {
         return value * mul + add;
@@ -251,7 +251,7 @@ public:
             memory_overwrite_construct,
             right.size(),
             [right] (pointer data, size_t data_capacity) noexcept {
-                D_ASSERT_OR_ASSUME(right.size() <= data_capacity);
+                D_ASSERT(right.size() <= data_capacity);
                 copynew(right, data);
             },
             std::forward<FnBadAllocException>(accept_bad_alloc)
@@ -410,7 +410,7 @@ public:
 
     constexpr pointer attach_buffer(buffer_type&& mem) noexcept
     {
-        D_ASSERT_OR_ASSUME(std::size(mem) >= size());
+        D_ASSERT(std::size(mem) >= size());
 
         const span_type sp{ data_, size() };
         const auto result = movenew(sp, std::data(mem));
@@ -438,8 +438,8 @@ public:
     template<class... Args>
     [[nodiscard]] constexpr const_iterator try_emplace(const_iterator position, Args&&... args) noexcept
     {
-        D_ASSERT_OR_ASSUME(position >= cbegin());
-        D_ASSERT_OR_ASSUME(position <= cend());
+        D_ASSERT(position >= cbegin());
+        D_ASSERT(position <= cend());
 
         const auto mut_postion = const_cast<pointer>(position);
         const auto size = small_vector::size();
@@ -495,9 +495,9 @@ public:
 
     constexpr size_type erase(const_iterator first, const_iterator last) noexcept
     {
-        D_ASSERT_OR_ASSUME(last >= first);
-        D_ASSERT_OR_ASSUME(first >= cbegin());
-        D_ASSERT_OR_ASSUME(last <= cend());
+        D_ASSERT(last >= first);
+        D_ASSERT(first >= cbegin());
+        D_ASSERT(last <= cend());
 
         const auto data = data_;
         const auto size = small_vector::size();
@@ -587,20 +587,20 @@ public:
     constexpr reference emplace_back(Args&&... args) noexcept
     {
         const auto last = try_emplace_back(std::forward<Args>(args)...);
-        D_CHECK(last);
+        D_ASSERT(last);
         return *last;
     }
 
     void pop_back() noexcept
     {
-        D_ASSERT_OR_ASSUME(0u < size_);
+        D_ASSERT(0u < size_);
         ::destroy_at(--size_ + data_);
         _collect();
     }
 
     void erase(const_iterator position) noexcept
     {
-        D_ASSERT_OR_ASSUME(position < cend());
+        D_ASSERT(position < cend());
         erase(position, std::next(position));
     }
 
@@ -679,14 +679,14 @@ public:
     [[nodiscard]]
     constexpr const_reference cfront() const noexcept
     {
-        D_ASSERT_OR_ASSUME(0u < size_);
+        D_ASSERT(0u < size_);
         return *cdata();
     }
 
     [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
-        D_ASSERT_OR_ASSUME(0u < size_);
+        D_ASSERT(0u < size_);
         return cdata()[size_ - 1u];
     }
 
@@ -729,7 +729,7 @@ public:
     [[nodiscard]]
     constexpr const_reference cvalue(size_type index) const noexcept
     {
-        D_ASSERT_OR_ASSUME(index < size());
+        D_ASSERT(index < size());
         return cdata()[index];
     }
 
@@ -750,7 +750,7 @@ public:
     {
         const auto first = cdata();
         const auto data_is_static = (static_ == first);
-        D_ASSERT_OR_ASSUME(data_is_static || _buffer_is_valid_for(first, dynamic_));
+        D_ASSERT(data_is_static || _buffer_is_valid_for(first, dynamic_));
         return data_is_static;
     }
 
@@ -787,42 +787,42 @@ private:
 
     constexpr void _set_static() noexcept
     {
-        D_ASSERT_OR_ASSUME(is_dynamic());
+        D_ASSERT(is_dynamic());
         data_ = static_;
     }
 
     constexpr void _set_dynamic() noexcept
     {
-        D_ASSERT_OR_ASSUME(_buffer_is_valid(dynamic_));
-        D_ASSERT_OR_ASSUME(cdata() != ::cdata(dynamic_));
+        D_ASSERT(_buffer_is_valid(dynamic_));
+        D_ASSERT(cdata() != ::cdata(dynamic_));
         data_ = std::data(dynamic_);
     }
 
     constexpr void _construct_buffer(buffer_type&& mem) noexcept
     {
-        D_ASSERT_OR_ASSUME(_buffer_is_valid(mem));
-        D_ASSERT_OR_ASSUME(is_static());
+        D_ASSERT(_buffer_is_valid(mem));
+        D_ASSERT(is_static());
         ::move_construct_at(std::addressof(dynamic_), std::move(mem));
     }
 
     constexpr void _assignment_buffer(buffer_type&& mem) noexcept
     {
-        D_ASSERT_OR_ASSUME(_buffer_is_valid(mem));
-        D_ASSERT_OR_ASSUME(is_dynamic());
-        D_ASSERT_OR_ASSUME(cdata() != ::cdata(mem));
+        D_ASSERT(_buffer_is_valid(mem));
+        D_ASSERT(is_dynamic());
+        D_ASSERT(cdata() != ::cdata(mem));
         dynamic_ = std::move(mem);
     }
 
     constexpr void _dynamic_construct_buffer(buffer_type&& mem) noexcept
     {
-        D_ASSERT_OR_ASSUME(is_static());
+        D_ASSERT(is_static());
         _construct_buffer(std::move(mem));
         _set_dynamic();
     }
 
     constexpr void _dynamic_construct(small_vector&& right) noexcept
     {
-        D_ASSERT_OR_ASSUME(is_static());
+        D_ASSERT(is_static());
         right._set_static();
         _dynamic_construct_buffer(std::move(right.dynamic_));
         size_ = std::exchange(right.size_, {});
@@ -831,7 +831,7 @@ private:
 
     constexpr void _destroys() const noexcept
     {
-        D_ASSERT_OR_ASSUME((static_ == cdata()) || _buffer_is_valid_for(cdata(), dynamic_));
+        D_ASSERT((static_ == cdata()) || _buffer_is_valid_for(cdata(), dynamic_));
         std::destroy_n(data_, size_);
     }
 
@@ -855,8 +855,8 @@ private:
 
     void _switch_to_static() noexcept
     {
-        D_ASSERT_OR_ASSUME(is_dynamic());
-        D_ASSERT_OR_ASSUME(size() <= static_size);
+        D_ASSERT(is_dynamic());
+        D_ASSERT(size() <= static_size);
 
         _set_static();
         const auto size = std::exchange(size_, {});
@@ -917,7 +917,7 @@ private:
 
     constexpr void _destroy_nullmem() const noexcept
     {
-        D_ASSERT_OR_ASSUME(_buffer_is_null(dynamic_));
+        D_ASSERT(_buffer_is_null(dynamic_));
 
         if constexpr (!std::is_base_of_v<buffer_void, buffer_type>)
         {

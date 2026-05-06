@@ -78,7 +78,10 @@ namespace egli
 
         constexpr explicit operator bool() const noexcept
         {
-            return !!context;
+            const auto result = !!context;
+            D_ASSERT(result == !!surface);
+            D_ASSERT(result == !!display);
+            return result;
         }
 
         display_descriptor_t display;
@@ -117,7 +120,7 @@ namespace egli
             void operator () (display_surface ds) const noexcept
             {
                 const auto result = swap_buffers(ds);
-                D_ASSERT_OR_ASSUME(result);
+                D_ASSERT(result);
             }
         };
 

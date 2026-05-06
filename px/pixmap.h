@@ -67,7 +67,7 @@ namespace px
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
-            D_ASSERT_OR_ASSUME(space.size_bytes() <= buffer_.size());
+            D_ASSERT(space.size_bytes() <= buffer_.size());
         }
 
         constexpr pixmap(memory_construct_t, byte_buffer&& buffer) noexcept

@@ -33,7 +33,7 @@ namespace gl
         const void* p
     ) noexcept
     {
-        D_ASSERT_OR_ASSUME(attributes.size() <= attribute_profiles.size());
+        D_ASSERT(attributes.size() <= attribute_profiles.size());
 
         const auto i_stride_bytes = narrow<GLsizei>(stride);
 

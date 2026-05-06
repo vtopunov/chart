@@ -33,10 +33,12 @@ namespace
         static_assert(std::is_same_v<decltype(interpret<std::byte>(b)), basic_buffer_view<byte_type>>);
         static_assert(std::is_same_v<decltype(interpret<word>(b)), basic_buffer_view<word_type>>);
 
+        constexpr std::byte* bnullptr{ nullptr };
+
         const auto test_size_bytes = sizeof(ValueType) * size;
         const buffer_view_type right_b{ memory_construct, const_cast<void_type*>(data), test_size_bytes };
-        const buffer_view_type right_data_b{ memory_construct, const_cast<void_type*>(data), 0 };
-        const buffer_view_type right_size_b{ memory_construct, static_cast<void_type*>(nullptr), test_size_bytes };
+        const buffer_view_type right_data_b{ memory_construct, const_cast<void_type*>(data), size_overflow_maxi };
+        const buffer_view_type right_size_b{ memory_construct, static_cast<void_type*>(std::prev(bnullptr)), test_size_bytes};
         const auto bdata = b.data();
         const auto bsize = b.size();
         const auto bytes = interpret<std::byte>(b);
@@ -181,7 +183,6 @@ namespace
 
     template<class T>
     using remove_const_container_or_span_t = typename remove_const_container_or_span<T>::type;
-
 
 
     template<class C>

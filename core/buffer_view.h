@@ -78,7 +78,9 @@ public:
     ) noexcept
         : data_{ data }
         , size_{ reinterpret_size<OtherElementSize, sizeof(value_type)>(size) }
-    {}
+    {
+        D_ASSERT(!(data_) == !(size_));
+    }
 
     template<class OtherT>
     constexpr basic_buffer_view(memory_construct_t, OtherT* data, size_type size) noexcept
@@ -179,7 +181,7 @@ public:
     [[nodiscard]]
     constexpr reference value(size_type index) const noexcept
     {
-        D_ASSERT_OR_ASSUME(index < size());
+        D_ASSERT(index < size());
         return data()[index];
     }
 
@@ -204,14 +206,14 @@ public:
     [[nodiscard]]
     constexpr const_reference cfront() const noexcept
     {
-        D_ASSERT_OR_ASSUME(0u < size());
+        D_ASSERT(0u < size());
         return *cdata();
     }
 
     [[nodiscard]]
     constexpr const_reference cback() const noexcept
     {
-        D_ASSERT_OR_ASSUME(0u < size_);
+        D_ASSERT(0u < size_);
         return cdata()[size_ - 1u];
     }
 

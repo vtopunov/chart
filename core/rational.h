@@ -58,7 +58,7 @@ using denominator_for_t = copy_signed_t<T, denomi_t>;
 template<denomi_t UDen, class T>
 [[nodiscard]] constexpr denominator_for_t<T> denominator_mul(const T num) noexcept
 {
-    D_ASSERT_OR_ASSUME(has_denominator_mul<UDen>(num));
+    D_ASSERT(has_denominator_mul<UDen>(num));
     constexpr auto den = numeric_cast<denominator_for_t<T>>(UDen);
     return num * den;
 }
@@ -163,6 +163,35 @@ struct rational : private_detail_rational::rational_numden_base<T, UDen>
                 return { narrow<int_type>(denominator_mul<UDen>(value)) };
             }
         }
+    }
+
+    template<class T>
+    [[nodiscard]] static constexpr std::enable_if_t<std::conjunction_v<
+        std::is_floating_point<T>, std::negation<is_dynamic_denominator<UDen>> >,
+        rational
+    > instance(T value) noexcept
+    {
+        const auto fp_num = UDen * static_cast<doublemax_t>(value);
+        
+        {
+            [[maybe_unused]] constexpr auto fp_max = static_cast<doublemax_t>(numeric_max_v<int_type>);
+            D_ASSERT(fp_num <= fp_max);
+
+            {
+                [[maybe_unused]] constexpr auto i_min = numeric_min_v<int_type>;
+                if constexpr (::is_neqz(i_min))
+                {
+                    [[maybe_unused]] constexpr auto fp_min = static_cast<doublemax_t>(i_min);
+                    D_ASSERT(fp_num >= fp_min);
+                }
+                else
+                {
+                    D_ASSERT(fp_num > -1.0);
+                }
+            }
+        }
+
+        return { static_cast<int_type>(fp_num) };
     }
 
     template<class NewT>
@@ -290,7 +319,7 @@ template<class Out, class T, denomi_t UDen>
 template<class T>
 [[nodiscard]] constexpr rational<T> simplify(const T& num, const T& den) noexcept
 {
-    D_ASSERT_OR_ASSUME(den);
+    D_ASSERT(den);
 
     const auto gcd = std::gcd(num, den);
 
@@ -310,7 +339,7 @@ template<class T>
 template<class T>
 [[nodiscard]] constexpr rational<T> inverse(const rational<T>& value) noexcept
 {
-    D_ASSERT_OR_ASSUME(value.num);
+    D_ASSERT(value.num);
 
     return
     {
@@ -320,7 +349,7 @@ template<class T>
 }
 
 template<class T, denomi_t UDen>
-constexpr doublemax_t rational_to_float(const rational<T, UDen>& src) noexcept 
+constexpr doublemax_t rational_to_float(const rational<T, UDen>& src) noexcept
 {
     return narrow<doublemax_t>(src.num) / narrow<doublemax_t>(src.den);
 }
@@ -330,7 +359,7 @@ template<class Target, class Source>
 {
     if constexpr (is_rational_v<Source>)
     {
-        D_ASSERT_OR_ASSUME(src.den);
+        D_ASSERT(src.den);
 
         if constexpr (is_rational_v<Target>)
         {
@@ -438,7 +467,7 @@ template<class T, uintmax_t UDen, class U>
 [[nodiscard]] constexpr std::enable_if_t
 <
     is_safe_numeric_conversion_v<T, U>,
-    rational<T>
+    rational<T, UDen>
 >
 operator + (const U& left, const rational<T, UDen>& right) noexcept
 {
@@ -448,7 +477,7 @@ operator + (const U& left, const rational<T, UDen>& right) noexcept
 template<class T, uintmax_t UDen, class U>
 [[nodiscard]] constexpr std::enable_if_t
 <
-    std::conjunction_v<is_safe_numeric_conversion<T, U>, std::is_signed<T>, std::is_signed<U>>,
+    std::conjunction_v<is_safe_numeric_conversion<T, U>, std::is_signed<T>>,
     rational<T, UDen>
 >
 operator - (const rational<T, UDen>& left, const U& right) noexcept
@@ -470,7 +499,7 @@ operator - (const rational<T, UDen>& left, const U& right) noexcept
 template<class T, uintmax_t UDen, class U>
 [[nodiscard]] constexpr std::enable_if_t
 <
-    std::conjunction_v<is_safe_numeric_conversion<T, U>, std::is_signed<T>, std::is_signed<U>>,
+    std::conjunction_v<is_safe_numeric_conversion<T, U>, std::is_signed<T>>,
     rational<T, UDen>
 >
 operator - (const U& left, const rational<T, UDen>& right) noexcept
@@ -576,7 +605,7 @@ template<class T, uintmax_t UDen, class U>
 >
 operator / (const rational<T, UDen>& left, const U& right) noexcept
 {
-    D_ASSERT_OR_ASSUME(right);
+    D_ASSERT(right);
 
     if constexpr (UDen == dynamic_denominator)
     {

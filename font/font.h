@@ -16,6 +16,7 @@ namespace font
 
     using charmax_t = char32_t;
     using fixed_t = rational<int64_t, 64u>;
+    static_assert(sizeof(fixed_t::int_type) > sizeof(npx_t));
     using point2fix = point2d<fixed_t>;
 
     struct face_deleter
@@ -43,6 +44,9 @@ namespace font
 
     struct cursor : point2fix
     {
+        static constexpr auto invalid_npx = numeric_max_v<npx_t>;
+        static constexpr auto invalid_npxf = fixed_t::instance(invalid_npx);
+       
         template<class X, class Y>
         [[nodiscard]] static constexpr cursor instance(X x, Y y) noexcept
         {
@@ -58,10 +62,17 @@ namespace font
         {
             return instance(std::move(p._0), std::move(p._1));
         }
-    };
 
-    constexpr auto invalid_position = fill_to<point2d>(numeric_max_v<npx_t>);
-    constexpr auto invalid_cursor = cursor::instance(invalid_position);
+        [[nodiscard]] constexpr explicit operator bool() const noexcept
+        {
+            D_ASSERT(invalid_npxf >= cref_x());
+            D_ASSERT(invalid_npxf >= cref_y());
+            
+            const auto is_invalid = (invalid_npxf == cref_x());
+            D_ASSERT(is_invalid == (invalid_npxf == cref_y()));
+            return !is_invalid;
+        }
+    };
 
     cursor draw_char(lumpixspan image, cursor cursor, face_resource face, charmax_t char_code) noexcept;
 
@@ -99,7 +110,7 @@ namespace font
 
         constexpr void add(const metrics& glyph) noexcept
         {
-            D_ASSERT_OR_ASSUME(success_bit);
+            D_ASSERT(success_bit);
 
             if (glyph.success_bit) [[likely]]
             {

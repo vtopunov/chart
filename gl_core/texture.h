@@ -108,7 +108,7 @@ namespace gl
         using unique_resource<T, texture_resource_deleter>::unique_resource;
     };
 
-    using unique_texture2d_resource = unique_resource<texture2d_resource, texture_resource_deleter>;
+    using texture2d_owner = unique_resource<texture2d_resource, texture_resource_deleter>;
 
     template<>
     struct unique_texture<texture2d_resources> : unique_resource<texture2d_resources, texture_resource_deleter>
@@ -216,9 +216,9 @@ namespace gl
     }
 
     template<class Image>
-    [[nodiscard]] std::enable_if_t<texpix_enabled_v<Image>, bool> update(unique_texture2d_resource& texture_ref, const Image& img) noexcept
+    [[nodiscard]] std::enable_if_t<texpix_enabled_v<Image>, bool> update(texture2d_owner& texture_ref, const Image& img) noexcept
     {
-        constexpr auto set_new_texture = [] (unique_texture2d_resource& texture_ref, texture2d&& new_texture) noexcept
+        constexpr auto set_new_texture = [] (texture2d_owner& texture_ref, texture2d&& new_texture) noexcept
         {
             const auto tex_d = new_texture.release();
             D_UNUSED(texture_ref.release(static_cast<texture2d_resource>(tex_d)));

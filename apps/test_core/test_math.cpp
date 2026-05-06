@@ -1,6 +1,27 @@
 #include <core/math.h>
 
 
+namespace
+{
+    struct test_eq_op
+    {
+        [[nodiscard]] constexpr bool operator == (const test_eq_op&) const noexcept
+        {
+            return true;
+        }
+        [[nodiscard]] constexpr bool operator != (const test_eq_op&) const noexcept = delete;
+    };
+
+    struct test_neq_op
+    {
+        [[nodiscard]] constexpr bool operator == (const test_eq_op&) const noexcept = delete;
+        [[nodiscard]] constexpr bool operator != (const test_neq_op&) const noexcept
+        {
+            return true;
+        }
+    };
+}
+
 void test_math() noexcept
 {
     const struct __errno_holder__
@@ -14,7 +35,6 @@ void test_math() noexcept
     } hold_errno;
 
     constexpr auto real_eps = numeric_eps_v<double>;
-
 
     {
         constexpr double test_real_nearz_values[]
@@ -86,6 +106,25 @@ void test_math() noexcept
                 D_ASSERT(!is_eqfp(prev, next));
                 D_ASSERT(!is_eqfp(next, prev));
             }
+
+            {
+                D_ASSERT(!is_neqn(nearz, nearz));
+                D_ASSERT(!is_neqn(prev, nearz));
+                D_ASSERT(!is_neqn(nearz, prev));
+                D_ASSERT(!is_neqn(next, nearz));
+                D_ASSERT(!is_neqn(nearz, next));
+                D_ASSERT(is_neqn(prev_prev, nearz));
+                D_ASSERT(is_neqn(nearz, prev_prev));
+                D_ASSERT(is_neqn(next_next, nearz));
+                D_ASSERT(is_neqn(nearz, next_next));
+                D_ASSERT(is_neqn(prev, next));
+                D_ASSERT(is_neqn(next, prev));
+            }
         }
+    }
+
+    {
+        D_ASSERT(is_neqn(test_neq_op{}, test_neq_op{}));
+        D_ASSERT(!is_neqn(test_eq_op{}, test_eq_op{}));
     }
 }

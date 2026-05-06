@@ -237,9 +237,14 @@ namespace
 
     void test_unsigned_or() noexcept
     {
+        static_assert(!is_nonbool_integral_v<float>);
+        static_assert(is_nonbool_integral_v<int>);
+        static_assert(!is_nonbool_integral_v<bool>);
+        static_assert(std::is_integral_v<bool>);
         static_assert(std::is_same_v<unsigned_or_t<float>, float>);
         static_assert(std::is_same_v<unsigned_or_t<int>, unsigned>);
         static_assert(std::is_same_v<unsigned_or_t<unsigned>, unsigned>);
+        static_assert(std::is_same_v<unsigned_or_t<bool>, bool>);
         D_ASSERT(!errno);
     }
 

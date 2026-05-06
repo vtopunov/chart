@@ -9,6 +9,7 @@ namespace ui
         {
             window_handle_t window;
 
+            [[nodiscard]]
             constexpr bool operator () (const event_processor_note& value) const noexcept
             {
                 return window == value.window;
@@ -18,8 +19,8 @@ namespace ui
         template<size_t N>
         size_t erase_for_window(small_vector<event_processor_note, N>& items, window_handle_t window, event_processor_note* first) noexcept
         {
-            D_ASSERT_OR_ASSUME(first >= items.cbegin());
-            D_ASSERT_OR_ASSUME(first <= items.cend());
+            D_ASSERT(first >= items.cbegin());
+            D_ASSERT(first <= items.cend());
 
             return items.erase(std::remove_if(first, items.end(), by_window{ window }), items.cend());
         }
@@ -31,22 +32,18 @@ namespace ui
         }
 
         template<size_t N>
-        bool destroy_processor_force(small_vector<event_processor_note, N>& items, event_processor_resource processor) noexcept
+        void destroy_processor_force(small_vector<event_processor_note, N>& items, event_processor_resource processor) noexcept
         {
-            {
-                const auto last = items.cend();
+            const auto last = items.cend();
 
-                for (auto it = items.cbegin(); it != last; ++it)
+            for (auto it = items.cbegin(); it != last; ++it)
+            {
+                if (it->processor == processor)
                 {
-                    if (it->processor == processor)
-                    {
-                        items.erase(it);
-                        return true;
-                    }
+                    items.erase(it);
+                    break;
                 }
             }
-
-            return false;
         }
     }
 
@@ -56,11 +53,11 @@ namespace ui
         return map;
     }
 
-    bool event_processors_storage::destroy_processor(event_processor_resource processor) noexcept
+    void event_processors_storage::destroy_processor(event_processor_resource processor) noexcept
     {
         if (is_null(processor))
         {
-            return false;
+            return;
         }
 
         if (lock_)
@@ -71,14 +68,15 @@ namespace ui
                 {
                     update_first_garbage(std::addressof(item));
                     item.mark_as_garbage();
-                    return true;
+                    return;
                 }
             }
 
-            return destroy_processor_force(back_items_, processor);
+            destroy_processor_force(back_items_, processor);
+            return;
         }
 
-        return destroy_processor_force(items_, processor);
+        destroy_processor_force(items_, processor);
     }
 
     size_t event_processors_storage::close_window(window_handle_t window) noexcept

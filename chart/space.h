@@ -209,7 +209,7 @@ namespace chart
 
             using items_has_space = items_has_call<space_diagonal&>;
             using items_has_limpix_space = items_has_cref_call<lumpixspan, space_manipulation>;
-            using items_has_any_limpix = items_has_call<any_overload, temp_byte_buffer&, any_overload>;
+            using items_has_any_temp_buffer = items_has_call<any_overload, temp_byte_buffer&, any_overload>;
 
             static constexpr bool items_has_background_value = items_has_cref_call<shader_embed::colored_rectangle>::value;
 
@@ -220,7 +220,7 @@ namespace chart
 
             static constexpr bool items_has_space_buffer_view_value = std::conjunction_v<
                 items_has_space,
-                std::disjunction<items_has_any_limpix, items_has_limpix_space>
+                std::disjunction<items_has_any_temp_buffer, items_has_limpix_space>
             >;
 
             static constexpr bool items_has_grid_value = std::conjunction_v<
@@ -308,12 +308,10 @@ namespace chart
                                     const auto image = temp_buffer.image(space_ref.geometry_cache.sizes);
 
                                     call_items(items, image, sys);
+                                    call_items_for_tuple(items, temp_items, image);
                                 }
 
-                                if constexpr (items_has_any_limpix::value)
-                                {
-                                    call_items_for_tuple(items, temp_items, temp_buffer, space_ref.geometry_cache);
-                                }
+                                 call_items_for_tuple(items, temp_items, temp_buffer, space_ref.geometry_cache);
                             }
                         }
 

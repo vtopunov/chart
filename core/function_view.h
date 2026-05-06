@@ -319,10 +319,7 @@ namespace private_detail_function
     }
 }
 
-using private_detail_function::private_detail_basic_function_view::basic_function_view;
-using private_detail_function::private_detail_decl_function::decl_function_t;
+using private_detail_function::private_detail_decl_function_view::function_view;
 
-template<class Signature>
-using function_view = decl_function_t<basic_function_view, Signature>;
 
 D_WARNING_POP;

@@ -453,9 +453,9 @@ namespace px
     {
         namespace private_detail_hv_line
         {
-            constexpr pxvec line_width_range(real_t position, npx_t width, npx_t size) noexcept
+            [[nodiscard]] constexpr pxvec line_width_range(real_t position, npx_t width, npx_t size) noexcept
             {
-                D_ASSERT_OR_ASSUME(is_positive(width));
+                D_ASSERT(is_positive(width));
 
                 const auto half_width = _0_5 * width;
                 const vec2 real_result{ position - half_width, position + half_width };
@@ -467,7 +467,7 @@ namespace px
                     static_cast<npx_t>(std::clamp(real_result._1, _0_0, max_position))
                 };
 
-                D_ASSERT_OR_ASSUME(result._1 >= result._0);
+                D_ASSERT(result._1 >= result._0);
                 return result;
             }
         }

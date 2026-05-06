@@ -4,9 +4,9 @@
 
 namespace ui
 {
-    bool destroy_processor(event_processor_resource processor) noexcept
+    void destroy_processor(event_processor_resource processor) noexcept
     {
-        return event_processors_global().destroy_processor(processor);
+        event_processors_global().destroy_processor(processor);
     }
 
     event_processor create_event_processor(window_handle_t window, event_callback_t callback) noexcept

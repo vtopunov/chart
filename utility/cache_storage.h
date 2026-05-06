@@ -52,7 +52,7 @@ public:
                 if (is_unused())
                 {
                     ref_count_ = cache.unused_time_++;
-                    D_ASSERT_OR_ASSUME(is_unused());
+                    D_ASSERT(is_unused());
                 }
             }
         }
@@ -119,7 +119,7 @@ public:
     constexpr size_t index(const_pointer p) const noexcept
     {
         const auto id = u_distance(storage_.cdata(), p);
-        D_ASSERT_OR_ASSUME(id < storage_.size());
+        D_ASSERT(id < storage_.size());
         return id;
     }
 

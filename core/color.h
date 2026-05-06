@@ -200,7 +200,7 @@ constexpr rgba_color argb_to_color(argb_t argb) noexcept
 [[nodiscard]]
 constexpr rgba_color rgb_to_color(argb_t rgb) noexcept
 {
-    D_ASSERT_OR_ASSUME(!a_argb(rgb));
+    D_ASSERT(!a_argb(rgb));
     return make_rgb
     (
         r_argb(rgb),
@@ -423,7 +423,7 @@ namespace private_detail_argb_color
     {
         if constexpr (is_rgba_color_v<R>)
         {
-            D_ASSERT_OR_ASSUME(left.a == right.a);
+            D_ASSERT(left.a == right.a);
 
             return make_rgba_color
             (

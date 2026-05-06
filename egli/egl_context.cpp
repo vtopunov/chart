@@ -186,7 +186,7 @@ namespace egli
         private:
             constexpr void write(value_type value) noexcept
             {
-                D_ASSERT_OR_ASSUME(position_ < std::cend(data_));
+                D_ASSERT(position_ < std::cend(data_));
                 *position_ = value; ++position_;
             }
 
@@ -211,7 +211,7 @@ namespace egli
             {
                 static_assert(sizeof(value) <= sizeof(uint32_t));
                 const auto value_d = static_cast<uint32_t>(value);
-                D_ASSERT_OR_ASSUME(value_d <= static_cast<uint32_t>(UINT16_MAX));
+                D_ASSERT(value_d <= static_cast<uint32_t>(UINT16_MAX));
                 return value_d;
             };
 

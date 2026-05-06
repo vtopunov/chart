@@ -63,7 +63,7 @@ namespace
 
         void operator () (ui::content_rect_changed_event) noexcept
         {
-            egl_.update_viewport();
+            D_UNUSED(egl_.update_viewport());
         }
 
         void operator () (ui::redraw_needed_event) noexcept

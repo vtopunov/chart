@@ -139,6 +139,8 @@ namespace
 
 void test_zero() noexcept
 {
+    const errno_holder hold_errno{};
+
     using zrational_t = rational<ptrdiff_t>;
 
     {
@@ -278,16 +280,38 @@ void test_zero() noexcept
 
     {
         static_assert(!is_positive(0));
+        static_assert(!is_positive(0.0));
         static_assert(!is_positive(-1));
+        D_ASSERT(is_positive(nextfp(0.0)));
         static_assert(is_positive(1));
         static_assert(!is_positive(0u));
         static_assert(is_positive(1u));
 
         static_assert(!is_negative(0));
+        static_assert(!is_negative(0.0));
+        D_ASSERT(is_negative(prevfp(0.0)));
         static_assert(is_negative(-1));
         static_assert(!is_negative(1));
         static_assert(!is_negative(0u));
         static_assert(!is_negative(1u));
+
+        static_assert(!is_positiven(0));
+        static_assert(!is_positiven(0.0));
+        static_assert(!is_positiven(-1));
+        D_ASSERT(!is_positiven(nextfp(0.0)));
+        D_ASSERT(is_positiven(nextfp(nextfp(0.0))));
+        static_assert(is_positiven(1));
+        static_assert(!is_positiven(0u));
+        static_assert(is_positiven(1u));
+
+        static_assert(!is_negativen(0));
+        static_assert(!is_negativen(0.0));
+        D_ASSERT(!is_negativen(prevfp(0.0)));
+        D_ASSERT(is_negativen(prevfp(prevfp(0.0))));
+        static_assert(is_negativen(-1));
+        static_assert(!is_negativen(1));
+        static_assert(!is_negativen(0u));
+        static_assert(!is_negativen(1u));
     }
 
     {
@@ -320,6 +344,4 @@ void test_zero() noexcept
         static_assert(0 == static_cast<zrational_t>(zero_v<zrational_t>).num);
         static_assert(1 == static_cast<zrational_t>(zero_v<zrational_t>).den);
     }
-
-    D_ASSERT(!errno);
 }

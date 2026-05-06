@@ -177,7 +177,7 @@ namespace px
         [[nodiscard]]
         constexpr line_type lines(npx_t index) const noexcept
         {
-            D_ASSERT_OR_ASSUME(index < space_type::height());
+            D_ASSERT(index < space_type::height());
             const auto line_size = space_type::line_size();
             return { data_ + index * line_size, line_size, space_type::width() };
         }

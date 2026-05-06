@@ -53,27 +53,36 @@
     D_DEFAULT_EQ_OP(Class)
 
 
-#define D_UNUSED(expression) ((void)(expression))
-#define D_ASSUME(expression) D_UNUSED(0)
-
-
 #ifdef _MSC_VER
 #define D_FORCEINLINE inline __forceinline
 #define D_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
-#else
 
+#else
 #define D_FORCEINLINE inline __attribute__((always_inline))
 #define D_NO_UNIQUE_ADDRESS [[no_unique_address]]
+
 #endif
+
+
+#define D_UNUSED(expression) ((void)(expression))
+#define D_ASSUME(expression) D_UNUSED(0)
+
+constexpr struct
+{
+    template<class T>
+    constexpr void operator () ([[maybe_unused]] const T& expression_result) const noexcept
+    {
+        D_ASSUME(expression_result);
+    }
+} assume_r;
 
 
 #ifdef NDEBUG
 #define D_IS_DEBUG 0
 #define D_ONLY_DEBUG(A)
 #define D_DEBUG_OR(D, R) R 
-#define D_ASSERT(expression) D_UNUSED(0)
-#define D_ASSERT_OR_UNUSED(expression) D_UNUSED(expression)
-#define D_ASSERT_OR_ASSUME(expression) D_ASSUME(expression)
+#define D_ASSERT(expression) D_ASSUME(expression)
+#define D_CHECK(expression) assume_r(expression)
 
 #else
 #define D_IS_DEBUG 1
@@ -86,20 +95,7 @@
 #define D_ASSERT(expression) assert(expression)
 #endif
 
-#define D_ASSERT_OR_UNUSED(expression) D_ASSERT(expression)
-#define D_ASSERT_OR_ASSUME(expression) D_ASSERT(expression)
-
-#endif
-
-#define D_CHECK(expression) D_ASSERT_OR_UNUSED(expression)
-
-
-#ifdef _MSC_VER
-#define D_FORCEINLINE inline __forceinline
-#define D_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]] 
-#else
-#define D_FORCEINLINE inline __attribute__((always_inline))
-#define D_NO_UNIQUE_ADDRESS [[no_unique_address]] 
+#define D_CHECK(expression) D_ASSERT(expression)
 #endif
 
 
@@ -122,7 +118,7 @@ using noexcept_function_pointer_t = R(*) (Args...) noexcept;
 
 
 using doublemax_t = long double;
-using float_real_t = float;
+using realf_t = float;
 using real_t = double;
 using denomi_t = uintmax_t;
 
@@ -185,7 +181,7 @@ constexpr memory_overwrite_construct_t memory_overwrite_construct{ memory_overwr
 constexpr nulltype_construct_t nulltype_construct{ nulltype_construct_t::tag };
 constexpr nullmem_t nullmem{ nulltype_construct };
 constexpr nullref_t nullref{ nulltype_construct };
-constexpr nullref_t nullresource{ nulltype_construct };
+constexpr nullresource_t nullresource{ nulltype_construct };
 constexpr nullfunction_t nullfunction{ nulltype_construct };
 
 
@@ -226,7 +222,7 @@ constexpr auto rgba_color_extent = 4_uz;
 
 using argb_t = uint32_t;
 using luminance_t = uint8_t;
-using luminancef_t = float_real_t;
+using luminancef_t = realf_t;
 static_assert(sizeof(argb_t) == rgba_color_extent);
 static_assert(sizeof(luminance_t) == 1_uz);
 static_assert(sizeof(luminancef_t) == 4_uz);

@@ -191,7 +191,7 @@ namespace shader_common
                 constexpr auto uniform_span_v = make_span(uniforms_v<Pred, exports_pack_t>);
 
                 const auto index = find_n(uniform_span_v, std::addressof(u));
-                D_ASSERT_OR_ASSUME(index < uniform_span_v.size());
+                D_ASSERT(index < uniform_span_v.size());
                 return index;
             }
 

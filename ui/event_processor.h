@@ -13,7 +13,7 @@ namespace ui
     enum class event_processor_resource : size_t
     {};
 
-    bool destroy_processor(event_processor_resource processor) noexcept;
+    void destroy_processor(event_processor_resource processor) noexcept;
 
     struct event_processor_resource_deleter
     {
