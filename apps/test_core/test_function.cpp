@@ -76,7 +76,7 @@ namespace debug_memory
                 p_debug_mem->id = ++id;
             }
             p_debug_mem->size = debug_size;
-            v_mem.emplace_back(p_debug_mem, p_debug_mem->id, debug_size);
+            v_mem.emplace_back(debug_memory_span_type{ p_debug_mem, p_debug_mem->id, debug_size });
             D_ASSERT(0u < check(v_mem));
             return std::data(p_debug_mem->mem);
         }
@@ -287,8 +287,8 @@ namespace
             D_ASSERT(0 == temp_iref_test());
 
             Function<double& ()> temp_fref_test{};
-            D_ASSERT(!temp_iref_test);
-            D_ASSERT(0.0 == temp_iref_test());
+            D_ASSERT(!temp_fref_test);
+            D_ASSERT(0.0 == temp_fref_test());
 
             Function<const default_constructible_test_type& ()> temp_cref_test{};
             static_assert(0 != default_constructible_test_type::default_value);
@@ -324,13 +324,7 @@ namespace
     {
         class trace_impl
         {
-
         public:
-            constexpr trace_impl() noexcept = default;
-
-            constexpr ~trace_impl() noexcept
-            {}
-
             enum class action_type
             {
                 null,
@@ -350,27 +344,27 @@ namespace
 
             constexpr void default_constructor(const void* self) noexcept
             {
-                actions_.emplace_back(self, self, action_type::default_constructor);
+                actions_.emplace_back(action{ self, self, action_type::default_constructor });
             }
 
             constexpr void move_constructor(const void* left, const void* right) noexcept
             {
-                actions_.emplace_back(left, right, action_type::move_constructor);
+                actions_.emplace_back(action{ left, right, action_type::move_constructor });
             }
 
             constexpr void move_operator(const void* left, const void* right) noexcept
             {
-                actions_.emplace_back(left, right, action_type::move_operator);
+                actions_.emplace_back(action{ left, right, action_type::move_operator });
             }
 
             constexpr void invoke(const void* self) noexcept
             {
-                actions_.emplace_back(self, last_right_for(self), action_type::invoke);
+                actions_.emplace_back(action{ self, last_right_for(self), action_type::invoke } );
             }
 
             constexpr void destructor(const void* self) noexcept
             {
-                actions_.emplace_back(self, last_right_for(self), action_type::destructor);
+                actions_.emplace_back(action{ self, last_right_for(self), action_type::destructor });
             }
 
             [[nodiscard]] constexpr const void* last_right_for(const void* left) const noexcept

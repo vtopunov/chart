@@ -11,7 +11,7 @@ namespace gl
     struct vertex : tuple<Types...>
     {
         constexpr vertex(Types... values) noexcept 
-            : tuple<Types...>(std::move(values)...)
+            : tuple<Types...>{ std::move(values)... }
         {}
     };
 

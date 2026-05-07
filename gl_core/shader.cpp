@@ -83,7 +83,7 @@ namespace gl
         }
 
         template<class R>
-        [[nodiscard]] void gl_error_debug(const char* format, const R& resource_ref) noexcept
+        void gl_error_debug(const char* format, const R& resource_ref) noexcept
         {
             const auto resource_view = view(resource_ref);
 
@@ -102,7 +102,13 @@ namespace gl
                 },
                 small_vector_exceptions::accept_and_write_bad_alloc
             };
-            const std::string_view log_string_view{ log_string };
+
+            const std::string_view log_string_view
+            { 
+                std::data(log_string), 
+                std::size(log_string) 
+            };
+
             e_debug(format, log_string_view);
         }
 

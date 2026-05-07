@@ -7,6 +7,34 @@
 #include <core/limits.h>
 
 
+template <class L, class R>
+[[nodiscard]] constexpr bool cmp_equal(const L left, const R right) noexcept 
+{
+    static_assert(std::is_integral_v<L>);
+    static_assert(std::is_integral_v<R>);
+
+    if constexpr (std::is_signed_v<L> == std::is_signed_v<R>) 
+    {
+        return left == right;
+    }
+    else if constexpr (std::is_signed_v<R>)
+    {
+        return (left == static_cast<std::make_unsigned_t<R>>(right)) 
+            && (right >= 0);
+    }
+    else 
+    {
+        return (static_cast<std::make_unsigned_t<L>>(left) == right) 
+            && (left >= 0);
+    }
+}
+
+template <class L, class R>
+[[nodiscard]] constexpr bool cmp_not_equal(const L left, const R right) noexcept 
+{
+    return !cmp_equal(left, right);
+}
+
 template<class T>
 [[nodiscard]] std::enable_if_t<std::is_floating_point_v<T>, T> prevfp(T value) noexcept
 {
@@ -93,7 +121,6 @@ template<class T>
     return !is_positive_nepsfp(value);
 }
 
-
 template<class L, class R = L>
 [[nodiscard]] constexpr auto is_neqn(const L& left, const R& right) noexcept -> typename enable_if_detected_or<enable_if_detected<
     decl_n_op_eq_op_t, L, R>, 
@@ -108,7 +135,7 @@ template<class L, class R = L>
     {
         if constexpr (std::conjunction_v<std::is_integral<L>, std::is_integral<R> >)
         {
-            return std::cmp_not_equal(left, right);
+            return cmp_not_equal(left, right);
         }
         else
         {

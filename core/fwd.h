@@ -279,11 +279,15 @@ struct no_overload_for
     constexpr no_overload_for(const T&) noexcept {}
 };
 
+D_WARNING_PUSH
+D_WARNING_DISABLE_CLANG("-Wundefined-inline")
 struct any_overload
 {
+
     template<class T>
     constexpr operator T () const noexcept;
 };
+D_WARNING_POP
 
 template<class... Types>
 constexpr ttypes<Types...> ttypes_v{};

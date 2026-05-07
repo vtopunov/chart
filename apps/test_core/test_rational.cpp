@@ -74,8 +74,8 @@ void test_rational() noexcept
 
     {
         constexpr int den = 8;
-        static_assert(std::has_single_bit(to_unsigned(den)));
-        constexpr int fraction_width = std::bit_width(to_unsigned(den)) - 1;
+        static_assert(1 == std::popcount(to_unsigned(den)));
+        constexpr int fraction_width = (8 * sizeof(den)) - std::countl_zero(to_unsigned(den)) - 1;
         constexpr int mask = den - 1;
         constexpr double denf{ den };
         using fixed3bit_t = rational<int, den>;

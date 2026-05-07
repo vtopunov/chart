@@ -119,8 +119,7 @@ namespace egli
         {
             void operator () (display_surface ds) const noexcept
             {
-                const auto result = swap_buffers(ds);
-                D_ASSERT(result);
+                D_CHECK(swap_buffers(ds));
             }
         };
 

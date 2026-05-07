@@ -46,7 +46,7 @@ namespace private_detail_function
             return small;
         };
 
-        
+
 
         constexpr default_memory_vtbl<unique_memory_vtbl> default_unique_memory_vtbl
         {
@@ -171,7 +171,7 @@ namespace private_detail_function
             is_address<Fn>,
             has_no_unique_address<Fn>
         >;
-       
+
         template<class R, class... Args>
         class basic_unique_function
         {
@@ -179,6 +179,7 @@ namespace private_detail_function
             using null_type = nullfunction_t;
             using view_type = basic_function_view<R, Args...>;
             using invoke_pointer_type = typename view_type::invoke_pointer_type;
+            using basic_function_type = basic_unique_function<R, Args...>;
 
             template<class Fn>
             using invoke_to = typename view_type::template invoke_to<Fn>;
@@ -191,15 +192,16 @@ namespace private_detail_function
 
             template<class Fn>
             using is_compatible_fn = std::conjunction<
-                std::disjunction<
-                    std::conjunction<
-                        std::negation<std::is_lvalue_reference<Fn>>,
-                        std::is_move_constructible<std::remove_reference_t<Fn>>
-                    >,
-                    is_no_memory_fn<Fn>
-                >,
-                is_compatible_fn_for_view<Fn>
-            >;
+                std::negation<std::is_base_of<basic_function_type, std::remove_reference_t<Fn> > >,
+                is_compatible_fn_for_view<Fn>,
+                std::disjunction
+                <
+                is_no_memory_fn<Fn>,
+                std::conjunction
+                <
+                std::negation<std::is_lvalue_reference<Fn>>,
+                std::is_move_constructible<std::remove_reference_t<Fn>>
+                >>>;
 
             template<class Fn>
             static constexpr bool is_compatible_fn_value = is_compatible_fn<Fn>::value;
@@ -262,7 +264,7 @@ namespace private_detail_function
             }
 
             template<class Fn>
-            constexpr auto operator = (Fn&& fn_value) noexcept -> decltype(this->_t_move(std::forward<Fn>(fn_value)), *this)
+            constexpr std::enable_if_t<is_compatible_fn_value<Fn>, basic_unique_function&> operator = (Fn&& fn_value) noexcept
             {
                 this->_t_move(std::forward<Fn>(fn_value));
                 return *this;
@@ -305,7 +307,7 @@ namespace private_detail_function
 
         protected:
             template<class Fn>
-            constexpr std::enable_if_t<is_compatible_fn_value<Fn>> _t_move(Fn&& fn_value) noexcept
+            constexpr void _t_move(Fn&& fn_value) noexcept
             {
                 reset();
                 _t_move_construct(std::forward<Fn>(fn_value));
@@ -426,9 +428,29 @@ namespace private_detail_function
             using basic_unique_function_type = decl_function_t<basic_unique_function, Signature>;
             using typename basic_unique_function_type::null_type;
             using typename basic_unique_function_type::view_type;
-            using basic_unique_function_type::basic_unique_function;
 
-            constexpr unique_function(unique_function&&) noexcept = default;
+            template<class Fn>
+            using is_compatible_fn = typename basic_unique_function_type::template is_compatible_fn<Fn>;
+
+            template<class Fn>
+            static constexpr bool is_compatible_fn_value = is_compatible_fn<Fn>::value;
+
+            constexpr unique_function() noexcept = default;
+
+            constexpr unique_function(null_type) noexcept
+                : unique_function{}
+            {}
+
+            constexpr unique_function(view_type view) noexcept
+                : basic_unique_function_type{ view }
+            {}
+
+            template<class Fn, std::enable_if_t<is_compatible_fn_value<Fn>, int> = 0>
+            constexpr unique_function(Fn&& fn_value) noexcept
+                : basic_unique_function_type{ std::forward<Fn>(fn_value) }
+            {}
+
+            D_DEFAULT_ONLYMOVE_CA(unique_function);
 
             constexpr unique_function& operator = (null_type) noexcept
             {
@@ -442,10 +464,8 @@ namespace private_detail_function
                 return *this;
             }
 
-            constexpr unique_function& operator=(unique_function&&) noexcept = default;
-
             template<class Fn>
-            constexpr auto operator = (Fn&& fn_value) noexcept -> decltype(this->_t_move(std::forward<Fn>(fn_value)), *this)
+            constexpr std::enable_if_t<is_compatible_fn_value<Fn>, unique_function&> operator = (Fn&& fn_value) noexcept
             {
                 this->_t_move(std::forward<Fn>(fn_value));
                 return *this;

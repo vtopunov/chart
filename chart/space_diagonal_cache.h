@@ -19,7 +19,7 @@ namespace chart
                 && inrange_neqfp(pt.y(), range._0.y(), range._1.y());
         }
 
-        struct diagonal_lenght_range
+        struct diagonal_lenght_range_factory
         {
             const pxsizes sizes;
             
@@ -30,7 +30,7 @@ namespace chart
             }
 
             [[nodiscard]]
-            constexpr point2re max0() const noexcept
+            constexpr point2re max() const noexcept
             {
                 constexpr auto real_sz_max = fill_to<point2re>(numeric_max_v<>);
                 D_ASSERT(md_is_positiven(sizes));
@@ -43,18 +43,19 @@ namespace chart
                 return lenght0 * (0.5 * sizes);
             }
 
-            [[nodiscard]] 
-            constexpr vec2<point2re> first() const noexcept
+            template<class... Args>
+            [[nodiscard]] constexpr vec2<point2re> make(const Args&... args) const noexcept
             {
-                return { min(), max0() };
-            }
-
-            [[nodiscard]] 
-            constexpr vec2<point2re> for_update(const point2re& lenght0) const noexcept
-            {
-                return { min(), max(lenght0) };
+                return { min(), max(args...) };
             }
         };
+
+        template<class... Args>
+        [[nodiscard]] constexpr bool diagonal_lenght_inrange(const point2re& lenght, const pxsizes pxsizes, const Args&... args) noexcept
+        {
+            const diagonal_lenght_range_factory range_factory{ pxsizes };
+            return inrange_neqfp(lenght, range_factory.make(args...));
+        }
     }
 
     class space_diagonal_cache
@@ -67,15 +68,14 @@ namespace chart
         }
 
         [[nodiscard]]
-        constexpr bool try_update(const space_diagonal& line, pxsizes pxsizes) noexcept
+        constexpr bool try_update(const space_diagonal& line, const pxsizes pxsizes) noexcept
         {
-            using private_detail_space_diagonal_cache::inrange_neqfp;
-            using private_detail_space_diagonal_cache::diagonal_lenght_range;
+            using private_detail_space_diagonal_cache::diagonal_lenght_inrange;
             D_ASSERT(has_value());
 
             if (const auto dline = line._1 - line._0; md_isnormal(dline))
             {
-                if (inrange_neqfp(dline, diagonal_lenght_range(pxsizes).for_update(dline0_)))
+                if (diagonal_lenght_inrange(dline, pxsizes, dline0_))
                 {
                     line_ = line;
                     return true;
@@ -86,15 +86,14 @@ namespace chart
         }
 
         [[nodiscard]]
-        constexpr bool try_first_update(const space_diagonal& line, pxsizes pxsizes) noexcept
+        constexpr bool try_first_update(const space_diagonal& line, const pxsizes pxsizes) noexcept
         {
-            using private_detail_space_diagonal_cache::inrange_neqfp;
-            using private_detail_space_diagonal_cache::diagonal_lenght_range;
+            using private_detail_space_diagonal_cache::diagonal_lenght_inrange;
             D_ASSERT(!has_value());
 
             if (const auto dline = line._1 - line._0; md_isnormal(dline))
             {
-                if (inrange_neqfp(dline, diagonal_lenght_range(pxsizes).first()))
+                if (diagonal_lenght_inrange(dline, pxsizes))
                 {
                     line_ = line;
                     dline0_ = dline;

@@ -15,19 +15,23 @@ namespace widget
         namespace initialization
         {
             template<class ER>
-            [[nodiscard]] constexpr std::enable_if_t<std::negation_v<has_event_result<ER>>, bool> was_successful(event_result_processor<ER>) noexcept
+            [[nodiscard]] constexpr bool was_successful(event_result_processor<ER> result) noexcept
             {
-                return true;
-            }
-
-            [[nodiscard]] constexpr bool was_successful(event_result_processor<bool> result) noexcept
-            {
-                return result.result;
-            }
-
-            [[nodiscard]] constexpr bool was_successful(event_result_processor<event_result> result) noexcept
-            {
-                return e_bit_check(result.result, event_result::invalid);
+                if constexpr (has_event_result_v<ER>)
+                {
+                    if constexpr (is_same_uncvref_v<event_result, ER>)
+                    {
+                        return e_bit_check(result.result, event_result::invalid);
+                    }
+                    else
+                    {
+                        return has_value(result.result);
+                    }
+                }
+                else
+                {
+                    return true;
+                }
             }
 
             template<class Widget, class Event>

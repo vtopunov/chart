@@ -177,9 +177,9 @@ public:
     {
         if (has_size_mul<element_size>(size)) [[likely]]
         {
-            const auto good_size = mi_good_size(element_size * size) / element_size;
-            D_ASSERT(size <= good_size);
-            return size;
+            const auto result = mi_good_size(element_size * size) / element_size;
+            D_ASSERT(size <= result);
+            return result;
         }
 
         return size;
@@ -187,7 +187,7 @@ public:
 
 private:
     [[nodiscard]]
-    static constexpr memory_location _alloc(size_t count) noexcept
+    static constexpr memory_location _alloc(size_type count) noexcept
     {
         if (has_size_mul<element_size>(count)) [[likely]]
         {

@@ -4,6 +4,16 @@
 #include <core/view.h>
 
 
+namespace
+{
+    template<class T>
+    constexpr bool is_eq_sv(std::string_view sv, const T& v) noexcept
+    {
+        const std::string_view v_sv{ std::data(v), std::size(v) };
+        return v_sv == sv;
+    }
+}
+
 void test_static_vector() noexcept
 {
     constexpr auto size = 4_uz;
@@ -46,6 +56,7 @@ void test_static_vector() noexcept
 
         {
             constexpr std::string_view bad_alloc_msg_sv{ small_vector_exceptions::bad_alloc_msg };
+
             {
                 constexpr auto static_size = msg_abc.size() / 2;
                 static_assert(bad_alloc_msg_sv.size() < static_size);
@@ -54,7 +65,7 @@ void test_static_vector() noexcept
                     small_vector_exceptions::accept_and_write_bad_alloc
                 );
 
-                D_ASSERT(bad_alloc_msg_sv == std::string_view{ bad_alloc_test });
+                D_ASSERT(is_eq_sv(bad_alloc_msg_sv, bad_alloc_test));
             }
 
             {
@@ -67,8 +78,8 @@ void test_static_vector() noexcept
                     small_vector_exceptions::accept_and_write_bad_alloc
                 );
 
-                D_ASSERT(bad_alloc_msg_sv != std::string_view{ bad_alloc_test });
-                D_ASSERT(bad_alloc_half_msg_sv == std::string_view{ bad_alloc_test });
+                D_ASSERT(!is_eq_sv(bad_alloc_msg_sv, bad_alloc_test));
+                D_ASSERT(is_eq_sv(bad_alloc_half_msg_sv, bad_alloc_test));
             }
         }
 

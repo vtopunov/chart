@@ -124,8 +124,9 @@ namespace private_detail_small_vector
 
 namespace small_vector_exceptions
 {
-    constexpr const char bad_alloc_msg[]{ "bad alloc" };
+    constexpr const char bad_alloc_msg[]{ "badalloc" };
     constexpr size_t bad_alloc_msg_len{ sizeof(bad_alloc_msg) - 1u };
+    static_assert(bad_alloc_msg_len <= 8u);
 
     constexpr struct
     {

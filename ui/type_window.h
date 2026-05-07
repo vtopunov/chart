@@ -2,8 +2,6 @@
 
 #include <core/zstring_view.h>
 
-#include <debug/debug.h>
-
 #include <ui/window_procedure.h>
 #include <ui/brush.h>
 

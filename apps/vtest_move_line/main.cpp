@@ -107,7 +107,7 @@ namespace
 
                     if (invalid_mouse_pos != old_pos)
                     {
-                        D_CHECK(lines_rendering(position_ + md_trunc_cast<pxoffs>(as_signed(new_pos - old_pos))));
+                        D_CHECK(lines_rendering(position_ + md_trunc_cast<pxoffs>(md_as_signed(new_pos - old_pos))));
                     }
                 }
             }

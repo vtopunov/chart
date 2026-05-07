@@ -377,30 +377,15 @@ template<class Rng>
 }
 
 template<class OutT, size_t Extent, class T>
-constexpr void fill(span<OutT, Extent> sp, const T& value) noexcept
+constexpr void fill(const span<OutT, Extent> sp, const T& value) noexcept
 {
     std::fill_n(sp.begin(), sp.size(), value);
 }
 
-template<class Rng, class T>
-constexpr auto fill(Rng&& rng, const T& value) noexcept -> decltype
-(
-    fill(make_span(std::forward<Rng>(rng)), value)
-)
-{
-    fill(make_span(std::forward<Rng>(rng)), value);
-}
-
 template<class InT, size_t Extent, class OutIt>
-constexpr OutIt copy(span<const InT, Extent> sp, OutIt out) noexcept
+constexpr OutIt copy(const span<const InT, Extent> sp, OutIt out) noexcept
 {
     return std::copy_n(sp.cbegin(), sp.size(), out);
-}
-
-template<class Rng, class OutIt>
-constexpr auto copy(const Rng& rng, OutIt out) noexcept -> decltype(copy(make_cspan(rng), out))
-{
-    return copy(make_cspan(rng), out);
 }
 
 template<class SpanValueT, size_t Extent, class T>
@@ -415,13 +400,4 @@ template<class SpanValueT, size_t Extent, class T>
     }
 
     return pos;
-}
-
-template<class Rng, class T>
-[[nodiscard]] constexpr auto find_n(const Rng& rng, const T& value, size_t pos = 0u) noexcept -> decltype
-(
-    find_n(make_cspan(rng), value, pos)
-)
-{
-    return find_n(make_cspan(rng), value, pos);
 }

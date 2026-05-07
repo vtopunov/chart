@@ -237,25 +237,25 @@ namespace
         D_ASSERT(v[0] != cv8[0]);
         D_ASSERT(v[0] == -1);
 
-        copy(cv8, v.begin());
+        copy(make_cspan(cv8), v.begin());
         D_ASSERT(v.size() == std::size(cv8));
         D_ASSERT(!memcmp(v.data(), std::data(cv8), std::size(cv8)));
 
         constexpr auto half_size = std::size(cv8) / 2u;
         copy(make_span(std::as_const(v)).last(half_size), v.begin());
         D_ASSERT(!memcmp(v.data(), v.data() + half_size, half_size));
-        v.assign_range(cv8);
+        v.assign(std::cbegin(cv8), std::cend(cv8));
         D_ASSERT(v.size() == std::size(cv8));
         D_ASSERT(!memcmp(v.data(), std::data(cv8), std::size(cv8)));
 
-        copy(make_span(v).last(half_size), v.begin());
+        copy(make_cspan(v).last(half_size), v.begin());
         D_ASSERT(!memcmp(v.data(), v.data() + half_size, half_size));
-        v.assign_range(cv8);
+        v.assign(std::cbegin(cv8), std::cend(cv8));
 
         {
             auto v2 = v;
             v.assign(v.size(), -1);
-            copy(v2, v.begin());
+            copy(make_cspan(v2), v.begin());
             D_ASSERT(v.size() == std::size(cv8));
             D_ASSERT(!memcmp(v.data(), std::data(cv8), std::size(cv8)));
         }
@@ -268,24 +268,24 @@ namespace
             {
                 const auto value = as_signed(random_engine());
                 v.assign(v.size(), value);
-                fill(v2, value);
+                fill(make_span(v2), value);
                 D_ASSERT(v.size() == v2.size());
                 D_ASSERT(!memcmp(v.data(), v2.data(), v.size()));
             }
         }
 
-        v.assign_range(cv8);
+        v.assign(std::cbegin(cv8), std::cend(cv8));
         for (size_t i = 0; i < v.size(); ++i)
         {
-            D_ASSERT(find_n(cv8, cv8[i]) == i);
-            D_ASSERT(find_n(v, v[i]) == i);
+            D_ASSERT(find_n(make_cspan(cv8), cv8[i]) == i);
+            D_ASSERT(find_n(make_cspan(v), v[i]) == i);
 
             {
                 const auto i_it = v.cbegin() + i;
                 D_ASSERT(i_it < v.cend());
                 D_ASSERT(i_it == std::find(v.cbegin(), v.cend(), *i_it));
                 D_ASSERT(v.cend() == std::find(std::next(i_it), v.cend(), *i_it));
-                D_ASSERT(v.size() == find_n(v, *i_it, u_next(i)));
+                D_ASSERT(v.size() == find_n(make_cspan(v), *i_it, u_next(i)));
             }
 
             {

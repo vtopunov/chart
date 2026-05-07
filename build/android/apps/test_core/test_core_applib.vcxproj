@@ -16,6 +16,11 @@
     <ClCompile Include="..\..\..\..\apps\test_core\test_buffer_view.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_clamp_cast.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_color.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_function.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_fwd.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_invoke.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_math.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_memory.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_reference_wrapper.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_intrusive.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_lerp.cpp" />
@@ -32,6 +37,7 @@
     <ClCompile Include="..\..\..\..\apps\test_core\test_span.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_static_vector.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_transformation.cpp" />
+    <ClCompile Include="..\..\..\..\apps\test_core\test_tuple.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_types_algorithm.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_type_traits.cpp" />
     <ClCompile Include="..\..\..\..\apps\test_core\test_utf.cpp" />

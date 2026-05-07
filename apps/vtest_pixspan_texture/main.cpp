@@ -80,7 +80,7 @@ int main() noexcept
     if (!shaders.load())
     {
         e_debug("build shaders program error");
-        return false;
+        return EXIT_FAILURE;
     }
 
     shaders.viewport(egl.viewport());

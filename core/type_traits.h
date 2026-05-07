@@ -307,7 +307,7 @@ namespace private_detail_type_traits
         struct use_no_unique_address
         {
             Align padding;
-            D_NO_UNIQUE_ADDRESS T value;
+            D_NO_UNIQUE_ADDRESS std::remove_reference_t<T> value;
         };
 
         template<class Align, class T>

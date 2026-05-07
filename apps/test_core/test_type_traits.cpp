@@ -422,6 +422,7 @@ namespace
     void test_remove_noexcept() noexcept
     {
         using namespace private_detail_test_noexcept;
+        [[maybe_unused]] constexpr auto use_with_except = with_except;
 
         using fn_noexept_t = std::decay_t<decltype(test_remove_noexcept)>;
         using fn_exept_t = std::decay_t<decltype(with_except)>;
@@ -435,6 +436,7 @@ namespace
     void test_add_noexcept() noexcept
     {
         using namespace private_detail_test_noexcept;
+        [[maybe_unused]] constexpr auto use_with_except = with_except;
 
         using fn_noexept_t = std::decay_t<decltype(test_remove_noexcept)>;
         using fn_exept_t = std::decay_t<decltype(with_except)>;

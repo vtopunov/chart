@@ -15,7 +15,7 @@ namespace private_detail_function
         {
             if constexpr (is_address_v<Fn>)
             {
-                return const_cast<void*>(static_cast<const void*>(fn));
+                return const_cast<void*>((const void*)(fn));
             }
             else
             {
@@ -39,7 +39,7 @@ namespace private_detail_function
             is_address<Fn>
         >, Fn> pvoid_to_fn(void* data) noexcept
         {
-            return static_cast<Fn>(data);
+            return Fn(data);
         }
 
         template<class Fn>
@@ -69,28 +69,41 @@ namespace private_detail_function
             template<size_t N>
             constexpr const void* const p_memzero_v{ zero_byte_array_v<N> };
 
-            template<class R>
-            constexpr R make_nothing_result() noexcept
-            {
-                if constexpr (std::is_reference_v<R>)
-                {
-                    using decay_type = std::remove_cvref_t<R>;
+            template<class T>
+            constexpr T instance_for_null_v = null_v<T>;
 
-                    if constexpr (std::conjunction_v<is_null_constructible<decay_type>>)
-                    {
-                        static constexpr decay_type instance_for_null = null_v<decay_type>;
-                        return const_cast<R>(instance_for_null);
-                    }
-                    else
-                    {
-                        constexpr auto aligned_sizeof_decay_R = size_align<nbyte_arch>(sizeof(decay_type));
-                        return const_cast<R>(*static_cast<const decay_type*>(p_memzero_v<aligned_sizeof_decay_R>));
-                    }
-                }
-                else
-                {
-                    return instance_for_null<R>();
-                }
+            template<class R>
+            constexpr std::enable_if_t<std::conjunction_v<
+                std::negation<std::is_void<R>>, std::is_reference<R>, std::negation<is_null_constructible<R> >
+            >, R> make_nothing_result(ttypes<R>) noexcept
+            {
+                using decay_type = std::remove_cvref_t<R>;
+
+                constexpr auto aligned_sizeof_decay_R = size_align<nbyte_arch>(sizeof(decay_type));
+                return const_cast<R>(*static_cast<const decay_type*>(p_memzero_v<aligned_sizeof_decay_R>));
+            }
+
+            template<class R>
+            constexpr std::enable_if_t<std::conjunction_v<
+                std::negation<std::is_void<R>>, std::is_reference<R>, is_null_constructible<R>
+            >, R> make_nothing_result(ttypes<R>) noexcept
+            {
+                using decay_type = std::remove_cvref_t<R>;
+                return const_cast<R>(instance_for_null_v<decay_type>);
+            }
+
+            template<class R>
+            constexpr std::enable_if_t<std::conjunction_v<
+                std::negation<std::is_void<R>>, std::negation<std::is_reference<R>>
+            >, R> make_nothing_result(ttypes<R>) noexcept
+            {
+                return instance_for_null<R>();
+            }
+
+            template<class R>
+            constexpr std::enable_if_t<std::is_void_v<R>> make_nothing_result(ttypes<R>) noexcept
+            {
+                return;
             }
         }
 
@@ -103,7 +116,7 @@ namespace private_detail_function
             {
                 static constexpr R invoke_r(void*, Args...) noexcept
                 {
-                    return private_detail_make_nothing_result::make_nothing_result<R>();
+                    return private_detail_make_nothing_result::make_nothing_result(ttypes_v<R>);
                 }
             };
 

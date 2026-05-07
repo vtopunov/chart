@@ -18,8 +18,10 @@ using is_dynamic_denominator = std::bool_constant< is_dynamic_denominator_v<UDen
 template<denomi_t UDen>
 struct denominator_traits
 {
-    static constexpr bool has_single_bit{ std::has_single_bit(UDen) };
-    static constexpr int fraction_width{ std::bit_width(UDen) - 1 };
+    static constexpr int popcount = std::popcount(UDen);
+    static constexpr int countl_zero = std::countl_zero(UDen);
+    static constexpr bool has_single_bit = (popcount == 1);
+    static constexpr int fraction_width = numeric_digits_v<denomi_t> - countl_zero - 1;
     static constexpr bool is_dynamic = is_dynamic_denominator_v<UDen>;
 };
 
@@ -39,7 +41,7 @@ template<denomi_t UDen, class T>
         using numden_common_t = std::make_signed_t<denomi_t>;
         constexpr auto numden_common_maxi = numeric_max_v<numden_common_t>;
         constexpr auto numden_common_mini = numeric_min_v<numden_common_t>;
-        constexpr auto den = numeric_cast<numden_common_t>(UDen);
+        constexpr auto den = narrow<numden_common_t>(UDen);
         constexpr auto overflow_maxi = numden_common_maxi / den;
         constexpr auto overflow_mini = numden_common_mini / den;
         return (num >= overflow_mini) && (num <= overflow_maxi);
@@ -165,14 +167,14 @@ struct rational : private_detail_rational::rational_numden_base<T, UDen>
         }
     }
 
-    template<class T>
+    template<class FP>
     [[nodiscard]] static constexpr std::enable_if_t<std::conjunction_v<
-        std::is_floating_point<T>, std::negation<is_dynamic_denominator<UDen>> >,
+        std::is_floating_point<FP>, std::negation<is_dynamic_denominator<UDen>> >,
         rational
-    > instance(T value) noexcept
+    > instance(const FP value) noexcept
     {
         const auto fp_num = UDen * static_cast<doublemax_t>(value);
-        
+
         {
             [[maybe_unused]] constexpr auto fp_max = static_cast<doublemax_t>(numeric_max_v<int_type>);
             D_ASSERT(fp_num <= fp_max);

@@ -36,6 +36,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) noexcept
 
     std::is_integral_v<xzxx>;
 
+    std::is_base_of_v<xzs, const xzs&>;
+
     double x = 0.1 + 0.2;
     char buf[100];
     std::to_chars(buf, buf + 100, x);

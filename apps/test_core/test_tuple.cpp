@@ -26,7 +26,7 @@ void test_tuple() noexcept
         struct function_header
         {
             tuple<void (*) (void*), void (*) (void*, void*), void (*) (int)> fn_tuple;
-            char data[8];
+            char data[nbyte_arch];
         } hdr;
 
         struct my_function

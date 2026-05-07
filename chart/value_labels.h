@@ -1,5 +1,6 @@
 #pragma once
 
+#include <core/fmt.h>
 #include <core/small_vector.h>
 
 #include <utility/font_cache.h>
@@ -14,32 +15,20 @@ namespace chart
 {
     namespace private_detail_value_labels
     {
-        using texrange = vec2<char* const>;
+        using texspan = span<char>;
 
         [[nodiscard]]
-        inline std::string_view make_label_string_view(const texrange text, const double value) noexcept
-        {
-            constexpr int precision{ 10 };
-
-            const auto to_chars_result = std::to_chars
-            (
-                text._0, text._1, value,
-                std::chars_format::general,
-                precision
-            );
-
-            if (::is_eqz(to_chars_result.ec)) [[likely]]
-            {
-                return std::string_view{ text._0, u_distance(text._0, to_chars_result.ptr) };
-            }
-
-            return {};
+        inline std::string_view make_label_string_view(const texspan text, const double value) noexcept
+        {   
+            const auto data = std::data(text);
+            const auto format_result = fmt::format_to_n(data, std::size(text), "{:.10g}", value);
+            return std::string_view{ data, format_result.size };
         }
 
         struct buffer_interpret
         {
             const lumpixspan image;
-            const texrange text;
+            const texspan text;
         };
 
         [[nodiscard]]
@@ -47,11 +36,10 @@ namespace chart
         {
             D_ASSERT(space.size() <= lumview.size());
 
-            const auto charview = interpret<char>(lumview);
             return
             {
                 .image{ lumview.data(), space },
-                .text{ charview.data() + space.size_bytes(), charview.end() }
+                .text{ make_span(interpret<char>(lumview)).subspan(space.size_bytes()) }
             };
         }
     }
@@ -68,7 +56,6 @@ namespace chart
 
         static constexpr pxpoint frame_widths{ 3_npx, 3_npx };
         static constexpr size_t max_text_size{ 256u };
-        static constexpr int to_chars_precision{ 10 };
 
         font_cache::cached_face font{ font_cache::default_font() };
         point2d<gl::texture2d_owner> tex_axis{};
