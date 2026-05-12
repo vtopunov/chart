@@ -105,7 +105,7 @@ namespace chart
 
         static constexpr auto color = ::colors::green_f;
         static constexpr auto widths = fill_to<point2d>(1_npx);
-        static constexpr point2d min_distances{ 50_npx, 30_npx };
+        static constexpr point2d min_distances{ 25_npx, 20_npx };
         D_NO_UNIQUE_ADDRESS cache_type cache{};
 
         [[nodiscard]]
