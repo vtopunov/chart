@@ -78,7 +78,7 @@ namespace private_detail_shader_library
 
             constexpr void operator () (gl::uniform_location loc) const noexcept
             {
-                D_ASSERT(debug_index_ < _count_of_locations);
+                D_ONLY_DEBUG(D_ASSERT(debug_index_ < _count_of_locations));
                 D_ASSERT(gl::uniform_location::invalid == *p_current);
                 *p_current = loc;
                 ++p_current;

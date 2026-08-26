@@ -52,20 +52,20 @@
     D_DEFAULT_ALL_CA(Class); \
     D_DEFAULT_EQ_OP(Class)
 
+#define D_UNUSED(expression) ((void)(expression))
 
 #ifdef _MSC_VER
 #define D_FORCEINLINE inline __forceinline
 #define D_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+#define D_ASSUME(expression) [[assume(expression)]]
 
 #else
 #define D_FORCEINLINE inline __attribute__((always_inline))
 #define D_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#define D_ASSUME(expression) D_UNUSED(0)
 
 #endif
 
-
-#define D_UNUSED(expression) ((void)(expression))
-#define D_ASSUME(expression) D_UNUSED(0)
 
 constexpr struct
 {

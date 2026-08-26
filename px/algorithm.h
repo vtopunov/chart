@@ -21,9 +21,6 @@ namespace px
             constexpr real_t _256_0{ 256.0 };
         }
 
-        using namespace private_detail_constants;
-
-
         namespace private_detail_antialiasing_line
         {
             using namespace private_detail_constants;
@@ -33,14 +30,16 @@ namespace px
             constexpr auto _256_0_0_bound = -255.0 - eps;
 
             template<class T>
-            [[nodiscard]] constexpr T sign_if_not(bool cond, T value) noexcept
+            [[nodiscard]] constexpr const T sign_if_not(const bool cond, const T value) noexcept
             {
+                static_assert(std::is_signed_v<T>);
                 return (cond) ? value : -value;
             };
 
             template<class T>
-            [[nodiscard]] constexpr T sign_if_not_likely(bool cond, T value) noexcept
+            [[nodiscard]] constexpr const T sign_if_not_likely(const bool cond, const T value) noexcept
             {
+                static_assert(std::is_signed_v<T>);
                 if (cond) [[likely]]
                 {
                     return value;
@@ -51,12 +50,12 @@ namespace px
                 }
             };
 
-            [[nodiscard]] constexpr ptrdiff_t z_round_unsafe(real_t value) noexcept
+            [[nodiscard]] constexpr const ptrdiff_t z_round_unsafe(const real_t value) noexcept
             {
-                return static_cast<ptrdiff_t>(value + _0_5);
+                return static_cast<const ptrdiff_t>(value + _0_5);
             };
 
-            [[nodiscard]] constexpr ptrdiff_t z_round
+            [[nodiscard]] constexpr const ptrdiff_t z_round
             (
                 const double_t value,
                 const ptrdiff_t bound0,
@@ -65,8 +64,8 @@ namespace px
             {
                 {
                     constexpr auto near_zero_neg = -1.5 + eps;
-                    static_assert(0_z == z_round_unsafe(near_zero_neg));
-                    static_assert(-1_z == z_round_unsafe(-1_z + near_zero_neg));
+                    static_assert(0 == z_round_unsafe(near_zero_neg));
+                    static_assert(-1 == z_round_unsafe(-1 + near_zero_neg));
 
                     const auto bound_d = bound0 + near_zero_neg;
                     if (value < bound_d) [[unlikely]]
@@ -77,8 +76,8 @@ namespace px
 
                 {
                     constexpr auto near_zero_p = -_0_5 - eps;
-                    static_assert(0_z == z_round_unsafe(near_zero_p));
-                    static_assert(0_z == z_round_unsafe(1_z + near_zero_p));
+                    static_assert(0 == z_round_unsafe(near_zero_p));
+                    static_assert(0 == z_round_unsafe(1 + near_zero_p));
 
                     const auto bound_d = bound1 + near_zero_p;
                     if (bound_d < value) [[unlikely]]
@@ -90,10 +89,16 @@ namespace px
                 return z_round_unsafe(value);
             };
 
-            [[nodiscard]] constexpr vec2<ptrdiff_t> round_range(bool direction_is_inc, npx_t size, real_t v0, real_t v1) noexcept
+            [[nodiscard]] constexpr const vec2<const ptrdiff_t> round_range
+            (
+                const bool direction_is_inc, 
+                const npx_t size, 
+                const real_t v0, 
+                const real_t v1
+            ) noexcept
             {
-                const auto bound0 = 0_z - !direction_is_inc;
-                const auto bound1 = bound0 + narrow<ptrdiff_t>(size);
+                const auto bound0 = -static_cast<const ptrdiff_t>(!direction_is_inc);
+                const auto bound1 = bound0 + narrow<const ptrdiff_t>(size);
 
                 return
                 {
@@ -104,32 +109,45 @@ namespace px
 
             struct position_shade
             {
-                using index_shade_t = uint64_t;
+                using index_shade_t = const uint64_t;
 
                 index_shade_t index_shade;
 
-                [[nodiscard]] constexpr size_t index() const noexcept
+                [[nodiscard]] constexpr const size_t index() const noexcept
                 {
                     constexpr auto shade_bits = 8u * sizeof(luminance_t);
-                    return static_cast<size_t>(index_shade >> shade_bits);
+                    return static_cast<const size_t>(index_shade >> shade_bits);
                 }
 
-                [[nodiscard]] constexpr luminance_t shade() const noexcept
+                [[nodiscard]] constexpr const luminance_t shade() const noexcept
                 {
                     constexpr auto shade_mask = numeric_max_v<luminance_t>;
-                    return static_cast<luminance_t>(index_shade & shade_mask);
+                    return static_cast<const luminance_t>(index_shade & shade_mask);
                 }
 
-                [[nodiscard]] static constexpr position_shade instance_from_real(real_t code) noexcept
+                [[nodiscard]] static constexpr const position_shade instance_from_real(const real_t code) noexcept
                 {
                     return { static_cast<index_shade_t>(code) };
                 }
             };
 
             template<class T>
-            [[nodiscard]] constexpr T inv(T value) noexcept
+            [[nodiscard]] constexpr const T inv(const T value) noexcept
             {
-                return static_cast<T>(~value);
+                static_assert(std::is_unsigned_v<T>);
+                return static_cast<const T>(~value);
+            }
+
+            template<class T>
+            [[nodiscard]] constexpr const T mean(const T left, const T right) noexcept
+            {
+                using sum_t = const unsigned;
+                static_assert(std::is_unsigned_v<T>);
+                static_assert(sizeof(sum_t) > sizeof(T));
+                const auto sum 
+                    = static_cast<sum_t>(left)
+                    + static_cast<sum_t>(right);
+                return static_cast<const T>(sum >> 1);
             }
 
             using antialiasing_line_result_types_underlying_t = uint8_t;
@@ -149,49 +167,41 @@ namespace px
                 luminance_t shade;
                 types type;
 
-                constexpr void join_along_y(ptrdiff_t line_size_z, luminance_t* new_p, luminance_t new_shade) const noexcept
+                constexpr void join_along_y(const ptrdiff_t line_size_z, luminance_t*const new_p, const luminance_t new_shade) const noexcept
                 {
                     if (types::along_x == type)
                     {
                         const auto dp = new_p - p;
 
-                        if (dp == (2_z * line_size_z + 1_z))
+                        if (dp == (2 * line_size_z + 1))
                         {
-                            const auto inv_shade = inv(shade);
-                            const auto mean_shade = narrow<luminance_t>((inv_shade + new_shade) / 2u);
-                            new_p[-line_size_z] = mean_shade;
+                            new_p[-line_size_z] = mean(inv(shade), new_shade);
                             return;
                         }
 
-                        if (dp == (1_z - line_size_z))
+                        if (dp == (1 - line_size_z))
                         {
-                            const auto mean_shade = narrow<luminance_t>((shade + new_shade) / 2u);
-                            p[1_z] = mean_shade;
+                            p[1] = mean(shade, new_shade);
                             return;
                         }
                     }
                 }
 
-                constexpr void join_along_x(ptrdiff_t line_size_z, luminance_t* new_p, luminance_t new_shade) const noexcept
+                constexpr void join_along_x(const ptrdiff_t line_size_z, luminance_t*const new_p, const luminance_t new_shade) const noexcept
                 {
                     if (types::along_y == type)
                     {
                         const auto dp = new_p - p;
 
-                        if (dp == (line_size_z + 2_z))
+                        if (dp == (line_size_z + 2))
                         {
-                            const auto inv_shade = inv(shade);
-                            const auto mean_shade = narrow<luminance_t>((inv_shade + new_shade) / 2u);
-                            new_p[-1_z] = mean_shade;
+                            new_p[-1] = mean(inv(shade), new_shade);
                             return;
                         }
 
-                        if (dp == (2_z - 2_z * line_size_z))
+                        if (dp == (2 - 2 * line_size_z))
                         {
-                            const auto inv_shade = inv(shade);
-                            const auto inv_new_shade = inv(new_shade);
-                            const auto mean_shade = narrow<luminance_t>((inv_shade + inv_new_shade) / 2u);
-                            new_p[line_size_z - 1_z] = mean_shade;
+                            new_p[line_size_z - 1] = mean(inv(shade), inv(new_shade));
                             return;
                         }
                     }
@@ -222,7 +232,7 @@ namespace px
 
         constexpr auto invalid_result = invalid_antialiasing_line_result;
 
-        const auto line_size_z = narrow<ptrdiff_t>(image.line_size());
+        const auto line_size_z = narrow<const ptrdiff_t>(image.line_size());
 
         const auto [dx, dy] = p1 - p0;
 
@@ -259,7 +269,7 @@ namespace px
                         .shade{ shade },
                         .type{ antialiasing_line_result_types::along_y }
                     };
-                    joiner.p[0] = ~shade;
+                    joiner.p[0] = inv(shade);
                     joiner.p[1] = shade;
 
                     _256_xf += _256_dxf;
@@ -284,7 +294,7 @@ namespace px
                                 .shade{ index_shade.shade() },
                                 .type{ antialiasing_line_result_types::along_y  }
                             };
-                            joiner.p[0] = ~joiner.shade;
+                            joiner.p[0] = inv(joiner.shade);
                             joiner.p[1] = joiner.shade;
                         }
                         else
@@ -295,7 +305,7 @@ namespace px
                             if (_256_xf < _256_xf_bound)
                             {
                                 const auto index_shade = position_shade::instance_from_real(_256_xf);
-                                p_y[index_shade.index()] = ~index_shade.shade();
+                                p_y[index_shade.index()] = inv(index_shade.shade());
                             }
                         }
                     }
@@ -306,7 +316,7 @@ namespace px
                         if (_256_0_0_bound < _256_xf)
                         {
                             const auto index_shade = position_shade::instance_from_real(-_256_xf);
-                            *p_y = ~index_shade.shade();
+                            *p_y = inv(index_shade.shade());
                         }
                     }
 
@@ -326,7 +336,7 @@ namespace px
 
                 auto p_x = image.data() + x0_z;
                 const auto end_p_x = image.data() + x1_z;
-                const auto d_p_x = sign_if_not_likely(direction_is_inc_x, 1_z);
+                const auto d_p_x = sign_if_not_likely(direction_is_inc_x, 1);
 
                 if (_0_0 <= _256_yf && _256_yf < _256_yf_aa_bound) [[likely]]
                 {
@@ -342,7 +352,7 @@ namespace px
                         .shade{ shade },
                         .type{ antialiasing_line_result_types::along_x }
                     };
-                    joiner.p[0] = ~shade;
+                    joiner.p[0] = inv(shade);
                     joiner.p[line_size_z] = shade;
 
                     _256_yf += _256_dyf;
@@ -367,7 +377,7 @@ namespace px
                                 .shade{ index_shade.shade() },
                                 .type{ antialiasing_line_result_types::along_x  }
                             };
-                            joiner.p[0] = ~joiner.shade;
+                            joiner.p[0] = inv(joiner.shade);
                             joiner.p[line_size_z] = joiner.shade;
                         }
                         else
@@ -378,7 +388,7 @@ namespace px
                             if (_256_yf < _256_yf_bound)
                             {
                                 const auto index_shade = position_shade::instance_from_real(_256_yf);
-                                p_x[index_shade.index() * line_size_z] = ~index_shade.shade();
+                                p_x[index_shade.index() * line_size_z] = inv(index_shade.shade());
                             }
                         }
                     }
@@ -389,7 +399,7 @@ namespace px
                         if (_256_0_0_bound < _256_yf)
                         {
                             const auto index_shade = position_shade::instance_from_real(-_256_yf);
-                            *p_x = ~index_shade.shade();
+                            *p_x = inv(index_shade.shade());
                         }
                     }
 
@@ -453,18 +463,22 @@ namespace px
     {
         namespace private_detail_hv_line
         {
-            [[nodiscard]] constexpr pxvec line_width_range(real_t position, npx_t width, npx_t size) noexcept
+            using cpxvec = const vec2<const npx_t>;
+
+            [[nodiscard]] constexpr cpxvec line_width_range(const real_t position, const npx_t width, const npx_t size) noexcept
             {
+                using namespace private_detail_constants;
+                static_assert(sizeof(real_t) > sizeof(npx_t));
+
                 D_ASSERT(is_positive(width));
 
                 const auto half_width = _0_5 * width;
-                const vec2 real_result{ position - half_width, position + half_width };
-                const auto max_position = static_cast<real_t>(size);
+                const auto max_position = static_cast<const real_t>(size);
 
-                const vec2 result
+                const cpxvec result
                 {
-                    static_cast<npx_t>(std::clamp(real_result._0, _0_0, max_position)),
-                    static_cast<npx_t>(std::clamp(real_result._1, _0_0, max_position))
+                    static_cast<const npx_t>(std::clamp(position - half_width, _0_0, max_position)),
+                    static_cast<const npx_t>(std::clamp(position + half_width, _0_0, max_position))
                 };
 
                 D_ASSERT(result._1 >= result._0);
@@ -476,13 +490,12 @@ namespace px
     void draw_hline
     (
         const lumpixspan image,
-        real_t position,
-        npx_t width
+        const real_t position,
+        const npx_t width
     ) noexcept
     {
-        using namespace private_detail_algorithm::private_detail_hv_line;
-
-        const auto range = line_width_range(position, width, image.height());
+        const auto range = private_detail_algorithm::private_detail_hv_line::
+            line_width_range(position, width, image.height());
         const auto line_size = image.line_size();
 
         memset
@@ -496,13 +509,12 @@ namespace px
     constexpr void draw_vline
     (
         const lumpixspan image,
-        real_t position,
-        npx_t width
+        const real_t position,
+        const npx_t width
     ) noexcept
     {
-        using namespace private_detail_algorithm::private_detail_hv_line;
-
-        const auto range = line_width_range(position, width, image.width());
+        const auto range = private_detail_algorithm::private_detail_hv_line::
+            line_width_range(position, width, image.width());
         const auto size = (range._1 - range._0);
 
         auto row_it = image.data() + range._0;

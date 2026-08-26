@@ -510,12 +510,6 @@ struct identical_derived
         constexpr bool eq_sizeof = sizeof(Base) == sizeof(derived_t);
         constexpr bool eq_alignof = alignof(Base) == alignof(derived_t);
 
-        static_assert(b_is_unqualified_class);
-        static_assert(d_is_unqualified_class);
-        static_assert(is_base_of);
-        static_assert(eq_sizeof);
-        static_assert(eq_alignof);
-
         return b_is_unqualified_class
             && d_is_unqualified_class
             && is_base_of

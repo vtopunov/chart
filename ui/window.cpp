@@ -206,7 +206,11 @@ namespace ui
     pxsizes desktop_sizes() noexcept
     {
         const auto sizes = ::sizes(ui::geometry(::GetDesktopWindow()));
+
+#if D_IS_DEBUG
         D_ASSERT(is_maximum_resolution(sizes) || !"Resolution is not high dpi. Add <dpiAware>true</dpiAware> in manifest.");
+#endif
+
         return sizes;
     }
 

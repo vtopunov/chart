@@ -46,8 +46,6 @@ namespace private_detail_function
             return small;
         };
 
-
-
         constexpr default_memory_vtbl<unique_memory_vtbl> default_unique_memory_vtbl
         {
             .no_memory
