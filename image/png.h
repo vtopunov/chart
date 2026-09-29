@@ -193,9 +193,9 @@ namespace image
 
     png_errno png_decode_image(png_resource png, png_format format, byte_buffer_view out) noexcept;
 
-    class rgba_pixview_result : public px::const_rgba_color_pixspan
+    class rgba_pixview_result : public px::pixspan<const rgba_color>
     {
-        using base_type = px::const_rgba_color_pixspan;
+        using base_type = px::pixspan<const rgba_color>;
 
     public:
         using base_type::space_type;
@@ -227,9 +227,9 @@ namespace image
 
     rgba_pixview_result png_decode_to_rgba(const_byte_buffer_view image, byte_buffer& temp) noexcept;
 
-    class rgba_pixmap_result : public px::rgba_color_pixmap
+    class rgba_pixmap_result : public px::pixmap<rgba_color>
     {
-        using base_type = px::rgba_color_pixmap;
+        using base_type = px::pixmap<rgba_color>;
 
     public:
         using base_type::space_type;

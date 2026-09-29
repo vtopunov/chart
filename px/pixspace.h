@@ -38,6 +38,9 @@ namespace px
                 return width;
             }
         }
+
+        template<class T>
+        constexpr size_t default_alignment_for_v = (std::max)(alignof(T), default_alignment);
     }
 
     using namespace alignment_implementation;

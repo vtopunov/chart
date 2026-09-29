@@ -58,6 +58,11 @@ void test_pixmap() noexcept
 {
     const errno_holder hold_errno{};
 
+    using rgba_color_pixspan = pixspan<rgba_color>;
+    using const_rgba_color_pixspan = pixspan<const rgba_color>;
+    using rgba_color_pixmap = pixmap<rgba_color>;
+
+    static_assert(std::is_same_v<rgba_color_pixmap::buffer_type, byte_buffer>);
     static_assert(test_rgba_color_types_v<rgba_color_pixspan>);
     static_assert(test_const_rgba_color_types_v<const_rgba_color_pixspan>);
     static_assert(test_rgba_color_types_v<rgba_color_pixmap>);

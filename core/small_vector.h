@@ -175,7 +175,11 @@ namespace small_vector_exceptions
     return size_overflow_maxi;
 }
 
-constexpr size_t small_vector_min_static_size_bytes_v = size_align<sizeof(buffer_void)>(std::max(small_vector_exceptions::msg_max_len, sizeof(buffer_void)));
+constexpr size_t small_vector_min_static_size_bytes_v = size_align<sizeof(buffer_void_base)>(std::max
+(
+    small_vector_exceptions::msg_max_len,
+    sizeof(buffer_void_base)
+));
 
 template<class T>
 constexpr size_t small_vector_default_static_size_v = ceil_div(small_vector_min_static_size_bytes_v, sizeof(T));
@@ -920,7 +924,7 @@ private:
     {
         D_ASSERT(_buffer_is_null(dynamic_));
 
-        if constexpr (!std::is_base_of_v<buffer_void, buffer_type>)
+        if constexpr (!std::is_base_of_v<buffer_void_base, buffer_type>)
         {
             _destroy_dynamic();
         }

@@ -130,6 +130,9 @@ constexpr denomi_t dynamic_denominator{ 0u };
 constexpr size_t dynamic_extent{ SIZE_MAX };
 constexpr size_t small_size_mini{ 4u * nbyte_arch };
 
+template<size_t L, size_t R>
+constexpr size_t max_size_v = (L < R) ? R : L;
+
 
 struct uninitialized_t
 {
@@ -210,12 +213,16 @@ using point2re_cspan = span<const point2re>;
 
 
 template<class T> class basic_buffer_view;
-template<class T> class buffer;
+template<class T, size_t A> class basic_buffer;
+
+template<class T, size_t A = max_size_v<alignof(T), nbyte_arch> > 
+using buffer = basic_buffer<T, max_size_v<A, nbyte_arch> >;
 
 using byte_buffer_view = basic_buffer_view<std::byte>;
 using const_byte_buffer_view = basic_buffer_view<const std::byte>;
 using byte_buffer = buffer<std::byte>;
 static_assert(1_uz == sizeof(std::byte));
+static_assert(nbyte_arch >= alignof(std::byte));
 
 
 constexpr auto rgba_color_extent = 4_uz;

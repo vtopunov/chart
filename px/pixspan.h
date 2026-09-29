@@ -87,7 +87,7 @@ namespace px
     constexpr pxsizes write(pixspan<T, OutputAlignment> output, pxpoint position, pixspan<const T, InputAlignment> input) noexcept;
 
 
-    template<class T, size_t Alignment = default_alignment>
+    template<class T, size_t Alignment = default_alignment_for_v<T> >
     class pixspan : public pixspace<sizeof(T), Alignment>
     {
     public:
@@ -281,8 +281,6 @@ namespace px
 
     using lumpixspan = pixspan<luminance_t>;
     using const_lumpixspan = pixspan<const luminance_t>;
-    using rgba_color_pixspan = pixspan<rgba_color>;
-    using const_rgba_color_pixspan = pixspan<const rgba_color>;
 
     static_assert(std::is_same_v<lumpixspan::space_type, luminance_pixspace>);
 }
@@ -290,5 +288,3 @@ namespace px
 using px::pixspan;
 using px::lumpixspan;
 using px::const_lumpixspan;
-using px::rgba_color_pixspan;
-using px::const_rgba_color_pixspan;

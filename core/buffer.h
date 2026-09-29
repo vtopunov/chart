@@ -5,37 +5,37 @@
 #include <core/buffer_view.h>
 
 
-class buffer_void
+class buffer_void_base
 {
 public:
     using size_type = size_t;
     using null_type = nullmem_t;
 
-    constexpr buffer_void() noexcept = default;
+    constexpr buffer_void_base() noexcept = default;
 
-    D_DISABLE_COPY_CA(buffer_void);
+    D_DISABLE_COPY_CA(buffer_void_base);
 
-    constexpr buffer_void(buffer_void&& right) noexcept
+    constexpr buffer_void_base(buffer_void_base&& right) noexcept
         : mem_{ _release(right.mem_) }
     {}
 
-    constexpr buffer_void(null_type) noexcept
-        : buffer_void{}
+    constexpr buffer_void_base(null_type) noexcept
+        : buffer_void_base{}
     {}
 
-    constexpr buffer_void& operator = (buffer_void&& right) noexcept
+    constexpr buffer_void_base& operator = (buffer_void_base&& right) noexcept
     {
         swap(right);
         return *this;
     }
 
-    buffer_void& operator = (null_type) noexcept
+    buffer_void_base& operator = (null_type) noexcept
     {
         reset();
         return *this;
     }
 
-    ~buffer_void() noexcept
+    ~buffer_void_base() noexcept
     {
         mi_free(mem_.data);
     }
@@ -52,7 +52,7 @@ public:
         return !mem_.count;
     }
 
-    constexpr void swap(buffer_void& right) noexcept
+    constexpr void swap(buffer_void_base& right) noexcept
     {
         std::swap(mem_, right.mem_);
     }
@@ -60,7 +60,7 @@ public:
     void reset() noexcept
     {
         [[maybe_unused]]
-        const buffer_void temp{ std::move(*this) };
+        const buffer_void_base temp{ std::move(*this) };
     }
 
     [[nodiscard]]
@@ -84,7 +84,7 @@ protected:
 
     static constexpr memory_location nullmem_location{ .data{ nullptr }, .count{ 0_uz } };
 
-    constexpr explicit buffer_void(memory_location mem) noexcept
+    constexpr explicit buffer_void_base(memory_location mem) noexcept
         : mem_{ mem }
     {
         D_ASSERT(!(mem.data) == !(mem.count));
@@ -109,10 +109,10 @@ private:
     memory_location mem_{ nullmem_location };
 };
 
-template<size_t ElementSize>
-class buffer_void_collection : public buffer_void
+template<size_t ElementSize, size_t Alignment>
+class basic_buffer_void_collection : public buffer_void_base
 {
-    using base_type = buffer_void;
+    using base_type = buffer_void_base;
 
 public:
     using typename base_type::size_type;
@@ -120,22 +120,23 @@ public:
     static_assert(std::is_same_v<size_type, size_t>);
 
     static constexpr auto element_size = ElementSize;
+    static constexpr auto alignment = Alignment;
     static_assert(0_uz < element_size);
 
 
-    constexpr buffer_void_collection() noexcept = default;
+    constexpr basic_buffer_void_collection() noexcept = default;
 
-    D_DEFAULT_ONLYMOVE_CA(buffer_void_collection);
+    D_DEFAULT_ONLYMOVE_CA(basic_buffer_void_collection);
 
-    constexpr buffer_void_collection(null_type nullvalue) noexcept
+    constexpr basic_buffer_void_collection(null_type nullvalue) noexcept
         : base_type{ nullvalue }
     {}
 
-    constexpr explicit buffer_void_collection(size_type count) noexcept
+    constexpr explicit basic_buffer_void_collection(size_type count) noexcept
         : base_type{ _alloc(count) }
     {}
 
-    buffer_void_collection& operator = (null_type nullvalue) noexcept
+    basic_buffer_void_collection& operator = (null_type nullvalue) noexcept
     {
         base_type::operator=(nullvalue);
         return *this;
@@ -143,7 +144,7 @@ public:
 
     [[nodiscard]] constexpr size_type size() const noexcept
     {
-        return buffer_void::_count();
+        return buffer_void_base::_count();
     }
 
     [[nodiscard]] constexpr size_type size_bytes() const noexcept
@@ -155,7 +156,7 @@ public:
     {
         if (size() < new_count)
         {
-            buffer_void_collection new_buffer{ new_count };
+            basic_buffer_void_collection new_buffer{ new_count };
             if (!new_buffer) [[unlikely]]
             {
                 return false;
@@ -191,7 +192,7 @@ private:
     {
         if (has_size_mul<element_size>(count)) [[likely]]
         {
-            if (const auto data = mi_malloc(element_size * count)) [[likely]]
+            if (const auto data = mi_malloc_aligned(element_size * count, alignment)) [[likely]]
             {
                 const auto usable_count = mi_usable_size(data) / element_size;
                 D_ASSERT(count <= usable_count);
@@ -203,11 +204,11 @@ private:
     }
 };
 
-template<class T>
-class buffer : public buffer_void_collection<sizeof(T)>
+template<class T, size_t Alignment>
+class basic_buffer : public basic_buffer_void_collection<sizeof(T), Alignment>
 {
 public:
-    using collection_type = buffer_void_collection<sizeof(T)>;
+    using collection_type = basic_buffer_void_collection<sizeof(T), Alignment>;
     using value_type = T;
     using const_value_type = const value_type;
     using pointer = value_type*;
@@ -222,19 +223,19 @@ public:
     using typename collection_type::null_type;
     using collection_type::size;
 
-    constexpr buffer() noexcept = default;
+    constexpr basic_buffer() noexcept = default;
 
-    D_DEFAULT_ONLYMOVE_CA(buffer);
+    D_DEFAULT_ONLYMOVE_CA(basic_buffer);
 
-    constexpr buffer(null_type nullvalue) noexcept
+    constexpr basic_buffer(null_type nullvalue) noexcept
         : collection_type{ nullvalue }
     {}
 
-    constexpr explicit buffer(size_type count) noexcept
+    constexpr explicit basic_buffer(size_type count) noexcept
         : collection_type{ count }
     {}
 
-    buffer& operator = (null_type nullvalue) noexcept
+    basic_buffer& operator = (null_type nullvalue) noexcept
     {
         collection_type::operator=(nullvalue);
         return *this;
@@ -243,7 +244,7 @@ public:
     [[nodiscard]]
     constexpr const_pointer cdata() const noexcept
     {
-        return static_cast<const_pointer>(buffer_void::cvoid_data());
+        return static_cast<const_pointer>(buffer_void_base::cvoid_data());
     }
 
     [[nodiscard]]

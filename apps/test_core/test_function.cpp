@@ -65,11 +65,11 @@ namespace debug_memory
             D_ASSERT(0u == check(v_mem));
         }
 
-        [[nodiscard]] void* debug_nosmall_mi_malloc(size_t size) noexcept
+        [[nodiscard]] void* debug_nosmall_malloc_aligned(size_t size, size_t aligned) noexcept
         {
             D_ASSERT(nbyte_arch < size);
             const auto debug_size = sizeof(debug_memory_type) + size;
-            const auto p_debug_mem = static_cast<debug_memory_type*>(::mi_malloc(debug_size));
+            const auto p_debug_mem = static_cast<debug_memory_type*>(::mi_malloc_aligned(debug_size, aligned));
             D_ASSERT(p_debug_mem);
             {
                 static size_t id{ 0 };
@@ -103,8 +103,8 @@ namespace debug_memory
     }
 }
 
-#define mi_malloc(size) debug_memory::debug_nosmall_mi_malloc(size)
-#define mi_free(mem) debug_memory::debug_mi_free(mem)
+#define mi_malloc_aligned debug_memory::debug_nosmall_malloc_aligned
+#define mi_free debug_memory::debug_mi_free
 
 #include <core/unique_function.h>
 #include <core/view.h>

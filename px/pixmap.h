@@ -7,7 +7,14 @@
 
 namespace px
 {
-    template<class T, size_t Alignment = default_alignment>
+    template<size_t Alignment>
+    using alignment_buffer = std::conditional_t<
+        is_dynamic_alignment_v<Alignment>,
+        byte_buffer,
+        buffer<std::byte, Alignment>
+    >;
+
+    template<class T, size_t Alignment = default_alignment_for_v<T> >
     class pixmap : public pixspace<sizeof(T), Alignment>
     {
     public:
@@ -22,6 +29,7 @@ namespace px
         using const_line_span_type = typename const_line_type::const_span_type;
         using view_type = const_span_type;
         using line_size_type = typename space_type::line_size_type;
+        using buffer_type = px::alignment_buffer<Alignment>;
 
         using pointer = pixel_type*;
         using const_pointer = const_pixel_type*;
@@ -49,7 +57,7 @@ namespace px
             }
         }
 
-        constexpr pixmap(byte_buffer&& buffer, const space_type& space) noexcept
+        constexpr pixmap(buffer_type&& buffer, const space_type& space) noexcept
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
@@ -63,14 +71,14 @@ namespace px
             }
         }
 
-        constexpr pixmap(memory_construct_t, byte_buffer&& buffer, const space_type& space) noexcept
+        constexpr pixmap(memory_construct_t, buffer_type&& buffer, const space_type& space) noexcept
             : space_type{ space }
             , buffer_{ std::move(buffer) }
         {
             D_ASSERT(space.size_bytes() <= buffer_.size());
         }
 
-        constexpr pixmap(memory_construct_t, byte_buffer&& buffer) noexcept
+        constexpr pixmap(memory_construct_t, buffer_type&& buffer) noexcept
             : pixmap{ memory_construct, std::move(buffer), space_type{} }
         {}
 
@@ -78,7 +86,7 @@ namespace px
             : pixmap{ space_type{ x, y } }
         {}
 
-        constexpr pixmap(byte_buffer&& buffer, npx_t x, npx_t y) noexcept
+        constexpr pixmap(buffer_type&& buffer, npx_t x, npx_t y) noexcept
             : pixmap{ std::move(buffer), space_type{ x, y } }
         {}
 
@@ -86,7 +94,7 @@ namespace px
             : pixmap{ space_type{ sizes, line_size } }
         {}
 
-        constexpr pixmap(byte_buffer&& buffer, pxsizes sizes, line_size_type line_size) noexcept
+        constexpr pixmap(buffer_type&& buffer, pxsizes sizes, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ sizes, line_size } }
         {}
 
@@ -94,7 +102,7 @@ namespace px
             : pixmap{ space_type{ x, y, line_size } }
         {}
 
-        constexpr pixmap(byte_buffer&& buffer, npx_t x, npx_t y, line_size_type line_size) noexcept
+        constexpr pixmap(buffer_type&& buffer, npx_t x, npx_t y, line_size_type line_size) noexcept
             : pixmap{ std::move(buffer), space_type{ x, y, line_size } }
         {}
 
@@ -117,14 +125,14 @@ namespace px
             buffer_.swap(right.buffer_);
         }
 
-        constexpr void swap(byte_buffer& right) noexcept
+        constexpr void swap(buffer_type& right) noexcept
         {
             _reject_space();
             buffer_.swap(right);
         }
 
         [[nodiscard]]
-        byte_buffer release_buffer() noexcept
+        buffer_type release_buffer() noexcept
         {
             _reject_space();
             return std::exchange(buffer_, nullmem);
@@ -299,15 +307,13 @@ namespace px
         }
 
     private:
-        byte_buffer buffer_;
+        buffer_type buffer_;
     };
 
     using lumpixmap = pixmap<luminance_t>;
-    using rgba_color_pixmap = pixmap<rgba_color>;
 
     static_assert(std::is_same_v<decl_view_type_t<lumpixmap>, lumpixmap::view_type>);
 }
 
 using px::pixmap;
 using px::lumpixmap;
-using px::rgba_color_pixmap;

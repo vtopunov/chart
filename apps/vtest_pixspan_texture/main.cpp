@@ -72,7 +72,7 @@ int main() noexcept
     const auto texture = image_gallery_rendering();
     if (!texture)
     {
-        e_debug("text rendering fail");
+        e_debug("rendering fail");
         return EXIT_FAILURE;
     }
 
