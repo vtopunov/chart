@@ -74,11 +74,7 @@ struct point2d : vec2<T>
         return _1;
     }
 
-    [[nodiscard]]
-    constexpr bool operator == (const point2d&) const noexcept = default;
-
-    [[nodiscard]]
-    constexpr bool operator != (const point2d&) const noexcept = default;
+    D_DEFAULT_EQ_OP(point2d);
 };
 
 template<class T>

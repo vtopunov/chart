@@ -81,11 +81,7 @@ struct size2d : vec2<T>
         return result;
     }
 
-    [[nodiscard]]
-    constexpr bool operator == (const size2d&) const noexcept = default;
-
-    [[nodiscard]]
-    constexpr bool operator != (const size2d&) const noexcept = default;
+    D_DEFAULT_EQ_OP(size2d);
 };
 
 template<class T>

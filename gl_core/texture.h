@@ -183,20 +183,39 @@ namespace gl
     constexpr auto texpix_format_v = texpix_traits<sizeof(decl_std_data_value_t<Image>)>::format;
 
     template<class Image>
+    [[nodiscard]] constexpr bool pixline_alignment_is_supported(const Image& img) noexcept
+    {
+        using pixel = decl_std_data_value_t<Image>;
+        static_assert(gl::default_alignment >= alignof(pixel));
+        const auto n_line = ::height(img);
+        if (0u == n_line) [[unlikely]]
+        {
+            return true;
+        }
+        
+        const auto n_pixel = std::size(img);
+        return 0u == (n_pixel % n_line) &&
+            (n_pixel / n_line) == px::aligned_width<sizeof(pixel), gl::default_alignment>(::width(img));
+    }
+
+    template<class Image>
     [[nodiscard]] std::enable_if_t<texpix_enabled_v<Image>, texture2d> create_texture2d(const Image& img) noexcept
     {
+        D_ASSERT(pixline_alignment_is_supported(img));
         return create_texture2d(::sizes(img), texpix_format_v<Image>, ::cdata(img));
     }
 
     template<class Image>
     [[nodiscard]] std::enable_if_t<texpix_enabled_v<Image>, texture2d> image(texture2d texture, const Image& img) noexcept
     {
+        D_ASSERT(pixline_alignment_is_supported(img));   
         return image(std::move(texture), ::sizes(img), texpix_format_v<Image>, ::cdata(img));
     }
 
     template<class Image>
     std::enable_if_t<texpix_enabled_v<Image>, pxsizes> write(texture2d_resource texture, const Image& img) noexcept
     {
+        D_ASSERT(pixline_alignment_is_supported(img));
         return write(texture, ::sizes(img), texpix_format_v<Image>, ::cdata(img));
     }
 

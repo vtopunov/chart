@@ -63,11 +63,8 @@ namespace file
 
         file_resource_descriptor_t fd;
 
-        [[nodiscard]]
-        constexpr bool operator == (const file_resource&) const noexcept = default;
 
-        [[nodiscard]]
-        constexpr bool operator != (const file_resource&) const noexcept = default;
+        D_DEFAULT_EQ_OP(file_resource);
     };
 
     using invalidfile_t = null_t<file_resource>;

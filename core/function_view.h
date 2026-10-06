@@ -15,7 +15,9 @@ namespace private_detail_function
         {
             if constexpr (is_address_v<Fn>)
             {
-                return const_cast<void*>((const void*)(fn));
+                const auto decay_fn = fn;
+                static_assert(sizeof(void*) >= sizeof(decay_fn));
+                return const_cast<void*>((const void*)(decay_fn));
             }
             else
             {
@@ -79,7 +81,7 @@ namespace private_detail_function
             {
                 using decay_type = std::remove_cvref_t<R>;
 
-                constexpr auto aligned_sizeof_decay_R = size_align<nbyte_arch>(sizeof(decay_type));
+                constexpr auto aligned_sizeof_decay_R = size_align<alignof_arch_v<decay_type>>(sizeof(decay_type));
                 return const_cast<R>(*static_cast<const decay_type*>(p_memzero_v<aligned_sizeof_decay_R>));
             }
 

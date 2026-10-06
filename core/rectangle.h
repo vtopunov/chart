@@ -149,11 +149,7 @@ struct rectangle
         return sizes.height();
     }
 
-    [[nodiscard]]
-    constexpr bool operator == (const rectangle&) const noexcept = default;
-
-    [[nodiscard]]
-    constexpr bool operator != (const rectangle&) const noexcept = default;
+    D_DEFAULT_EQ_OP(rectangle);
 };
 
 template<class T, class U>

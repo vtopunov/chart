@@ -293,6 +293,16 @@ template<size_t add>
     return size <= overflow;
 }
 
+template<size_t mul, size_t add>
+[[nodiscard]] constexpr bool has_size_mul_add(const size_t size) noexcept
+{
+    static_assert(mul > 0_uz);
+    static_assert(add <= size_overflow_maxi);
+    constexpr auto overflow = (size_overflow_maxi - add) / mul;
+    return size <= overflow;
+}
+
+
 template<size_t mul>
 [[nodiscard]] constexpr size_t size_mul(const size_t size) noexcept
 {

@@ -16,11 +16,7 @@ struct polynomial2
         return a1 * argument + a0;
     }
 
-    [[nodiscard]]
-    constexpr bool operator == (const polynomial2&) const noexcept = default;
-
-    [[nodiscard]]
-    constexpr bool operator != (const polynomial2&) const noexcept = default;
+    D_DEFAULT_EQ_OP(polynomial2);
 };
 
 template<class A1>
@@ -35,11 +31,7 @@ struct polynomial2<A1, void>
         return a1 * argument;
     }
 
-    [[nodiscard]]
-    constexpr bool operator == (const polynomial2&) const noexcept = default;
-
-    [[nodiscard]]
-    constexpr bool operator != (const polynomial2&) const noexcept = default;
+    D_DEFAULT_EQ_OP(polynomial2);
 };
 
 template<class A1, class A0>

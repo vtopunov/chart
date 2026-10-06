@@ -138,11 +138,7 @@ struct transformation
         return { fx.a1, fy.a1 };
     }
 
-    [[nodiscard]]
-    constexpr bool operator == (const transformation&) const noexcept = default;
-
-    [[nodiscard]]
-    constexpr bool operator != (const transformation&) const noexcept = default;
+    D_DEFAULT_EQ_OP(transformation);
 };
 
 template<class A1, class A0>

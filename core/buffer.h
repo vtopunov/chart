@@ -121,8 +121,10 @@ public:
 
     static constexpr auto element_size = ElementSize;
     static constexpr auto alignment = Alignment;
-    static_assert(0_uz < element_size);
-
+    static_assert(0u < element_size);
+    static_assert(0u < alignment);
+    static constexpr auto rem_alignment = alignment - 1u;
+    static_assert(0u == (alignment & rem_alignment));
 
     constexpr basic_buffer_void_collection() noexcept = default;
 
@@ -174,13 +176,14 @@ public:
     }
 
     [[nodiscard]]
-    static size_type good_size(size_type size) noexcept
+    static constexpr size_type good_size(size_type size) noexcept
     {
-        if (has_size_mul<element_size>(size)) [[likely]]
+        if (_has_size(size)) [[likely]]
         {
-            const auto result = mi_good_size(element_size * size) / element_size;
-            D_ASSERT(size <= result);
-            return result;
+            const auto temp_size_bytes = _size_bytes_aligned(size);
+            const auto good_size_bytes = mi_good_size(temp_size_bytes);
+            D_ASSERT(temp_size_bytes <= good_size_bytes);
+            return good_size_bytes / element_size;
         }
 
         return size;
@@ -188,15 +191,29 @@ public:
 
 private:
     [[nodiscard]]
+    static constexpr bool _has_size(size_type size) noexcept
+    {
+        return has_size_mul_add<element_size, rem_alignment>(size);
+    }
+
+    [[nodiscard]]
+    static constexpr size_type _size_bytes_aligned(size_type size) noexcept
+    {
+        constexpr auto mask = ~rem_alignment;
+        return ( element_size * size + rem_alignment ) & mask;
+    }
+
+    [[nodiscard]]
     static constexpr memory_location _alloc(size_type count) noexcept
     {
-        if (has_size_mul<element_size>(count)) [[likely]]
+        if (_has_size(count)) [[likely]]
         {
-            if (const auto data = mi_malloc_aligned(element_size * count, alignment)) [[likely]]
+            const auto temp_size_bytes = _size_bytes_aligned(count);
+            if (const auto data = mi_malloc_aligned(temp_size_bytes, alignment)) [[likely]]
             {
-                const auto usable_count = mi_usable_size(data) / element_size;
-                D_ASSERT(count <= usable_count);
-                return { .data{ data }, .count{ usable_count } };
+                const auto usable_size_bytes = mi_usable_size(data);
+                D_ASSERT(temp_size_bytes <= usable_size_bytes);
+                return { .data{ data }, .count{ usable_size_bytes / element_size } };
             }
         }
 

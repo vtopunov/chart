@@ -18,11 +18,7 @@ struct basic_intrusive_node
     T* intrusive_prev_pnode;
     T* intrusive_next_pnode;
 
-    [[nodiscard]]
-    constexpr bool operator == (const basic_intrusive_node&) const noexcept = default;
-
-    [[nodiscard]]
-    constexpr bool operator != (const basic_intrusive_node&) const noexcept = default;
+    D_DEFAULT_EQ_OP(basic_intrusive_node);
 };
 
 struct intrusive_node : basic_intrusive_node<intrusive_node>

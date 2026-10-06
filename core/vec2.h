@@ -32,11 +32,7 @@ struct vec2 : tuple<T, T>
         return std::addressof(_0);
     }
 
-    [[nodiscard]]
-    constexpr bool operator == (const vec2&) const noexcept = default;
-
-    [[nodiscard]]
-    constexpr bool operator != (const vec2&) const noexcept = default;
+    D_DEFAULT_EQ_OP(vec2);
 
     template<class R>
     constexpr auto operator += (const vec2<R> &v) noexcept

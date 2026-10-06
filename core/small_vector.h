@@ -387,7 +387,7 @@ public:
     }
 
     [[nodiscard]]
-    bool try_assign(const const_span_type right) noexcept
+    constexpr bool try_assign(const const_span_type right) noexcept
     {
         if (right.size() > capacity())
         {
@@ -523,7 +523,7 @@ public:
             || _try_reallocate(new_capacity);
     }
 
-    void reserve(size_type new_capacity) noexcept
+    constexpr void reserve(size_type new_capacity) noexcept
     {
         D_CHECK(try_reserve(new_capacity));
     }
@@ -557,7 +557,7 @@ public:
         return ok;
     }
 
-    void shrink_to_fit() noexcept
+    constexpr void shrink_to_fit() noexcept
     {
         D_CHECK(try_shrink_to_fit());
     }
@@ -596,14 +596,14 @@ public:
         return *last;
     }
 
-    void pop_back() noexcept
+    constexpr void pop_back() noexcept
     {
         D_ASSERT(0u < size_);
         ::destroy_at(--size_ + data_);
         _collect();
     }
 
-    void erase(const_iterator position) noexcept
+    constexpr void erase(const_iterator position) noexcept
     {
         D_ASSERT(position < cend());
         erase(position, std::next(position));

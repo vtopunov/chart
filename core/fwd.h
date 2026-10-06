@@ -116,7 +116,6 @@ using function_pointer_t = R(*) (Args...);
 template<class R, class... Args>
 using noexcept_function_pointer_t = R(*) (Args...) noexcept;
 
-
 using doublemax_t = long double;
 using realf_t = float;
 using real_t = double;
@@ -132,6 +131,12 @@ constexpr size_t small_size_mini{ 4u * nbyte_arch };
 
 template<size_t L, size_t R>
 constexpr size_t max_size_v = (L < R) ? R : L;
+
+template<size_t A>
+constexpr size_t align_arch_v = max_size_v<A, nbyte_arch>;
+
+template<class T>
+constexpr size_t alignof_arch_v = align_arch_v<alignof(T)>;
 
 
 struct uninitialized_t
@@ -215,8 +220,8 @@ using point2re_cspan = span<const point2re>;
 template<class T> class basic_buffer_view;
 template<class T, size_t A> class basic_buffer;
 
-template<class T, size_t A = max_size_v<alignof(T), nbyte_arch> > 
-using buffer = basic_buffer<T, max_size_v<A, nbyte_arch> >;
+template<class T, size_t A = alignof_arch_v<T> >
+using buffer = basic_buffer<T, align_arch_v<A> >;
 
 using byte_buffer_view = basic_buffer_view<std::byte>;
 using const_byte_buffer_view = basic_buffer_view<const std::byte>;

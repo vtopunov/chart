@@ -354,7 +354,7 @@ namespace private_detail_function
                             const auto mem = mi_malloc_aligned
                             (
                                 sizeof(decay_fn_t), 
-                                max_size_v<alignof(decay_fn_t), nbyte_arch>
+                                alignof_arch_v<decay_fn_t>
                             );
                             if (!mem) [[unlikely]]
                             {

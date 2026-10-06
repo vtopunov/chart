@@ -74,11 +74,7 @@ struct basic_rgba_color
     luminance_type b;
     luminance_type a;
 
-    [[nodiscard]]
-    constexpr bool operator == (const basic_rgba_color&) const noexcept = default;
-
-    [[nodiscard]]
-    constexpr bool operator != (const basic_rgba_color&) const noexcept = default;
+    D_DEFAULT_EQ_OP(basic_rgba_color);
 
     template<class U, std::enable_if_t<is_safe_numeric_not_same_conversion_v<U, luminance_type>, int> = 0>
     [[nodiscard]] constexpr operator basic_rgba_color<U>() const noexcept
