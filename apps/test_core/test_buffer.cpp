@@ -281,6 +281,27 @@ namespace
         [[nodiscard]]
         constexpr bool operator != (const test_int128_t&) const noexcept = default;
     };
+
+    template<size_t Align>
+    void test_good_size() noexcept
+    {
+        constexpr size_t a = Align;
+        constexpr auto s = a + 1u;
+        const auto as = size_align<a>(s);
+        const auto gas = mi_good_size(as);
+
+        const std::unique_ptr<void, std::decay_t<decltype(mi_free)> > am(mi_malloc_aligned(as, a), mi_free);
+        const auto uas = mi_usable_size(am.get());
+
+        using abuffer = basic_buffer<std::byte, a>;
+        abuffer buf{ s };
+        const auto gasb = abuffer::good_size(s);
+        const auto uasbb = buf.size_bytes();
+
+        D_ASSERT(gas == uas);
+        D_ASSERT(gas == gasb);
+        D_ASSERT(gas == uasbb);
+    }
 }
 
 void test_buffer() noexcept
@@ -298,6 +319,18 @@ void test_buffer() noexcept
     static_assert(std::is_nothrow_move_assignable_v<byte_buffer>);
     static_assert(!std::is_copy_constructible_v<byte_buffer>);
     static_assert(!std::is_copy_assignable_v<byte_buffer>);
+
+    test_good_size<1024u>();
+    test_good_size<512u>();
+    test_good_size<256u>();
+    test_good_size<128u>();
+    test_good_size<64u>();
+    test_good_size<32u>();
+    test_good_size<16u>();
+    test_good_size<8u>();
+    test_good_size<4u>();
+    test_good_size<2u>();
+    test_good_size<1u>();
 
     test_buffer_for<test_int128_t>();
     test_buffer_for<int64_t>();

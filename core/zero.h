@@ -83,8 +83,7 @@ namespace private_detail_zero
             template<class T, std::enable_if_t<is_void_zero_constructible_v<T>, int> = 0>
             constexpr operator T () const noexcept
             {
-                constexpr zero_type0<T> zero_value{};
-                return zero_value;
+                return default_v<zero_type0<T> > ;
             }
         };
 

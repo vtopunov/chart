@@ -112,24 +112,37 @@ namespace debug_memory
 
 namespace
 {
+    static constexpr int default_constructible_test_value{ 33 };
+    static_assert(default_constructible_test_value);
+
     struct default_constructible_test_type
     {
-        static constexpr int default_value{ 33 };
-
         int value;
 
         constexpr explicit default_constructible_test_type() noexcept
-            : value{ default_value }
+            : value{ default_constructible_test_value }
         {}
     };
 
     struct no_default_constructible_test_type
     {
-        int value;
+        int value{ default_constructible_test_value };
 
         no_default_constructible_test_type() = delete;
     };
 
+    struct constexpr_default_constructible_test_type
+    {
+        int value{ default_constructible_test_value };
+    };
+
+    struct runtime_default_constructible_test_type
+    {
+        int value{ default_constructible_test_value };
+
+        runtime_default_constructible_test_type() noexcept
+        {}
+    };
 
     void set_errno33() noexcept
     {
@@ -290,15 +303,31 @@ namespace
             D_ASSERT(!temp_fref_test);
             D_ASSERT(0.0 == temp_fref_test());
 
-            Function<const default_constructible_test_type& ()> temp_cref_test{};
-            static_assert(0 != default_constructible_test_type::default_value);
-            D_ASSERT(default_constructible_test_type::default_value == temp_cref_test().value);
-            
-            Function<default_constructible_test_type& ()> temp_ref_test{};
-            D_ASSERT(default_constructible_test_type::default_value == temp_ref_test().value);
+            {
+                Function<const default_constructible_test_type& ()> temp_cref_test{};
+                D_ASSERT(default_constructible_test_value == temp_cref_test().value);
+            }
 
-            Function<no_default_constructible_test_type& ()> temp_nodef_ref_test{};
-            D_ASSERT(0 == temp_nodef_ref_test().value);
+            {
+                Function<default_constructible_test_type& ()> temp_ref_test{};
+                D_ASSERT(default_constructible_test_value == temp_ref_test().value);
+            }
+
+
+            {
+                Function<no_default_constructible_test_type& ()> temp_nodef_ref_test{};
+                D_ASSERT(0 == temp_nodef_ref_test().value);
+            }
+
+            {
+                Function<constexpr_default_constructible_test_type& ()> temp_ref_test{};
+                D_ASSERT(default_constructible_test_value == temp_ref_test().value);
+            }
+
+            {
+                Function<runtime_default_constructible_test_type& ()> temp_ref_test{};
+                D_ASSERT(0 == temp_ref_test().value);
+            }
         }
 
         {

@@ -924,7 +924,7 @@ private:
     {
         D_ASSERT(_buffer_is_null(dynamic_));
 
-        if constexpr (!std::is_base_of_v<buffer_void_base, buffer_type>)
+        if constexpr (!is_base_of_class_v<buffer_void_base, buffer_type>)
         {
             _destroy_dynamic();
         }

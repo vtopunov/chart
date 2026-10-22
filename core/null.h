@@ -80,8 +80,6 @@ namespace private_detail_null
 
     namespace private_detail_null_type
     {
-        using namespace ordered_overload;
-
         template<class To, class From>
         using decl_cref_cast_t = decltype(static_cast<const To&>(std::declval<const From&>()));
 
@@ -169,13 +167,6 @@ namespace private_detail_null
 
         template<class T>
         constexpr auto null_v = instance_null<null_t<T>>();
-
-        template<size_t N>
-        constexpr const void* const p_memzero_v = [] () noexcept
-        {
-            static constexpr std::byte zero_array[N]{};
-            return zero_array;
-        }();
 
         template<class T>
         struct instance_for_null_t

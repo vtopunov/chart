@@ -20,7 +20,7 @@ namespace shader_common
 
 
     template<class T>
-    using is_uniform = std::is_base_of<shader_export::uniform_base, T>;
+    using is_uniform = is_base_of_class<shader_export::uniform_base, T>;
 
     template<class T>
     constexpr bool is_uniform_v = is_uniform<T>::value;
@@ -28,7 +28,7 @@ namespace shader_common
     static_assert(is_uniform_v<shader_export::sampler>);
 
     template<class T>
-    using is_sampler = std::is_base_of<shader_export::sampler, T>;
+    using is_sampler = is_base_of_class<shader_export::sampler, T>;
 
     template<class T>
     using has_indexed_location = std::conjunction<std::negation<is_sampler<T>>, is_uniform<T>>;

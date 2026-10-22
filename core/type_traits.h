@@ -8,6 +8,24 @@
 static_assert(std::is_same_v<std::make_signed_t<size_t>, ptrdiff_t>);
 static_assert(std::is_same_v<size_t, std::make_unsigned_t<ptrdiff_t>>);
 
+template<class T, class = void>
+struct instance_default_t
+{};
+
+template<class T>
+struct instance_default_t<T, std::enable_if_t<std::is_default_constructible_v<T>> >
+{
+    [[nodiscard]] constexpr T operator () () const noexcept
+    {
+        return T{};
+    }
+};
+
+template<class T>
+constexpr instance_default_t<T> instance_default{};
+
+template<class T>
+constexpr T default_v{};
 
 namespace ordered_overload
 {
@@ -435,6 +453,12 @@ template<size_t L, size_t R>
 using is_greater_equal_size = is_greater_equal_int<size_t, L, R>;
 
 
+template<class B, class D>
+struct is_base_of_class : std::is_base_of<B, D>
+{
+    static_assert(std::is_class_v<B>);
+};
+
 template<class L, class R>
 using is_same_is_const = std::is_same<std::is_const<L>, std::is_const<R>>;
 
@@ -456,14 +480,17 @@ using is_same_decay_r = std::is_same<L, std::decay_t<R>>;
 template<class L, class R>
 using is_same_decay = is_same_decay_r<std::decay_t<L>, R>;
 
-template<class L, class R>
-constexpr auto is_same_uncvref_v = is_same_uncvref<L, R>::value;
+template<class B, class D>
+constexpr bool is_base_of_class_v = is_base_of_class<B, D>::value;
 
 template<class L, class R>
-constexpr auto is_same_uncv_v = is_same_uncv<L, R>::value;
+constexpr bool is_same_uncvref_v = is_same_uncvref<L, R>::value;
 
 template<class L, class R>
-constexpr auto is_same_decay_v = is_same_decay<L, R>::value;
+constexpr bool is_same_uncv_v = is_same_uncv<L, R>::value;
+
+template<class L, class R>
+constexpr bool is_same_decay_v = is_same_decay<L, R>::value;
 
 
 template <class T, class... Types>
@@ -541,6 +568,17 @@ using is_brace_constructible = is_detected<decl_brace_construct_t, T, Args...>;
 
 template<class T, class... Args>
 constexpr bool is_brace_constructible_v = is_brace_constructible<T, Args...>::value;
+
+template<class T, class = void>
+struct is_constexpr_default_constructible : std::false_type {};
+
+template<class T>
+struct is_constexpr_default_constructible<T,
+    std::void_t < std::bool_constant<(instance_default<T>(), false)> >
+> : std::true_type {};
+
+template<class T>
+constexpr bool is_constexpr_default_constructible_v = is_constexpr_default_constructible<T>::value;
 
 
 template<class T>

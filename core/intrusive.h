@@ -361,7 +361,7 @@ public:
 
     constexpr void clear() noexcept
     {
-        if constexpr (std::is_base_of_v<intrusive_node_object<value_type>, value_type>)
+        if constexpr (is_base_of_class_v<intrusive_node_object<value_type>, value_type>)
         {
             auto it = begin();
             const auto it_end = end();

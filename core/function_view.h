@@ -71,27 +71,23 @@ namespace private_detail_function
             template<size_t N>
             constexpr const void* const p_memzero_v{ zero_byte_array_v<N> };
 
-            template<class T>
-            constexpr T instance_for_null_v = null_v<T>;
 
             template<class R>
             constexpr std::enable_if_t<std::conjunction_v<
-                std::negation<std::is_void<R>>, std::is_reference<R>, std::negation<is_null_constructible<R> >
+                std::negation<std::is_void<R>>, std::is_reference<R>, std::negation<is_constexpr_default_constructible<std::remove_reference_t<R> > >
             >, R> make_nothing_result(ttypes<R>) noexcept
             {
                 using decay_type = std::remove_cvref_t<R>;
-
                 constexpr auto aligned_sizeof_decay_R = size_align<alignof_arch_v<decay_type>>(sizeof(decay_type));
-                return const_cast<R>(*static_cast<const decay_type*>(p_memzero_v<aligned_sizeof_decay_R>));
+                return const_cast<R>(*static_cast<const std::remove_reference_t<R>*>(p_memzero_v<aligned_sizeof_decay_R>));
             }
 
             template<class R>
             constexpr std::enable_if_t<std::conjunction_v<
-                std::negation<std::is_void<R>>, std::is_reference<R>, is_null_constructible<R>
+                std::negation<std::is_void<R>>, std::is_reference<R>, is_constexpr_default_constructible<std::remove_reference_t<R> >
             >, R> make_nothing_result(ttypes<R>) noexcept
             {
-                using decay_type = std::remove_cvref_t<R>;
-                return const_cast<R>(instance_for_null_v<decay_type>);
+                return const_cast<R>(default_v<std::remove_reference_t<R> >);
             }
 
             template<class R>
@@ -99,7 +95,7 @@ namespace private_detail_function
                 std::negation<std::is_void<R>>, std::negation<std::is_reference<R>>
             >, R> make_nothing_result(ttypes<R>) noexcept
             {
-                return instance_for_null<R>();
+                return R{};
             }
 
             template<class R>

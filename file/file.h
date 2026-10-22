@@ -43,7 +43,7 @@ namespace file
             template<class N>
             constexpr operator N () const noexcept
             {
-                static_assert(std::is_base_of_v<file_resource, N>);
+                static_assert(is_base_of_class_v<file_resource, N>);
 
                 if constexpr (private_detail_file_descriptor::file_descriptor_is_integral_v)
                 {

@@ -29,7 +29,7 @@ namespace ui
     class window_gatherer
     {
     public:
-        static_assert(std::disjunction_v<std::is_same<window_parameters, Params>, std::is_base_of<window_parameters, Params>>);
+        static_assert(is_base_of_class_v<window_parameters, Params>);
 
         Builder& background(stock_brush brush) noexcept
         {

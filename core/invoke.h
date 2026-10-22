@@ -89,7 +89,7 @@ template<class Fn, class... Args>
 using invoke_if_exist_result_t = decltype(::invoke_if_exist(std::declval<Fn>(), std::declval<Args>()...));
 
 template<class R>
-using is_invalid_invoke_result = std::is_base_of<::invalid_invoke_t, R>;
+using is_invalid_invoke_result = is_base_of_class<::invalid_invoke_t, R>;
 
 template<class R>
 constexpr bool is_invalid_invoke_result_v = ::is_invalid_invoke_result<R>::value;

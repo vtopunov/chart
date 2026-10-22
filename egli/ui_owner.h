@@ -149,7 +149,7 @@ namespace egli
         using base_type = ui::window_gatherer<Builder, Params>;
 
     public:
-        static_assert(std::disjunction_v<std::is_same<ui_parameters, Params>, std::is_base_of<ui_parameters, Params>>);
+        static_assert(is_base_of_class_v<ui_parameters, Params>);
 
         constexpr Builder& command_show(ui::show_command command_show) noexcept
         {

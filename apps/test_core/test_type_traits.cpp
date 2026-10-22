@@ -58,7 +58,7 @@ namespace
         static_assert(std::is_same_v<dummy, detected_t<decl_difference_t, dummy> >);
         static_assert(std::is_same_v<dummy, detected_t<decl_difference_t, ttypes<dummy> > >);
         static_assert(std::is_same_v<ptrdiff_t, detected_t<decl_difference_t, with_decl_difference<ptrdiff_t>> >);
-        
+
         static_assert(is_detected_exact_v<with_cp&, copy_assign_t, with_cp>);
         static_assert(is_detected_exact_v<void, copy_assign_t, with_void_cp>);
         static_assert(is_detected_exact_v<with_cp, copy_assign_t, with_ex_cp<with_cp> >);
@@ -285,21 +285,21 @@ namespace
         };
 
         int A::* mem_data_ptr = &A::m;
-        void (A::* mem_fun_ptr)() = &A::f;
+        void (A:: * mem_fun_ptr)() = &A::f;
 
         static_assert(is_address_v<int*>);
         static_assert(is_address_v<int*&>);
         static_assert(is_address_v<int*&&>);
         static_assert(is_address_v<const int*>);
-        static_assert(is_address_v<const int* &>);
-        static_assert(is_address_v<const int* &&>);
+        static_assert(is_address_v<const int*&>);
+        static_assert(is_address_v<const int*&&>);
         static_assert(is_address_v<const int* const>);
         static_assert(is_address_v<const int* const>);
-        static_assert(is_address_v<const int* const &>);
-        static_assert(is_address_v<const int* const &&>);
-        static_assert(is_address_v<void ()>);
-        static_assert(is_address_v<void (*)>);
-        static_assert(is_address_v<void (*const)>);
+        static_assert(is_address_v<const int* const&>);
+        static_assert(is_address_v<const int* const&&>);
+        static_assert(is_address_v<void()>);
+        static_assert(is_address_v<void(*)>);
+        static_assert(is_address_v<void(* const)>);
         static_assert(is_address_v<decltype(mem_data_ptr)>);
         static_assert(is_address_v<decltype(mem_fun_ptr)>);
         static_assert(is_address_v<std::nullptr_t>);
@@ -362,6 +362,22 @@ namespace
         static_assert(is_const_convertible_v<int, const int>);
         static_assert(is_const_convertible_v<const int, const int>);
         static_assert(!is_const_convertible_v<const int, int>);
+        D_ASSERT(!errno);
+    }
+
+    namespace private_detail_test_is_base_of_class
+    {
+        struct test_class final
+        {};
+    }
+
+    void test_is_base_of_class() noexcept
+    {
+        using namespace private_detail_test_is_base_of_class;
+        static_assert(is_base_of_class_v<test_class, test_class>);
+        static_assert(is_base_of_class_v<test_class, const test_class>);
+        static_assert(is_base_of_class_v<const test_class, test_class>);
+        static_assert(is_base_of_class_v<const test_class, const test_class>);
         D_ASSERT(!errno);
     }
 
@@ -470,6 +486,28 @@ namespace
         static_assert(!is_brace_constructible_v<iarr2_t, int, int, int>);
         D_ASSERT(!errno);
     }
+
+    namespace private_detail_test_is_constexpr_default_constructible
+    {
+        struct constexpr_default_constructible
+        {};
+
+        struct runtime_default_constructible
+        {
+            runtime_default_constructible() noexcept
+            {}
+        };
+    }
+
+    void test_is_constexpr_default_constructible() noexcept
+    {
+        using namespace private_detail_test_is_constexpr_default_constructible;
+
+        static_assert(is_constexpr_default_constructible_v< constexpr_default_constructible >);
+        static_assert(!is_constexpr_default_constructible_v< runtime_default_constructible >);
+        D_ASSERT(!errno);
+
+    }
 }
 
 void test_type_traits() noexcept
@@ -491,6 +529,7 @@ void test_type_traits() noexcept
     test_has_qualifier();
     test_is_unqualified_class();
     test_is_const_convertible();
+    test_is_base_of_class(); 
     test_is_same_size();
     test_is_sameuncvref();
     test_has_assignment_op();
@@ -498,4 +537,5 @@ void test_type_traits() noexcept
     test_remove_noexcept();
     test_add_noexcept();
     test_brace_constructible();
+    test_is_constexpr_default_constructible();
 }
