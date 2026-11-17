@@ -18,16 +18,16 @@ namespace private_detail_buffer_view
     >;
 
     template <bool immutable, class Container>
-    constexpr bool is_compatible_impl_v = is_compatible_impl<immutable, Container>::value;
+    inline constexpr bool is_compatible_impl_v = is_compatible_impl<immutable, Container>::value;
 
     template <bool immutable, class Container>
-    constexpr bool is_compatible_container_impl_v = std::conjunction_v<
+    inline constexpr bool is_compatible_container_impl_v = std::conjunction_v<
         std::negation<has_void_data<Container>>,
         is_compatible_impl<immutable, Container>
     >;
 
     template <bool immutable, class Container>
-    constexpr bool is_compatible_buffer_impl_v = std::conjunction_v<
+    inline constexpr bool is_compatible_buffer_impl_v = std::conjunction_v<
         has_void_data<Container>,
         is_compatible_impl<immutable, Container>
     >;

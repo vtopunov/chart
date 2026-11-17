@@ -6,8 +6,8 @@
 
 namespace font_cache
 {
-    constexpr auto default_font_name = _PATH("OpenSans-Regular.ttf");
-    constexpr auto default_font_size = 15_npx;
+    inline constexpr auto default_font_name = _PATH("OpenSans-Regular.ttf");
+    inline constexpr auto default_font_size = 15_npx;
 
     struct cached_face_resource
     {

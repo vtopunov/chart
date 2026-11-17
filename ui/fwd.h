@@ -118,9 +118,9 @@ namespace ui
     {
         using native_npx_t = int;
 
-        constexpr auto cw_usedefault = static_cast<native_npx_t>(0x80000000);
-        constexpr auto px_usedefault = static_cast<npx_t>(cw_usedefault);
-        constexpr pxrectangle rc_usedefault{ px_usedefault, 0_npx, px_usedefault, 0_npx };
+        inline constexpr auto cw_usedefault = static_cast<native_npx_t>(0x80000000);
+        inline constexpr auto px_usedefault = static_cast<npx_t>(cw_usedefault);
+        inline constexpr pxrectangle rc_usedefault{ px_usedefault, 0_npx, px_usedefault, 0_npx };
     }
 
     using private_detail_window_constants::px_usedefault;

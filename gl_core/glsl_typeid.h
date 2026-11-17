@@ -170,7 +170,7 @@ namespace gl
     }
 
     template<class T>
-    constexpr auto glsl_typeid_v = private_detail_glsl_typeid_by_type::select_glsl_typeid<T>::value;
+    inline constexpr auto glsl_typeid_v = private_detail_glsl_typeid_by_type::select_glsl_typeid<T>::value;
 
 
     [[nodiscard]]
@@ -208,7 +208,7 @@ namespace gl
     };
 
     template<glsl_typeid id>
-    constexpr auto glsl_tuple_size_v = glsl_tuple_size(id);
+    inline constexpr auto glsl_tuple_size_v = glsl_tuple_size(id);
 
     [[nodiscard]]
     constexpr glsl_typeid glsl_tuple_element_typeid(glsl_typeid id) noexcept
@@ -243,7 +243,7 @@ namespace gl
     }
 
     template<glsl_typeid id>
-    constexpr auto glsl_tuple_element_typeid_v = glsl_tuple_element_typeid(id);
+    inline constexpr auto glsl_tuple_element_typeid_v = glsl_tuple_element_typeid(id);
 
     template<glsl_typeid id>
     using glsl_tuple_element_type_t = glsl_type_t<glsl_tuple_element_typeid_v<id>>;

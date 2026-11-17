@@ -37,7 +37,7 @@ template<template <class...> class Tuple, class... Types>
 struct ttypes_size<Tuple<Types...>> : index_constant<sizeof...(Types)> {};
 
 template<class T>
-constexpr size_t ttypes_size_v = ttypes_size<T>::value;
+inline constexpr size_t ttypes_size_v = ttypes_size<T>::value;
 
 
 template<class T>
@@ -47,7 +47,7 @@ template<class SeqT, template <class, SeqT...> class Tuple, SeqT... Values>
 struct ttypes_sequence_size<Tuple<SeqT, Values...>> : index_constant<sizeof...(Values)> {};
 
 template<class T>
-constexpr size_t ttypes_sequence_size_v = ttypes_sequence_size<T>::value;
+inline constexpr size_t ttypes_sequence_size_v = ttypes_sequence_size<T>::value;
 
 
 template<template <class> class Pred, class Tuple>
@@ -71,7 +71,7 @@ template<template <class...> class Left, template <class...> class Right>
 using is_same_template = std::is_same<ttuples<Left>, ttuples<Right> >;
 
 template<template <class...> class Left, template <class...> class Right>
-constexpr bool is_same_template_v = is_same_template<Left, Right>::value;
+inline constexpr bool is_same_template_v = is_same_template<Left, Right>::value;
 
 
 template<class Source, template <class...> class Target>
@@ -81,7 +81,7 @@ template<template <class...> class Source, template <class...> class Target, cla
 struct template_is<Source<Types...>, Target> : is_same_template<Source, Target> {};
 
 template<class Source, template <class...> class Target>
-constexpr bool template_is_v = template_is<Source, Target>::value;
+inline constexpr bool template_is_v = template_is<Source, Target>::value;
 
 static_assert(template_is_v<dummy, ttypes>);
 
@@ -104,13 +104,13 @@ template <class Tuple, class... Args>
 using ttypes_has_invoke = ttypes_has<is_invocable, Tuple, Args...>;
 
 template<template <class...> class Pred, class Tuple, class... Args>
-constexpr bool ttypes_has_v = ttypes_has<Pred, Tuple, Args...>::value;
+inline constexpr bool ttypes_has_v = ttypes_has<Pred, Tuple, Args...>::value;
 
 template <class T, class Tuple>
-constexpr bool ttypes_has_type_v = ttypes_has_type<T, Tuple>::value;
+inline constexpr bool ttypes_has_type_v = ttypes_has_type<T, Tuple>::value;
 
 template <class Tuple, class... Args>
-constexpr bool ttypes_has_invoke_v = ttypes_has_invoke<Tuple, Args...>::value;
+inline constexpr bool ttypes_has_invoke_v = ttypes_has_invoke<Tuple, Args...>::value;
 
 
 namespace private_detail_types_algorithm
@@ -340,7 +340,7 @@ namespace private_detail_types_algorithm
         using types_index_element_t = ttypes_map_index_element_t<T, make_ttypes_index_map_t<Types...>>;
 
         template <class T, class... Types>
-        constexpr auto types_index_element_v = types_index_element_t<T, Types...>::value;
+        inline constexpr auto types_index_element_v = types_index_element_t<T, Types...>::value;
 
         template<class T, class Tuple>
         struct ttypes_index_element_type;
@@ -355,7 +355,7 @@ namespace private_detail_types_algorithm
         using ttypes_index_element_t = typename ttypes_index_element_type<T, Tuple>::type;
 
         template <class T, class Tuple>
-        constexpr auto ttypes_index_element_v = ttypes_index_element_t<T, Tuple>::value;
+        inline constexpr auto ttypes_index_element_v = ttypes_index_element_t<T, Tuple>::value;
     }
 
     namespace private_detail_tuples_element
@@ -685,7 +685,7 @@ namespace private_detail_types_algorithm
         {};
 
         template<template <class, class> class Cmp, class Tuple, class IS = std::make_index_sequence<ttypes_size_v<Tuple>> >
-        constexpr auto min_ttypes_index_element_v = min_ttypes_index_element<Cmp, Tuple, IS>::value;
+        inline constexpr auto min_ttypes_index_element_v = min_ttypes_index_element<Cmp, Tuple, IS>::value;
     }
 }
 
@@ -733,16 +733,16 @@ using sort_ttypes_t = ttypes_reorder_t<Tuple, sort_ttypes_indices_t<Cmp, Tuple>>
 
 
 template <class T, class U>
-constexpr bool less_sizeof_v = less_op(sizeof(T), sizeof(U));
+inline constexpr bool less_sizeof_v = less_op(sizeof(T), sizeof(U));
 
 template <class T, class U>
-constexpr bool greater_sizeof_v = less_sizeof_v<U, T>;
+inline constexpr bool greater_sizeof_v = less_sizeof_v<U, T>;
 
 template <class T, class U>
-constexpr bool less_eq_sizeof_v = !less_sizeof_v<U, T>;
+inline constexpr bool less_eq_sizeof_v = !less_sizeof_v<U, T>;
 
 template <class T, class U>
-constexpr bool greater_eq_sizeof_v = !less_sizeof_v<T, U>;
+inline constexpr bool greater_eq_sizeof_v = !less_sizeof_v<T, U>;
 
 template <class T, class U>
 using less_sizeof = std::bool_constant<less_sizeof_v<T, U>>;

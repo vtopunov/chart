@@ -18,7 +18,7 @@ namespace egli
     using error_code_t = uint64_t;
     using ui::window_handle_t;
 
-    constexpr egl_boolean_t egl_false_v{};
+    inline constexpr egl_boolean_t egl_false_v{};
 
     [[nodiscard]]
     constexpr bool egl_to_bool(egl_boolean_t value) noexcept

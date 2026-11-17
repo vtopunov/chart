@@ -14,8 +14,8 @@ namespace widget
         using namespace ::color_literals;
         using namespace ::colors;
 
-        constexpr auto dialog_color = 0xf0f0f0_rgb;;
-        constexpr auto dialog_color_f = to_colorf(dialog_color);
+        inline constexpr auto dialog_color = 0xf0f0f0_rgb;;
+        inline constexpr auto dialog_color_f = to_colorf(dialog_color);
     }
 
     class window_content

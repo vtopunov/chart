@@ -205,7 +205,7 @@ namespace gl
     };
 
     template<glsl_typeid id>
-    constexpr auto store_uniform_method_v = store_uniform_method<id>::value;
+    inline constexpr auto store_uniform_method_v = store_uniform_method<id>::value;
 
     [[nodiscard]]
     bool test_uniform

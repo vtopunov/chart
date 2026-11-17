@@ -45,7 +45,7 @@ namespace widget
 
     using no_event_result_processor_t = event_result_processor<dummy>;
 
-    constexpr no_event_result_processor_t no_event_result_processor{ nullptr, nullptr };
+    inline constexpr no_event_result_processor_t no_event_result_processor{ nullptr, nullptr };
 
     template<class T>
     [[nodiscard]] constexpr event_result_processor<T> make_result_event_processor(const T& result) noexcept
@@ -64,7 +64,7 @@ namespace widget
     using has_event_result = is_detected<private_detail_has_event_result::decl_result_member_t, event_result_processor<ER>>;
 
     template<class ER>
-    constexpr auto has_event_result_v = has_event_result<ER>::value;
+    inline constexpr bool has_event_result_v = has_event_result<ER>::value;
 
     template<class ERL, class ERR>
     [[nodiscard]] constexpr decltype(auto) operator | (event_result_processor<ERL> left, event_result_processor<ERR> right) noexcept

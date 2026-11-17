@@ -67,7 +67,7 @@
 #endif
 
 
-constexpr struct
+inline constexpr struct
 {
     template<class T>
     constexpr void operator () ([[maybe_unused]] const T& expression_result) const noexcept
@@ -125,18 +125,18 @@ constexpr size_t nbyte_arch{ sizeof(void*) };
 static_assert(nbyte_arch == sizeof(size_t));
 static_assert(nbyte_arch == sizeof(ptrdiff_t));
 
-constexpr denomi_t dynamic_denominator{ 0u };
-constexpr size_t dynamic_extent{ SIZE_MAX };
-constexpr size_t small_size_mini{ 4u * nbyte_arch };
+inline constexpr denomi_t dynamic_denominator{ 0u };
+inline constexpr size_t dynamic_extent{ SIZE_MAX };
+inline constexpr size_t small_size_mini{ 4u * nbyte_arch };
 
 template<size_t L, size_t R>
-constexpr size_t max_size_v = (L < R) ? R : L;
+inline constexpr size_t max_size_v = (L < R) ? R : L;
 
 template<size_t A>
-constexpr size_t align_arch_v = max_size_v<A, nbyte_arch>;
+inline constexpr size_t align_arch_v = max_size_v<A, nbyte_arch>;
 
 template<class T>
-constexpr size_t alignof_arch_v = align_arch_v<alignof(T)>;
+inline constexpr size_t alignof_arch_v = align_arch_v<alignof(T)>;
 
 
 struct uninitialized_t
@@ -183,14 +183,14 @@ struct nullfunction_t
     constexpr explicit nullfunction_t(nulltype_construct_t) noexcept {}
 };
 
-constexpr uninitialized_t uninitialized_v{ uninitialized_t::tag };
-constexpr memory_construct_t memory_construct{ memory_construct_t::tag };
-constexpr memory_overwrite_construct_t memory_overwrite_construct{ memory_overwrite_construct_t::tag };
-constexpr nulltype_construct_t nulltype_construct{ nulltype_construct_t::tag };
-constexpr nullmem_t nullmem{ nulltype_construct };
-constexpr nullref_t nullref{ nulltype_construct };
-constexpr nullresource_t nullresource{ nulltype_construct };
-constexpr nullfunction_t nullfunction{ nulltype_construct };
+inline constexpr uninitialized_t uninitialized_v{ uninitialized_t::tag };
+inline constexpr memory_construct_t memory_construct{ memory_construct_t::tag };
+inline constexpr memory_overwrite_construct_t memory_overwrite_construct{ memory_overwrite_construct_t::tag };
+inline constexpr nulltype_construct_t nulltype_construct{ nulltype_construct_t::tag };
+inline constexpr nullmem_t nullmem{ nulltype_construct };
+inline constexpr nullref_t nullref{ nulltype_construct };
+inline constexpr nullresource_t nullresource{ nulltype_construct };
+inline constexpr nullfunction_t nullfunction{ nulltype_construct };
 
 
 template<class T> struct basic_intrusive_node;
@@ -230,7 +230,7 @@ static_assert(1_uz == sizeof(std::byte));
 static_assert(nbyte_arch >= alignof(std::byte));
 
 
-constexpr auto rgba_color_extent = 4_uz;
+inline constexpr auto rgba_color_extent = 4_uz;
 
 using argb_t = uint32_t;
 using luminance_t = uint8_t;
@@ -302,7 +302,7 @@ struct any_overload
 D_WARNING_POP
 
 template<class... Types>
-constexpr ttypes<Types...> ttypes_v{};
+inline constexpr ttypes<Types...> ttypes_v{};
 
-constexpr nothing nothing_v{};
-constexpr dummy dummy_v{};
+inline constexpr nothing nothing_v{};
+inline constexpr dummy dummy_v{};

@@ -177,10 +177,10 @@ namespace gl
     };
 
     template<class Image>
-    constexpr bool texpix_enabled_v = texpix_traits<sizeof(decl_std_data_value_t<Image>)>::enabled;
+    inline constexpr bool texpix_enabled_v = texpix_traits<sizeof(decl_std_data_value_t<Image>)>::enabled;
 
     template<class Image>
-    constexpr auto texpix_format_v = texpix_traits<sizeof(decl_std_data_value_t<Image>)>::format;
+    inline constexpr auto texpix_format_v = texpix_traits<sizeof(decl_std_data_value_t<Image>)>::format;
 
     template<class Image>
     [[nodiscard]] constexpr bool pixline_alignment_is_supported(const Image& img) noexcept
@@ -267,7 +267,7 @@ namespace gl
     {};
 
     template<texture_target target>
-    constexpr auto glsl_sampler_typeid_v = select_glsl_sampler_typeid<target>::value;
+    inline constexpr auto glsl_sampler_typeid_v = select_glsl_sampler_typeid<target>::value;
 
     [[nodiscard]]
     std::underlying_type_t<uniform_location> get_sampler_number(program_resource program, uniform_location location) noexcept;

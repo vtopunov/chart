@@ -7,7 +7,7 @@
 
 namespace ui
 {
-    constexpr auto invoke_event = ::invoke_if_exist_r_or_null<event_result_opt_t>;
+    inline constexpr auto invoke_event = ::invoke_if_exist_r_or_null<event_result_opt_t>;
 
 
     template<class T>
@@ -35,9 +35,9 @@ namespace ui
     struct nullcmdevent_result_t 
     {};
 
-    constexpr nullcmdevent_result_t nullcmdevent_result{};
+    inline constexpr nullcmdevent_result_t nullcmdevent_result{};
 
-    constexpr auto invoke_cmd_event = ::invoke_if_exist_r_or_null<nullcmdevent_result_t>;
+    inline constexpr auto invoke_cmd_event = ::invoke_if_exist_r_or_null<nullcmdevent_result_t>;
 
 
     template<class T>

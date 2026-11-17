@@ -16,18 +16,18 @@ namespace px
     {
         namespace private_detail_constants
         {
-            constexpr real_t _0_0{ 0.0 };
-            constexpr real_t _0_5{ 0.5 };
-            constexpr real_t _256_0{ 256.0 };
+            inline constexpr real_t _0_0{ 0.0 };
+            inline constexpr real_t _0_5{ 0.5 };
+            inline constexpr real_t _256_0{ 256.0 };
         }
 
         namespace private_detail_antialiasing_line
         {
             using namespace private_detail_constants;
 
-            constexpr auto eps = _0_5 / _256_0;
-            constexpr auto _256_plus = _256_0 + eps;
-            constexpr auto _256_0_0_bound = -255.0 - eps;
+            inline constexpr auto eps = _0_5 / _256_0;
+            inline constexpr auto _256_plus = _256_0 + eps;
+            inline constexpr auto _256_0_0_bound = -255.0 - eps;
 
             template<class T>
             [[nodiscard]] constexpr const T sign_if_not(const bool cond, const T value) noexcept
@@ -208,7 +208,7 @@ namespace px
                 }
             };
 
-            constexpr antialiasing_line_result invalid_antialiasing_line_result
+            inline constexpr antialiasing_line_result invalid_antialiasing_line_result
             {
                 .p{ nullptr },
                 .shade{ 0u },

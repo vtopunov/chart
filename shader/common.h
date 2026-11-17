@@ -23,7 +23,7 @@ namespace shader_common
     using is_uniform = is_base_of_class<shader_export::uniform_base, T>;
 
     template<class T>
-    constexpr bool is_uniform_v = is_uniform<T>::value;
+    inline constexpr bool is_uniform_v = is_uniform<T>::value;
 
     static_assert(is_uniform_v<shader_export::sampler>);
 
@@ -37,37 +37,39 @@ namespace shader_common
     using is_not_uniform = std::negation<is_uniform<T>>;
 
     template<class T>
-    constexpr bool is_sampler_v = is_sampler<T>::value;
+    inline constexpr bool is_sampler_v = is_sampler<T>::value;
 
     template<class T>
-    constexpr bool has_indexed_location_v = has_indexed_location<T>::value;
+    inline constexpr bool has_indexed_location_v = has_indexed_location<T>::value;
 
     template<class T>
-    constexpr bool is_not_uniform_v = is_not_uniform<T>::value;
+    inline constexpr bool is_not_uniform_v = is_not_uniform<T>::value;
 
 
     template<class Exports>
     using export_pack_variables_t = types_sol_t<ttypes_transform_t<subtypes_t, Exports> >;
 
     template<template <class> class Pred, class Exports>
-    constexpr size_t count_of_for_v = ttypes_count_if_v<Pred, export_pack_variables_t<Exports>>;
+    inline constexpr size_t count_of_for_v = ttypes_count_if_v<Pred, export_pack_variables_t<Exports>>;
 
     template<class Exports>
-    constexpr size_t count_of_locations_v = count_of_for_v<shader_common::has_indexed_location, Exports>;
+    inline constexpr size_t count_of_locations_v = count_of_for_v<shader_common::has_indexed_location, Exports>;
 
 
     namespace private_detail_shader_common
     {
         namespace private_detail_for_each_export
         {
-            constexpr struct forward_as_tuple_function
+            struct forward_as_tuple_function
             {
                 template<class... Args>
                 constexpr auto operator () (Args&&... args) const noexcept
                 {
                     return std::forward_as_tuple(std::forward<Args>(args)...);
                 }
-            } forward_as_tuple_function_v;
+            };
+            
+            inline constexpr forward_as_tuple_function forward_as_tuple_function_v{};
 
             template<class ExportsPack, size_t... Indices>
             [[nodiscard]] constexpr auto make_exports_tuple(std::index_sequence<Indices...>) noexcept
@@ -82,7 +84,7 @@ namespace shader_common
             }
 
             template<class ExportsPack>
-            constexpr auto exports_tuple_v = make_exports_tuple<ExportsPack>();
+            inline constexpr auto exports_tuple_v = make_exports_tuple<ExportsPack>();
 
             template<class Tuple, class Fn, size_t... Indices>
             constexpr void tuple_for_each(Tuple&& tuple, Fn&& fn, std::index_sequence<Indices...>) noexcept
@@ -142,7 +144,7 @@ namespace shader_common
             using is_empty_base = std::bool_constant<is_empty_base_helper<T>::value>;
 
             template<class T>
-            constexpr bool is_empty_base_v = is_empty_base<T>::value;
+            inline constexpr bool is_empty_base_v = is_empty_base<T>::value;
 
             template<class Lib, class Interface>
             [[nodiscard]] constexpr const Lib& interface_to_library(const Interface& lib_interface) noexcept
@@ -168,7 +170,7 @@ namespace shader_common
         namespace private_detail_index_location
         {
             template<template <class> class Pred, class ExportsPack>
-            constexpr auto uniforms_v = [] () noexcept
+            inline constexpr auto uniforms_v = [] () noexcept
             {
                 std::array<const shader_export::uniform_base*, count_of_for_v<Pred, ExportsPack> > result{};
                 for_each_export<ExportsPack>([data = result.data()] <class T> (const T & u) mutable noexcept

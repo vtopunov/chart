@@ -23,10 +23,10 @@ template<class Fn, class... Args>
 using is_const_invocable_decl = is_detected<decl_const_invoke_decl_result_t, Fn, Args...>;
 
 template<class Fn, class... Args>
-constexpr bool is_invocable_decl_v = is_invocable_decl<Fn, Args...>::value;
+inline constexpr bool is_invocable_decl_v = is_invocable_decl<Fn, Args...>::value;
 
 template<class Fn, class... Args>
-constexpr bool is_const_invocable_decl_v = is_const_invocable_decl<Fn, Args...>::value;
+inline constexpr bool is_const_invocable_decl_v = is_const_invocable_decl<Fn, Args...>::value;
 
 
 struct invalid_invoke_t
@@ -35,7 +35,7 @@ struct invalid_invoke_t
     constexpr explicit invalid_invoke_t(decltype(tag)) noexcept {}
 };
 
-constexpr invalid_invoke_t invalid_invoke{ invalid_invoke_t::tag };
+inline constexpr invalid_invoke_t invalid_invoke{ invalid_invoke_t::tag };
 
 struct no_invocable_t : invalid_invoke_t
 {
@@ -45,7 +45,7 @@ struct no_invocable_t : invalid_invoke_t
     {}
 };
 
-constexpr no_invocable_t no_invocable{ no_invocable_t::tag };
+inline constexpr no_invocable_t no_invocable{ no_invocable_t::tag };
 
 struct no_convertible_t : invalid_invoke_t
 {
@@ -55,7 +55,7 @@ struct no_convertible_t : invalid_invoke_t
     {}
 };
 
-constexpr no_convertible_t no_convertible{ no_convertible_t::tag };
+inline constexpr no_convertible_t no_convertible{ no_convertible_t::tag };
 
 
 template<class Fn, class... Args>
@@ -92,13 +92,13 @@ template<class R>
 using is_invalid_invoke_result = is_base_of_class<::invalid_invoke_t, R>;
 
 template<class R>
-constexpr bool is_invalid_invoke_result_v = ::is_invalid_invoke_result<R>::value;
+inline constexpr bool is_invalid_invoke_result_v = ::is_invalid_invoke_result<R>::value;
 
 template<class Fn, class... Args>
 using is_invocable = std::negation<::is_invalid_invoke_result<::invoke_if_exist_result_t<Fn, Args...>>>;
 
 template<class Fn, class... Args>
-constexpr bool is_invocable_v = ::is_invocable<Fn, Args...>::value;
+inline constexpr bool is_invocable_v = ::is_invocable<Fn, Args...>::value;
 
 
 struct make_no_invocable
@@ -177,10 +177,10 @@ struct invoke_if_exist_r_t
 };
 
 template<class R>
-constexpr invoke_if_exist_r_t<R> invoke_if_exist_r{};
+inline constexpr invoke_if_exist_r_t<R> invoke_if_exist_r{};
 
 template<class R, class MakeNull = instance_null_t<null_t<R> > >
-constexpr invoke_if_exist_r_t<R, MakeNull, MakeNull> invoke_if_exist_r_or_null{};
+inline constexpr invoke_if_exist_r_t<R, MakeNull, MakeNull> invoke_if_exist_r_or_null{};
 
 template<class Fn, class R, class... Args>
 using invoke_r_result_t = decltype(invoke_if_exist_r<R>(std::declval<Fn>(), std::declval<Args>()...));
@@ -189,4 +189,4 @@ template<class Fn, class R, class... Args>
 using is_invocable_r = std::negation<is_invalid_invoke_result<invoke_r_result_t<Fn, R, Args...>>>;
 
 template<class Fn, class R, class... Args>
-constexpr bool is_invocable_r_v = is_invocable_r<Fn, R, Args...>::value;
+inline constexpr bool is_invocable_r_v = is_invocable_r<Fn, R, Args...>::value;

@@ -15,7 +15,7 @@ namespace private_detail_zero
     using is_zero_type = is_detected<decl_zero_value_type_t, T>;
 
     template<class T>
-    constexpr auto is_zero_type_v = is_zero_type<T>::value;
+    inline constexpr bool is_zero_type_v = is_zero_type<T>::value;
 
     namespace private_detail_zero_type
     {
@@ -55,7 +55,7 @@ namespace private_detail_zero
         using is_zero_constructible = typename zero_type0<T>::is_zero_constructible_constant_type;
 
         template<class T>
-        constexpr bool is_zero_constructible_v = is_zero_constructible<T>::value;
+        inline constexpr bool is_zero_constructible_v = is_zero_constructible<T>::value;
 
         template<class T>
         struct zero_type : zero_type0<T>
@@ -93,7 +93,7 @@ namespace private_detail_zero
         using zero_t = zero_type<std::remove_cvref_t<T>>;
 
         template<class T = void>
-        constexpr zero_t<T> zero_v{};
+        inline constexpr zero_t<T> zero_v{};
     }
 
     namespace private_detail_compare
@@ -388,10 +388,10 @@ template<class T>
 using has_negative_comparison = is_detected<decl_is_negative_t, T>;  
 
 template<class T>
-constexpr bool has_positive_comparison_v = has_positive_comparison<T>::value;  
+inline constexpr bool has_positive_comparison_v = has_positive_comparison<T>::value;
 
 template<class T>
-constexpr bool has_negative_comparison_v = has_negative_comparison<T>::value;
+inline constexpr bool has_negative_comparison_v = has_negative_comparison<T>::value;
 
 
 template<class T>

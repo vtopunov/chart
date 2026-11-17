@@ -17,7 +17,7 @@ namespace private_detail_null
     using is_null_type = is_detected<decl_null_value_type_t, T>;
 
     template<class T>
-    constexpr bool is_null_type_v = is_null_type<T>::value;
+    inline constexpr bool is_null_type_v = is_null_type<T>::value;
 
     namespace private_detail_null_instance
     {
@@ -136,7 +136,7 @@ namespace private_detail_null
         using is_null_constructible = typename null_type_type<T>::is_null_constructible_constant_type;
 
         template<class T>
-        constexpr bool is_null_constructible_v = is_null_constructible<T>::value;
+        inline constexpr bool is_null_constructible_v = is_null_constructible<T>::value;
 
         template<class T>
         using null_t = typename null_type_type<T>::type;
@@ -163,10 +163,10 @@ namespace private_detail_null
         };
 
         template<class NullT>
-        constexpr instance_null_t<NullT> instance_null{};
+        inline constexpr instance_null_t<NullT> instance_null{};
 
         template<class T>
-        constexpr auto null_v = instance_null<null_t<T>>();
+        inline constexpr auto null_v = instance_null<null_t<T>>();
 
         template<class T>
         struct instance_for_null_t
@@ -185,7 +185,7 @@ namespace private_detail_null
         };
 
         template<class T>
-        constexpr instance_for_null_t<T> instance_for_null{};
+        inline constexpr instance_for_null_t<T> instance_for_null{};
     }
 
 
@@ -299,7 +299,7 @@ namespace private_detail_null
         using is_nullable = is_detected<decl_has_value_t, T>;
 
         template<class T>
-        constexpr bool is_nullable_v = is_nullable<T>::value;
+        inline constexpr bool is_nullable_v = is_nullable<T>::value;
     }
 
 

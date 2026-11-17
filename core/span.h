@@ -19,7 +19,7 @@ struct is_span<const T> : is_span<T>
 {};
 
 template <class T>
-constexpr bool is_span_v = is_span<T>::value;
+inline constexpr bool is_span_v = is_span<T>::value;
 
 
 namespace private_detail_span
@@ -49,7 +49,7 @@ namespace private_detail_span
         using extent_constant_for = extent_constant_for_impl<std::remove_cvref_t<C>>;
 
         template<class C>
-        constexpr auto extent_v = extent_constant_for<C>::value;
+        inline constexpr auto extent_v = extent_constant_for<C>::value;
     }
 }
 
@@ -81,7 +81,7 @@ namespace private_detail_span
 using private_detail_span::private_detail_has_extent_compatible::has_extent_compatible;
 
 template <class Target, size_t Extent, class Container>
-constexpr bool is_compatible2span_v = std::conjunction_v
+inline constexpr bool is_compatible2span_v = std::conjunction_v
 <
     std::negation<is_span<Container>>,
     has_std_size<Container>,
@@ -90,7 +90,7 @@ constexpr bool is_compatible2span_v = std::conjunction_v
 >;
 
 template <class T, size_t E, class OtherT, size_t OtherE>
-constexpr bool is_compatible_span2span_v = std::conjunction_v
+inline constexpr bool is_compatible_span2span_v = std::conjunction_v
 <
     std::disjunction<std::negation<is_same_is_const<T, OtherT>>, is_nsame_size<E, OtherE> >,
     is_const_convertible<OtherT, T>,

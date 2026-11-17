@@ -10,14 +10,14 @@ namespace px
         template<size_t L, size_t R>
         using alignment_is_equal = std::bool_constant<L == R>;
 
-        constexpr size_t default_alignment{ 4_uz };
-        constexpr size_t dynamic_alignment{ numeric_max_v<> };
+        inline constexpr size_t default_alignment{ 4_uz };
+        inline constexpr size_t dynamic_alignment{ numeric_max_v<> };
 
         template<size_t Alignment>
         using is_dynamic_alignment = alignment_is_equal<Alignment, dynamic_alignment>;
 
         template<size_t Alignment>
-        constexpr bool is_dynamic_alignment_v = is_dynamic_alignment<Alignment>::value;
+        inline constexpr bool is_dynamic_alignment_v = is_dynamic_alignment<Alignment>::value;
 
         template<size_t PxSize, size_t Alignment>
         [[nodiscard]] constexpr size_t aligned_width(size_t width) noexcept
@@ -40,7 +40,7 @@ namespace px
         }
 
         template<class T>
-        constexpr size_t default_alignment_for_v = max_size_v<alignof(T), default_alignment>;
+        inline constexpr size_t default_alignment_for_v = max_size_v<alignof(T), default_alignment>;
     }
 
     using namespace alignment_implementation;

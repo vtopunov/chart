@@ -29,10 +29,10 @@ namespace px
     using decl_space_t = std::remove_cvref_t<decltype(space(std::declval<const T&>()))>;
 
     template<class T>
-    constexpr auto decl_alignment_v = T::alignment;
+    inline constexpr auto decl_alignment_v = T::alignment;
 
     template<class T>
-    constexpr auto decl_space_alignment_v = decl_alignment_v<decl_space_t<T>>;
+    inline constexpr auto decl_space_alignment_v = decl_alignment_v<decl_space_t<T>>;
 
     template<class T>
     using decl_space_alignment_t = decltype(decl_space_alignment_v<T>);
@@ -52,7 +52,7 @@ namespace px
     >;
 
     template <class OtherContainer, class Px, class Space>
-    constexpr bool is_compatible_pixcontainer_v = is_compatible_pixcontainer<OtherContainer, Px, Space>::value;
+    inline constexpr bool is_compatible_pixcontainer_v = is_compatible_pixcontainer<OtherContainer, Px, Space>::value;
 
 
     template<class Px0, size_t Align0, class Px1, size_t Align1>
@@ -62,7 +62,7 @@ namespace px
     using is_compatible_alignment = std::disjunction<is_dynamic_alignment<Align>, alignment_is_equal<Align, OtherAlign>>;
 
     template<class OtherPx, size_t OtherAlign, class Px, size_t Align>
-    constexpr bool is_compatible_pixspan_v = std::conjunction_v<
+    inline constexpr bool is_compatible_pixspan_v = std::conjunction_v<
         std::negation<is_equal_pixspan_argument<OtherPx, OtherAlign, Px, Align>>,
         is_const_convertible<OtherPx, Px>,
         is_compatible_alignment<OtherAlign, Align>
@@ -76,7 +76,7 @@ namespace px
     using is_std_data_compatible_for_write = is_detected_exact<OutputPx, decl_remove_const_std_data_value_t, InputContainer>;
 
     template <class InputContainer, class OutputPx>
-    constexpr bool is_compatible_for_write_v = std::conjunction_v<
+    inline constexpr bool is_compatible_for_write_v = std::conjunction_v<
         std::negation<std::is_const<OutputPx>>,
         is_std_data_compatible_for_write<InputContainer, OutputPx>,
         has_space_alignment<InputContainer>

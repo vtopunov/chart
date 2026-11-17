@@ -93,7 +93,7 @@ template<class T>
 using is_base_of_vec2 = typename private_detail_is_base_of_vec2::is_base_of_vec2_type<T>::type;
 
 template<class T>
-constexpr auto is_base_of_vec2_v = is_base_of_vec2<T>::value;
+inline constexpr bool is_base_of_vec2_v = is_base_of_vec2<T>::value;
 
 
 template<class T>

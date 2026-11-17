@@ -49,13 +49,13 @@ namespace ui
             }
         };
 
-        constexpr gesture no_gesture{ gesture::no_transformation };
+        inline constexpr gesture no_gesture{ gesture::no_transformation };
 
         using vpoint_cache = vec2<point2re>;
 
-        constexpr auto no_cached_value = numeric_inf_v<real_t>;
-        constexpr auto no_cached_point = fill_to<point2re>(no_cached_value);
-        constexpr auto no_cached_vpoint = fill_to<vpoint_cache>(no_cached_point);
+        inline constexpr auto no_cached_value = numeric_inf_v<real_t>;
+        inline constexpr auto no_cached_point = fill_to<point2re>(no_cached_value);
+        inline constexpr auto no_cached_vpoint = fill_to<vpoint_cache>(no_cached_point);
 
         [[nodiscard]]
         gesture new_manipulation(vpoint_cache& cached_p, const ui::pointer_event& e) noexcept;

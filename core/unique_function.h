@@ -31,22 +31,22 @@ namespace private_detail_function
             const Vtbl trivial_alloc;
         };
 
-        constexpr auto no_destructor = [] (void*) noexcept
+        inline constexpr auto no_destructor = [] (void*) noexcept
         {};
 
-        constexpr auto no_move_constructor = [] (void*, void* right) noexcept
+        inline constexpr auto no_move_constructor = [] (void*, void* right) noexcept
         {
             return right;
         };
 
-        constexpr auto trivial_small_move_constructor = [] (void* small, void* right) noexcept
+        inline constexpr auto trivial_small_move_constructor = [] (void* small, void* right) noexcept
         {
             D_ASSERT(is_newmem(small, right, nbyte_arch));
             memcpy(small, right, nbyte_arch);
             return small;
         };
 
-        constexpr default_memory_vtbl<unique_memory_vtbl> default_unique_memory_vtbl
+        inline constexpr default_memory_vtbl<unique_memory_vtbl> default_unique_memory_vtbl
         {
             .no_memory
             {
@@ -71,7 +71,7 @@ namespace private_detail_function
 
         using unique_memory_pvtbl_t = const unique_memory_vtbl*;
 
-        constexpr default_memory_vtbl<unique_memory_pvtbl_t> default_unique_memory_pvtbl
+        inline constexpr default_memory_vtbl<unique_memory_pvtbl_t> default_unique_memory_pvtbl
         {
             .no_memory{ &default_unique_memory_vtbl.no_memory },
             .trivial_small{ &default_unique_memory_vtbl.trivial_small },
@@ -114,7 +114,7 @@ namespace private_detail_function
         };
 
         template<class T>
-        constexpr unique_memory_vtbl small_unique_memory_vtbl_v
+        inline constexpr unique_memory_vtbl small_unique_memory_vtbl_v
         {
             conditional_op_or_t
             <
@@ -133,10 +133,10 @@ namespace private_detail_function
         };
 
         template<class T>
-        constexpr unique_memory_pvtbl_t small_unique_memory_vtbl_p{ &small_unique_memory_vtbl_v<T> };
+        inline constexpr unique_memory_pvtbl_t small_unique_memory_vtbl_p{ &small_unique_memory_vtbl_v<T> };
 
         template<class T>
-        constexpr unique_memory_vtbl alloc_unique_memory_vtbl_v
+        inline constexpr unique_memory_vtbl alloc_unique_memory_vtbl_v
         {
             [](void* left) noexcept
             {
@@ -147,7 +147,7 @@ namespace private_detail_function
         };
 
         template<class T>
-        constexpr unique_memory_pvtbl_t alloc_unique_memory_vtbl_p{ &alloc_unique_memory_vtbl_v<T> };
+        inline constexpr unique_memory_pvtbl_t alloc_unique_memory_vtbl_p{ &alloc_unique_memory_vtbl_v<T> };
 
         namespace unique_memory_public_namespace
         {

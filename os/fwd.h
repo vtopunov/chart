@@ -117,7 +117,7 @@ namespace os
     namespace private_detail_osfwd_test
     {
         template<class Handle>
-        constexpr bool handle_type_is_valid_v = std::conjunction_v<std::is_pointer<Handle>, std::is_class<std::remove_pointer_t<Handle>>>;
+        inline constexpr bool handle_type_is_valid_v = std::conjunction_v<std::is_pointer<Handle>, std::is_class<std::remove_pointer_t<Handle>>>;
 
         D_ONLY_OS_WINDOWS(static_assert(handle_type_is_valid_v<brush_handle_t>));
         static_assert(handle_type_is_valid_v<window_handle_t>);

@@ -56,7 +56,7 @@ template<class A0, class A1, class V0, class V1>
     return (value0 * arg1 - value1 * arg0) / (arg1 - arg0);
 }
 
-constexpr struct
+struct lerp_fun_t
 {
     template<class A0, class A1, class V0, class V1>
     [[nodiscard]] constexpr decltype(auto) operator () (const A0& arg0, const A1& arg1, const V0& value0, const V1& value1) const noexcept
@@ -67,14 +67,16 @@ constexpr struct
             lerp_shift_value(arg0, arg1, value0, value1)
         };
     }
-} lerp{};
+};
 
-
-constexpr struct
+struct lerp_scale_fun_t
 {
     template<class A0, class A1, class V0, class V1>
     [[nodiscard]] constexpr decltype(auto) operator () (const A0& arg0, const A1& arg1, const V0& value0, const V1& value1) const noexcept
     {
         return polynomial2{ lerp_scale_value(arg0, arg1, value0, value1) };
     }
-} lerp_scale{};
+};
+
+inline constexpr lerp_fun_t lerp{};
+inline constexpr lerp_scale_fun_t lerp_scale{};

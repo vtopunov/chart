@@ -274,7 +274,7 @@ template<class T>
 }
 
 
-constexpr auto size_overflow_maxi = narrow<size_t>(numeric_max_v<ptrdiff_t>);
+inline constexpr auto size_overflow_maxi = narrow<size_t>(numeric_max_v<ptrdiff_t>);
 static_assert(size_overflow_maxi < numeric_max_v<size_t>);
 
 template<size_t mul>
@@ -472,7 +472,7 @@ template<class T>
 using has_size_bytes = is_detected<decl_size_bytes_t, T>;
 
 template<class C>
-constexpr bool has_size_bytes_v = has_size_bytes<C>::value;
+inline constexpr bool has_size_bytes_v = has_size_bytes<C>::value;
 
 
 template<class>

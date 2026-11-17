@@ -22,10 +22,10 @@ struct instance_default_t<T, std::enable_if_t<std::is_default_constructible_v<T>
 };
 
 template<class T>
-constexpr instance_default_t<T> instance_default{};
+inline constexpr instance_default_t<T> instance_default{};
 
 template<class T>
-constexpr T default_v{};
+inline constexpr T default_v{};
 
 namespace ordered_overload
 {
@@ -48,9 +48,9 @@ namespace ordered_overload
     using _order = _overload<T>;
 
     template<class T>
-    constexpr _overload<T> _overload_v{ nullptr };
+    inline constexpr _overload<T> _overload_v{ nullptr };
 
-    constexpr _order<_0> _start{ nullptr };
+    inline constexpr _order<_0> _start{ nullptr };
 }
 
 template<class T, class... Args>
@@ -122,20 +122,20 @@ template <class To, template<class...> class Op, class... Args>
 using is_detected_convertible = std::is_convertible<detected_or_t<ttypes<To>, Op, Args...>, To>;
 
 template< template<class...> class Op, class... Args >
-constexpr bool is_detected_v = is_detected<Op, Args...>::value;
+inline constexpr bool is_detected_v = is_detected<Op, Args...>::value;
 
 template <class Expected, template<class...> class Op, class... Args>
-constexpr bool is_detected_exact_v = is_detected_exact<Expected, Op, Args...>::value;
+inline constexpr bool is_detected_exact_v = is_detected_exact<Expected, Op, Args...>::value;
 
 template <class To, template<class...> class Op, class... Args>
-constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
+inline constexpr bool is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
 
 
 template<size_t Value>
 using index_constant = std::integral_constant<size_t, Value>;
 
 template<size_t Value>
-constexpr index_constant<Value> index_constant_v{};
+inline constexpr index_constant<Value> index_constant_v{};
 
 
 struct less_fn
@@ -148,20 +148,20 @@ struct less_fn
     }
 };
 
-constexpr less_fn less_op{};
+inline constexpr less_fn less_op{};
 
 template<class L, class R>
 using is_less = std::bool_constant<!!less_op(L::value, R::value)>;
 
 template<class L, class R>
-constexpr bool is_less_v = is_less<L, R>::value;
+inline constexpr bool is_less_v = is_less<L, R>::value;
 
 
 template<class L, class... OrR>
 using is_same_or = std::disjunction<std::is_same<L, OrR>...>;
 
 template<class L, class... OrR>
-constexpr bool is_same_or_v = is_same_or<L, OrR...>::value;
+inline constexpr bool is_same_or_v = is_same_or<L, OrR...>::value;
 
 
 template<bool test, template<class...> class Op0, template<class...> class Op1, class... Args>
@@ -254,7 +254,7 @@ template<class T>
 using remove_cveref_t = std::remove_cvref_t<remove_enum_t<T>>;
 
 template <class T>
-constexpr bool is_nonbool_integral_v = std::conjunction_v<
+inline constexpr bool is_nonbool_integral_v = std::conjunction_v<
     std::is_integral<T>,
     std::negation<std::is_same<std::remove_cv_t<T>, bool> >
 >;
@@ -338,7 +338,7 @@ namespace private_detail_type_traits
         using has_no_unique_address = conditional_op_or_t<std::is_class_v<T>, std::false_type, has_no_unique_address_helper, T>;
 
         template<class T>
-        constexpr bool has_no_unique_address_v = has_no_unique_address<T>::value;
+        inline constexpr bool has_no_unique_address_v = has_no_unique_address<T>::value;
     }
 }
 
@@ -364,7 +364,7 @@ template<class T>
 using is_address = private_detail_type_traits::private_detail_is_address::is_address_helper<std::remove_reference_t<T>>;
 
 template<class T>
-constexpr bool is_address_v = is_address<T>::value;
+inline constexpr bool is_address_v = is_address<T>::value;
 
 template<class T>
 using has_qualifier = std::disjunction<
@@ -376,7 +376,7 @@ using has_qualifier = std::disjunction<
 >;
 
 template<class T>
-constexpr bool has_qualifier_v = has_qualifier<T>::value;
+inline constexpr bool has_qualifier_v = has_qualifier<T>::value;
 
 template<class T>
 using is_unqualified_class = std::conjunction<
@@ -386,7 +386,7 @@ using is_unqualified_class = std::conjunction<
 >;
 
 template<class T>
-constexpr bool is_unqualified_class_v = is_unqualified_class<T>::value;
+inline constexpr bool is_unqualified_class_v = is_unqualified_class<T>::value;
 
 
 template<class From, class To>
@@ -402,7 +402,7 @@ struct is_const_convertible<T, const T> : std::true_type
 {};
 
 template<class From, class To>
-constexpr bool is_const_convertible_v = is_const_convertible<From, To>::value;
+inline constexpr bool is_const_convertible_v = is_const_convertible<From, To>::value;
 
 
 template<class T>
@@ -412,7 +412,7 @@ template<class T>
 using tr_sizeof = add_sizeof_t<replace_void_t<T, std::byte> >;
 
 template<class T>
-constexpr size_t sizeof_v = tr_sizeof<T>::value;
+inline constexpr size_t sizeof_v = tr_sizeof<T>::value;
 
 
 template<class T, T L, T R>
@@ -481,16 +481,16 @@ template<class L, class R>
 using is_same_decay = is_same_decay_r<std::decay_t<L>, R>;
 
 template<class B, class D>
-constexpr bool is_base_of_class_v = is_base_of_class<B, D>::value;
+inline constexpr bool is_base_of_class_v = is_base_of_class<B, D>::value;
 
 template<class L, class R>
-constexpr bool is_same_uncvref_v = is_same_uncvref<L, R>::value;
+inline constexpr bool is_same_uncvref_v = is_same_uncvref<L, R>::value;
 
 template<class L, class R>
-constexpr bool is_same_uncv_v = is_same_uncv<L, R>::value;
+inline constexpr bool is_same_uncv_v = is_same_uncv<L, R>::value;
 
 template<class L, class R>
-constexpr bool is_same_decay_v = is_same_decay<L, R>::value;
+inline constexpr bool is_same_decay_v = is_same_decay<L, R>::value;
 
 
 template <class T, class... Types>
@@ -504,13 +504,13 @@ using has_type_decay = std::disjunction<is_same_decay_r<T, Types>...>;
 
 
 template <class T, class... Types>
-constexpr bool has_type_v = has_type<T, Types...>::value;
+inline constexpr bool has_type_v = has_type<T, Types...>::value;
 
 template <class T, class... Types>
-constexpr bool has_type_uncvref_v = has_type_uncvref<T, Types...>::value;
+inline constexpr bool has_type_uncvref_v = has_type_uncvref<T, Types...>::value;
 
 template <class T, class... Types>
-constexpr bool has_type_decay_v = has_type_decay<T, Types...>::value;
+inline constexpr bool has_type_decay_v = has_type_decay<T, Types...>::value;
 
 
 template<class T>
@@ -546,7 +546,7 @@ struct identical_derived
 };
 
 template<class Derived, class Base>
-constexpr identical_derived<Derived, Base> identical_derived_v{};
+inline constexpr identical_derived<Derived, Base> identical_derived_v{};
 
 template<class Derived, class Base>
 [[nodiscard]] constexpr const Derived& to_identical_derived(const Base& base) noexcept
@@ -557,7 +557,7 @@ template<class Derived, class Base>
 
 
 template<class T>
-constexpr bool is_pointer_or_nullptr_v = std::disjunction_v<std::is_pointer<T>, std::is_null_pointer<T>>;
+inline constexpr bool is_pointer_or_nullptr_v = std::disjunction_v<std::is_pointer<T>, std::is_null_pointer<T>>;
 
 
 template<class T, class... Args>
@@ -567,7 +567,7 @@ template<class T, class... Args>
 using is_brace_constructible = is_detected<decl_brace_construct_t, T, Args...>;
 
 template<class T, class... Args>
-constexpr bool is_brace_constructible_v = is_brace_constructible<T, Args...>::value;
+inline constexpr bool is_brace_constructible_v = is_brace_constructible<T, Args...>::value;
 
 template<class T, class = void>
 struct is_constexpr_default_constructible : std::false_type {};
@@ -578,7 +578,7 @@ struct is_constexpr_default_constructible<T,
 > : std::true_type {};
 
 template<class T>
-constexpr bool is_constexpr_default_constructible_v = is_constexpr_default_constructible<T>::value;
+inline constexpr bool is_constexpr_default_constructible_v = is_constexpr_default_constructible<T>::value;
 
 
 template<class T>
@@ -612,19 +612,19 @@ template<class T>
 using has_post_dec_op = is_detected<decl_post_dec_op_t, T>;
 
 template<class T>
-constexpr bool has_unary_munis_op_v = has_unary_munis_op<T>::value;
+inline constexpr bool has_unary_munis_op_v = has_unary_munis_op<T>::value;
 
 template<class T>
-constexpr bool has_pre_inc_op_v = has_pre_inc_op<T>::value;
+inline constexpr bool has_pre_inc_op_v = has_pre_inc_op<T>::value;
 
 template<class T>
-constexpr bool has_post_inc_op_v = has_post_inc_op<T>::value;
+inline constexpr bool has_post_inc_op_v = has_post_inc_op<T>::value;
 
 template<class T>
-constexpr bool has_pre_dec_op_v = has_pre_dec_op<T>::value;
+inline constexpr bool has_pre_dec_op_v = has_pre_dec_op<T>::value;
 
 template<class T>
-constexpr bool has_post_dec_op_v = has_post_dec_op<T>::value;
+inline constexpr bool has_post_dec_op_v = has_post_dec_op<T>::value;
 
 
 template<class L, class R>
@@ -634,7 +634,7 @@ template<class L, class R>
 using has_assignment_op = is_detected<decl_assignment_op_t, L, R>;
 
 template<class L, class R>
-constexpr bool has_assignment_op_v = has_assignment_op<L, R>::value;
+inline constexpr bool has_assignment_op_v = has_assignment_op<L, R>::value;
 
 template<class L, class R = L>
 using decl_eq_op_t = decltype(std::declval<const L&>() == std::declval<const R&>());

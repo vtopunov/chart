@@ -10,7 +10,7 @@
 static_assert(std::is_unsigned_v<denomi_t>);
 
 template<denomi_t UDen>
-constexpr bool is_dynamic_denominator_v = (UDen == dynamic_denominator);
+inline constexpr bool is_dynamic_denominator_v = (UDen == dynamic_denominator);
 
 template<denomi_t UDen>
 using is_dynamic_denominator = std::bool_constant< is_dynamic_denominator_v<UDen> >;

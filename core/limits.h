@@ -111,31 +111,31 @@ struct numeric_deduction_factory<C, void>
 
 
 template<class T = void>
-constexpr auto numeric_max_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_max_factory, T>::create();
+inline constexpr auto numeric_max_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_max_factory, T>::create();
 
 template<class T = void>
-constexpr auto numeric_min_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_min_factory, T>::create();
+inline constexpr auto numeric_min_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_min_factory, T>::create();
 
 template<class T = void>
-constexpr auto numeric_lowest_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_lowest_factory, T>::create();
+inline constexpr auto numeric_lowest_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_lowest_factory, T>::create();
 
 template<class T = void>
-constexpr auto numeric_eps_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_eps_factory, T>::create();
+inline constexpr auto numeric_eps_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_eps_factory, T>::create();
 
 template<class T = void>
-constexpr auto numeric_lowest_eps_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_lowest_eps_factory, T>::create();
+inline constexpr auto numeric_lowest_eps_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_lowest_eps_factory, T>::create();
 
 template<class T = void>
-constexpr auto numeric_nan_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_nan_factory, T>::create();
+inline constexpr auto numeric_nan_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_nan_factory, T>::create();
 
 template<class T = void>
-constexpr auto numeric_inf_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_inf_factory, T>::create();
+inline constexpr auto numeric_inf_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_inf_factory, T>::create();
 
 template<class T = void>
-constexpr auto numeric_lowest_inf_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_lowest_inf_factory, T>::create();
+inline constexpr auto numeric_lowest_inf_v = numeric_deduction_factory<private_detail_numeric_limits::numeric_lowest_inf_factory, T>::create();
 
 template<class T>
-constexpr auto numeric_digits_v = std::numeric_limits<T>::digits;
+inline constexpr auto numeric_digits_v = std::numeric_limits<T>::digits;
 
 
 template<class T>

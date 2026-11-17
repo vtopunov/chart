@@ -3,7 +3,7 @@
 #include <core/rational.h>
 
 
-constexpr auto luminance_max = numeric_max_v<luminance_t>;
+inline constexpr auto luminance_max = numeric_max_v<luminance_t>;
 
 namespace private_detail_argb_color
 {
@@ -55,7 +55,7 @@ struct luminance_max_t<void>
 };
 
 template<class T = void>
-constexpr luminance_max_t<T> luminance_max_v{};
+inline constexpr luminance_max_t<T> luminance_max_v{};
 
 
 template<class Target, class Source>
@@ -228,7 +228,7 @@ struct is_rgba_color<const T> : is_rgba_color<T>
 {};
 
 template<class T>
-constexpr bool is_rgba_color_v = is_rgba_color<T>::value;
+inline constexpr bool is_rgba_color_v = is_rgba_color<T>::value;
 
 template<class Target, class Source>
 [[nodiscard]] constexpr Target luminance_cast(Source source) noexcept
@@ -569,27 +569,27 @@ namespace colors
 {
     using namespace color_literals;
 
-    constexpr auto white = make_white(luminance_max);
-    constexpr auto gray = make_white(0x7f_lum);
-    constexpr auto black = inverse(white);
+    inline constexpr auto white = make_white(luminance_max);
+    inline constexpr auto gray = make_white(0x7f_lum);
+    inline constexpr auto black = inverse(white);
 
-    constexpr auto red = black.with_red(luminance_max_v<>);
-    constexpr auto green = black.with_green(luminance_max_v<>);
-    constexpr auto blue = black.with_blue(luminance_max_v<>);
+    inline constexpr auto red = black.with_red(luminance_max_v<>);
+    inline constexpr auto green = black.with_green(luminance_max_v<>);
+    inline constexpr auto blue = black.with_blue(luminance_max_v<>);
 
-    constexpr auto cyan = inverse(red);
-    constexpr auto magenta = inverse(green);
-    constexpr auto yellow = inverse(blue);
+    inline constexpr auto cyan = inverse(red);
+    inline constexpr auto magenta = inverse(green);
+    inline constexpr auto yellow = inverse(blue);
 
-    constexpr auto white_f = to_colorf(white);
-    constexpr auto gray_f = make_white(0.5_lum);
-    constexpr auto black_f = to_colorf(black);
+    inline constexpr auto white_f = to_colorf(white);
+    inline constexpr auto gray_f = make_white(0.5_lum);
+    inline constexpr auto black_f = to_colorf(black);
 
-    constexpr auto red_f = to_colorf(red);
-    constexpr auto green_f = to_colorf(green);
-    constexpr auto blue_f = to_colorf(blue);
+    inline constexpr auto red_f = to_colorf(red);
+    inline constexpr auto green_f = to_colorf(green);
+    inline constexpr auto blue_f = to_colorf(blue);
 
-    constexpr auto cyan_f = to_colorf(cyan);
-    constexpr auto magenta_f = to_colorf(magenta);
-    constexpr auto yellow_f = to_colorf(yellow);
+    inline constexpr auto cyan_f = to_colorf(cyan);
+    inline constexpr auto magenta_f = to_colorf(magenta);
+    inline constexpr auto yellow_f = to_colorf(yellow);
 }

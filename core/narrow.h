@@ -13,10 +13,10 @@ namespace private_detail_narrow
     using is_narrowing = is_less<tr_numeric_digits<Target>, tr_numeric_digits<Source> >;
 
     template<class Target, class Source>
-    constexpr bool is_narrowing_v = is_narrowing<Target, Source>::value;
+    inline constexpr bool is_narrowing_v = is_narrowing<Target, Source>::value;
 
     template<class Target, class Source>
-    constexpr bool is_narrowing_or_same_v = !is_narrowing_v<Source, Target>;
+    inline constexpr bool is_narrowing_or_same_v = !is_narrowing_v<Source, Target>;
 
     template<class Target, class Source>
     using is_signed2unsigned = std::conjunction<
@@ -70,10 +70,10 @@ namespace private_detail_narrow
     using is_safe_numeric_not_same_conversion = is_safe_numeric_not_same_conversion0<std::remove_cvref_t<T>, std::remove_cvref_t<S>>;
 
     template<class T, class S>
-    constexpr bool is_safe_numeric_conversion_v = is_safe_numeric_conversion<T, S>::value;
+    inline constexpr bool is_safe_numeric_conversion_v = is_safe_numeric_conversion<T, S>::value;
 
     template<class T, class S>
-    constexpr bool is_safe_numeric_not_same_conversion_v = is_safe_numeric_not_same_conversion<T, S>::value;
+    inline constexpr bool is_safe_numeric_not_same_conversion_v = is_safe_numeric_not_same_conversion<T, S>::value;
 
     template<class Target, class Source>
     [[nodiscard]] constexpr bool is_safe_upper_narrowing_conversion(const Source& v) noexcept

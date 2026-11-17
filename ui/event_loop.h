@@ -38,8 +38,8 @@ namespace ui
 #if defined(D_OS_WINDOWS)
     namespace private_detail_event_loop
     {
-        constexpr auto msg_storage_size = 48_uz;
-        constexpr uint_t pm_remove{ 1u };
+        inline constexpr auto msg_storage_size = 48_uz;
+        inline constexpr uint_t pm_remove{ 1u };
 
         void message_wait_for(milliseconds timeout) noexcept;
 

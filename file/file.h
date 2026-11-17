@@ -16,7 +16,7 @@ namespace file
 
     namespace private_detail_file_descriptor
     {
-        constexpr auto file_descriptor_is_integral_v = std::is_integral_v<os::file_descriptor_t>;
+        inline constexpr auto file_descriptor_is_integral_v = std::is_integral_v<os::file_descriptor_t>;
 
         struct s_file_descriptor
         {};
@@ -69,7 +69,7 @@ namespace file
 
     using invalidfile_t = null_t<file_resource>;
     static_assert(std::is_same_v<invalidfile_t, file_resource::null_type>);
-    constexpr invalidfile_t invalidfile{};
+    inline constexpr invalidfile_t invalidfile{};
 
     struct ro_file_resource : file_resource
     {};
@@ -104,28 +104,28 @@ namespace file
         operator ro_file_resource() const noexcept;
     };
 
-    constexpr stdin_file_resource stdin_fd{};
+    inline constexpr stdin_file_resource stdin_fd{};
 
     struct stdout_file_resource
     {
         operator wo_file_resource() const noexcept;
     };
 
-    constexpr stdout_file_resource stdout_fd{};
+    inline constexpr stdout_file_resource stdout_fd{};
 
     struct stderr_file_resource
     {
         operator wo_file_resource() const noexcept;
     };
 
-    constexpr stderr_file_resource stderr_fd{};
+    inline constexpr stderr_file_resource stderr_fd{};
 
 #else
-    constexpr ro_file_resource stdin_fd{ file_resource_descriptor_t::stdin_fileno };
+    inline constexpr ro_file_resource stdin_fd{ file_resource_descriptor_t::stdin_fileno };
 
-    constexpr wo_file_resource stdout_fd{ file_resource_descriptor_t::stdout_fileno };
+    inline constexpr wo_file_resource stdout_fd{ file_resource_descriptor_t::stdout_fileno };
 
-    constexpr wo_file_resource stderr_fd{ file_resource_descriptor_t::stderr_fileno };
+    inline constexpr wo_file_resource stderr_fd{ file_resource_descriptor_t::stderr_fileno };
 
 #endif
 

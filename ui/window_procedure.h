@@ -15,7 +15,7 @@ namespace ui
     ) noexcept;
 
 #else
-    constexpr auto window_procedure = def_window_proc;
+    inline constexpr auto window_procedure = def_window_proc;
 
 #endif
 

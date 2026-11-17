@@ -8,7 +8,7 @@ D_WARNING_DISABLE_MSVC(W_do_not_use_static_cast)
 D_WARNING_DISABLE_MSVC(W_arithmetic_overflow);
 
 template<class T0, class T1>
-constexpr bool is_unsigned2_v = std::conjunction_v
+inline constexpr bool is_unsigned2_v = std::conjunction_v
 <
     std::is_unsigned<T0>,
     std::is_unsigned<T1>

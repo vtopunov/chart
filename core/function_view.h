@@ -66,10 +66,10 @@ namespace private_detail_function
         namespace private_detail_make_nothing_result
         {
             template<size_t N>
-            constexpr std::byte zero_byte_array_v[N]{};
+            inline constexpr std::byte zero_byte_array_v[N]{};
 
             template<size_t N>
-            constexpr const void* const p_memzero_v{ zero_byte_array_v<N> };
+            inline constexpr const void* const p_memzero_v{ zero_byte_array_v<N> };
 
 
             template<class R>
@@ -148,13 +148,13 @@ namespace private_detail_function
             using decl_view_method_t = std::remove_const_t<decltype(std::declval<T>().view())>;
 
             template<class View, class Fn>
-            constexpr bool is_compatible_view0_v = std::conjunction_v<
+            inline constexpr bool is_compatible_view0_v = std::conjunction_v<
                 std::negation<std::is_same<View, Fn>>,
                 is_detected_exact<View, decl_view_method_t, Fn>
             >;
 
             template<class View, class Fn>
-            constexpr bool is_compatible_view_v = is_compatible_view0_v<std::remove_const_t<View>, std::decay_t<Fn> >;
+            inline constexpr bool is_compatible_view_v = is_compatible_view0_v<std::remove_const_t<View>, std::decay_t<Fn> >;
 
             template<class View, class Fn>
             using is_uncompatible_view0 = std::conjunction<
