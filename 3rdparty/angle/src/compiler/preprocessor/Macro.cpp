@@ -11,26 +11,32 @@
 
 namespace pp
 {
+    Macro::Macro()
+        : predefined(false), disabled(false), expansionCount(0), type(kTypeObj)
+    {}
 
-bool Macro::equals(const Macro &other) const
-{
-    return (type == other.type) && (name == other.name) && (parameters == other.parameters) &&
-           (replacements == other.replacements);
-}
+    Macro::~Macro()
+    {}
 
-void PredefineMacro(MacroSet *macroSet, const char *name, int value)
-{
-    Token token;
-    token.type = Token::CONST_INT;
-    token.text = ToString(value);
+    bool Macro::equals(const Macro& other) const
+    {
+        return (type == other.type) && (name == other.name) && (parameters == other.parameters) &&
+            (replacements == other.replacements);
+    }
 
-    std::shared_ptr<Macro> macro = std::make_shared<Macro>();
-    macro->predefined            = true;
-    macro->type                  = Macro::kTypeObj;
-    macro->name                  = name;
-    macro->replacements.push_back(token);
+    void PredefineMacro(MacroSet* macroSet, const char* name, int value)
+    {
+        Token token;
+        token.type = Token::CONST_INT;
+        token.text = ToString(value);
 
-    (*macroSet)[name] = macro;
-}
+        std::shared_ptr<Macro> macro = std::make_shared<Macro>();
+        macro->predefined = true;
+        macro->type = Macro::kTypeObj;
+        macro->name = name;
+        macro->replacements.push_back(token);
+
+        (*macroSet)[name] = macro;
+    }
 
 }  // namespace pp

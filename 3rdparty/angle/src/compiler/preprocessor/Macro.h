@@ -27,7 +27,9 @@ struct Macro
     typedef std::vector<std::string> Parameters;
     typedef std::vector<Token> Replacements;
 
-    Macro() : predefined(false), disabled(false), expansionCount(0), type(kTypeObj) {}
+    Macro();
+    ~Macro();
+
     bool equals(const Macro &other) const;
 
     bool predefined;
